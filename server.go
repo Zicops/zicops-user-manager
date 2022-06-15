@@ -40,7 +40,7 @@ func main() {
 	port, err := strconv.Atoi(portFromEnv)
 
 	if err != nil {
-		port = 8091
+		port = 8094
 	}
 	bootUPErrors := make(chan error, 1)
 	go monitorSystem(cancel, bootUPErrors)
