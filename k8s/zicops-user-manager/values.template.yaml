@@ -12,7 +12,7 @@ image:
   tag: ${GITHUB_SHA}
   pullPolicy: Always
   health: /healthz
-  port: 8091
+  port: 8094
 
 maxBodySizeMb: 100
 # TODO add more routes for frontend etc..
