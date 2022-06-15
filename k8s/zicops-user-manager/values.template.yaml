@@ -1,0 +1,29 @@
+# Default values for zicops-user-manager.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+maxSurge: 1
+
+#Backend image details
+
+image:
+  repository: gcr.io/zicops-one/zicops-user-manager
+  tag: ${GITHUB_SHA}
+  pullPolicy: Always
+  health: /healthz
+  port: 8091
+
+maxBodySizeMb: 100
+# TODO add more routes for frontend etc..
+
+service:
+  type: ClusterIP
+  port: 80
+
+zcServiceAccount:
+  name: zicops-cc
+  secret: zicops-cc
+  credential:
+    dir: /var/run/secrets/zicops-cc
+    file: zicops-cc.json

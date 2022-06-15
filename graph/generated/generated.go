@@ -15,7 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/introspection"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
-	"github.com/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
 // region    ************************** generated!.gotpl **************************

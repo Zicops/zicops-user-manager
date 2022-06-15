@@ -7,8 +7,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/zicops-user-manager/graph"
-	"github.com/zicops-user-manager/graph/generated"
+	"github.com/zicops/zicops-user-manager/graph"
+	"github.com/zicops/zicops-user-manager/graph/generated"
 )
 
 const defaultPort = "8080"

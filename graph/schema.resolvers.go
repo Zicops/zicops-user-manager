@@ -7,8 +7,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zicops-user-manager/graph/generated"
-	"github.com/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/graph/generated"
+	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
