@@ -27,8 +27,12 @@ input RegisterUser {
   firstName: String
   lastName: String
   email: String
+  phone: String
+  Role: String
+  Status: String
 }
 
 type Mutation {
   registerUser(input: RegisterUser!): Boolean
+  inviteUsers(emails: [String!]!): Boolean
 }

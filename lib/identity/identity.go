@@ -182,7 +182,29 @@ func (id *IDP) RegisterUser(ctx context.Context, email string, firstName string,
 	params := (&auth.UserToCreate{}).
 		Email(email).
 		EmailVerified(false).
-		DisplayName(firstName + " " + lastName)
+		DisplayName(firstName + " " + lastName).
+		PhoneNumber(phone)
+	if id.tClient != nil {
+		currentUser, err = id.tClient.CreateUser(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		currentUser, err = id.client.CreateUser(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return currentUser, nil
+}
+
+// InviteUser ...
+func (id *IDP) InviteUser(ctx context.Context, email string) (*auth.UserRecord, error) {
+	var err error
+	var currentUser *auth.UserRecord
+	params := (&auth.UserToCreate{}).
+		Email(email).
+		EmailVerified(false)
 	if id.tClient != nil {
 		currentUser, err = id.tClient.CreateUser(ctx, params)
 		if err != nil {

@@ -22,6 +22,15 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.Registe
 	return result, nil
 }
 
+func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string) (*bool, error) {
+	result, err := handlers.InviteUsers(ctx, emails)
+	if err != nil {
+		log.Errorf("Error registering user: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 	panic(fmt.Errorf("not implemented"))
 }

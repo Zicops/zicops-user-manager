@@ -11,6 +11,9 @@ type RegisterUser struct {
 	FirstName *string `json:"firstName"`
 	LastName  *string `json:"lastName"`
 	Email     *string `json:"email"`
+	Phone     *string `json:"phone"`
+	Role      *string `json:"Role"`
+	Status    *string `json:"Status"`
 }
 
 type Todo struct {
