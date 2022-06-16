@@ -7,6 +7,13 @@ type NewTodo struct {
 	UserID string `json:"userId"`
 }
 
+type RegisterUser struct {
+	FirstName *string `json:"firstName"`
+	LastName  *string `json:"lastName"`
+	Email     *string `json:"email"`
+	Phone     *string `json:"phone"`
+}
+
 type Todo struct {
 	ID   string `json:"id"`
 	Text string `json:"text"`

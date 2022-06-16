@@ -29,6 +29,7 @@ input RegisterUser {
   email: String
   phone: String
 }
+
 type Mutation {
-  createTodo(input: NewTodo!): Todo!
+  registerUser(input: RegisterUser!): Boolean
 }

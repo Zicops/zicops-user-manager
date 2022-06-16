@@ -16,6 +16,7 @@ import (
 	cry "github.com/zicops/zicops-user-manager/lib/crypto"
 	"github.com/zicops/zicops-user-manager/lib/db/cassandra"
 	"github.com/zicops/zicops-user-manager/lib/identity"
+	"github.com/zicops/zicops-user-manager/lib/sendgrid"
 )
 
 const defaultPort = "8080"
@@ -37,6 +38,13 @@ func main() {
 		log.Infof("zicops user manager initialization failed")
 	}
 	global.IDP = idp
+	sgClient := sendgrid.NewSendGridClient()
+	err = sgClient.InitializeSendGridClient()
+	if err != nil {
+		log.Errorf("Error connecting to sendgrid: %s", err)
+		log.Infof("zicops user manager initialization failed")
+	}
+	global.SGClient = sgClient
 	global.CTX = ctx
 	global.CassSession = cassSession
 	global.Cancel = cancel

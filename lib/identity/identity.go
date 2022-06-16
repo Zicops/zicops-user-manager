@@ -166,7 +166,6 @@ func (id *IDP) GetResetPasswordURL(ctx context.Context, email string) (string, e
 		if err != nil {
 			return "", err
 		}
-
 	} else {
 		verifyLink, err = id.client.PasswordResetLinkWithSettings(ctx, email, &actionCode)
 		if err != nil {
@@ -174,4 +173,27 @@ func (id *IDP) GetResetPasswordURL(ctx context.Context, email string) (string, e
 		}
 	}
 	return verifyLink, nil
+}
+
+// RegisterUser ...
+func (id *IDP) RegisterUser(ctx context.Context, email string, firstName string, lastName string, phone string) (*auth.UserRecord, error) {
+	var err error
+	var currentUser *auth.UserRecord
+	params := (&auth.UserToCreate{}).
+		Email(email).
+		EmailVerified(false).
+		PhoneNumber(phone).
+		DisplayName(firstName + " " + lastName)
+	if id.tClient != nil {
+		currentUser, err = id.tClient.CreateUser(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		currentUser, err = id.client.CreateUser(ctx, params)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return currentUser, nil
 }
