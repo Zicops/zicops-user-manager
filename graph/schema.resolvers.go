@@ -7,12 +7,19 @@ import (
 	"context"
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/handlers"
 )
 
 func (r *mutationResolver) RegisterUser(ctx context.Context, input model.RegisterUser) (*bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.RegisterUser(ctx, input)
+	if err != nil {
+		log.Errorf("Error registering user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
