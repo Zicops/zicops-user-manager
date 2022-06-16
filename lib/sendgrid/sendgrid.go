@@ -21,7 +21,7 @@ func NewSendGridClient() *ClientSendGrid {
 func (sgc *ClientSendGrid) InitializeSendGridClient() error {
 	sgAPIKey := os.Getenv("SENDGRID_API_KEY")
 	if sgAPIKey == "" {
-		sgAPIKey = "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"
+		sgAPIKey = "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"
 	}
 	client := sendgrid.NewSendClient(sgAPIKey)
 	sgc.client = client
@@ -37,8 +37,7 @@ func (sgc *ClientSendGrid) SendJoinEmail(
 	to := mail.NewEmail(username, email)
 	plainTextContent := "Follow the link to reset your password: " + verifyURL
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, "")
-	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
-	_, err := client.Send(message)
+	_, err := sgc.client.Send(message)
 	if err != nil {
 		return err
 	}
