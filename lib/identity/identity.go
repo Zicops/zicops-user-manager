@@ -182,7 +182,6 @@ func (id *IDP) RegisterUser(ctx context.Context, email string, firstName string,
 	params := (&auth.UserToCreate{}).
 		Email(email).
 		EmailVerified(false).
-		PhoneNumber(phone).
 		DisplayName(firstName + " " + lastName)
 	if id.tClient != nil {
 		currentUser, err = id.tClient.CreateUser(ctx, params)
