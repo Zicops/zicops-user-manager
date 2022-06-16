@@ -15,6 +15,7 @@ import (
 	"github.com/zicops/zicops-user-manager/global"
 	cry "github.com/zicops/zicops-user-manager/lib/crypto"
 	"github.com/zicops/zicops-user-manager/lib/db/cassandra"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 const defaultPort = "8080"
@@ -30,7 +31,12 @@ func main() {
 		log.Errorf("Error connecting to cassandra: %s", err)
 		log.Infof("zicops user manager intialization failed")
 	}
-
+	idp, err := identity.NewIDPEP(ctx, "zicops-one")
+	if err != nil {
+		log.Errorf("Error connecting to identity: %s", err)
+		log.Infof("zicops user manager initialization failed")
+	}
+	global.IDP = idp
 	global.CTX = ctx
 	global.CassSession = cassSession
 	global.Cancel = cancel

@@ -6,6 +6,7 @@ import (
 
 	cry "github.com/zicops/zicops-user-manager/lib/crypto"
 	"github.com/zicops/zicops-user-manager/lib/db/cassandra"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 // some global variables commonly used
@@ -15,6 +16,7 @@ var (
 	CryptSession    *cry.Cryptography
 	Cancel          context.CancelFunc
 	WaitGroupServer sync.WaitGroup
+	IDP             *identity.IDP
 )
 
 // initializes global package to read environment variables as needed
