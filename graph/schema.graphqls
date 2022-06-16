@@ -27,7 +27,6 @@ input RegisterUser {
   firstName: String
   lastName: String
   email: String
-  phone: String
 }
 
 type Mutation {

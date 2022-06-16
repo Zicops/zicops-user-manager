@@ -240,7 +240,6 @@ input RegisterUser {
   firstName: String
   lastName: String
   email: String
-  phone: String
 }
 
 type Mutation {
@@ -1924,14 +1923,6 @@ func (ec *executionContext) unmarshalInputRegisterUser(ctx context.Context, obj 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
 			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "phone":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
-			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

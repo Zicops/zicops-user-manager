@@ -9,7 +9,7 @@ import (
 
 func RegisterUser(ctx context.Context, input model.RegisterUser) (*bool, error) {
 	registered := false
-	userRecord, err := global.IDP.RegisterUser(ctx, *input.Email, *input.FirstName, *input.LastName, *input.Phone)
+	userRecord, err := global.IDP.RegisterUser(ctx, *input.Email, *input.FirstName, *input.LastName, "")
 	if err != nil {
 		return &registered, err
 	}
