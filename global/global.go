@@ -13,7 +13,7 @@ import (
 // some global variables commonly used
 var (
 	CTX             context.Context
-	CassSession     *cassandra.Cassandra
+	CassUserSession *cassandra.Cassandra
 	CryptSession    *cry.Cryptography
 	Cancel          context.CancelFunc
 	WaitGroupServer sync.WaitGroup

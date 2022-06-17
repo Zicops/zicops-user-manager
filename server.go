@@ -46,7 +46,7 @@ func main() {
 	}
 	global.SGClient = sgClient
 	global.CTX = ctx
-	global.CassSession = cassSession
+	global.CassUserSession = cassSession
 	global.Cancel = cancel
 	global.CryptSession = &crySession
 	log.Infof("zicops course query initialization complete")

@@ -13,10 +13,10 @@ import (
 	"github.com/zicops/zicops-user-manager/handlers"
 )
 
-func (r *mutationResolver) RegisterUser(ctx context.Context, input model.RegisterUser) (*bool, error) {
-	result, err := handlers.RegisterUser(ctx, input)
+func (r *mutationResolver) RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error) {
+	result, err := handlers.RegisterUsers(ctx, input)
 	if err != nil {
-		log.Errorf("Error registering user: %v", err)
+		log.Errorf("Error registering users: %v", err)
 		return nil, err
 	}
 	return result, nil
@@ -25,13 +25,30 @@ func (r *mutationResolver) RegisterUser(ctx context.Context, input model.Registe
 func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 	result, err := handlers.InviteUsers(ctx, emails)
 	if err != nil {
-		log.Errorf("Error registering user: %v", err)
+		log.Errorf("Error inviting users: %v", err)
 		return nil, err
 	}
 	return result, nil
 }
 
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
+func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UserInput) (*model.User, error) {
+	result, err := handlers.UpdateUser(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating user: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *mutationResolver) UpdateUserEmail(ctx context.Context, userID string, email string) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) UpdateUserPhone(ctx context.Context, userID string, phone string) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Todos(ctx context.Context) ([]string, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
@@ -43,13 +60,3 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented"))
-}

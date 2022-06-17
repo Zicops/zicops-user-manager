@@ -1,9 +1,43 @@
-input RegisterUser {
-  firstName: String
-  lastName: String
-  email: String
+type User {
+  id: ID
+  firstName: String!
+  lastName: String!
+  Status: String!
+  Role: String!
+  IsVerified: Boolean!
+  IsActive: Boolean!
+  Gender: String!
+  CreatedBy: String!
+  UpdatedBy: String!
+  CreatedAt: String!
+  UpdatedAt: String!
+  Email: String!
+  Phone: String!
+}
+
+input UserInput {
+  id: ID
+  firstName: String!
+  lastName: String!
+  Status: String!
+  Role: String!
+  IsVerified: Boolean!
+  IsActive: Boolean!
+  Gender: String!
+  CreatedBy: String!
+  UpdatedBy: String!
+  Email: String!
+  Phone: String!
+}
+
+type Query {
+  todos: [String!]!
 }
 
 type Mutation {
-  registerUser(input: RegisterUser!): Boolean
+  registerUsers(input: [UserInput]!): [User]
+  inviteUsers(emails: [String!]!): Boolean
+  updateUser(input: UserInput!): User
+  updateUserEmail(user_id: ID!, email: String!): Boolean
+  updateUserPhone(user_id: ID!, phone: String!): Boolean
 }

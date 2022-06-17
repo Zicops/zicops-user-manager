@@ -2,28 +2,34 @@
 
 package model
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
-}
-
-type RegisterUser struct {
-	FirstName *string `json:"firstName"`
-	LastName  *string `json:"lastName"`
-	Email     *string `json:"email"`
-	Phone     *string `json:"phone"`
-	Role      *string `json:"Role"`
-	Status    *string `json:"Status"`
-}
-
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
-}
-
 type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID         *string `json:"id"`
+	FirstName  string  `json:"firstName"`
+	LastName   string  `json:"lastName"`
+	Status     string  `json:"Status"`
+	Role       string  `json:"Role"`
+	IsVerified bool    `json:"IsVerified"`
+	IsActive   bool    `json:"IsActive"`
+	Gender     string  `json:"Gender"`
+	CreatedBy  string  `json:"CreatedBy"`
+	UpdatedBy  string  `json:"UpdatedBy"`
+	CreatedAt  string  `json:"CreatedAt"`
+	UpdatedAt  string  `json:"UpdatedAt"`
+	Email      string  `json:"Email"`
+	Phone      string  `json:"Phone"`
+}
+
+type UserInput struct {
+	ID         *string `json:"id"`
+	FirstName  string  `json:"firstName"`
+	LastName   string  `json:"lastName"`
+	Status     string  `json:"Status"`
+	Role       string  `json:"Role"`
+	IsVerified bool    `json:"IsVerified"`
+	IsActive   bool    `json:"IsActive"`
+	Gender     string  `json:"Gender"`
+	CreatedBy  string  `json:"CreatedBy"`
+	UpdatedBy  string  `json:"UpdatedBy"`
+	Email      string  `json:"Email"`
+	Phone      string  `json:"Phone"`
 }

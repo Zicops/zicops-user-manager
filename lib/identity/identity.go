@@ -182,17 +182,42 @@ func (id *IDP) RegisterUser(ctx context.Context, email string, firstName string,
 	params := (&auth.UserToCreate{}).
 		Email(email).
 		EmailVerified(false).
-		DisplayName(firstName + " " + lastName).
-		PhoneNumber(phone)
+		DisplayName(firstName + " " + lastName)
+	if phone != "" {
+		params = params.PhoneNumber(phone)
+	}
+	paramsUp := (&auth.UserToUpdate{}).
+		Email(email).
+		EmailVerified(false).
+		DisplayName(firstName + " " + lastName)
+	if phone != "" {
+		params = params.PhoneNumber(phone)
+	}
 	if id.tClient != nil {
-		currentUser, err = id.tClient.CreateUser(ctx, params)
+		currentUser, err = id.tClient.GetUserByEmail(ctx, email)
 		if err != nil {
-			return nil, err
+			currentUser, err = id.tClient.CreateUser(ctx, params)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			currentUser, err = id.tClient.UpdateUser(ctx, currentUser.UID, paramsUp)
+			if err != nil {
+				return nil, err
+			}
 		}
 	} else {
-		currentUser, err = id.client.CreateUser(ctx, params)
+		currentUser, err = id.client.GetUserByEmail(ctx, email)
 		if err != nil {
-			return nil, err
+			currentUser, err = id.client.CreateUser(ctx, params)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			currentUser, err = id.client.UpdateUser(ctx, currentUser.UID, paramsUp)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	return currentUser, nil
