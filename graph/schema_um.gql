@@ -38,6 +38,4 @@ type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!): Boolean
   updateUser(input: UserInput!): User
-  updateUserEmail(user_id: ID!, email: String!): Boolean
-  updateUserPhone(user_id: ID!, phone: String!): Boolean
 }

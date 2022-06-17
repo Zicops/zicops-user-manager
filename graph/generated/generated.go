@@ -44,11 +44,9 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		InviteUsers     func(childComplexity int, emails []string) int
-		RegisterUsers   func(childComplexity int, input []*model.UserInput) int
-		UpdateUser      func(childComplexity int, input model.UserInput) int
-		UpdateUserEmail func(childComplexity int, userID string, email string) int
-		UpdateUserPhone func(childComplexity int, userID string, phone string) int
+		InviteUsers   func(childComplexity int, emails []string) int
+		RegisterUsers func(childComplexity int, input []*model.UserInput) int
+		UpdateUser    func(childComplexity int, input model.UserInput) int
 	}
 
 	Query struct {
@@ -77,8 +75,6 @@ type MutationResolver interface {
 	RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error)
 	InviteUsers(ctx context.Context, emails []string) (*bool, error)
 	UpdateUser(ctx context.Context, input model.UserInput) (*model.User, error)
-	UpdateUserEmail(ctx context.Context, userID string, email string) (*bool, error)
-	UpdateUserPhone(ctx context.Context, userID string, phone string) (*bool, error)
 }
 type QueryResolver interface {
 	Todos(ctx context.Context) ([]string, error)
@@ -134,30 +130,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateUser(childComplexity, args["input"].(model.UserInput)), true
-
-	case "Mutation.updateUserEmail":
-		if e.complexity.Mutation.UpdateUserEmail == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateUserEmail_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateUserEmail(childComplexity, args["user_id"].(string), args["email"].(string)), true
-
-	case "Mutation.updateUserPhone":
-		if e.complexity.Mutation.UpdateUserPhone == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateUserPhone_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateUserPhone(childComplexity, args["user_id"].(string), args["phone"].(string)), true
 
 	case "Query.todos":
 		if e.complexity.Query.Todos == nil {
@@ -368,8 +340,6 @@ type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!): Boolean
   updateUser(input: UserInput!): User
-  updateUserEmail(user_id: ID!, email: String!): Boolean
-  updateUserPhone(user_id: ID!, phone: String!): Boolean
 }
 `, BuiltIn: false},
 }
@@ -406,54 +376,6 @@ func (ec *executionContext) field_Mutation_registerUsers_args(ctx context.Contex
 		}
 	}
 	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_updateUserEmail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["user_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["user_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["email"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["email"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_updateUserPhone_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["user_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["user_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["phone"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["phone"] = arg1
 	return args, nil
 }
 
@@ -640,84 +562,6 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 	res := resTmp.(*model.User)
 	fc.Result = res
 	return ec.marshalOUser2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_updateUserEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateUserEmail_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserEmail(rctx, args["user_id"].(string), args["email"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*bool)
-	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_updateUserPhone(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateUserPhone_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserPhone(rctx, args["user_id"].(string), args["phone"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*bool)
-	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2658,20 +2502,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
 
-		case "updateUserEmail":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateUserEmail(ctx, field)
-			}
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
-
-		case "updateUserPhone":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_updateUserPhone(ctx, field)
-			}
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
-
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3338,21 +3168,6 @@ func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interf
 
 func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
 	res := graphql.MarshalBoolean(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
-	res, err := graphql.UnmarshalID(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalID(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")

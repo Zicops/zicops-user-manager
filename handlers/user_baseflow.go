@@ -98,6 +98,38 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	}
 	userCass = banks[0]
 	updatedCols := []string{}
+	emailUpdate := ""
+	phoneUpdate := ""
+	firstNameUpdate := ""
+	lastNameUpdate := ""
+	fireUser, err := global.IDP.GetUserByEmail(ctx, userCass.Email)
+	if err != nil {
+		return nil, err
+	}
+	if user.Email != "" && user.Email != userCass.Email {
+		userCass.Email = user.Email
+		updatedCols = append(updatedCols, "email")
+		emailUpdate = user.Email
+	}
+	if user.Phone != "" {
+		phoneUpdate = user.Phone
+	}
+	if user.FirstName != "" && user.FirstName != userCass.FirstName {
+		userCass.FirstName = user.FirstName
+		updatedCols = append(updatedCols, "firstname")
+		firstNameUpdate = user.FirstName
+	}
+	if user.LastName != "" && user.LastName != userCass.LastName {
+		userCass.LastName = user.LastName
+		updatedCols = append(updatedCols, "lastname")
+		lastNameUpdate = user.LastName
+	}
+	if emailUpdate != "" || phoneUpdate != "" || firstNameUpdate != "" || lastNameUpdate != "" {
+		_, err := global.IDP.UpdateUser(ctx, emailUpdate, firstNameUpdate, lastNameUpdate, phoneUpdate, fireUser.UID)
+		if err != nil {
+			return nil, err
+		}
+	}
 	if user.Status != "" {
 		userCass.Status = user.Status
 		updatedCols = append(updatedCols, "status")
@@ -150,12 +182,4 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		Status:     user.Status,
 	}
 	return &responseUser, nil
-}
-
-func UpdateUserEmail(ctx context.Context, userID string, email string) (*bool, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func UpdateUserPhone(ctx context.Context, userID string, phone string) (*bool, error) {
-	panic(fmt.Errorf("not implemented"))
 }

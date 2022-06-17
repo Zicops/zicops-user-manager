@@ -40,14 +40,6 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UserInput
 	return result, nil
 }
 
-func (r *mutationResolver) UpdateUserEmail(ctx context.Context, userID string, email string) (*bool, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) UpdateUserPhone(ctx context.Context, userID string, phone string) (*bool, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *queryResolver) Todos(ctx context.Context) ([]string, error) {
 	panic(fmt.Errorf("not implemented"))
 }

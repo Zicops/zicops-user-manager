@@ -186,39 +186,20 @@ func (id *IDP) RegisterUser(ctx context.Context, email string, firstName string,
 	if phone != "" {
 		params = params.PhoneNumber(phone)
 	}
-	paramsUp := (&auth.UserToUpdate{}).
-		Email(email).
-		EmailVerified(false).
-		DisplayName(firstName + " " + lastName)
-	if phone != "" {
-		params = params.PhoneNumber(phone)
-	}
 	if id.tClient != nil {
-		currentUser, err = id.tClient.GetUserByEmail(ctx, email)
+
+		currentUser, err = id.tClient.CreateUser(ctx, params)
 		if err != nil {
-			currentUser, err = id.tClient.CreateUser(ctx, params)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			currentUser, err = id.tClient.UpdateUser(ctx, currentUser.UID, paramsUp)
-			if err != nil {
-				return nil, err
-			}
+			return nil, err
 		}
+
 	} else {
-		currentUser, err = id.client.GetUserByEmail(ctx, email)
+
+		currentUser, err = id.client.CreateUser(ctx, params)
 		if err != nil {
-			currentUser, err = id.client.CreateUser(ctx, params)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			currentUser, err = id.client.UpdateUser(ctx, currentUser.UID, paramsUp)
-			if err != nil {
-				return nil, err
-			}
+			return nil, err
 		}
+
 	}
 	return currentUser, nil
 }
@@ -240,6 +221,38 @@ func (id *IDP) InviteUser(ctx context.Context, email string) (*auth.UserRecord, 
 		if err != nil {
 			return nil, err
 		}
+	}
+	return currentUser, nil
+}
+
+// UpdateUser ...
+func (id *IDP) UpdateUser(ctx context.Context, email string, firstName string, lastName string, phone string, userId string) (*auth.UserRecord, error) {
+	var err error
+	var currentUser *auth.UserRecord
+	params := (&auth.UserToUpdate{})
+	if firstName != "" {
+		params = params.DisplayName(firstName + " " + lastName)
+	}
+	if phone != "" {
+		params = params.PhoneNumber(phone)
+	}
+	if email != "" {
+		params = params.Email(email)
+	}
+	if id.tClient != nil {
+
+		currentUser, err = id.tClient.UpdateUser(ctx, userId, params)
+		if err != nil {
+			return nil, err
+		}
+
+	} else {
+
+		currentUser, err = id.client.UpdateUser(ctx, userId, params)
+		if err != nil {
+			return nil, err
+		}
+
 	}
 	return currentUser, nil
 }
