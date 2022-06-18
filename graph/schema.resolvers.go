@@ -40,6 +40,10 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UserInput
 	return result, nil
 }
 
+func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*model.UserLoginContext, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Todos(ctx context.Context) ([]string, error) {
 	panic(fmt.Errorf("not implemented"))
 }

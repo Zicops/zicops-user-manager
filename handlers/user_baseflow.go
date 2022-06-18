@@ -183,3 +183,48 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	}
 	return &responseUser, nil
 }
+
+func LoginUser(ctx context.Context, email string, password string) (*model.UserLoginContext, error) {
+	userID := base64.URLEncoding.EncodeToString([]byte(email))
+	userCass := userz.User{
+		ID: userID,
+	}
+	banks := []userz.User{}
+	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
+	if err := getQuery.SelectRelease(&banks); err != nil {
+		return nil, err
+	}
+	if len(banks) == 0 {
+		return nil, fmt.Errorf("user not found")
+	}
+	userCass = banks[0]
+	currentUser := model.User{
+		ID:         &userCass.ID,
+		FirstName:  userCass.FirstName,
+		LastName:   userCass.LastName,
+		Email:      userCass.Email,
+		CreatedAt:  strconv.FormatInt(userCass.CreatedAt, 10),
+		UpdatedAt:  strconv.FormatInt(userCass.UpdatedAt, 10),
+		CreatedBy:  userCass.CreatedBy,
+		UpdatedBy:  userCass.UpdatedBy,
+		Role:       userCass.Role,
+		Status:     userCass.Status,
+		Gender:     userCass.Gender,
+		IsVerified: userCass.IsVerified,
+		IsActive:   userCass.IsActive,
+	}
+	customClaims := make(map[string]interface{})
+	customClaims["role"] = currentUser.Role
+	customClaims["status"] = currentUser.Status
+	customClaims["is_active"] = currentUser.IsActive
+	userRecord, token, err := global.IDP.LoginUser(ctx, email, password, customClaims)
+	if err != nil {
+		return nil, err
+	}
+	currentUser.Phone = userRecord.PhoneNumber
+	response := model.UserLoginContext{
+		User:        &currentUser,
+		AccessToken: token,
+	}
+	return &response, nil
+}

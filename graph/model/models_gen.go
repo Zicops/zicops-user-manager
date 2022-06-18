@@ -33,3 +33,8 @@ type UserInput struct {
 	Email      string  `json:"Email"`
 	Phone      string  `json:"Phone"`
 }
+
+type UserLoginContext struct {
+	User        *User  `json:"user"`
+	AccessToken string `json:"access_token"`
+}

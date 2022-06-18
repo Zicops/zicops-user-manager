@@ -256,3 +256,30 @@ func (id *IDP) UpdateUser(ctx context.Context, email string, firstName string, l
 	}
 	return currentUser, nil
 }
+
+func (id *IDP) LoginUser(ctx context.Context, email string, password string, customClaims map[string]interface{}) (*auth.UserRecord, string, error) {
+	var err error
+	var currentUser *auth.UserRecord
+	var tokenAccess string
+	if id.tClient != nil {
+		currentUser, err = id.tClient.GetUserByEmail(ctx, email)
+		if err != nil {
+			return nil, tokenAccess, err
+		}
+		tokenAccess, err = id.tClient.CustomTokenWithClaims(ctx, currentUser.UID, customClaims)
+		if err != nil {
+			return nil, tokenAccess, err
+		}
+
+	} else {
+		currentUser, err = id.client.GetUserByEmail(ctx, email)
+		if err != nil {
+			return nil, tokenAccess, err
+		}
+		tokenAccess, err = id.client.CustomTokenWithClaims(ctx, currentUser.UID, customClaims)
+		if err != nil {
+			return nil, tokenAccess, err
+		}
+	}
+	return currentUser, tokenAccess, nil
+}

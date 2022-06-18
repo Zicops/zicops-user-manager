@@ -30,6 +30,11 @@ input UserInput {
   Phone: String!
 }
 
+type UserLoginContext{
+  user: User!
+  access_token: String!
+}
+
 type Query {
   todos: [String!]!
 }
@@ -38,4 +43,5 @@ type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!): Boolean
   updateUser(input: UserInput!): User
+  login(email: String!, password: String!): UserLoginContext
 }
