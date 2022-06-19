@@ -257,7 +257,7 @@ func (id *IDP) UpdateUser(ctx context.Context, email string, firstName string, l
 	return currentUser, nil
 }
 
-func (id *IDP) LoginUser(ctx context.Context, email string, password string, customClaims map[string]interface{}) (*auth.UserRecord, string, error) {
+func (id *IDP) LoginUser(ctx context.Context, email string, customClaims map[string]interface{}) (*auth.UserRecord, string, error) {
 	var err error
 	var currentUser *auth.UserRecord
 	var tokenAccess string
@@ -282,4 +282,24 @@ func (id *IDP) LoginUser(ctx context.Context, email string, password string, cus
 		}
 	}
 	return currentUser, tokenAccess, nil
+}
+
+// GetUserByEmail ...
+func (id *IDP) LogoutUser(ctx context.Context, email string) (bool, error) {
+	currentUser, err := id.GetUserByEmail(ctx, email)
+	if err != nil {
+		return false, err
+	}
+	if id.tClient != nil {
+		err = id.tClient.RevokeRefreshTokens(ctx, currentUser.UID)
+		if err != nil {
+			return false, err
+		}
+	} else {
+		err = id.client.RevokeRefreshTokens(ctx, currentUser.UID)
+		if err != nil {
+			return false, err
+		}
+	}
+	return true, nil
 }

@@ -36,12 +36,13 @@ type UserLoginContext{
 }
 
 type Query {
-  todos: [String!]!
+  logout: Boolean
+  getUpdatedToken: String
 }
 
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!): Boolean
   updateUser(input: UserInput!): User
-  login(email: String!, password: String!): UserLoginContext
+  login: UserLoginContext
 }

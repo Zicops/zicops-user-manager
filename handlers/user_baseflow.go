@@ -184,10 +184,14 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	return &responseUser, nil
 }
 
-func LoginUser(ctx context.Context, email string, password string) (*model.UserLoginContext, error) {
-	userID := base64.URLEncoding.EncodeToString([]byte(email))
+func LoginUser(ctx context.Context) (*model.UserLoginContext, error) {
+	emailBytes, err := base64.URLEncoding.DecodeString(ctx.Value("userid").(string))
+	if err != nil {
+		return nil, err
+	}
+	email := string(emailBytes)
 	userCass := userz.User{
-		ID: userID,
+		ID: ctx.Value("userid").(string),
 	}
 	banks := []userz.User{}
 	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
@@ -217,7 +221,7 @@ func LoginUser(ctx context.Context, email string, password string) (*model.UserL
 	customClaims["role"] = currentUser.Role
 	customClaims["status"] = currentUser.Status
 	customClaims["is_active"] = currentUser.IsActive
-	userRecord, token, err := global.IDP.LoginUser(ctx, email, password, customClaims)
+	userRecord, token, err := global.IDP.LoginUser(ctx, email, customClaims)
 	if err != nil {
 		return nil, err
 	}
@@ -227,4 +231,27 @@ func LoginUser(ctx context.Context, email string, password string) (*model.UserL
 		AccessToken: token,
 	}
 	return &response, nil
+}
+
+func Logout(ctx context.Context) (*bool, error) {
+	logoutSuccess := false
+	emailBytes, err := base64.URLEncoding.DecodeString(ctx.Value("userid").(string))
+	if err != nil {
+		return nil, err
+	}
+	email := string(emailBytes)
+	logoutSuccess, err = global.IDP.LogoutUser(ctx, email)
+	if err != nil {
+		return &logoutSuccess, err
+	}
+	return &logoutSuccess, nil
+}
+
+func GetNewToken(ctx context.Context) (*string, error) {
+	currentUser, err := LoginUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	currentToken := currentUser.AccessToken
+	return &currentToken, nil
 }

@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -40,12 +39,31 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UserInput
 	return result, nil
 }
 
-func (r *mutationResolver) Login(ctx context.Context, email string, password string) (*model.UserLoginContext, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) Login(ctx context.Context) (*model.UserLoginContext, error) {
+	result, err := handlers.LoginUser(ctx)
+	if err != nil {
+		log.Errorf("Error logging in user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
-func (r *queryResolver) Todos(ctx context.Context) ([]string, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
+	result, err := handlers.Logout(ctx)
+	if err != nil {
+		log.Errorf("Error logging out user: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetUpdatedToken(ctx context.Context) (*string, error) {
+	result, err := handlers.GetNewToken(ctx)
+	if err != nil {
+		log.Errorf("Error getting user token: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
