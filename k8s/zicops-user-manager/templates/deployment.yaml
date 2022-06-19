@@ -55,7 +55,7 @@ spec:
           - name: CASSANDRA_PASSWORD
             value: "Vauwbh2yHA"
           - name: CASSANDRA_KEYSPACE
-            value: "coursez"  
+            value: "userz"  
       volumes:
       - name: zicops-cc
         secret:
