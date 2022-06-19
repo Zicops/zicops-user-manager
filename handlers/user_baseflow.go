@@ -60,6 +60,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User
 		if err != nil {
 			return nil, err
 		}
+
 		userCass := userz.User{
 			ID:          userID,
 			FirstName:   user.FirstName,
