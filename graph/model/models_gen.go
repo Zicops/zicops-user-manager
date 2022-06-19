@@ -8,37 +8,37 @@ import (
 
 type User struct {
 	ID         *string `json:"id"`
-	FirstName  string  `json:"firstName"`
-	LastName   string  `json:"lastName"`
-	Status     string  `json:"Status"`
-	Role       string  `json:"Role"`
-	IsVerified bool    `json:"IsVerified"`
-	IsActive   bool    `json:"IsActive"`
-	Gender     string  `json:"Gender"`
-	CreatedBy  string  `json:"CreatedBy"`
-	UpdatedBy  string  `json:"UpdatedBy"`
-	CreatedAt  string  `json:"CreatedAt"`
-	UpdatedAt  string  `json:"UpdatedAt"`
-	Email      string  `json:"Email"`
-	Phone      string  `json:"Phone"`
-	PhotoURL   *string `json:"PhotoUrl"`
+	FirstName  string  `json:"first_name"`
+	LastName   string  `json:"last_name"`
+	Status     string  `json:"status"`
+	Role       string  `json:"role"`
+	IsVerified bool    `json:"is_verified"`
+	IsActive   bool    `json:"is_active"`
+	Gender     string  `json:"gender"`
+	CreatedBy  string  `json:"created_by"`
+	UpdatedBy  string  `json:"updated_by"`
+	CreatedAt  string  `json:"created_at"`
+	UpdatedAt  string  `json:"updated_at"`
+	Email      string  `json:"email"`
+	Phone      string  `json:"phone"`
+	PhotoURL   *string `json:"photo_url"`
 }
 
 type UserInput struct {
 	ID         *string         `json:"id"`
-	FirstName  string          `json:"firstName"`
-	LastName   string          `json:"lastName"`
-	Status     string          `json:"Status"`
-	Role       string          `json:"Role"`
-	IsVerified bool            `json:"IsVerified"`
-	IsActive   bool            `json:"IsActive"`
-	Gender     string          `json:"Gender"`
-	CreatedBy  string          `json:"CreatedBy"`
-	UpdatedBy  string          `json:"UpdatedBy"`
-	Email      string          `json:"Email"`
-	Phone      string          `json:"Phone"`
+	FirstName  string          `json:"first_name"`
+	LastName   string          `json:"last_name"`
+	Status     string          `json:"status"`
+	Role       string          `json:"role"`
+	IsVerified bool            `json:"is_verified"`
+	IsActive   bool            `json:"is_active"`
+	Gender     string          `json:"gender"`
+	CreatedBy  string          `json:"created_by"`
+	UpdatedBy  string          `json:"updated_by"`
+	Email      string          `json:"email"`
+	Phone      string          `json:"phone"`
 	Photo      *graphql.Upload `json:"Photo"`
-	PhotoURL   *string         `json:"PhotoUrl"`
+	PhotoURL   *string         `json:"photo_url"`
 }
 
 type UserLoginContext struct {

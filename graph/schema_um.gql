@@ -2,37 +2,36 @@ scalar Upload
 
 type User {
   id: ID
-  firstName: String!
-  lastName: String!
-  Status: String!
-  Role: String!
-  IsVerified: Boolean!
-  IsActive: Boolean!
-  Gender: String!
-  CreatedBy: String!
-  UpdatedBy: String!
-  CreatedAt: String!
-  UpdatedAt: String!
-  Email: String!
-  Phone: String!
-  PhotoUrl: String
+  first_name: String!
+  last_name: String!
+  status: String!
+  role: String!
+  is_verified: Boolean!
+  is_active: Boolean!
+  gender: String!
+  created_by: String!
+  updated_by: String!
+  created_at: String!
+  updated_at: String!
+  email: String!
+  phone: String!
+  photo_url: String
 }
 
 input UserInput {
   id: ID
-  firstName: String!
-  lastName: String!
-  Status: String!
-  Role: String!
-  IsVerified: Boolean!
-  IsActive: Boolean!
-  Gender: String!
-  CreatedBy: String!
-  UpdatedBy: String!
-  Email: String!
-  Phone: String!
-  Photo: Upload
-  PhotoUrl: String
+  first_name: String!
+  last_name: String!
+  status: String!
+  role: String!
+  is_verified: Boolean!
+  is_active: Boolean!
+  gender: String!
+  created_by: String!
+  updated_by: String!
+  email: String!
+  phone: String!
+  photo_url: String
 }
 
 type UserLoginContext{

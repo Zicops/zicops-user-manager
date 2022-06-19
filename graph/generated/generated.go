@@ -161,35 +161,35 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Logout(childComplexity), true
 
-	case "User.CreatedAt":
+	case "User.created_at":
 		if e.complexity.User.CreatedAt == nil {
 			break
 		}
 
 		return e.complexity.User.CreatedAt(childComplexity), true
 
-	case "User.CreatedBy":
+	case "User.created_by":
 		if e.complexity.User.CreatedBy == nil {
 			break
 		}
 
 		return e.complexity.User.CreatedBy(childComplexity), true
 
-	case "User.Email":
+	case "User.email":
 		if e.complexity.User.Email == nil {
 			break
 		}
 
 		return e.complexity.User.Email(childComplexity), true
 
-	case "User.firstName":
+	case "User.first_name":
 		if e.complexity.User.FirstName == nil {
 			break
 		}
 
 		return e.complexity.User.FirstName(childComplexity), true
 
-	case "User.Gender":
+	case "User.gender":
 		if e.complexity.User.Gender == nil {
 			break
 		}
@@ -203,63 +203,63 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
-	case "User.IsActive":
+	case "User.is_active":
 		if e.complexity.User.IsActive == nil {
 			break
 		}
 
 		return e.complexity.User.IsActive(childComplexity), true
 
-	case "User.IsVerified":
+	case "User.is_verified":
 		if e.complexity.User.IsVerified == nil {
 			break
 		}
 
 		return e.complexity.User.IsVerified(childComplexity), true
 
-	case "User.lastName":
+	case "User.last_name":
 		if e.complexity.User.LastName == nil {
 			break
 		}
 
 		return e.complexity.User.LastName(childComplexity), true
 
-	case "User.Phone":
+	case "User.phone":
 		if e.complexity.User.Phone == nil {
 			break
 		}
 
 		return e.complexity.User.Phone(childComplexity), true
 
-	case "User.PhotoUrl":
+	case "User.photo_url":
 		if e.complexity.User.PhotoURL == nil {
 			break
 		}
 
 		return e.complexity.User.PhotoURL(childComplexity), true
 
-	case "User.Role":
+	case "User.role":
 		if e.complexity.User.Role == nil {
 			break
 		}
 
 		return e.complexity.User.Role(childComplexity), true
 
-	case "User.Status":
+	case "User.status":
 		if e.complexity.User.Status == nil {
 			break
 		}
 
 		return e.complexity.User.Status(childComplexity), true
 
-	case "User.UpdatedAt":
+	case "User.updated_at":
 		if e.complexity.User.UpdatedAt == nil {
 			break
 		}
 
 		return e.complexity.User.UpdatedAt(childComplexity), true
 
-	case "User.UpdatedBy":
+	case "User.updated_by":
 		if e.complexity.User.UpdatedBy == nil {
 			break
 		}
@@ -348,37 +348,37 @@ var sources = []*ast.Source{
 
 type User {
   id: ID
-  firstName: String!
-  lastName: String!
-  Status: String!
-  Role: String!
-  IsVerified: Boolean!
-  IsActive: Boolean!
-  Gender: String!
-  CreatedBy: String!
-  UpdatedBy: String!
-  CreatedAt: String!
-  UpdatedAt: String!
-  Email: String!
-  Phone: String!
-  PhotoUrl: String
+  first_name: String!
+  last_name: String!
+  status: String!
+  role: String!
+  is_verified: Boolean!
+  is_active: Boolean!
+  gender: String!
+  created_by: String!
+  updated_by: String!
+  created_at: String!
+  updated_at: String!
+  email: String!
+  phone: String!
+  photo_url: String
 }
 
 input UserInput {
   id: ID
-  firstName: String!
-  lastName: String!
-  Status: String!
-  Role: String!
-  IsVerified: Boolean!
-  IsActive: Boolean!
-  Gender: String!
-  CreatedBy: String!
-  UpdatedBy: String!
-  Email: String!
-  Phone: String!
+  first_name: String!
+  last_name: String!
+  status: String!
+  role: String!
+  is_verified: Boolean!
+  is_active: Boolean!
+  gender: String!
+  created_by: String!
+  updated_by: String!
+  email: String!
+  phone: String!
   Photo: Upload
-  PhotoUrl: String
+  photo_url: String
 }
 
 type UserLoginContext{
@@ -819,7 +819,7 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_firstName(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_first_name(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -854,7 +854,7 @@ func (ec *executionContext) _User_firstName(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_lastName(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_last_name(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -889,7 +889,7 @@ func (ec *executionContext) _User_lastName(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_Status(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_status(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -924,7 +924,7 @@ func (ec *executionContext) _User_Status(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_Role(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_role(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -959,7 +959,7 @@ func (ec *executionContext) _User_Role(ctx context.Context, field graphql.Collec
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_IsVerified(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_is_verified(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -994,7 +994,7 @@ func (ec *executionContext) _User_IsVerified(ctx context.Context, field graphql.
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_IsActive(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_is_active(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1029,7 +1029,7 @@ func (ec *executionContext) _User_IsActive(ctx context.Context, field graphql.Co
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_Gender(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_gender(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1064,7 +1064,7 @@ func (ec *executionContext) _User_Gender(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_CreatedBy(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_created_by(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1099,7 +1099,7 @@ func (ec *executionContext) _User_CreatedBy(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_UpdatedBy(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_updated_by(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1134,7 +1134,7 @@ func (ec *executionContext) _User_UpdatedBy(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_CreatedAt(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_created_at(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1169,7 +1169,7 @@ func (ec *executionContext) _User_CreatedAt(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_UpdatedAt(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1204,7 +1204,7 @@ func (ec *executionContext) _User_UpdatedAt(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_Email(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_email(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1239,7 +1239,7 @@ func (ec *executionContext) _User_Email(ctx context.Context, field graphql.Colle
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_Phone(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_phone(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1274,7 +1274,7 @@ func (ec *executionContext) _User_Phone(ctx context.Context, field graphql.Colle
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_PhotoUrl(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+func (ec *executionContext) _User_photo_url(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2579,90 +2579,90 @@ func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj int
 			if err != nil {
 				return it, err
 			}
-		case "firstName":
+		case "first_name":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first_name"))
 			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "lastName":
+		case "last_name":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("last_name"))
 			it.LastName, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Status":
+		case "status":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Status"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			it.Status, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Role":
+		case "role":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Role"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
 			it.Role, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "IsVerified":
+		case "is_verified":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("IsVerified"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_verified"))
 			it.IsVerified, err = ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "IsActive":
+		case "is_active":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("IsActive"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_active"))
 			it.IsActive, err = ec.unmarshalNBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Gender":
+		case "gender":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Gender"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
 			it.Gender, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "CreatedBy":
+		case "created_by":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CreatedBy"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_by"))
 			it.CreatedBy, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "UpdatedBy":
+		case "updated_by":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("UpdatedBy"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updated_by"))
 			it.UpdatedBy, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Email":
+		case "email":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Email"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
 			it.Email, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Phone":
+		case "phone":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Phone"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
 			it.Phone, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
@@ -2675,10 +2675,10 @@ func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj int
 			if err != nil {
 				return it, err
 			}
-		case "PhotoUrl":
+		case "photo_url":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("PhotoUrl"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("photo_url"))
 			it.PhotoURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
@@ -2856,9 +2856,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 
 			out.Values[i] = innerFunc(ctx)
 
-		case "firstName":
+		case "first_name":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_firstName(ctx, field, obj)
+				return ec._User_first_name(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2866,9 +2866,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "lastName":
+		case "last_name":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_lastName(ctx, field, obj)
+				return ec._User_last_name(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2876,9 +2876,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Status":
+		case "status":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_Status(ctx, field, obj)
+				return ec._User_status(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2886,9 +2886,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Role":
+		case "role":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_Role(ctx, field, obj)
+				return ec._User_role(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2896,9 +2896,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "IsVerified":
+		case "is_verified":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_IsVerified(ctx, field, obj)
+				return ec._User_is_verified(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2906,9 +2906,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "IsActive":
+		case "is_active":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_IsActive(ctx, field, obj)
+				return ec._User_is_active(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2916,9 +2916,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Gender":
+		case "gender":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_Gender(ctx, field, obj)
+				return ec._User_gender(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2926,9 +2926,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "CreatedBy":
+		case "created_by":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_CreatedBy(ctx, field, obj)
+				return ec._User_created_by(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2936,9 +2936,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "UpdatedBy":
+		case "updated_by":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_UpdatedBy(ctx, field, obj)
+				return ec._User_updated_by(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2946,9 +2946,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "CreatedAt":
+		case "created_at":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_CreatedAt(ctx, field, obj)
+				return ec._User_created_at(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2956,9 +2956,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "UpdatedAt":
+		case "updated_at":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_UpdatedAt(ctx, field, obj)
+				return ec._User_updated_at(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2966,9 +2966,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Email":
+		case "email":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_Email(ctx, field, obj)
+				return ec._User_email(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2976,9 +2976,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "Phone":
+		case "phone":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_Phone(ctx, field, obj)
+				return ec._User_phone(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -2986,9 +2986,9 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "PhotoUrl":
+		case "photo_url":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._User_PhotoUrl(ctx, field, obj)
+				return ec._User_photo_url(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
