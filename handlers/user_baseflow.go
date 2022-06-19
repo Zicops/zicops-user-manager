@@ -52,7 +52,9 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User
 			photoUrl = storageC.GetSignedURLForObject(bucketPath)
 		} else {
 			photoBucket = ""
-			photoUrl = *user.PhotoURL
+			if user.PhotoURL != nil {
+				photoUrl = *user.PhotoURL
+			}
 		}
 		_, err := global.IDP.RegisterUser(ctx, user.Email, user.FirstName, user.LastName, user.Phone)
 		if err != nil {
@@ -104,12 +106,36 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User
 
 func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 	registered := false
+	emailBytes, err := base64.URLEncoding.DecodeString(ctx.Value("userid").(string))
+	if err != nil {
+		return nil, err
+	}
+	email_creator := string(emailBytes)
 	for _, email := range emails {
 		userRecord, err := global.IDP.InviteUser(ctx, email)
 		if err != nil {
 			return &registered, err
 		}
 		passwordReset, err := global.IDP.GetResetPasswordURL(ctx, userRecord.Email)
+		if err != nil {
+			return &registered, err
+		}
+		userInput := model.UserInput{
+			FirstName:  "",
+			LastName:   "",
+			Email:      userRecord.Email,
+			Role:       "",
+			Status:     "",
+			IsVerified: false,
+			IsActive:   false,
+			CreatedBy:  email_creator,
+			UpdatedBy:  email_creator,
+			Photo:      nil,
+			PhotoURL:   nil,
+			Gender:     "",
+			Phone:      "",
+		}
+		_, err = RegisterUsers(ctx, []*model.UserInput{&userInput})
 		if err != nil {
 			return &registered, err
 		}
