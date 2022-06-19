@@ -65,6 +65,7 @@ type ComplexityRoot struct {
 		IsVerified func(childComplexity int) int
 		LastName   func(childComplexity int) int
 		Phone      func(childComplexity int) int
+		PhotoURL   func(childComplexity int) int
 		Role       func(childComplexity int) int
 		Status     func(childComplexity int) int
 		UpdatedAt  func(childComplexity int) int
@@ -230,6 +231,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Phone(childComplexity), true
 
+	case "User.PhotoUrl":
+		if e.complexity.User.PhotoURL == nil {
+			break
+		}
+
+		return e.complexity.User.PhotoURL(childComplexity), true
+
 	case "User.Role":
 		if e.complexity.User.Role == nil {
 			break
@@ -336,7 +344,9 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "graph/schema.graphqls", Input: `type User {
+	{Name: "graph/schema.graphqls", Input: `scalar Upload
+
+type User {
   id: ID
   firstName: String!
   lastName: String!
@@ -351,6 +361,7 @@ var sources = []*ast.Source{
   UpdatedAt: String!
   Email: String!
   Phone: String!
+  PhotoUrl: String
 }
 
 input UserInput {
@@ -366,6 +377,8 @@ input UserInput {
   UpdatedBy: String!
   Email: String!
   Phone: String!
+  Photo: Upload
+  PhotoUrl: String
 }
 
 type UserLoginContext{
@@ -1259,6 +1272,38 @@ func (ec *executionContext) _User_Phone(ctx context.Context, field graphql.Colle
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_PhotoUrl(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PhotoURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserLoginContext_user(ctx context.Context, field graphql.CollectedField, obj *model.UserLoginContext) (ret graphql.Marshaler) {
@@ -2622,6 +2667,22 @@ func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj int
 			if err != nil {
 				return it, err
 			}
+		case "Photo":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Photo"))
+			it.Photo, err = ec.unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "PhotoUrl":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("PhotoUrl"))
+			it.PhotoURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -2925,6 +2986,13 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "PhotoUrl":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._User_PhotoUrl(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3802,6 +3870,22 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	res := graphql.MarshalString(*v)
+	return res
+}
+
+func (ec *executionContext) unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (*graphql.Upload, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalUpload(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, sel ast.SelectionSet, v *graphql.Upload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalUpload(*v)
 	return res
 }
 

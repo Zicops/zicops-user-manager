@@ -1,3 +1,5 @@
+scalar Upload
+
 type User {
   id: ID
   firstName: String!
@@ -13,6 +15,7 @@ type User {
   UpdatedAt: String!
   Email: String!
   Phone: String!
+  PhotoUrl: String
 }
 
 input UserInput {
@@ -28,6 +31,8 @@ input UserInput {
   UpdatedBy: String!
   Email: String!
   Phone: String!
+  Photo: Upload
+  PhotoUrl: String
 }
 
 type UserLoginContext{

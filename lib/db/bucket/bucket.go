@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"github.com/zicops/zicops-user-manager/constants"
@@ -43,7 +44,7 @@ func (sc *Client) InitializeStorageClient(ctx context.Context, projectID string)
 	}
 	sc.client = client
 	sc.projectID = projectID
-	sc.bucket, _ = sc.CreateBucket(ctx, constants.COURSES_BUCKET)
+	sc.bucket, _ = sc.CreateBucket(ctx, constants.USERS_BUCKET)
 	return nil
 }
 
@@ -63,4 +64,18 @@ func (sc *Client) CreateBucket(ctx context.Context, bucketName string) (*storage
 func (sc *Client) UploadToGCS(ctx context.Context, fileName string) (*storage.Writer, error) {
 	bucketWriter := sc.bucket.Object(fileName).NewWriter(ctx)
 	return bucketWriter, nil
+}
+
+func (sc *Client) GetSignedURLForObject(object string) string {
+	opts := &storage.SignedURLOptions{
+		Scheme:  storage.SigningSchemeV4,
+		Method:  "GET",
+		Expires: time.Now().Add(24 * time.Hour),
+	}
+	url, err := sc.bucket.SignedURL(object, opts)
+	if err != nil {
+		return ""
+	}
+
+	return url
 }

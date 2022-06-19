@@ -2,6 +2,10 @@
 
 package model
 
+import (
+	"github.com/99designs/gqlgen/graphql"
+)
+
 type User struct {
 	ID         *string `json:"id"`
 	FirstName  string  `json:"firstName"`
@@ -17,21 +21,24 @@ type User struct {
 	UpdatedAt  string  `json:"UpdatedAt"`
 	Email      string  `json:"Email"`
 	Phone      string  `json:"Phone"`
+	PhotoURL   *string `json:"PhotoUrl"`
 }
 
 type UserInput struct {
-	ID         *string `json:"id"`
-	FirstName  string  `json:"firstName"`
-	LastName   string  `json:"lastName"`
-	Status     string  `json:"Status"`
-	Role       string  `json:"Role"`
-	IsVerified bool    `json:"IsVerified"`
-	IsActive   bool    `json:"IsActive"`
-	Gender     string  `json:"Gender"`
-	CreatedBy  string  `json:"CreatedBy"`
-	UpdatedBy  string  `json:"UpdatedBy"`
-	Email      string  `json:"Email"`
-	Phone      string  `json:"Phone"`
+	ID         *string         `json:"id"`
+	FirstName  string          `json:"firstName"`
+	LastName   string          `json:"lastName"`
+	Status     string          `json:"Status"`
+	Role       string          `json:"Role"`
+	IsVerified bool            `json:"IsVerified"`
+	IsActive   bool            `json:"IsActive"`
+	Gender     string          `json:"Gender"`
+	CreatedBy  string          `json:"CreatedBy"`
+	UpdatedBy  string          `json:"UpdatedBy"`
+	Email      string          `json:"Email"`
+	Phone      string          `json:"Phone"`
+	Photo      *graphql.Upload `json:"Photo"`
+	PhotoURL   *string         `json:"PhotoUrl"`
 }
 
 type UserLoginContext struct {

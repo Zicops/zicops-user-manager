@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"strconv"
 	"time"
 
@@ -11,29 +13,66 @@ import (
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/lib/db/bucket"
+	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
 )
 
 func RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error) {
 	var outputUsers []*model.User
+	var storageC *bucket.Client
+	var photoBucket string
+	var photoUrl string
 	for _, user := range input {
+		userID := base64.URLEncoding.EncodeToString([]byte(user.Email))
+		if user.Photo != nil && user.PhotoURL == nil {
+			if storageC == nil {
+				storageC = bucket.NewStorageHandler()
+				gproject := googleprojectlib.GetGoogleProjectID()
+				err := storageC.InitializeStorageClient(ctx, gproject)
+				if err != nil {
+					return nil, err
+				}
+			}
+			bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", userID, user.Photo.Filename)
+			writer, err := storageC.UploadToGCS(ctx, bucketPath)
+			if err != nil {
+				return nil, err
+			}
+			defer writer.Close()
+			fileBuffer := bytes.NewBuffer(nil)
+			if _, err := io.Copy(fileBuffer, user.Photo.File); err != nil {
+				return nil, err
+			}
+			currentBytes := fileBuffer.Bytes()
+			_, err = io.Copy(writer, bytes.NewReader(currentBytes))
+			if err != nil {
+				return nil, err
+			}
+			photoBucket = bucketPath
+			photoUrl = storageC.GetSignedURLForObject(bucketPath)
+		} else {
+			photoBucket = ""
+			photoUrl = *user.PhotoURL
+		}
 		_, err := global.IDP.RegisterUser(ctx, user.Email, user.FirstName, user.LastName, user.Phone)
 		if err != nil {
 			return nil, err
 		}
-		userID := base64.URLEncoding.EncodeToString([]byte(user.Email))
 		userCass := userz.User{
-			ID:         userID,
-			FirstName:  user.FirstName,
-			LastName:   user.LastName,
-			Gender:     user.Gender,
-			Status:     user.Status,
-			Role:       user.Role,
-			IsVerified: user.IsVerified,
-			IsActive:   user.IsActive,
-			CreatedBy:  user.CreatedBy,
-			UpdatedBy:  user.UpdatedBy,
-			CreatedAt:  time.Now().Unix(),
-			UpdatedAt:  time.Now().Unix(),
+			ID:          userID,
+			FirstName:   user.FirstName,
+			LastName:    user.LastName,
+			Gender:      user.Gender,
+			Status:      user.Status,
+			Role:        user.Role,
+			IsVerified:  user.IsVerified,
+			IsActive:    user.IsActive,
+			CreatedBy:   user.CreatedBy,
+			UpdatedBy:   user.UpdatedBy,
+			CreatedAt:   time.Now().Unix(),
+			UpdatedAt:   time.Now().Unix(),
+			PhotoBucket: photoBucket,
+			PhotoURL:    photoUrl,
 		}
 		insertQuery := global.CassUserSession.Session.Query(userz.UserTable.Insert()).BindStruct(userCass)
 		if err := insertQuery.ExecRelease(); err != nil {
@@ -56,6 +95,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User
 			IsActive:   user.IsActive,
 			Role:       user.Role,
 			Status:     user.Status,
+			PhotoURL:   &photoUrl,
 		}
 		outputUsers = append(outputUsers, &responseUser)
 	}
@@ -102,9 +142,50 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	phoneUpdate := ""
 	firstNameUpdate := ""
 	lastNameUpdate := ""
+	var storageC *bucket.Client
+	var photoBucket string
+	var photoUrl string
 	fireUser, err := global.IDP.GetUserByEmail(ctx, userCass.Email)
 	if err != nil {
 		return nil, err
+	}
+	if user.Photo != nil && user.PhotoURL == nil {
+		if storageC == nil {
+			storageC = bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err := storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				return nil, err
+			}
+		}
+		bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", userCass.ID, user.Photo.Filename)
+		writer, err := storageC.UploadToGCS(ctx, bucketPath)
+		if err != nil {
+			return nil, err
+		}
+		defer writer.Close()
+		fileBuffer := bytes.NewBuffer(nil)
+		if _, err := io.Copy(fileBuffer, user.Photo.File); err != nil {
+			return nil, err
+		}
+		currentBytes := fileBuffer.Bytes()
+		_, err = io.Copy(writer, bytes.NewReader(currentBytes))
+		if err != nil {
+			return nil, err
+		}
+		photoBucket = bucketPath
+		photoUrl = storageC.GetSignedURLForObject(bucketPath)
+	} else {
+		photoBucket = ""
+		photoUrl = *user.PhotoURL
+	}
+	if photoBucket != "" {
+		userCass.PhotoBucket = photoBucket
+		updatedCols = append(updatedCols, "photo_bucket")
+	}
+	if photoUrl != "" {
+		userCass.PhotoURL = photoUrl
+		updatedCols = append(updatedCols, "photo_url")
 	}
 	if user.Email != "" && user.Email != userCass.Email {
 		userCass.Email = user.Email
