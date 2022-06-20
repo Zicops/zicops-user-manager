@@ -16,7 +16,7 @@ image:
 
 #Authorization reverse proxy details
 asp:
-  repository: gcr.io/zicops-one/sidecar-auth-proxy
+  repository: gcr.io/zicops-one/zicops-auth-proxy
   tag: latest
   port: 8080
   pullPolicy: Always
