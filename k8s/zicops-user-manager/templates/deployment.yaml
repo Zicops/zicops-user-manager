@@ -24,12 +24,20 @@ spec:
     spec:
       containers:
         {{ $zcbcred := printf "%s/%s" .Values.zcServiceAccount.credential.dir .Values.zcServiceAccount.credential.file }}
+        - name: {{ .Chart.Name }}-asp
+          image: "{{ .Values.asp.repository }}:{{ .Values.asp.tag }}"
+          imagePullPolicy: {{ .Values.asp.pullPolicy }}
+          args: [
+            "--port={{ .Values.asp.port }}",
+            "--backend=http://127.0.0.1:{{ .Values.image.port }}",
+            "--mode={{ .Values.asp.arg.mode }}",
+          ]
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http-server-cq
-              containerPort: {{ .Values.image.port }}
+              containerPort: {{ .Values.asp.port }}
               protocol: TCP
           readinessProbe:
             httpGet:
