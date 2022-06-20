@@ -13,7 +13,7 @@ require (
 	github.com/scylladb/gocqlx/v2 v2.7.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/vektah/gqlparser/v2 v2.4.5
-	github.com/zicops/contracts v0.0.0-20220619160448-e1c9851fc8ae
+	github.com/zicops/contracts v0.0.0-20220620125517-7a17539f4370
 	golang.org/x/oauth2 v0.0.0-20220608161450-d0670ef3b1eb
 	google.golang.org/api v0.84.0
 	gopkg.in/tylerb/graceful.v1 v1.2.15
