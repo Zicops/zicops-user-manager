@@ -316,6 +316,16 @@ func LoginUser(ctx context.Context) (*model.UserLoginContext, error) {
 		return nil, fmt.Errorf("user not found")
 	}
 	userCass = banks[0]
+	photoURL := userCass.PhotoURL
+	if userCass.PhotoBucket != "" {
+		storageC := bucket.NewStorageHandler()
+		gproject := googleprojectlib.GetGoogleProjectID()
+		err := storageC.InitializeStorageClient(ctx, gproject)
+		if err != nil {
+			return nil, err
+		}
+		photoURL = storageC.GetSignedURLForObject(userCass.PhotoBucket)
+	}
 	currentUser := model.User{
 		ID:         &userCass.ID,
 		FirstName:  userCass.FirstName,
@@ -330,6 +340,7 @@ func LoginUser(ctx context.Context) (*model.UserLoginContext, error) {
 		Gender:     userCass.Gender,
 		IsVerified: userCass.IsVerified,
 		IsActive:   userCass.IsActive,
+		PhotoURL:   &photoURL,
 	}
 	customClaims := make(map[string]interface{})
 	customClaims["role"] = currentUser.Role
