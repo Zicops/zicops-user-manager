@@ -7,17 +7,27 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/scylladb/gocqlx/qb"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/helpers"
 	"github.com/zicops/zicops-user-manager/lib/db/bucket"
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
 )
 
 func RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	roleValue := claims["role"]
+	if roleValue == nil || strings.ToLower(roleValue.(string)) != "admin" {
+		return nil, fmt.Errorf("User is a not an admin: Unauthorized")
+	}
 	var outputUsers []*model.User
 	var storageC *bucket.Client
 	var photoBucket string
@@ -112,8 +122,16 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User
 }
 
 func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	roleValue := claims["role"]
+	if roleValue == nil || strings.ToLower(roleValue.(string)) != "admin" {
+		return nil, fmt.Errorf("user is a not an admin: unauthorized")
+	}
 	registered := false
-	emailBytes, err := base64.URLEncoding.DecodeString(ctx.Value("userid").(string))
+	emailBytes, err := base64.URLEncoding.DecodeString(claims["userid"].(string))
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +172,24 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 }
 
 func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if user.ID == nil {
+		return nil, fmt.Errorf("user id is required")
+	}
+	canUpdate := false
+	userId := ctx.Value("userid").(string)
+	if userId == *user.ID {
+		canUpdate = true
+	}
+	if !canUpdate {
+		roleValue := claims["role"]
+		if roleValue == nil || strings.ToLower(roleValue.(string)) != "admin" {
+			return nil, fmt.Errorf("user is a not an admin: unauthorized")
+		}
+	}
 	userID := user.ID
 	if userID == nil {
 		return nil, fmt.Errorf("userID is empty")
