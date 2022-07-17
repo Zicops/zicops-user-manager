@@ -26,7 +26,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User
 	}
 	roleValue := claims["role"]
 	if roleValue == nil || strings.ToLower(roleValue.(string)) != "admin" {
-		return nil, fmt.Errorf("User is a not an admin: Unauthorized")
+		return nil, fmt.Errorf("user is a not an admin: Unauthorized")
 	}
 	var outputUsers []*model.User
 	var storageC *bucket.Client
@@ -131,11 +131,7 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 		return nil, fmt.Errorf("user is a not an admin: unauthorized")
 	}
 	registered := false
-	emailBytes, err := base64.URLEncoding.DecodeString(claims["userid"].(string))
-	if err != nil {
-		return nil, err
-	}
-	email_creator := string(emailBytes)
+	email_creator := claims["email"].(string)
 	for _, email := range emails {
 		userRecord, err := global.IDP.InviteUser(ctx, email)
 		if err != nil {
@@ -145,7 +141,9 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 		if err != nil {
 			return &registered, err
 		}
+		userID := base64.URLEncoding.EncodeToString([]byte(email))
 		userInput := model.UserInput{
+			ID:         &userID,
 			FirstName:  "",
 			LastName:   "",
 			Email:      userRecord.Email,
@@ -180,7 +178,12 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		return nil, fmt.Errorf("user id is required")
 	}
 	canUpdate := false
-	userId := ctx.Value("userid").(string)
+	userID := base64.URLEncoding.EncodeToString([]byte(user.Email))
+	if err != nil {
+		return nil, err
+	}
+	token_email := claims["email"].(string)
+	userId := base64.URLEncoding.EncodeToString([]byte(token_email))
 	if userId == *user.ID {
 		canUpdate = true
 	}
@@ -190,22 +193,18 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 			return nil, fmt.Errorf("user is a not an admin: unauthorized")
 		}
 	}
-	userID := user.ID
-	if userID == nil {
-		return nil, fmt.Errorf("userID is empty")
-	}
 	userCass := userz.User{
-		ID: *userID,
+		ID: userID,
 	}
-	banks := []userz.User{}
+	users := []userz.User{}
 	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
-	if err := getQuery.SelectRelease(&banks); err != nil {
+	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
-	if len(banks) == 0 {
+	if len(users) == 0 {
 		return nil, fmt.Errorf("exams not found")
 	}
-	userCass = banks[0]
+	userCass = users[0]
 	updatedCols := []string{}
 	emailUpdate := ""
 	phoneUpdate := ""
@@ -335,23 +334,20 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 }
 
 func LoginUser(ctx context.Context) (*model.UserLoginContext, error) {
-	emailBytes, err := base64.URLEncoding.DecodeString(ctx.Value("userid").(string))
-	if err != nil {
-		return nil, err
-	}
-	email := string(emailBytes)
+	userEmail := ctx.Value("userEmail").(string)
+	userID := base64.URLEncoding.EncodeToString([]byte(userEmail))
 	userCass := userz.User{
-		ID: ctx.Value("userid").(string),
+		ID: userID,
 	}
-	banks := []userz.User{}
+	users := []userz.User{}
 	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
-	if err := getQuery.SelectRelease(&banks); err != nil {
+	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
-	if len(banks) == 0 {
+	if len(users) == 0 {
 		return nil, fmt.Errorf("user not found")
 	}
-	userCass = banks[0]
+	userCass = users[0]
 	photoURL := userCass.PhotoURL
 	if userCass.PhotoBucket != "" {
 		storageC := bucket.NewStorageHandler()
@@ -382,7 +378,7 @@ func LoginUser(ctx context.Context) (*model.UserLoginContext, error) {
 	customClaims["role"] = currentUser.Role
 	customClaims["status"] = currentUser.Status
 	customClaims["is_active"] = currentUser.IsActive
-	userRecord, token, err := global.IDP.LoginUser(ctx, email, customClaims)
+	userRecord, token, err := global.IDP.LoginUser(ctx, userEmail, customClaims)
 	if err != nil {
 		return nil, err
 	}
