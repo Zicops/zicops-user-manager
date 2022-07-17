@@ -392,12 +392,8 @@ func LoginUser(ctx context.Context) (*model.UserLoginContext, error) {
 
 func Logout(ctx context.Context) (*bool, error) {
 	logoutSuccess := false
-	emailBytes, err := base64.URLEncoding.DecodeString(ctx.Value("userid").(string))
-	if err != nil {
-		return nil, err
-	}
-	email := string(emailBytes)
-	logoutSuccess, err = global.IDP.LogoutUser(ctx, email)
+	email := ctx.Value("email").(string)
+	logoutSuccess, err := global.IDP.LogoutUser(ctx, email)
 	if err != nil {
 		return &logoutSuccess, err
 	}
