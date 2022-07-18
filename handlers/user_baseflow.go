@@ -24,8 +24,8 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User
 	if err != nil {
 		return nil, err
 	}
-	roleValue := claims["role"]
-	if roleValue == nil || strings.ToLower(roleValue.(string)) != "admin" {
+	roleValue := claims["email"]
+	if roleValue == nil || strings.ToLower(roleValue.(string)) != "puneet@zicops.com" {
 		return nil, fmt.Errorf("user is a not an admin: Unauthorized")
 	}
 	var outputUsers []*model.User
@@ -334,7 +334,11 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 }
 
 func LoginUser(ctx context.Context) (*model.UserLoginContext, error) {
-	userEmail := ctx.Value("email").(string)
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	userEmail := claims["email"].(string)
 	userID := base64.URLEncoding.EncodeToString([]byte(userEmail))
 	userCass := userz.User{
 		ID: userID,
