@@ -303,3 +303,14 @@ func (id *IDP) LogoutUser(ctx context.Context, email string) (bool, error) {
 	}
 	return true, nil
 }
+
+
+// VerifyUserToken ....
+func (id *IDP) VerifyUserToken(ctx context.Context, idToken string) (*auth.Token, error) {
+	verificationOutput, err := id.client.VerifyIDToken(ctx, idToken)
+	if err != nil {
+		return nil, err
+	}
+	return verificationOutput, nil
+}
+

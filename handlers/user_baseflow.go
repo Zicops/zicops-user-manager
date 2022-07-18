@@ -334,7 +334,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 }
 
 func LoginUser(ctx context.Context) (*model.UserLoginContext, error) {
-	userEmail := ctx.Value("userEmail").(string)
+	userEmail := ctx.Value("email").(string)
 	userID := base64.URLEncoding.EncodeToString([]byte(userEmail))
 	userCass := userz.User{
 		ID: userID,
