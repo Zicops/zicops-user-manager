@@ -339,6 +339,9 @@ func LoginUser(ctx context.Context) (*model.UserLoginContext, error) {
 		return nil, err
 	}
 	userEmail := claims["email"].(string)
+	if userEmail == "puneet@zicops.com" {
+		return nil, fmt.Errorf("user is not allowed to proceed with zicops apis")
+	}
 	userID := base64.URLEncoding.EncodeToString([]byte(userEmail))
 	userCass := userz.User{
 		ID: userID,
