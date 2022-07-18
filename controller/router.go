@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph"
 	"github.com/zicops/zicops-user-manager/graph/generated"
+	"github.com/zicops/zicops-user-manager/lib/jwt"
 )
 
 // CCRouter ... the router for the controller
@@ -24,6 +26,13 @@ func CCRouter() (*gin.Engine, error) {
 	configCors.AllowAllOrigins = true
 	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	restRouter.Use(cors.New(configCors))
+	// user a middleware to get context values
+	restRouter.Use(func(c *gin.Context) {
+		currentRequest := c.Request
+		incomingToken := jwt.GetToken(currentRequest)
+		claimsFromToken, _ := jwt.GetClaims(incomingToken)
+		c.Set("zclaims", claimsFromToken)
+	})
 	restRouter.GET("/healthz", HealthCheckHandler)
 	// create group for restRouter
 	version1 := restRouter.Group("/api/v1")
@@ -46,7 +55,7 @@ func HealthCheckHandler(c *gin.Context) {
 
 //GetHealthStatus ...
 func GetHealthStatus(w http.ResponseWriter) {
-	healthStatus := "Super Dentist backend service is healthy"
+	healthStatus := "Zicops user manager service is healthy"
 	response, _ := json.Marshal(healthStatus)
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -75,7 +84,11 @@ func graphqlHandler() gin.HandlerFunc {
 	h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 
 	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
+		ctxValue := c.Value("zclaims").(map[string]interface{})
+		// set ctxValue to request context
+		request := c.Request
+		requestWithValue := request.WithContext(context.WithValue(request.Context(), "zclaims", ctxValue))
+		h.ServeHTTP(c.Writer, requestWithValue)
 	}
 }
 
