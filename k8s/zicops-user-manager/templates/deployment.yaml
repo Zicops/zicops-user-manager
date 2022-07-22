@@ -32,13 +32,20 @@ spec:
             "--backend=http://127.0.0.1:{{ .Values.image.port }}",
             "--mode={{ .Values.asp.arg.mode }}",
           ]
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+          - name: zicops-cc
+            mountPath: {{ .Values.zcServiceAccount.credential.dir | quote }}
+            readOnly: true 
+          env:
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: {{ $zcbcred }}
           ports:
             - name: http-server-cq
               containerPort: {{ .Values.asp.port }}
               protocol: TCP
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           readinessProbe:
             httpGet:
               path: {{ .Values.image.health }}
