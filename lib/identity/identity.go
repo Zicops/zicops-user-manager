@@ -22,7 +22,7 @@ type IDP struct {
 	fireApp   *firebase.App
 }
 
-// NewIDPEP .... intializes firebase auth which will do al sorts of authn/authz
+// NewIDPEP ..... intializes firebase auth which will do al sorts of authn/authz
 func NewIDPEP(ctx context.Context, projectID string) (*IDP, error) {
 	serviceAccountSD := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	if serviceAccountSD == "" {
