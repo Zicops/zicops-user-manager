@@ -126,12 +126,18 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 	if err != nil {
 		return nil, err
 	}
-	roleValue := claims["role"]
-	if roleValue == nil || strings.ToLower(roleValue.(string)) != "admin" {
-		return nil, fmt.Errorf("user is a not an admin: unauthorized")
-	}
 	registered := false
 	email_creator := claims["email"].(string)
+	loggedInUser, err := LoginUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if loggedInUser.Email != email_creator {
+		return nil, fmt.Errorf("user is not authorized to invite users")
+	}
+	if strings.ToLower(loggedInUser.Role) != "admin" {
+		return nil, fmt.Errorf("user is not authorized to invite users")
+	}
 	for _, email := range emails {
 		userRecord, err := global.IDP.InviteUser(ctx, email)
 		if err != nil {
@@ -333,7 +339,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	return &responseUser, nil
 }
 
-func LoginUser(ctx context.Context) (*model.UserLoginContext, error) {
+func LoginUser(ctx context.Context) (*model.User, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -381,20 +387,7 @@ func LoginUser(ctx context.Context) (*model.UserLoginContext, error) {
 		IsActive:   userCass.IsActive,
 		PhotoURL:   &photoURL,
 	}
-	customClaims := make(map[string]interface{})
-	customClaims["role"] = currentUser.Role
-	customClaims["status"] = currentUser.Status
-	customClaims["is_active"] = currentUser.IsActive
-	userRecord, token, err := global.IDP.LoginUser(ctx, userEmail, customClaims)
-	if err != nil {
-		return nil, err
-	}
-	currentUser.Phone = userRecord.PhoneNumber
-	response := model.UserLoginContext{
-		User:        &currentUser,
-		AccessToken: token,
-	}
-	return &response, nil
+	return &currentUser, nil
 }
 
 func Logout(ctx context.Context) (*bool, error) {
@@ -405,13 +398,4 @@ func Logout(ctx context.Context) (*bool, error) {
 		return &logoutSuccess, err
 	}
 	return &logoutSuccess, nil
-}
-
-func GetNewToken(ctx context.Context) (*string, error) {
-	currentUser, err := LoginUser(ctx)
-	if err != nil {
-		return nil, err
-	}
-	currentToken := currentUser.AccessToken
-	return &currentToken, nil
 }

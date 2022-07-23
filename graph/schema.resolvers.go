@@ -39,7 +39,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UserInput
 	return result, nil
 }
 
-func (r *mutationResolver) Login(ctx context.Context) (*model.UserLoginContext, error) {
+func (r *mutationResolver) Login(ctx context.Context) (*model.User, error) {
 	result, err := handlers.LoginUser(ctx)
 	if err != nil {
 		log.Errorf("Error logging in user: %v", err)
@@ -52,15 +52,6 @@ func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
 	if err != nil {
 		log.Errorf("Error logging out user: %v", err)
-		return nil, err
-	}
-	return result, nil
-}
-
-func (r *queryResolver) GetUpdatedToken(ctx context.Context) (*string, error) {
-	result, err := handlers.GetNewToken(ctx)
-	if err != nil {
-		log.Errorf("Error getting user token: %v", err)
 		return nil, err
 	}
 	return result, nil

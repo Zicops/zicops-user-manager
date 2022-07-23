@@ -40,8 +40,3 @@ type UserInput struct {
 	Photo      *graphql.Upload `json:"Photo"`
 	PhotoURL   *string         `json:"photo_url"`
 }
-
-type UserLoginContext struct {
-	User        *User  `json:"user"`
-	AccessToken string `json:"access_token"`
-}

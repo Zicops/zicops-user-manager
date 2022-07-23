@@ -35,19 +35,13 @@ input UserInput {
   photo_url: String
 }
 
-type UserLoginContext{
-  user: User!
-  access_token: String!
-}
-
 type Query {
   logout: Boolean
-  getUpdatedToken: String
 }
 
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!): Boolean
   updateUser(input: UserInput!): User
-  login: UserLoginContext
+  login: User
 }
