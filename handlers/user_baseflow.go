@@ -147,20 +147,12 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 		return nil, fmt.Errorf("user is not an admin")
 	}
 	for _, email := range emails {
-		userRecord, err := global.IDP.InviteUser(ctx, email)
-		if err != nil {
-			return &registered, err
-		}
-		passwordReset, err := global.IDP.GetResetPasswordURL(ctx, userRecord.Email)
-		if err != nil {
-			return &registered, err
-		}
 		userID := base64.URLEncoding.EncodeToString([]byte(email))
 		userInput := model.UserInput{
 			ID:         &userID,
 			FirstName:  "",
 			LastName:   "",
-			Email:      userRecord.Email,
+			Email:      email,
 			Role:       "",
 			Status:     "",
 			IsVerified: false,
@@ -176,8 +168,12 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 		if err != nil {
 			return &registered, err
 		}
+		passwordReset, err := global.IDP.GetResetPasswordURL(ctx, email)
+		if err != nil {
+			return &registered, err
+		}
 		// send email with password reset link
-		global.SGClient.SendJoinEmail(userRecord.Email, passwordReset, userRecord.DisplayName)
+		global.SGClient.SendJoinEmail(email, passwordReset, userCass.FirstName+" "+userCass.LastName)
 	}
 	registered = true
 	return &registered, nil
