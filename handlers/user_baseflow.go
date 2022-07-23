@@ -25,8 +25,10 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 		return nil, err
 	}
 	roleValue := claims["email"]
-	if !isZAdmin || strings.ToLower(roleValue.(string)) != "puneet@zicops.com" {
-		return nil, fmt.Errorf("user is a not an admin: Unauthorized")
+	if !isZAdmin {
+		if strings.ToLower(roleValue.(string)) != "puneet@zicops.com" {
+			return nil, fmt.Errorf("user is a not an admin: Unauthorized")
+		}
 	}
 	var outputUsers []*model.User
 	var storageC *bucket.Client
