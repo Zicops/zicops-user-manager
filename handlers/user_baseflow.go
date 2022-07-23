@@ -128,15 +128,21 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 	}
 	registered := false
 	email_creator := claims["email"].(string)
-	loggedInUser, err := LoginUser(ctx)
-	if err != nil {
+	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	userCass := userz.User{
+		ID: emailCreatorID,
+	}
+	users := []userz.User{}
+	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
+	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
-	if loggedInUser.Email != email_creator {
-		return nil, fmt.Errorf("user is not authorized to invite users")
+	if len(users) == 0 {
+		return nil, fmt.Errorf("user not found")
 	}
-	if strings.ToLower(loggedInUser.Role) != "admin" {
-		return nil, fmt.Errorf("user is not authorized to invite users")
+	userCass = users[0]
+	if strings.ToLower(userCass.Role) != "admin" {
+		return nil, fmt.Errorf("user is not an admin")
 	}
 	for _, email := range emails {
 		userRecord, err := global.IDP.InviteUser(ctx, email)
