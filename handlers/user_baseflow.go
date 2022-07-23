@@ -19,13 +19,13 @@ import (
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
 )
 
-func RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error) {
+func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool) ([]*model.User, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	roleValue := claims["email"]
-	if roleValue == nil || strings.ToLower(roleValue.(string)) != "puneet@zicops.com" {
+	if !isZAdmin || strings.ToLower(roleValue.(string)) != "puneet@zicops.com" {
 		return nil, fmt.Errorf("user is a not an admin: Unauthorized")
 	}
 	var outputUsers []*model.User
@@ -170,7 +170,7 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 			Gender:     "",
 			Phone:      "",
 		}
-		_, err = RegisterUsers(ctx, []*model.UserInput{&userInput})
+		_, err = RegisterUsers(ctx, []*model.UserInput{&userInput}, true)
 		if err != nil {
 			return &registered, err
 		}

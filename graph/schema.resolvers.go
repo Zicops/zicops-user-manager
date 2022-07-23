@@ -13,7 +13,7 @@ import (
 )
 
 func (r *mutationResolver) RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error) {
-	result, err := handlers.RegisterUsers(ctx, input)
+	result, err := handlers.RegisterUsers(ctx, input, true)
 	if err != nil {
 		log.Errorf("Error registering users: %v", err)
 		return nil, err
