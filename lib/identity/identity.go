@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
@@ -172,7 +173,8 @@ func (id *IDP) GetResetPasswordURL(ctx context.Context, email string) (string, e
 			return "", err
 		}
 	}
-	return verifyLink, nil
+	zicopReplace := strings.Replace(verifyLink, "https://zicops-one.firebaseapp.com/__/auth/action?", "https://demo.zicops.com/reset-password?", 1)
+	return zicopReplace, nil
 }
 
 // RegisterUser ...
@@ -304,7 +306,6 @@ func (id *IDP) LogoutUser(ctx context.Context, email string) (bool, error) {
 	return true, nil
 }
 
-
 // VerifyUserToken ....
 func (id *IDP) VerifyUserToken(ctx context.Context, idToken string) (*auth.Token, error) {
 	verificationOutput, err := id.client.VerifyIDToken(ctx, idToken)
@@ -313,4 +314,3 @@ func (id *IDP) VerifyUserToken(ctx context.Context, idToken string) (*auth.Token
 	}
 	return verificationOutput, nil
 }
-
