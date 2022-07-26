@@ -88,6 +88,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 			UpdatedAt:   time.Now().Unix(),
 			PhotoBucket: photoBucket,
 			PhotoURL:    photoUrl,
+			Email:       user.Email,
 		}
 		insertQuery := global.CassUserSession.Session.Query(userz.UserTable.Insert()).BindStruct(userCass)
 		if err := insertQuery.ExecRelease(); err != nil {
@@ -352,6 +353,10 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 	if userEmail == "puneet@zicops.com" {
 		return nil, fmt.Errorf("user is not allowed to proceed with zicops apis")
 	}
+	currentUserIT, err := global.IDP.GetUserByEmail(ctx, userEmail)
+	if err != nil {
+		return nil, err
+	}
 	userID := base64.URLEncoding.EncodeToString([]byte(userEmail))
 	userCass := userz.User{
 		ID: userID,
@@ -390,6 +395,7 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		IsVerified: userCass.IsVerified,
 		IsActive:   userCass.IsActive,
 		PhotoURL:   &photoURL,
+		Phone:      currentUserIT.PhoneNumber,
 	}
 	return &currentUser, nil
 }
