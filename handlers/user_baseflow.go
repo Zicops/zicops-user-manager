@@ -340,6 +340,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		IsActive:   user.IsActive,
 		Role:       user.Role,
 		Status:     user.Status,
+		PhotoURL:   &photoUrl,
 	}
 	return &responseUser, nil
 }
