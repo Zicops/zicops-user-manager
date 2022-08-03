@@ -11,7 +11,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http-server-cq
+      targetPort: http-server-um
       protocol: TCP
       name: http-server-cq
   selector:
