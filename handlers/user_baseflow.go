@@ -276,12 +276,12 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	}
 	if user.FirstName != "" && user.FirstName != userCass.FirstName {
 		userCass.FirstName = user.FirstName
-		updatedCols = append(updatedCols, "firstname")
+		updatedCols = append(updatedCols, "first_name")
 		firstNameUpdate = user.FirstName
 	}
 	if user.LastName != "" && user.LastName != userCass.LastName {
 		userCass.LastName = user.LastName
-		updatedCols = append(updatedCols, "lastname")
+		updatedCols = append(updatedCols, "last_name")
 		lastNameUpdate = user.LastName
 	}
 	if emailUpdate != "" || phoneUpdate != "" || firstNameUpdate != "" || lastNameUpdate != "" {
