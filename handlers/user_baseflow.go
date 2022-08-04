@@ -6,10 +6,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/scylladb/gocqlx/qb"
 	"github.com/zicops/contracts/userz"
@@ -257,7 +258,9 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		photoUrl = storageC.GetSignedURLForObject(bucketPath)
 	} else {
 		photoBucket = ""
-		photoUrl = *user.PhotoURL
+		if user.PhotoURL != nil {
+			photoUrl = *user.PhotoURL
+		}
 	}
 	if photoBucket != "" {
 		userCass.PhotoBucket = photoBucket
