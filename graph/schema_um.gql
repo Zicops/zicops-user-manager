@@ -9,8 +9,8 @@ type User {
   is_verified: Boolean!
   is_active: Boolean!
   gender: String!
-  created_by: String!
-  updated_by: String!
+  created_by: String
+  updated_by: String
   created_at: String!
   updated_at: String!
   email: String!
@@ -27,12 +27,380 @@ input UserInput {
   is_verified: Boolean!
   is_active: Boolean!
   gender: String!
-  created_by: String!
-  updated_by: String!
+  created_by: String
+  updated_by: String
   email: String!
   phone: String!
   Photo: Upload
   photo_url: String
+}
+
+input UserLspMapInput{
+  user_lsp_id: ID
+  user_id: String!
+  lsp_id: String!
+  status: String!
+  created_by: String
+  updated_by: String
+}
+
+type UserLspMap {
+  user_lsp_id: ID
+  user_id: String!
+  lsp_id: String!
+  status: String!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserOrganizationMapInput{
+  user_organization_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  organization_id: String!
+  organization_role: String!
+  is_active: Boolean!
+  employee_id: String!
+  created_by: String
+  updated_by: String
+}
+
+type UserOrganizationMap {
+  user_organization_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  organization_id: String!
+  organization_role: String!
+  is_active: Boolean!
+  employee_id: String!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserLanguageMapInput{
+  user_id: String!
+  user_lsp_id: String!
+  language: String!
+  is_base_language: Boolean!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+}
+
+type UserLanguageMap {
+  user_language_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  language: String!
+  is_base_language: Boolean!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserPreferenceInput{
+  user_id: String!
+  user_lsp_id: String!
+  sub_category: String!
+  is_base: Boolean!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+}
+
+type UserPreference {
+  user_preference_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  sub_category: String!
+  is_base: Boolean!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserRoleInput{
+  user_role_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  role: String!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+}
+
+type UserRole {
+  user_role_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  role: String!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserCohortInput {
+  user_cohort_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  cohort_id: String!
+  added_by: String!
+  membership_status: String!
+  created_by: String
+  updated_by: String
+}
+
+type UserCohort {
+  user_cohort_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  cohort_id: String!
+  added_by: String!
+  membership_status: String!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserCourseInput{
+  user_course_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  course_id: String!
+  course_type: String!
+  added_by: String!
+  is_mandatory: Boolean!
+  course_status: String!
+  created_by: String
+  updated_by: String
+}
+
+type UserCourse {
+  user_course_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  course_id: String!
+  course_type: String!
+  added_by: String!
+  is_mandatory: Boolean!
+  course_status: String!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserCourseProgressInput{
+  user_cp_id: ID
+  user_id: String!
+  user_course_id: String!
+  topic_id: String!
+  topic_type: String!
+  status: String!
+  time_stamp: String!
+  created_by: String
+  updated_by: String
+}
+
+type UserCourseProgress {
+  user_cp_id: ID
+  user_id: String!
+  user_course_id: String!
+  topic_id: String!
+  topic_type: String!
+  status: String!
+  time_stamp: String!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserQuizAttemptInput{
+  user_qa_id: ID
+  user_id: String!
+  user_cp_id: String!
+  user_course_id: String!
+  quiz_id: String!
+  quiz_attempt:Int!
+  result: String!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+}
+
+type UserQuizAttempt {
+  user_qa_id: ID
+  user_id: String!
+  user_cp_id: String!
+  user_course_id: String!
+  quiz_id: String!
+  quiz_attempt:Int!
+  result: String!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserBookmarkInput {
+  user_bm_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  user_course_id: String!
+  course_id: String!
+  module_id: String!
+  name: String!
+  time_stamp: String!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+}
+
+type UserBookmark {
+  user_bm_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  user_course_id: String!
+  course_id: String!
+  module_id: String!
+  name: String!
+  time_stamp: String!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserNotesInput{
+  user_notes_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  course_id: String!
+  module_id: String!
+  details: String!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+}
+
+type UserNotes {
+  user_notes_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  course_id: String!
+  module_id: String!
+  details: String!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserExamAttemptsInput{
+  user_ea_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  user_course_id: String!
+  exam_id: String!
+  attempt_no: Int!
+  attempt_status: String!
+  attempt_start_time: String!
+  attempt_duration: String!
+  created_by: String
+  updated_by: String
+}
+
+type UserExamAttempts {
+  user_ea_id: ID
+  user_id: String!
+  user_lsp_id: String!
+  user_course_id: String!
+  exam_id: String!
+  attempt_no: Int!
+  attempt_status: String!
+  attempt_start_time: String!
+  attempt_duration: String!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserExamProgressInput{
+  user_ep_id: ID
+  user_id: String!
+  user_ea_id: String!
+  user_lsp_id: String!
+  user_cp_id: String!
+  sr_no: Int!
+  question_id: String!
+  question_type: String!
+  answer: String!
+  q_attempt_status: String!
+  total_time_spent: String!
+  correct_answer: String!
+  created_by: String
+  updated_by: String
+}
+
+type UserExamProgress {
+  user_ep_id: ID
+  user_id: String!
+  user_ea_id: String!
+  user_lsp_id: String!
+  user_cp_id: String!
+  sr_no: Int!
+  question_id: String!
+  question_type: String!
+  answer: String!
+  q_attempt_status: String!
+  total_time_spent: String!
+  correct_answer: String!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+}
+
+input UserExamResultInput{
+  user_er_id: ID
+  user_id: String!
+  user_ea_id: String!
+  user_score: Int!
+  correct_answers: Int!
+  wrong_answers: Int!
+  result_status: String!
+  created_by: String
+  updated_by: String
+}
+
+type UserExamResult {
+  user_er_id: ID
+  user_id: String!
+  user_ea_id: String!
+  user_score: Int!
+  correct_answers: Int!
+  wrong_answers: Int!
+  result_status: String!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
 }
 
 type Query {
@@ -43,5 +411,31 @@ type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!): Boolean
   updateUser(input: UserInput!): User
+  addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
+  updateUserLspMap(input: UserLspMapInput!): UserLspMap
+  addUserOrganizationMap(input: [UserOrganizationMapInput]!): [UserOrganizationMap]
+  updateUserOrganizationMap(input: UserOrganizationMapInput!): UserOrganizationMap
+  addUserLanguageMap(input: [UserLanguageMapInput]!): [UserLanguageMap]
+  addUserPreference(input: [UserPreferenceInput]!): [UserPreference]
+  addUserRoles(input: [UserRoleInput]!): [UserRole]
+  updateUserRole(input: UserRoleInput!): UserRole
+  addUserCohort(input: [UserCohortInput]!): [UserCohort]
+  updateUserCohort(input: UserCohortInput!): UserCohort
+  addUserCourse(input: [UserCourseInput]!): [UserCourse]
+  updateUserCourse(input: UserCourseInput!): UserCourse
+  addUserCourseProgress(input: [UserCourseProgressInput]!): [UserCourseProgress]
+  updateUserCourseProgress(input: UserCourseProgressInput!): UserCourseProgress
+  addUserQuizAttempt(input: [UserQuizAttemptInput]!): [UserQuizAttempt]
+  updateUserQuizAttempt(input: UserQuizAttemptInput!): UserQuizAttempt
+  addUserBookmark(input: [UserBookmarkInput]!): [UserBookmark]
+  updateUserBookmark(input: UserBookmarkInput!): UserBookmark
+  addUserNotes(input: [UserNotesInput]!): [UserNotes]
+  updateUserNotes(input: UserNotesInput!): UserNotes
+  addUserExamAttempts(input: [UserExamAttemptsInput]!): [UserExamAttempts]
+  updateUserExamAttempts(input: UserExamAttemptsInput!): UserExamAttempts
+  addUserExamProgress(input: [UserExamProgressInput]!): [UserExamProgress]
+  updateUserExamProgress(input: UserExamProgressInput!): UserExamProgress
+  addUserExamResult(input: [UserExamResultInput]!): [UserExamResult]
+  updateUserExamResult(input: UserExamResultInput!): UserExamResult
   login: User
 }
