@@ -411,6 +411,7 @@ type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!): Boolean
   updateUser(input: UserInput!): User
+  login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
   updateUserLspMap(input: UserLspMapInput!): UserLspMap
   addUserOrganizationMap(input: [UserOrganizationMapInput]!): [UserOrganizationMap]
@@ -437,5 +438,4 @@ type Mutation {
   updateUserExamProgress(input: UserExamProgressInput!): UserExamProgress
   addUserExamResult(input: [UserExamResultInput]!): [UserExamResult]
   updateUserExamResult(input: UserExamResultInput!): UserExamResult
-  login: User
 }
