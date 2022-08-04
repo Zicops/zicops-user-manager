@@ -275,7 +275,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		updatedCols = append(updatedCols, "email")
 		emailUpdate = user.Email
 	}
-	if user.Phone != "" {
+	if user.Phone != "" && user.Phone != fireUser.PhoneNumber {
 		phoneUpdate = user.Phone
 	}
 	if user.FirstName != "" && user.FirstName != userCass.FirstName {
@@ -294,25 +294,25 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 			return nil, err
 		}
 	}
-	if user.Status != "" {
+	if user.Status != "" && user.Status != userCass.Status {
 		userCass.Status = user.Status
 		updatedCols = append(updatedCols, "status")
 	}
-	if user.Gender != "" {
+	if user.Gender != "" && user.Gender != userCass.Gender {
 		userCass.Gender = user.Gender
 		updatedCols = append(updatedCols, "gender")
 	}
 	userCass.IsActive = user.IsActive
 	userCass.IsVerified = user.IsVerified
-	if user.CreatedBy != "" {
+	if user.CreatedBy != "" && userCass.CreatedBy != user.CreatedBy {
 		userCass.CreatedBy = user.CreatedBy
 		updatedCols = append(updatedCols, "created_by")
 	}
-	if user.UpdatedBy != "" {
+	if user.UpdatedBy != "" && user.UpdatedBy != userCass.UpdatedBy {
 		userCass.UpdatedBy = user.UpdatedBy
 		updatedCols = append(updatedCols, "updated_by")
 	}
-	if user.Role != "" {
+	if user.Role != "" && user.Role != userCass.Role {
 		userCass.Role = user.Role
 		updatedCols = append(updatedCols, "role")
 	}
