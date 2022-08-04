@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
 	"time"
@@ -213,7 +214,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		return nil, err
 	}
 	if len(users) == 0 {
-		return nil, fmt.Errorf("exams not found")
+		return nil, fmt.Errorf("users not found")
 	}
 	userCass = users[0]
 	updatedCols := []string{}
@@ -323,6 +324,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	upStms, uNames := userz.UserTable.Update(updatedCols...)
 	updateQuery := global.CassUserSession.Session.Query(upStms, uNames).BindStruct(&userCass)
 	if err := updateQuery.ExecRelease(); err != nil {
+		log.Errorf("error updating user: %v", err)
 		return nil, err
 	}
 	responseUser := model.User{
