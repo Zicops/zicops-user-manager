@@ -86,11 +86,21 @@ func (r *mutationResolver) UpdateUserOrganizationMap(ctx context.Context, input 
 }
 
 func (r *mutationResolver) AddUserLanguageMap(ctx context.Context, input []*model.UserLanguageMapInput) ([]*model.UserLanguageMap, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserLanguageMap(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding lang map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserPreference(ctx context.Context, input []*model.UserPreferenceInput) ([]*model.UserPreference, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserPreference(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding preference map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.UserRole, error) {

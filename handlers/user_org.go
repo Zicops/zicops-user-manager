@@ -25,7 +25,7 @@ func AddUserOrganizationMap(ctx context.Context, input []*model.UserOrganization
 		isAllowed = true
 	}
 	if !isAllowed {
-		return nil, fmt.Errorf("user not allowed to create lsp mapping")
+		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
 	userLspMaps := make([]*model.UserOrganizationMap, 0)
 	for _, input := range input {
@@ -85,7 +85,7 @@ func UpdateUserOrganizationMap(ctx context.Context, input model.UserOrganization
 		isAllowed = true
 	}
 	if !isAllowed {
-		return nil, fmt.Errorf("user not allowed to create lsp mapping")
+		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
 	if input.UserOrganizationID == nil {
 		return nil, fmt.Errorf("user org id is required")
