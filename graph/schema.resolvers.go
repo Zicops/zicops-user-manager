@@ -50,11 +50,21 @@ func (r *mutationResolver) Login(ctx context.Context) (*model.User, error) {
 }
 
 func (r *mutationResolver) AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*model.UserLspMap, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserLspMap(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding lsp map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.UserLspMap, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.UpdateUserLspMap(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating lsp map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserOrganizationMap(ctx context.Context, input []*model.UserOrganizationMapInput) ([]*model.UserOrganizationMap, error) {
