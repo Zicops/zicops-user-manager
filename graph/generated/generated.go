@@ -282,6 +282,7 @@ type ComplexityRoot struct {
 		QuizAttempt  func(childComplexity int) int
 		QuizID       func(childComplexity int) int
 		Result       func(childComplexity int) int
+		TopicID      func(childComplexity int) int
 		UpdatedAt    func(childComplexity int) int
 		UpdatedBy    func(childComplexity int) int
 		UserCourseID func(childComplexity int) int
@@ -1857,6 +1858,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserQuizAttempt.Result(childComplexity), true
 
+	case "UserQuizAttempt.topic_id":
+		if e.complexity.UserQuizAttempt.TopicID == nil {
+			break
+		}
+
+		return e.complexity.UserQuizAttempt.TopicID(childComplexity), true
+
 	case "UserQuizAttempt.updated_at":
 		if e.complexity.UserQuizAttempt.UpdatedAt == nil {
 			break
@@ -2266,6 +2274,7 @@ input UserQuizAttemptInput{
   user_course_id: String!
   quiz_id: String!
   quiz_attempt:Int!
+  topic_id: String!
   result: String!
   is_active: Boolean!
   created_by: String
@@ -2279,6 +2288,7 @@ type UserQuizAttempt {
   user_course_id: String!
   quiz_id: String!
   quiz_attempt:Int!
+  topic_id: String!
   result: String!
   is_active: Boolean!
   created_by: String
@@ -9817,6 +9827,41 @@ func (ec *executionContext) _UserQuizAttempt_quiz_attempt(ctx context.Context, f
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserQuizAttempt_topic_id(ctx context.Context, field graphql.CollectedField, obj *model.UserQuizAttempt) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserQuizAttempt",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TopicID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserQuizAttempt_result(ctx context.Context, field graphql.CollectedField, obj *model.UserQuizAttempt) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12805,6 +12850,14 @@ func (ec *executionContext) unmarshalInputUserQuizAttemptInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "topic_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("topic_id"))
+			it.TopicID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "result":
 			var err error
 
@@ -15003,6 +15056,16 @@ func (ec *executionContext) _UserQuizAttempt(ctx context.Context, sel ast.Select
 		case "quiz_attempt":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._UserQuizAttempt_quiz_attempt(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "topic_id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._UserQuizAttempt_topic_id(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

@@ -378,6 +378,7 @@ type UserQuizAttempt struct {
 	UserCourseID string  `json:"user_course_id"`
 	QuizID       string  `json:"quiz_id"`
 	QuizAttempt  int     `json:"quiz_attempt"`
+	TopicID      string  `json:"topic_id"`
 	Result       string  `json:"result"`
 	IsActive     bool    `json:"is_active"`
 	CreatedBy    *string `json:"created_by"`
@@ -393,6 +394,7 @@ type UserQuizAttemptInput struct {
 	UserCourseID string  `json:"user_course_id"`
 	QuizID       string  `json:"quiz_id"`
 	QuizAttempt  int     `json:"quiz_attempt"`
+	TopicID      string  `json:"topic_id"`
 	Result       string  `json:"result"`
 	IsActive     bool    `json:"is_active"`
 	CreatedBy    *string `json:"created_by"`

@@ -140,27 +140,57 @@ func (r *mutationResolver) UpdateUserCohort(ctx context.Context, input model.Use
 }
 
 func (r *mutationResolver) AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*model.UserCourse, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserCourse(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding course map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.UserCourse, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.UpdateUserCourse(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating course map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgressInput) ([]*model.UserCourseProgress, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserCourseProgress(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding course progress for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgressInput) (*model.UserCourseProgress, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.UpdateUserCourseProgress(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating course progress for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserQuizAttempt(ctx context.Context, input []*model.UserQuizAttemptInput) ([]*model.UserQuizAttempt, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserQuizAttempt(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding quiz attempt for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) UpdateUserQuizAttempt(ctx context.Context, input model.UserQuizAttemptInput) (*model.UserQuizAttempt, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.UpdateUserQuizAttempt(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating quiz attempt for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*model.UserBookmark, error) {
