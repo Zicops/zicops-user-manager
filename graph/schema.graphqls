@@ -181,6 +181,7 @@ input UserCourseInput{
   course_type: String!
   added_by: String!
   is_mandatory: Boolean!
+  end_date: String
   course_status: String!
   created_by: String
   updated_by: String
@@ -194,6 +195,7 @@ type UserCourse {
   course_type: String!
   added_by: String!
   is_mandatory: Boolean!
+  end_date: String
   course_status: String!
   created_by: String
   updated_by: String
@@ -208,6 +210,7 @@ input UserCourseProgressInput{
   topic_id: String!
   topic_type: String!
   status: String!
+  video_progress: String
   time_stamp: String!
   created_by: String
   updated_by: String
@@ -220,6 +223,7 @@ type UserCourseProgress {
   topic_id: String!
   topic_type: String!
   status: String!
+  video_progress: String
   time_stamp: String!
   created_by: String
   updated_by: String
@@ -262,6 +266,7 @@ input UserBookmarkInput {
   user_course_id: String!
   course_id: String!
   module_id: String!
+  topic_id: String!
   name: String!
   time_stamp: String!
   is_active: Boolean!
@@ -276,6 +281,7 @@ type UserBookmark {
   user_course_id: String!
   course_id: String!
   module_id: String!
+  topic_id: String!
   name: String!
   time_stamp: String!
   is_active: Boolean!
@@ -291,6 +297,8 @@ input UserNotesInput{
   user_lsp_id: String!
   course_id: String!
   module_id: String!
+  topic_id: String!
+  sequence: Int! 
   details: String!
   is_active: Boolean!
   created_by: String
@@ -303,6 +311,8 @@ type UserNotes {
   user_lsp_id: String!
   course_id: String!
   module_id: String!
+  topic_id: String!
+  sequence: Int!
   details: String!
   is_active: Boolean!
   created_by: String
@@ -354,6 +364,7 @@ input UserExamProgressInput{
   q_attempt_status: String!
   total_time_spent: String!
   correct_answer: String!
+  section_id: String!
   created_by: String
   updated_by: String
 }
@@ -371,6 +382,7 @@ type UserExamProgress {
   q_attempt_status: String!
   total_time_spent: String!
   correct_answer: String!
+  section_id: String!
   created_by: String
   updated_by: String
   created_at: String!

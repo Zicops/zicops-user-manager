@@ -115,11 +115,11 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 			Status:     user.Status,
 			PhotoURL:   &photoUrl,
 		}
-		passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email)
-		if err != nil {
-			return nil, err
-		}
-		global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
+		// passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
 
 		outputUsers = append(outputUsers, &responseUser)
 	}
