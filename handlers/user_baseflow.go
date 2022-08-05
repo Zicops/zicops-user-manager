@@ -74,7 +74,12 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 		if err != nil {
 			return nil, err
 		}
-
+		if user.CreatedBy == nil {
+			user.CreatedBy = &user.Email
+		}
+		if user.UpdatedBy == nil {
+			user.UpdatedBy = &user.Email
+		}
 		userCass := userz.User{
 			ID:          userID,
 			FirstName:   user.FirstName,
@@ -84,8 +89,8 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 			Role:        user.Role,
 			IsVerified:  user.IsVerified,
 			IsActive:    user.IsActive,
-			CreatedBy:   user.CreatedBy,
-			UpdatedBy:   user.UpdatedBy,
+			CreatedBy:   *user.CreatedBy,
+			UpdatedBy:   *user.UpdatedBy,
 			CreatedAt:   time.Now().Unix(),
 			UpdatedAt:   time.Now().Unix(),
 			PhotoBucket: photoBucket,
@@ -160,8 +165,8 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 			Status:     "",
 			IsVerified: false,
 			IsActive:   false,
-			CreatedBy:  email_creator,
-			UpdatedBy:  email_creator,
+			CreatedBy:  &email_creator,
+			UpdatedBy:  &email_creator,
 			Photo:      nil,
 			PhotoURL:   nil,
 			Gender:     "",
@@ -304,12 +309,12 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	}
 	userCass.IsActive = user.IsActive
 	userCass.IsVerified = user.IsVerified
-	if user.CreatedBy != "" && userCass.CreatedBy != user.CreatedBy {
-		userCass.CreatedBy = user.CreatedBy
+	if user.CreatedBy != nil && userCass.CreatedBy != *user.CreatedBy {
+		userCass.CreatedBy = *user.CreatedBy
 		updatedCols = append(updatedCols, "created_by")
 	}
-	if user.UpdatedBy != "" && user.UpdatedBy != userCass.UpdatedBy {
-		userCass.UpdatedBy = user.UpdatedBy
+	if user.UpdatedBy != nil && *user.UpdatedBy != userCass.UpdatedBy {
+		userCass.UpdatedBy = *user.UpdatedBy
 		updatedCols = append(updatedCols, "updated_by")
 	}
 	if user.Role != "" && user.Role != userCass.Role {
@@ -393,8 +398,8 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		Email:      userCass.Email,
 		CreatedAt:  strconv.FormatInt(userCass.CreatedAt, 10),
 		UpdatedAt:  strconv.FormatInt(userCass.UpdatedAt, 10),
-		CreatedBy:  userCass.CreatedBy,
-		UpdatedBy:  userCass.UpdatedBy,
+		CreatedBy:  &userCass.CreatedBy,
+		UpdatedBy:  &userCass.UpdatedBy,
 		Role:       userCass.Role,
 		Status:     userCass.Status,
 		Gender:     userCass.Gender,

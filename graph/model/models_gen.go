@@ -15,13 +15,221 @@ type User struct {
 	IsVerified bool    `json:"is_verified"`
 	IsActive   bool    `json:"is_active"`
 	Gender     string  `json:"gender"`
-	CreatedBy  string  `json:"created_by"`
-	UpdatedBy  string  `json:"updated_by"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedBy  *string `json:"updated_by"`
 	CreatedAt  string  `json:"created_at"`
 	UpdatedAt  string  `json:"updated_at"`
 	Email      string  `json:"email"`
 	Phone      string  `json:"phone"`
 	PhotoURL   *string `json:"photo_url"`
+}
+
+type UserBookmark struct {
+	UserBmID     *string `json:"user_bm_id"`
+	UserID       string  `json:"user_id"`
+	UserLspID    string  `json:"user_lsp_id"`
+	UserCourseID string  `json:"user_course_id"`
+	CourseID     string  `json:"course_id"`
+	ModuleID     string  `json:"module_id"`
+	TopicID      string  `json:"topic_id"`
+	Name         string  `json:"name"`
+	TimeStamp    string  `json:"time_stamp"`
+	IsActive     bool    `json:"is_active"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedBy    *string `json:"updated_by"`
+	CreatedAt    string  `json:"created_at"`
+	UpdatedAt    string  `json:"updated_at"`
+}
+
+type UserBookmarkInput struct {
+	UserBmID     *string `json:"user_bm_id"`
+	UserID       string  `json:"user_id"`
+	UserLspID    string  `json:"user_lsp_id"`
+	UserCourseID string  `json:"user_course_id"`
+	CourseID     string  `json:"course_id"`
+	ModuleID     string  `json:"module_id"`
+	TopicID      string  `json:"topic_id"`
+	Name         string  `json:"name"`
+	TimeStamp    string  `json:"time_stamp"`
+	IsActive     bool    `json:"is_active"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedBy    *string `json:"updated_by"`
+}
+
+type UserCohort struct {
+	UserCohortID     *string `json:"user_cohort_id"`
+	UserID           string  `json:"user_id"`
+	UserLspID        string  `json:"user_lsp_id"`
+	CohortID         string  `json:"cohort_id"`
+	AddedBy          string  `json:"added_by"`
+	MembershipStatus string  `json:"membership_status"`
+	CreatedBy        *string `json:"created_by"`
+	UpdatedBy        *string `json:"updated_by"`
+	CreatedAt        string  `json:"created_at"`
+	UpdatedAt        string  `json:"updated_at"`
+}
+
+type UserCohortInput struct {
+	UserCohortID     *string `json:"user_cohort_id"`
+	UserID           string  `json:"user_id"`
+	UserLspID        string  `json:"user_lsp_id"`
+	CohortID         string  `json:"cohort_id"`
+	AddedBy          string  `json:"added_by"`
+	MembershipStatus string  `json:"membership_status"`
+	CreatedBy        *string `json:"created_by"`
+	UpdatedBy        *string `json:"updated_by"`
+}
+
+type UserCourse struct {
+	UserCourseID *string `json:"user_course_id"`
+	UserID       string  `json:"user_id"`
+	UserLspID    string  `json:"user_lsp_id"`
+	CourseID     string  `json:"course_id"`
+	CourseType   string  `json:"course_type"`
+	AddedBy      string  `json:"added_by"`
+	IsMandatory  bool    `json:"is_mandatory"`
+	EndDate      *string `json:"end_date"`
+	CourseStatus string  `json:"course_status"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedBy    *string `json:"updated_by"`
+	CreatedAt    string  `json:"created_at"`
+	UpdatedAt    string  `json:"updated_at"`
+}
+
+type UserCourseInput struct {
+	UserCourseID *string `json:"user_course_id"`
+	UserID       string  `json:"user_id"`
+	UserLspID    string  `json:"user_lsp_id"`
+	CourseID     string  `json:"course_id"`
+	CourseType   string  `json:"course_type"`
+	AddedBy      string  `json:"added_by"`
+	IsMandatory  bool    `json:"is_mandatory"`
+	EndDate      *string `json:"end_date"`
+	CourseStatus string  `json:"course_status"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedBy    *string `json:"updated_by"`
+}
+
+type UserCourseProgress struct {
+	UserCpID      *string `json:"user_cp_id"`
+	UserID        string  `json:"user_id"`
+	UserCourseID  string  `json:"user_course_id"`
+	TopicID       string  `json:"topic_id"`
+	TopicType     string  `json:"topic_type"`
+	Status        string  `json:"status"`
+	VideoProgress *string `json:"video_progress"`
+	TimeStamp     string  `json:"time_stamp"`
+	CreatedBy     *string `json:"created_by"`
+	UpdatedBy     *string `json:"updated_by"`
+	CreatedAt     string  `json:"created_at"`
+	UpdatedAt     string  `json:"updated_at"`
+}
+
+type UserCourseProgressInput struct {
+	UserCpID      *string `json:"user_cp_id"`
+	UserID        string  `json:"user_id"`
+	UserCourseID  string  `json:"user_course_id"`
+	TopicID       string  `json:"topic_id"`
+	TopicType     string  `json:"topic_type"`
+	Status        string  `json:"status"`
+	VideoProgress *string `json:"video_progress"`
+	TimeStamp     string  `json:"time_stamp"`
+	CreatedBy     *string `json:"created_by"`
+	UpdatedBy     *string `json:"updated_by"`
+}
+
+type UserExamAttempts struct {
+	UserEaID         *string `json:"user_ea_id"`
+	UserID           string  `json:"user_id"`
+	UserLspID        string  `json:"user_lsp_id"`
+	UserCourseID     string  `json:"user_course_id"`
+	ExamID           string  `json:"exam_id"`
+	AttemptNo        int     `json:"attempt_no"`
+	AttemptStatus    string  `json:"attempt_status"`
+	AttemptStartTime string  `json:"attempt_start_time"`
+	AttemptDuration  string  `json:"attempt_duration"`
+	CreatedBy        *string `json:"created_by"`
+	UpdatedBy        *string `json:"updated_by"`
+	CreatedAt        string  `json:"created_at"`
+	UpdatedAt        string  `json:"updated_at"`
+}
+
+type UserExamAttemptsInput struct {
+	UserEaID         *string `json:"user_ea_id"`
+	UserID           string  `json:"user_id"`
+	UserLspID        string  `json:"user_lsp_id"`
+	UserCourseID     string  `json:"user_course_id"`
+	ExamID           string  `json:"exam_id"`
+	AttemptNo        int     `json:"attempt_no"`
+	AttemptStatus    string  `json:"attempt_status"`
+	AttemptStartTime string  `json:"attempt_start_time"`
+	AttemptDuration  string  `json:"attempt_duration"`
+	CreatedBy        *string `json:"created_by"`
+	UpdatedBy        *string `json:"updated_by"`
+}
+
+type UserExamProgress struct {
+	UserEpID       *string `json:"user_ep_id"`
+	UserID         string  `json:"user_id"`
+	UserEaID       string  `json:"user_ea_id"`
+	UserLspID      string  `json:"user_lsp_id"`
+	UserCpID       string  `json:"user_cp_id"`
+	SrNo           int     `json:"sr_no"`
+	QuestionID     string  `json:"question_id"`
+	QuestionType   string  `json:"question_type"`
+	Answer         string  `json:"answer"`
+	QAttemptStatus string  `json:"q_attempt_status"`
+	TotalTimeSpent string  `json:"total_time_spent"`
+	CorrectAnswer  string  `json:"correct_answer"`
+	SectionID      string  `json:"section_id"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedBy      *string `json:"updated_by"`
+	CreatedAt      string  `json:"created_at"`
+	UpdatedAt      string  `json:"updated_at"`
+}
+
+type UserExamProgressInput struct {
+	UserEpID       *string `json:"user_ep_id"`
+	UserID         string  `json:"user_id"`
+	UserEaID       string  `json:"user_ea_id"`
+	UserLspID      string  `json:"user_lsp_id"`
+	UserCpID       string  `json:"user_cp_id"`
+	SrNo           int     `json:"sr_no"`
+	QuestionID     string  `json:"question_id"`
+	QuestionType   string  `json:"question_type"`
+	Answer         string  `json:"answer"`
+	QAttemptStatus string  `json:"q_attempt_status"`
+	TotalTimeSpent string  `json:"total_time_spent"`
+	CorrectAnswer  string  `json:"correct_answer"`
+	SectionID      string  `json:"section_id"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedBy      *string `json:"updated_by"`
+}
+
+type UserExamResult struct {
+	UserErID       *string `json:"user_er_id"`
+	UserID         string  `json:"user_id"`
+	UserEaID       string  `json:"user_ea_id"`
+	UserScore      int     `json:"user_score"`
+	CorrectAnswers int     `json:"correct_answers"`
+	WrongAnswers   int     `json:"wrong_answers"`
+	ResultStatus   string  `json:"result_status"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedBy      *string `json:"updated_by"`
+	CreatedAt      string  `json:"created_at"`
+	UpdatedAt      string  `json:"updated_at"`
+}
+
+type UserExamResultInput struct {
+	UserErID       *string `json:"user_er_id"`
+	UserID         string  `json:"user_id"`
+	UserEaID       string  `json:"user_ea_id"`
+	UserScore      int     `json:"user_score"`
+	CorrectAnswers int     `json:"correct_answers"`
+	WrongAnswers   int     `json:"wrong_answers"`
+	ResultStatus   string  `json:"result_status"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedBy      *string `json:"updated_by"`
 }
 
 type UserInput struct {
@@ -33,10 +241,182 @@ type UserInput struct {
 	IsVerified bool            `json:"is_verified"`
 	IsActive   bool            `json:"is_active"`
 	Gender     string          `json:"gender"`
-	CreatedBy  string          `json:"created_by"`
-	UpdatedBy  string          `json:"updated_by"`
+	CreatedBy  *string         `json:"created_by"`
+	UpdatedBy  *string         `json:"updated_by"`
 	Email      string          `json:"email"`
 	Phone      string          `json:"phone"`
 	Photo      *graphql.Upload `json:"Photo"`
 	PhotoURL   *string         `json:"photo_url"`
+}
+
+type UserLanguageMap struct {
+	UserLanguageID *string `json:"user_language_id"`
+	UserID         string  `json:"user_id"`
+	UserLspID      string  `json:"user_lsp_id"`
+	Language       string  `json:"language"`
+	IsBaseLanguage bool    `json:"is_base_language"`
+	IsActive       bool    `json:"is_active"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedBy      *string `json:"updated_by"`
+	CreatedAt      string  `json:"created_at"`
+	UpdatedAt      string  `json:"updated_at"`
+}
+
+type UserLanguageMapInput struct {
+	UserID         string  `json:"user_id"`
+	UserLspID      string  `json:"user_lsp_id"`
+	Language       string  `json:"language"`
+	IsBaseLanguage bool    `json:"is_base_language"`
+	IsActive       bool    `json:"is_active"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedBy      *string `json:"updated_by"`
+}
+
+type UserLspMap struct {
+	UserLspID *string `json:"user_lsp_id"`
+	UserID    string  `json:"user_id"`
+	LspID     string  `json:"lsp_id"`
+	Status    string  `json:"status"`
+	CreatedBy *string `json:"created_by"`
+	UpdatedBy *string `json:"updated_by"`
+	CreatedAt string  `json:"created_at"`
+	UpdatedAt string  `json:"updated_at"`
+}
+
+type UserLspMapInput struct {
+	UserLspID *string `json:"user_lsp_id"`
+	UserID    string  `json:"user_id"`
+	LspID     string  `json:"lsp_id"`
+	Status    string  `json:"status"`
+	CreatedBy *string `json:"created_by"`
+	UpdatedBy *string `json:"updated_by"`
+}
+
+type UserNotes struct {
+	UserNotesID *string `json:"user_notes_id"`
+	UserID      string  `json:"user_id"`
+	UserLspID   string  `json:"user_lsp_id"`
+	CourseID    string  `json:"course_id"`
+	ModuleID    string  `json:"module_id"`
+	TopicID     string  `json:"topic_id"`
+	Sequence    int     `json:"sequence"`
+	Details     string  `json:"details"`
+	IsActive    bool    `json:"is_active"`
+	CreatedBy   *string `json:"created_by"`
+	UpdatedBy   *string `json:"updated_by"`
+	CreatedAt   string  `json:"created_at"`
+	UpdatedAt   string  `json:"updated_at"`
+}
+
+type UserNotesInput struct {
+	UserNotesID *string `json:"user_notes_id"`
+	UserID      string  `json:"user_id"`
+	UserLspID   string  `json:"user_lsp_id"`
+	CourseID    string  `json:"course_id"`
+	ModuleID    string  `json:"module_id"`
+	TopicID     string  `json:"topic_id"`
+	Sequence    int     `json:"sequence"`
+	Details     string  `json:"details"`
+	IsActive    bool    `json:"is_active"`
+	CreatedBy   *string `json:"created_by"`
+	UpdatedBy   *string `json:"updated_by"`
+}
+
+type UserOrganizationMap struct {
+	UserOrganizationID *string `json:"user_organization_id"`
+	UserID             string  `json:"user_id"`
+	UserLspID          string  `json:"user_lsp_id"`
+	OrganizationID     string  `json:"organization_id"`
+	OrganizationRole   string  `json:"organization_role"`
+	IsActive           bool    `json:"is_active"`
+	EmployeeID         string  `json:"employee_id"`
+	CreatedBy          *string `json:"created_by"`
+	UpdatedBy          *string `json:"updated_by"`
+	CreatedAt          string  `json:"created_at"`
+	UpdatedAt          string  `json:"updated_at"`
+}
+
+type UserOrganizationMapInput struct {
+	UserOrganizationID *string `json:"user_organization_id"`
+	UserID             string  `json:"user_id"`
+	UserLspID          string  `json:"user_lsp_id"`
+	OrganizationID     string  `json:"organization_id"`
+	OrganizationRole   string  `json:"organization_role"`
+	IsActive           bool    `json:"is_active"`
+	EmployeeID         string  `json:"employee_id"`
+	CreatedBy          *string `json:"created_by"`
+	UpdatedBy          *string `json:"updated_by"`
+}
+
+type UserPreference struct {
+	UserPreferenceID *string `json:"user_preference_id"`
+	UserID           string  `json:"user_id"`
+	UserLspID        string  `json:"user_lsp_id"`
+	SubCategory      string  `json:"sub_category"`
+	IsBase           bool    `json:"is_base"`
+	IsActive         bool    `json:"is_active"`
+	CreatedBy        *string `json:"created_by"`
+	UpdatedBy        *string `json:"updated_by"`
+	CreatedAt        string  `json:"created_at"`
+	UpdatedAt        string  `json:"updated_at"`
+}
+
+type UserPreferenceInput struct {
+	UserID      string  `json:"user_id"`
+	UserLspID   string  `json:"user_lsp_id"`
+	SubCategory string  `json:"sub_category"`
+	IsBase      bool    `json:"is_base"`
+	IsActive    bool    `json:"is_active"`
+	CreatedBy   *string `json:"created_by"`
+	UpdatedBy   *string `json:"updated_by"`
+}
+
+type UserQuizAttempt struct {
+	UserQaID     *string `json:"user_qa_id"`
+	UserID       string  `json:"user_id"`
+	UserCpID     string  `json:"user_cp_id"`
+	UserCourseID string  `json:"user_course_id"`
+	QuizID       string  `json:"quiz_id"`
+	QuizAttempt  int     `json:"quiz_attempt"`
+	Result       string  `json:"result"`
+	IsActive     bool    `json:"is_active"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedBy    *string `json:"updated_by"`
+	CreatedAt    string  `json:"created_at"`
+	UpdatedAt    string  `json:"updated_at"`
+}
+
+type UserQuizAttemptInput struct {
+	UserQaID     *string `json:"user_qa_id"`
+	UserID       string  `json:"user_id"`
+	UserCpID     string  `json:"user_cp_id"`
+	UserCourseID string  `json:"user_course_id"`
+	QuizID       string  `json:"quiz_id"`
+	QuizAttempt  int     `json:"quiz_attempt"`
+	Result       string  `json:"result"`
+	IsActive     bool    `json:"is_active"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedBy    *string `json:"updated_by"`
+}
+
+type UserRole struct {
+	UserRoleID *string `json:"user_role_id"`
+	UserID     string  `json:"user_id"`
+	UserLspID  string  `json:"user_lsp_id"`
+	Role       string  `json:"role"`
+	IsActive   bool    `json:"is_active"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedBy  *string `json:"updated_by"`
+	CreatedAt  string  `json:"created_at"`
+	UpdatedAt  string  `json:"updated_at"`
+}
+
+type UserRoleInput struct {
+	UserRoleID *string `json:"user_role_id"`
+	UserID     string  `json:"user_id"`
+	UserLspID  string  `json:"user_lsp_id"`
+	Role       string  `json:"role"`
+	IsActive   bool    `json:"is_active"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedBy  *string `json:"updated_by"`
 }
