@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -248,19 +247,39 @@ func (r *mutationResolver) UpdateUserExamAttempts(ctx context.Context, input mod
 }
 
 func (r *mutationResolver) AddUserExamProgress(ctx context.Context, input []*model.UserExamProgressInput) ([]*model.UserExamProgress, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserExamProgress(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding exam progress for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) UpdateUserExamProgress(ctx context.Context, input model.UserExamProgressInput) (*model.UserExamProgress, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.UpdateUserExamProgress(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating exam progress for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserExamResult(ctx context.Context, input []*model.UserExamResultInput) ([]*model.UserExamResult, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserExamResult(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding exam result for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) UpdateUserExamResult(ctx context.Context, input model.UserExamResultInput) (*model.UserExamResult, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.UpdateUserExamResult(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating exam result for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
