@@ -240,6 +240,7 @@ type ComplexityRoot struct {
 		IsActive    func(childComplexity int) int
 		ModuleID    func(childComplexity int) int
 		Sequence    func(childComplexity int) int
+		Status      func(childComplexity int) int
 		TopicID     func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
 		UpdatedBy   func(childComplexity int) int
@@ -1627,6 +1628,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserNotes.Sequence(childComplexity), true
 
+	case "UserNotes.status":
+		if e.complexity.UserNotes.Status == nil {
+			break
+		}
+
+		return e.complexity.UserNotes.Status(childComplexity), true
+
 	case "UserNotes.topic_id":
 		if e.complexity.UserNotes.TopicID == nil {
 			break
@@ -2336,7 +2344,8 @@ input UserNotesInput{
   course_id: String!
   module_id: String!
   topic_id: String!
-  sequence: Int! 
+  sequence: Int!
+  status: String!
   details: String!
   is_active: Boolean!
   created_by: String
@@ -2351,6 +2360,7 @@ type UserNotes {
   module_id: String!
   topic_id: String!
   sequence: Int!
+  status: String!
   details: String!
   is_active: Boolean!
   created_by: String
@@ -8699,6 +8709,41 @@ func (ec *executionContext) _UserNotes_sequence(ctx context.Context, field graph
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserNotes_status(ctx context.Context, field graphql.CollectedField, obj *model.UserNotes) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserNotes",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserNotes_details(ctx context.Context, field graphql.CollectedField, obj *model.UserNotes) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12597,6 +12642,14 @@ func (ec *executionContext) unmarshalInputUserNotesInput(ctx context.Context, ob
 			if err != nil {
 				return it, err
 			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "details":
 			var err error
 
@@ -14690,6 +14743,16 @@ func (ec *executionContext) _UserNotes(ctx context.Context, sel ast.SelectionSet
 		case "sequence":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._UserNotes_sequence(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._UserNotes_status(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)

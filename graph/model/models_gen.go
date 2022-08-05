@@ -300,6 +300,7 @@ type UserNotes struct {
 	ModuleID    string  `json:"module_id"`
 	TopicID     string  `json:"topic_id"`
 	Sequence    int     `json:"sequence"`
+	Status      string  `json:"status"`
 	Details     string  `json:"details"`
 	IsActive    bool    `json:"is_active"`
 	CreatedBy   *string `json:"created_by"`
@@ -316,6 +317,7 @@ type UserNotesInput struct {
 	ModuleID    string  `json:"module_id"`
 	TopicID     string  `json:"topic_id"`
 	Sequence    int     `json:"sequence"`
+	Status      string  `json:"status"`
 	Details     string  `json:"details"`
 	IsActive    bool    `json:"is_active"`
 	CreatedBy   *string `json:"created_by"`

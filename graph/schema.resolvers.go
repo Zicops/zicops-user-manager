@@ -194,19 +194,39 @@ func (r *mutationResolver) UpdateUserQuizAttempt(ctx context.Context, input mode
 }
 
 func (r *mutationResolver) AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*model.UserBookmark, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserBookmark(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding bookmark for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) UpdateUserBookmark(ctx context.Context, input model.UserBookmarkInput) (*model.UserBookmark, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.UpdateUserBookmark(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating bookmark for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserNotes(ctx context.Context, input []*model.UserNotesInput) ([]*model.UserNotes, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserNotes(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding notes for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) UpdateUserNotes(ctx context.Context, input model.UserNotesInput) (*model.UserNotes, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.UpdateUserNotes(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating notes for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserExamAttempts(ctx context.Context, input []*model.UserExamAttemptsInput) ([]*model.UserExamAttempts, error) {

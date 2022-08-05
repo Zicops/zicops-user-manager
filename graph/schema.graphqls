@@ -300,7 +300,8 @@ input UserNotesInput{
   course_id: String!
   module_id: String!
   topic_id: String!
-  sequence: Int! 
+  sequence: Int!
+  status: String!
   details: String!
   is_active: Boolean!
   created_by: String
@@ -315,6 +316,7 @@ type UserNotes {
   module_id: String!
   topic_id: String!
   sequence: Int!
+  status: String!
   details: String!
   is_active: Boolean!
   created_by: String

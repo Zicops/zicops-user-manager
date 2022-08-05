@@ -238,6 +238,7 @@ input UserQuizAttemptInput{
   user_course_id: String!
   quiz_id: String!
   quiz_attempt:Int!
+  topic_id: String!
   result: String!
   is_active: Boolean!
   created_by: String
@@ -251,6 +252,7 @@ type UserQuizAttempt {
   user_course_id: String!
   quiz_id: String!
   quiz_attempt:Int!
+  topic_id: String!
   result: String!
   is_active: Boolean!
   created_by: String
@@ -298,7 +300,8 @@ input UserNotesInput{
   course_id: String!
   module_id: String!
   topic_id: String!
-  sequence: Int! 
+  sequence: Int!
+  status: String!
   details: String!
   is_active: Boolean!
   created_by: String
@@ -313,6 +316,7 @@ type UserNotes {
   module_id: String!
   topic_id: String!
   sequence: Int!
+  status: String!
   details: String!
   is_active: Boolean!
   created_by: String
