@@ -104,11 +104,21 @@ func (r *mutationResolver) AddUserPreference(ctx context.Context, input []*model
 }
 
 func (r *mutationResolver) AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.UserRole, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserRoles(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding roles map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) UpdateUserRole(ctx context.Context, input model.UserRoleInput) (*model.UserRole, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.UpdateUserRole(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating roles map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserCohort(ctx context.Context, input []*model.UserCohortInput) ([]*model.UserCohort, error) {
