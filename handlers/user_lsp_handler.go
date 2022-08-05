@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/base64"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,30 +13,15 @@ import (
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/helpers"
 )
 
 func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*model.UserLspMap, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	userCass, err := GetUserFromCass(ctx)
 	if err != nil {
-		return nil, err
-	}
-	email_creator := claims["email"].(string)
-	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
-	userCass := userz.User{
-		ID: emailCreatorID,
-	}
-	users := []userz.User{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
-	if err := getQuery.SelectRelease(&users); err != nil {
-		return nil, err
-	}
-	if len(users) == 0 {
 		return nil, fmt.Errorf("user not found")
 	}
-	userCass = users[0]
 	isAllowed := false
-	if userCass.Email == email_creator || strings.ToLower(userCass.Role) == "admin" {
+	if userCass.ID == input[0].UserID || strings.ToLower(userCass.Role) == "admin" {
 		isAllowed = true
 	}
 	if !isAllowed {
@@ -46,8 +30,8 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*mode
 	userLspMaps := make([]*model.UserLspMap, 0)
 	for _, input := range input {
 		guid := xid.New()
-		createdBy := email_creator
-		updatedBy := email_creator
+		createdBy := userCass.Email
+		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
 			createdBy = *input.CreatedBy
 		}
@@ -84,26 +68,12 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*mode
 }
 
 func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.UserLspMap, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	userCass, err := GetUserFromCass(ctx)
 	if err != nil {
-		return nil, err
-	}
-	email_creator := claims["email"].(string)
-	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
-	userCass := userz.User{
-		ID: emailCreatorID,
-	}
-	users := []userz.User{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
-	if err := getQuery.SelectRelease(&users); err != nil {
-		return nil, err
-	}
-	if len(users) == 0 {
 		return nil, fmt.Errorf("user not found")
 	}
-	userCass = users[0]
 	isAllowed := false
-	if userCass.Email == email_creator || strings.ToLower(userCass.Role) == "admin" {
+	if userCass.ID == input.UserID || strings.ToLower(userCass.Role) == "admin" {
 		isAllowed = true
 	}
 	if !isAllowed {
@@ -116,11 +86,11 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 		ID: *input.UserLspID,
 	}
 	userLsps := []userz.UserLsp{}
-	getQuery = global.CassUserSession.Session.Query(userz.UserLspTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := global.CassUserSession.Session.Query(userz.UserLspTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
-	if len(users) == 0 {
+	if len(userLsps) == 0 {
 		return nil, fmt.Errorf("users lsp not found")
 	}
 	userLspMap = userLsps[0]
