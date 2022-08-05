@@ -230,11 +230,21 @@ func (r *mutationResolver) UpdateUserNotes(ctx context.Context, input model.User
 }
 
 func (r *mutationResolver) AddUserExamAttempts(ctx context.Context, input []*model.UserExamAttemptsInput) ([]*model.UserExamAttempts, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserExamAttempts(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding exams for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) UpdateUserExamAttempts(ctx context.Context, input model.UserExamAttemptsInput) (*model.UserExamAttempts, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.UpdateUserExamAttempts(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating exams for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserExamProgress(ctx context.Context, input []*model.UserExamProgressInput) ([]*model.UserExamProgress, error) {

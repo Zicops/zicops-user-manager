@@ -142,6 +142,7 @@ type UserExamAttempts struct {
 	UserEaID         *string `json:"user_ea_id"`
 	UserID           string  `json:"user_id"`
 	UserLspID        string  `json:"user_lsp_id"`
+	UserCpID         string  `json:"user_cp_id"`
 	UserCourseID     string  `json:"user_course_id"`
 	ExamID           string  `json:"exam_id"`
 	AttemptNo        int     `json:"attempt_no"`
@@ -158,6 +159,7 @@ type UserExamAttemptsInput struct {
 	UserEaID         *string `json:"user_ea_id"`
 	UserID           string  `json:"user_id"`
 	UserLspID        string  `json:"user_lsp_id"`
+	UserCpID         string  `json:"user_cp_id"`
 	UserCourseID     string  `json:"user_course_id"`
 	ExamID           string  `json:"exam_id"`
 	AttemptNo        int     `json:"attempt_no"`

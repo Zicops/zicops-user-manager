@@ -329,6 +329,7 @@ input UserExamAttemptsInput{
   user_ea_id: ID
   user_id: String!
   user_lsp_id: String!
+  user_cp_id: String!
   user_course_id: String!
   exam_id: String!
   attempt_no: Int!

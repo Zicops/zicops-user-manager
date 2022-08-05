@@ -169,6 +169,7 @@ type ComplexityRoot struct {
 		UpdatedAt        func(childComplexity int) int
 		UpdatedBy        func(childComplexity int) int
 		UserCourseID     func(childComplexity int) int
+		UserCpID         func(childComplexity int) int
 		UserEaID         func(childComplexity int) int
 		UserID           func(childComplexity int) int
 		UserLspID        func(childComplexity int) int
@@ -1235,6 +1236,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserExamAttempts.UserCourseID(childComplexity), true
+
+	case "UserExamAttempts.user_cp_id":
+		if e.complexity.UserExamAttempts.UserCpID == nil {
+			break
+		}
+
+		return e.complexity.UserExamAttempts.UserCpID(childComplexity), true
 
 	case "UserExamAttempts.user_ea_id":
 		if e.complexity.UserExamAttempts.UserEaID == nil {
@@ -2373,6 +2381,7 @@ input UserExamAttemptsInput{
   user_ea_id: ID
   user_id: String!
   user_lsp_id: String!
+  user_cp_id: String!
   user_course_id: String!
   exam_id: String!
   attempt_no: Int!
@@ -2387,6 +2396,7 @@ type UserExamAttempts {
   user_ea_id: ID
   user_id: String!
   user_lsp_id: String!
+  user_cp_id: String!
   user_course_id: String!
   exam_id: String!
   attempt_no: Int!
@@ -6533,6 +6543,41 @@ func (ec *executionContext) _UserExamAttempts_user_lsp_id(ctx context.Context, f
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.UserLspID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserExamAttempts_user_cp_id(ctx context.Context, field graphql.CollectedField, obj *model.UserExamAttempts) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserExamAttempts",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserCpID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12024,6 +12069,14 @@ func (ec *executionContext) unmarshalInputUserExamAttemptsInput(ctx context.Cont
 			if err != nil {
 				return it, err
 			}
+		case "user_cp_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_cp_id"))
+			it.UserCpID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "user_course_id":
 			var err error
 
@@ -14053,6 +14106,16 @@ func (ec *executionContext) _UserExamAttempts(ctx context.Context, sel ast.Selec
 		case "user_lsp_id":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._UserExamAttempts_user_lsp_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "user_cp_id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._UserExamAttempts_user_cp_id(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
