@@ -68,11 +68,21 @@ func (r *mutationResolver) UpdateUserLspMap(ctx context.Context, input model.Use
 }
 
 func (r *mutationResolver) AddUserOrganizationMap(ctx context.Context, input []*model.UserOrganizationMapInput) ([]*model.UserOrganizationMap, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserOrganizationMap(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding org map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) UpdateUserOrganizationMap(ctx context.Context, input model.UserOrganizationMapInput) (*model.UserOrganizationMap, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.UpdateUserOrganizationMap(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating org map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserLanguageMap(ctx context.Context, input []*model.UserLanguageMapInput) ([]*model.UserLanguageMap, error) {
