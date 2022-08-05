@@ -122,11 +122,21 @@ func (r *mutationResolver) UpdateUserRole(ctx context.Context, input model.UserR
 }
 
 func (r *mutationResolver) AddUserCohort(ctx context.Context, input []*model.UserCohortInput) ([]*model.UserCohort, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.AddUserCohort(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding cohort map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.UserCohort, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := handlers.UpdateUserCohort(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating cohort map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *mutationResolver) AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*model.UserCourse, error) {
