@@ -210,7 +210,7 @@ input UserCourseProgressInput{
   topic_id: String!
   topic_type: String!
   status: String!
-  video_progress: String
+  video_progress: String!
   time_stamp: String!
   created_by: String
   updated_by: String
@@ -223,7 +223,7 @@ type UserCourseProgress {
   topic_id: String!
   topic_type: String!
   status: String!
-  video_progress: String
+  video_progress: String!
   time_stamp: String!
   created_by: String
   updated_by: String
@@ -344,6 +344,7 @@ type UserExamAttempts {
   user_ea_id: ID
   user_id: String!
   user_lsp_id: String!
+  user_cp_id: String!
   user_course_id: String!
   exam_id: String!
   attempt_no: Int!

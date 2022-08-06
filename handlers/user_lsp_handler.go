@@ -61,6 +61,7 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*mode
 			UpdatedAt: updated,
 			CreatedBy: &userLspMap.CreatedBy,
 			UpdatedBy: &userLspMap.UpdatedBy,
+			Status:    userLspMap.Status,
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
 	}
@@ -129,6 +130,7 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 		UpdatedAt: updated,
 		CreatedBy: &userLspMap.CreatedBy,
 		UpdatedBy: &userLspMap.UpdatedBy,
+		Status:    userLspMap.Status,
 	}
 	return userLspOutput, nil
 }

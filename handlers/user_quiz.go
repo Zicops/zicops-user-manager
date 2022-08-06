@@ -74,6 +74,7 @@ func AddUserQuizAttempt(ctx context.Context, input []*model.UserQuizAttemptInput
 			UpdatedAt:    updated,
 			CreatedBy:    &userLspMap.CreatedBy,
 			UpdatedBy:    &userLspMap.UpdatedBy,
+			TopicID: 	userLspMap.TopicID,
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
 	}
@@ -167,6 +168,7 @@ func UpdateUserQuizAttempt(ctx context.Context, input model.UserQuizAttemptInput
 		UpdatedAt:    updated,
 		CreatedBy:    &userLspMap.CreatedBy,
 		UpdatedBy:    &userLspMap.UpdatedBy,
+		TopicID: 	userLspMap.TopicID,
 	}
 	return userLspOutput, nil
 }

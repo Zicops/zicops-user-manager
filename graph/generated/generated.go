@@ -2262,7 +2262,7 @@ input UserCourseProgressInput{
   topic_id: String!
   topic_type: String!
   status: String!
-  video_progress: String
+  video_progress: String!
   time_stamp: String!
   created_by: String
   updated_by: String
@@ -2275,7 +2275,7 @@ type UserCourseProgress {
   topic_id: String!
   topic_type: String!
   status: String!
-  video_progress: String
+  video_progress: String!
   time_stamp: String!
   created_by: String
   updated_by: String
@@ -6281,11 +6281,14 @@ func (ec *executionContext) _UserCourseProgress_video_progress(ctx context.Conte
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserCourseProgress_time_stamp(ctx context.Context, field graphql.CollectedField, obj *model.UserCourseProgress) (ret graphql.Marshaler) {
@@ -12002,7 +12005,7 @@ func (ec *executionContext) unmarshalInputUserCourseProgressInput(ctx context.Co
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("video_progress"))
-			it.VideoProgress, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.VideoProgress, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -14021,6 +14024,9 @@ func (ec *executionContext) _UserCourseProgress(ctx context.Context, sel ast.Sel
 
 			out.Values[i] = innerFunc(ctx)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "time_stamp":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._UserCourseProgress_time_stamp(ctx, field, obj)

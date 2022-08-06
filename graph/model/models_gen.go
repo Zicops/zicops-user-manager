@@ -117,7 +117,7 @@ type UserCourseProgress struct {
 	TopicID       string  `json:"topic_id"`
 	TopicType     string  `json:"topic_type"`
 	Status        string  `json:"status"`
-	VideoProgress *string `json:"video_progress"`
+	VideoProgress string  `json:"video_progress"`
 	TimeStamp     string  `json:"time_stamp"`
 	CreatedBy     *string `json:"created_by"`
 	UpdatedBy     *string `json:"updated_by"`
@@ -132,7 +132,7 @@ type UserCourseProgressInput struct {
 	TopicID       string  `json:"topic_id"`
 	TopicType     string  `json:"topic_type"`
 	Status        string  `json:"status"`
-	VideoProgress *string `json:"video_progress"`
+	VideoProgress string  `json:"video_progress"`
 	TimeStamp     string  `json:"time_stamp"`
 	CreatedBy     *string `json:"created_by"`
 	UpdatedBy     *string `json:"updated_by"`

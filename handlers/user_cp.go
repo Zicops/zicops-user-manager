@@ -40,8 +40,8 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 		}
 		timeStamp, _ := strconv.ParseInt(input.TimeStamp, 10, 64)
 		videoProgress := ""
-		if input.VideoProgress != nil {
-			videoProgress = *input.VideoProgress
+		if input.VideoProgress != "" {
+			videoProgress = input.VideoProgress
 		}
 		userLspMap := userz.UserCourseProgress{
 			ID:            guid.String(),
@@ -115,8 +115,8 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 		userLspMap.UserCmID = input.UserCourseID
 		updatedCols = append(updatedCols, "user_cm_id")
 	}
-	if input.VideoProgress != nil && *input.VideoProgress != userLspMap.VideoProgress {
-		userLspMap.VideoProgress = *input.VideoProgress
+	if input.VideoProgress != "" && input.VideoProgress != userLspMap.VideoProgress {
+		userLspMap.VideoProgress = input.VideoProgress
 		updatedCols = append(updatedCols, "video_progress")
 	}
 	if input.Status != "" && input.Status != userLspMap.Status {

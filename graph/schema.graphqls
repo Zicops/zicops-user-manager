@@ -210,7 +210,7 @@ input UserCourseProgressInput{
   topic_id: String!
   topic_type: String!
   status: String!
-  video_progress: String
+  video_progress: String!
   time_stamp: String!
   created_by: String
   updated_by: String
@@ -223,7 +223,7 @@ type UserCourseProgress {
   topic_id: String!
   topic_type: String!
   status: String!
-  video_progress: String
+  video_progress: String!
   time_stamp: String!
   created_by: String
   updated_by: String
