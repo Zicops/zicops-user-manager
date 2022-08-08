@@ -232,29 +232,35 @@ func (id *IDP) UpdateUser(ctx context.Context, email string, firstName string, l
 	var err error
 	var currentUser *auth.UserRecord
 	params := (&auth.UserToUpdate{})
+	currentUpdate := false
 	if firstName != "" && lastName != "" {
 		params = params.DisplayName(firstName + " " + lastName)
+		currentUpdate = true
 	}
 	if phone != "" {
 		params = params.PhoneNumber(phone)
+		currentUpdate = true
 	}
 	if email != "" {
 		params = params.Email(email)
+		currentUpdate = true
 	}
-	if id.tClient != nil {
+	if currentUpdate {
+		if id.tClient != nil {
 
-		currentUser, err = id.tClient.UpdateUser(ctx, userId, params)
-		if err != nil {
-			return nil, err
+			currentUser, err = id.tClient.UpdateUser(ctx, userId, params)
+			if err != nil {
+				return nil, err
+			}
+
+		} else {
+
+			currentUser, err = id.client.UpdateUser(ctx, userId, params)
+			if err != nil {
+				return nil, err
+			}
+
 		}
-
-	} else {
-
-		currentUser, err = id.client.UpdateUser(ctx, userId, params)
-		if err != nil {
-			return nil, err
-		}
-
 	}
 	return currentUser, nil
 }
