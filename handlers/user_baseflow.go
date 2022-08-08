@@ -292,7 +292,14 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		userCass.LastName = user.LastName
 		updatedCols = append(updatedCols, "last_name")
 		lastNameUpdate = user.LastName
+		if firstNameUpdate == "" {
+			firstNameUpdate = user.FirstName
+		}
 	}
+	if firstNameUpdate != "" || lastNameUpdate == "" {
+		lastNameUpdate = user.LastName
+	}
+
 	if emailUpdate != "" || phoneUpdate != "" || firstNameUpdate != "" || lastNameUpdate != "" {
 		_, err := global.IDP.UpdateUser(ctx, emailUpdate, firstNameUpdate, lastNameUpdate, phoneUpdate, fireUser.UID)
 		if err != nil {

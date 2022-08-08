@@ -232,7 +232,7 @@ func (id *IDP) UpdateUser(ctx context.Context, email string, firstName string, l
 	var err error
 	var currentUser *auth.UserRecord
 	params := (&auth.UserToUpdate{})
-	if firstName != "" {
+	if firstName != "" && lastName != "" {
 		params = params.DisplayName(firstName + " " + lastName)
 	}
 	if phone != "" {
