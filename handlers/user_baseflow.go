@@ -307,8 +307,6 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		userCass.Gender = user.Gender
 		updatedCols = append(updatedCols, "gender")
 	}
-	userCass.IsActive = user.IsActive
-	userCass.IsVerified = user.IsVerified
 	if user.CreatedBy != nil && userCass.CreatedBy != *user.CreatedBy {
 		userCass.CreatedBy = *user.CreatedBy
 		updatedCols = append(updatedCols, "created_by")
