@@ -92,8 +92,8 @@ type ComplexityRoot struct {
 	Query struct {
 		GetUserBookmarks               func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseMaps              func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
-		GetUserCourseProgressByMapID   func(childComplexity int, userCpID string) int
-		GetUserCourseProgressByTopicID func(childComplexity int, userCourseID string, topicID string) int
+		GetUserCourseProgressByMapID   func(childComplexity int, userCourseID string) int
+		GetUserCourseProgressByTopicID func(childComplexity int, topicID string) int
 		GetUserExamAttempts            func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserExamProgress            func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserExamResults             func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
@@ -372,8 +372,8 @@ type QueryResolver interface {
 	GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error)
 	GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error)
 	GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error)
-	GetUserCourseProgressByMapID(ctx context.Context, userCpID string) ([]*model.UserCourseProgress, error)
-	GetUserCourseProgressByTopicID(ctx context.Context, userCourseID string, topicID string) ([]*model.UserCourseProgress, error)
+	GetUserCourseProgressByMapID(ctx context.Context, userCourseID string) ([]*model.UserCourseProgress, error)
+	GetUserCourseProgressByTopicID(ctx context.Context, topicID string) ([]*model.UserCourseProgress, error)
 	GetUserQuizAttempts(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserQuizAttempt, error)
 	GetUserNotes(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserNotes, error)
 	GetUserBookmarks(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserBookmark, error)
@@ -842,7 +842,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserCourseProgressByMapID(childComplexity, args["user_cp_id"].(string)), true
+		return e.complexity.Query.GetUserCourseProgressByMapID(childComplexity, args["user_course_id"].(string)), true
 
 	case "Query.getUserCourseProgressByTopicId":
 		if e.complexity.Query.GetUserCourseProgressByTopicID == nil {
@@ -854,7 +854,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserCourseProgressByTopicID(childComplexity, args["user_course_id"].(string), args["topic_id"].(string)), true
+		return e.complexity.Query.GetUserCourseProgressByTopicID(childComplexity, args["topic_id"].(string)), true
 
 	case "Query.getUserExamAttempts":
 		if e.complexity.Query.GetUserExamAttempts == nil {
@@ -2731,8 +2731,8 @@ type Query {
   getUserPreferences: [UserPreference]
   getUserLsps: [UserLspMap]
   getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
-  getUserCourseProgressByMapId(user_cp_id: ID!): [UserCourseProgress]
-  getUserCourseProgressByTopicId(user_course_id: ID!, topic_id: ID!): [UserCourseProgress]
+  getUserCourseProgressByMapId(user_course_id: ID!): [UserCourseProgress]
+  getUserCourseProgressByTopicId(topic_id: ID!): [UserCourseProgress]
   getUserQuizAttempts(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserQuizAttempt]
   getUserNotes(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserNotes]
   getUserBookmarks(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserBookmark]
@@ -3319,21 +3319,6 @@ func (ec *executionContext) field_Query_getUserCourseProgressByMapId_args(ctx co
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["user_cp_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_cp_id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["user_cp_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_getUserCourseProgressByTopicId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
 	if tmp, ok := rawArgs["user_course_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_course_id"))
 		arg0, err = ec.unmarshalNID2string(ctx, tmp)
@@ -3342,15 +3327,21 @@ func (ec *executionContext) field_Query_getUserCourseProgressByTopicId_args(ctx 
 		}
 	}
 	args["user_course_id"] = arg0
-	var arg1 string
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserCourseProgressByTopicId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
 	if tmp, ok := rawArgs["topic_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("topic_id"))
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["topic_id"] = arg1
+	args["topic_id"] = arg0
 	return args, nil
 }
 
@@ -5294,7 +5285,7 @@ func (ec *executionContext) _Query_getUserCourseProgressByMapId(ctx context.Cont
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserCourseProgressByMapID(rctx, args["user_cp_id"].(string))
+		return ec.resolvers.Query().GetUserCourseProgressByMapID(rctx, args["user_course_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5333,7 +5324,7 @@ func (ec *executionContext) _Query_getUserCourseProgressByTopicId(ctx context.Co
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserCourseProgressByTopicID(rctx, args["user_course_id"].(string), args["topic_id"].(string))
+		return ec.resolvers.Query().GetUserCourseProgressByTopicID(rctx, args["topic_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

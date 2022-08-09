@@ -338,12 +338,22 @@ func (r *queryResolver) GetUserCourseMaps(ctx context.Context, publishTime *int,
 	return result, nil
 }
 
-func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userCpID string) ([]*model.UserCourseProgress, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userCourseID string) ([]*model.UserCourseProgress, error) {
+	result, err := queries.GetUserCourseProgressByMapID(ctx, userCourseID)
+	if err != nil {
+		log.Errorf("Error getting course progress of a user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
-func (r *queryResolver) GetUserCourseProgressByTopicID(ctx context.Context, userCourseID string, topicID string) ([]*model.UserCourseProgress, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) GetUserCourseProgressByTopicID(ctx context.Context, topicID string) ([]*model.UserCourseProgress, error) {
+	result, err := queries.GetUserCourseProgressByTopicID(ctx, topicID)
+	if err != nil {
+		log.Errorf("Error getting course progress of a user by topic id: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *queryResolver) GetUserQuizAttempts(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserQuizAttempt, error) {
