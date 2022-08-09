@@ -303,7 +303,12 @@ func (r *queryResolver) GetUsersForAdmin(ctx context.Context, publishTime *int, 
 }
 
 func (r *queryResolver) GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := queries.GetUserOrganizations(ctx)
+	if err != nil {
+		log.Errorf("Error getting orgs of a user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *queryResolver) GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error) {
