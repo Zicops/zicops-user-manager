@@ -6,6 +6,13 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+type PaginatedUsers struct {
+	Users      []*User `json:"users"`
+	PageCursor *string `json:"pageCursor"`
+	Direction  *string `json:"direction"`
+	PageSize   *int    `json:"pageSize"`
+}
+
 type User struct {
 	ID         *string `json:"id"`
 	FirstName  string  `json:"first_name"`

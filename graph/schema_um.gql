@@ -421,9 +421,16 @@ type UserExamResult {
   updated_at: String!
 }
 
+type PaginatedUsers{
+    users: [User]
+    pageCursor: String
+    direction: String
+    pageSize: Int
+}
+
 type Query {
   logout: Boolean
-  getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [User]
+  getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
   getUserOrganizations: [UserOrganizationMap]
   getUserPreferences: [UserPreference]
   getUserLsps: [UserLspMap]

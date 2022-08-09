@@ -11,6 +11,7 @@ import (
 	"github.com/zicops/zicops-user-manager/graph/generated"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/handlers"
+	"github.com/zicops/zicops-user-manager/handlers/queries"
 )
 
 func (r *mutationResolver) RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error) {
@@ -292,8 +293,13 @@ func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	return result, nil
 }
 
-func (r *queryResolver) GetUsersForAdmin(ctx context.Context) ([]*model.User, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUsers, error) {
+	result, err := queries.GetUsersForAdmin(ctx, publishTime, pageCursor, direction, pageSize)
+	if err != nil {
+		log.Errorf("Error getting users of an admin: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *queryResolver) GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, error) {
