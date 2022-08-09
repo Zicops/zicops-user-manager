@@ -56,7 +56,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	}
 	var newCursor string
 
-	qryStr := fmt.Sprintf(`SELECT * from userz.users where created_by=%s and updated_at <= %d  ALLOW FILTERING`, email_creator, *publishTime)
+	qryStr := fmt.Sprintf(`SELECT * from userz.users where created_by='%s' and updated_at <= %d  ALLOW FILTERING`, email_creator, *publishTime)
 	getUsers := func(page []byte) (users []userz.User, nextPage []byte, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
 		defer q.Release()

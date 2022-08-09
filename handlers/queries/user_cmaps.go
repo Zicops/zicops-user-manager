@@ -37,7 +37,7 @@ func GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string
 	}
 	var newCursor string
 
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id=%s and updated_at <= %d  ALLOW FILTERING`, emailCreatorID, *publishTime)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and updated_at <= %d  ALLOW FILTERING`, emailCreatorID, *publishTime)
 	getUsers := func(page []byte) (courses []userz.UserCourse, nextPage []byte, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
 		defer q.Release()

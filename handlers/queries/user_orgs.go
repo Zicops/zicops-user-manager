@@ -19,7 +19,7 @@ func GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, er
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_org_map where user_id=%s ALLOW FILTERING`, emailCreatorID)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_org_map where user_id='%s' ALLOW FILTERING`, emailCreatorID)
 	getUsersOrgs := func() (users []userz.UserOrg, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
 		defer q.Release()
@@ -59,7 +59,7 @@ func GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error) {
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_preferences where user_id=%s ALLOW FILTERING`, emailCreatorID)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_preferences where user_id='%s' ALLOW FILTERING`, emailCreatorID)
 	getUsersOrgs := func() (users []userz.UserPreferences, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
 		defer q.Release()
@@ -99,7 +99,7 @@ func GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error) {
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id=%s ALLOW FILTERING`, emailCreatorID)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id='%s' ALLOW FILTERING`, emailCreatorID)
 	getUsersOrgs := func() (users []userz.UserLsp, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
 		defer q.Release()

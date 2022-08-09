@@ -19,7 +19,7 @@ func GetUserCourseProgressByMapID(ctx context.Context, userCourseID string) ([]*
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id=%s and user_cm_id=%s ALLOW FILTERING`, emailCreatorID, userCourseID)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and user_cm_id='%s' ALLOW FILTERING`, emailCreatorID, userCourseID)
 	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
 		defer q.Release()
@@ -62,7 +62,7 @@ func GetUserCourseProgressByTopicID(ctx context.Context, topicID string) ([]*mod
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id=%s and topic_id=%s ALLOW FILTERING`, emailCreatorID, topicID)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and topic_id='%s' ALLOW FILTERING`, emailCreatorID, topicID)
 	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
 		defer q.Release()
