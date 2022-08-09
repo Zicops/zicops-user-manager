@@ -75,6 +75,13 @@ type ComplexityRoot struct {
 		UpdateUserRole            func(childComplexity int, input model.UserRoleInput) int
 	}
 
+	PaginatedCourseMaps struct {
+		Direction   func(childComplexity int) int
+		PageCursor  func(childComplexity int) int
+		PageSize    func(childComplexity int) int
+		UserCourses func(childComplexity int) int
+	}
+
 	PaginatedUsers struct {
 		Direction  func(childComplexity int) int
 		PageCursor func(childComplexity int) int
@@ -364,7 +371,7 @@ type QueryResolver interface {
 	GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, error)
 	GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error)
 	GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error)
-	GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserCourse, error)
+	GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error)
 	GetUserCourseProgressByMapID(ctx context.Context, userCpID string) ([]*model.UserCourseProgress, error)
 	GetUserCourseProgressByTopicID(ctx context.Context, userCourseID string, topicID string) ([]*model.UserCourseProgress, error)
 	GetUserQuizAttempts(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserQuizAttempt, error)
@@ -744,6 +751,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateUserRole(childComplexity, args["input"].(model.UserRoleInput)), true
+
+	case "PaginatedCourseMaps.direction":
+		if e.complexity.PaginatedCourseMaps.Direction == nil {
+			break
+		}
+
+		return e.complexity.PaginatedCourseMaps.Direction(childComplexity), true
+
+	case "PaginatedCourseMaps.pageCursor":
+		if e.complexity.PaginatedCourseMaps.PageCursor == nil {
+			break
+		}
+
+		return e.complexity.PaginatedCourseMaps.PageCursor(childComplexity), true
+
+	case "PaginatedCourseMaps.pageSize":
+		if e.complexity.PaginatedCourseMaps.PageSize == nil {
+			break
+		}
+
+		return e.complexity.PaginatedCourseMaps.PageSize(childComplexity), true
+
+	case "PaginatedCourseMaps.user_courses":
+		if e.complexity.PaginatedCourseMaps.UserCourses == nil {
+			break
+		}
+
+		return e.complexity.PaginatedCourseMaps.UserCourses(childComplexity), true
 
 	case "PaginatedUsers.direction":
 		if e.complexity.PaginatedUsers.Direction == nil {
@@ -2682,13 +2717,20 @@ type PaginatedUsers{
     pageSize: Int
 }
 
+type PaginatedCourseMaps{
+    user_courses: [UserCourse]
+    pageCursor: String
+    direction: String
+    pageSize: Int
+}
+
 type Query {
   logout: Boolean
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
   getUserOrganizations: [UserOrganizationMap]
   getUserPreferences: [UserPreference]
   getUserLsps: [UserLspMap]
-  getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserCourse]
+  getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
   getUserCourseProgressByMapId(user_cp_id: ID!): [UserCourseProgress]
   getUserCourseProgressByTopicId(user_course_id: ID!, topic_id: ID!): [UserCourseProgress]
   getUserQuizAttempts(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserQuizAttempt]
@@ -4765,6 +4807,134 @@ func (ec *executionContext) _Mutation_updateUserExamResult(ctx context.Context, 
 	return ec.marshalOUserExamResult2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResult(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PaginatedCourseMaps_user_courses(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCourseMaps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedCourseMaps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserCourses, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.UserCourse)
+	fc.Result = res
+	return ec.marshalOUserCourse2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserCourse(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedCourseMaps_pageCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCourseMaps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedCourseMaps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedCourseMaps_direction(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCourseMaps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedCourseMaps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Direction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedCourseMaps_pageSize(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCourseMaps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedCourseMaps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PaginatedUsers_users(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedUsers) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5094,9 +5264,9 @@ func (ec *executionContext) _Query_getUserCourseMaps(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.UserCourse)
+	res := resTmp.(*model.PaginatedCourseMaps)
 	fc.Result = res
-	return ec.marshalOUserCourse2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserCourse(ctx, field.Selections, res)
+	return ec.marshalOPaginatedCourseMaps2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedCourseMaps(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getUserCourseProgressByMapId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14535,6 +14705,55 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
+var paginatedCourseMapsImplementors = []string{"PaginatedCourseMaps"}
+
+func (ec *executionContext) _PaginatedCourseMaps(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedCourseMaps) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedCourseMapsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaginatedCourseMaps")
+		case "user_courses":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedCourseMaps_user_courses(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageCursor":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedCourseMaps_pageCursor(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "direction":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedCourseMaps_direction(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageSize":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedCourseMaps_pageSize(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var paginatedUsersImplementors = []string{"PaginatedUsers"}
 
 func (ec *executionContext) _PaginatedUsers(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedUsers) graphql.Marshaler {
@@ -18036,6 +18255,13 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOPaginatedCourseMaps2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedCourseMaps(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedCourseMaps) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PaginatedCourseMaps(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPaginatedUsers2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedUsers(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedUsers) graphql.Marshaler {

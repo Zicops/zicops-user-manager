@@ -329,8 +329,13 @@ func (r *queryResolver) GetUserLsps(ctx context.Context) ([]*model.UserLspMap, e
 	return result, nil
 }
 
-func (r *queryResolver) GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserCourse, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error) {
+	result, err := queries.GetUserCourseMaps(ctx, publishTime, pageCursor, direction, pageSize)
+	if err != nil {
+		log.Errorf("Error getting courses of a user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userCpID string) ([]*model.UserCourseProgress, error) {

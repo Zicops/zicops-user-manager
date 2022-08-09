@@ -6,6 +6,13 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+type PaginatedCourseMaps struct {
+	UserCourses []*UserCourse `json:"user_courses"`
+	PageCursor  *string       `json:"pageCursor"`
+	Direction   *string       `json:"direction"`
+	PageSize    *int          `json:"pageSize"`
+}
+
 type PaginatedUsers struct {
 	Users      []*User `json:"users"`
 	PageCursor *string `json:"pageCursor"`

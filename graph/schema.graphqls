@@ -428,13 +428,20 @@ type PaginatedUsers{
     pageSize: Int
 }
 
+type PaginatedCourseMaps{
+    user_courses: [UserCourse]
+    pageCursor: String
+    direction: String
+    pageSize: Int
+}
+
 type Query {
   logout: Boolean
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
   getUserOrganizations: [UserOrganizationMap]
   getUserPreferences: [UserPreference]
   getUserLsps: [UserLspMap]
-  getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserCourse]
+  getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
   getUserCourseProgressByMapId(user_cp_id: ID!): [UserCourseProgress]
   getUserCourseProgressByTopicId(user_course_id: ID!, topic_id: ID!): [UserCourseProgress]
   getUserQuizAttempts(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserQuizAttempt]
