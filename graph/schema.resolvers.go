@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -289,6 +290,58 @@ func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 		return nil, err
 	}
 	return result, nil
+}
+
+func (r *queryResolver) GetUsersForAdmin(ctx context.Context) ([]*model.User, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserCourse, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userCpID string) ([]*model.UserCourseProgress, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserCourseProgressByTopicID(ctx context.Context, userCourseID string, topicID string) ([]*model.UserCourseProgress, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserQuizAttempts(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserQuizAttempt, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserNotes(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserNotes, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserBookmarks(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserBookmark, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserExamAttempts(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserExamAttempts, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserExamProgress(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserExamProgress, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserExamResults(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserExamResult, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

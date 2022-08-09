@@ -423,6 +423,19 @@ type UserExamResult {
 
 type Query {
   logout: Boolean
+  getUsersForAdmin: [User]
+  getUserOrganizations: [UserOrganizationMap]
+  getUserPreferences: [UserPreference]
+  getUserLsps: [UserLspMap]
+  getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserCourse]
+  getUserCourseProgressByMapId(user_cp_id: ID!): [UserCourseProgress]
+  getUserCourseProgressByTopicId(user_course_id: ID!, topic_id: ID!): [UserCourseProgress]
+  getUserQuizAttempts(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserQuizAttempt]
+  getUserNotes(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserNotes]
+  getUserBookmarks(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserBookmark]
+  getUserExamAttempts(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserExamAttempts]
+  getUserExamProgress(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserExamProgress]
+  getUserExamResults(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [UserExamResult]
 }
 
 type Mutation {
