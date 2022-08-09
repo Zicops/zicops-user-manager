@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -354,30 +353,6 @@ func (r *queryResolver) GetUserCourseProgressByTopicID(ctx context.Context, topi
 		return nil, err
 	}
 	return result, nil
-}
-
-func (r *queryResolver) GetUserQuizAttempts(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserQuizAttempt, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) GetUserNotes(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserNotes, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) GetUserBookmarks(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserBookmark, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) GetUserExamAttempts(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserExamAttempts, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) GetUserExamProgress(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserExamProgress, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *queryResolver) GetUserExamResults(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserExamResult, error) {
-	panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns generated.MutationResolver implementation.
