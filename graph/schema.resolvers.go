@@ -312,11 +312,21 @@ func (r *queryResolver) GetUserOrganizations(ctx context.Context) ([]*model.User
 }
 
 func (r *queryResolver) GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := queries.GetUserPreferences(ctx)
+	if err != nil {
+		log.Errorf("Error getting prefs of a user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *queryResolver) GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error) {
-	panic(fmt.Errorf("not implemented"))
+	result, err := queries.GetUserLsps(ctx)
+	if err != nil {
+		log.Errorf("Error getting lsps of a user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 func (r *queryResolver) GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.UserCourse, error) {
