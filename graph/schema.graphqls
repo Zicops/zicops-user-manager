@@ -423,7 +423,7 @@ type UserExamResult {
 
 type Query {
   logout: Boolean
-  getUsersForAdmin: [User]
+  getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [User]
   getUserOrganizations: [UserOrganizationMap]
   getUserPreferences: [UserPreference]
   getUserLsps: [UserLspMap]
