@@ -90,7 +90,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetUserCourseMapByID           func(childComplexity int, userCourseID string) int
+		GetUserCourseMapByCourseID     func(childComplexity int, courseID string) int
 		GetUserCourseMaps              func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseProgressByMapID   func(childComplexity int, userCourseID string) int
 		GetUserCourseProgressByTopicID func(childComplexity int, topicID string) int
@@ -367,7 +367,7 @@ type QueryResolver interface {
 	GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error)
 	GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error)
 	GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error)
-	GetUserCourseMapByID(ctx context.Context, userCourseID string) (*model.UserCourse, error)
+	GetUserCourseMapByCourseID(ctx context.Context, courseID string) ([]*model.UserCourse, error)
 	GetUserCourseProgressByMapID(ctx context.Context, userCourseID string) ([]*model.UserCourseProgress, error)
 	GetUserCourseProgressByTopicID(ctx context.Context, topicID string) ([]*model.UserCourseProgress, error)
 }
@@ -798,17 +798,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PaginatedUsers.Users(childComplexity), true
 
-	case "Query.getUserCourseMapByID":
-		if e.complexity.Query.GetUserCourseMapByID == nil {
+	case "Query.getUserCourseMapByCourseID":
+		if e.complexity.Query.GetUserCourseMapByCourseID == nil {
 			break
 		}
 
-		args, err := ec.field_Query_getUserCourseMapByID_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_getUserCourseMapByCourseID_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserCourseMapByID(childComplexity, args["user_course_id"].(string)), true
+		return e.complexity.Query.GetUserCourseMapByCourseID(childComplexity, args["course_id"].(string)), true
 
 	case "Query.getUserCourseMaps":
 		if e.complexity.Query.GetUserCourseMaps == nil {
@@ -2661,7 +2661,7 @@ type Query {
   getUserPreferences: [UserPreference]
   getUserLsps: [UserLspMap]
   getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
-  getUserCourseMapByID(user_course_id: String!): UserCourse
+  getUserCourseMapByCourseID(course_id: String!): [UserCourse]
   getUserCourseProgressByMapId(user_course_id: ID!): [UserCourseProgress]
   getUserCourseProgressByTopicId(topic_id: ID!): [UserCourseProgress]
 }
@@ -3156,18 +3156,18 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_getUserCourseMapByID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_getUserCourseMapByCourseID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["user_course_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_course_id"))
+	if tmp, ok := rawArgs["course_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("course_id"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["user_course_id"] = arg0
+	args["course_id"] = arg0
 	return args, nil
 }
 
@@ -4948,7 +4948,7 @@ func (ec *executionContext) _Query_getUserCourseMaps(ctx context.Context, field 
 	return ec.marshalOPaginatedCourseMaps2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedCourseMaps(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_getUserCourseMapByID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_getUserCourseMapByCourseID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4965,7 +4965,7 @@ func (ec *executionContext) _Query_getUserCourseMapByID(ctx context.Context, fie
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_getUserCourseMapByID_args(ctx, rawArgs)
+	args, err := ec.field_Query_getUserCourseMapByCourseID_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4973,7 +4973,7 @@ func (ec *executionContext) _Query_getUserCourseMapByID(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserCourseMapByID(rctx, args["user_course_id"].(string))
+		return ec.resolvers.Query().GetUserCourseMapByCourseID(rctx, args["course_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4982,9 +4982,9 @@ func (ec *executionContext) _Query_getUserCourseMapByID(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.UserCourse)
+	res := resTmp.([]*model.UserCourse)
 	fc.Result = res
-	return ec.marshalOUserCourse2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserCourse(ctx, field.Selections, res)
+	return ec.marshalOUserCourse2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserCourse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getUserCourseProgressByMapId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14426,7 +14426,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "getUserCourseMapByID":
+		case "getUserCourseMapByCourseID":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -14435,7 +14435,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_getUserCourseMapByID(ctx, field)
+				res = ec._Query_getUserCourseMapByCourseID(ctx, field)
 				return res
 			}
 

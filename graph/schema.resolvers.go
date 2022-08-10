@@ -337,8 +337,8 @@ func (r *queryResolver) GetUserCourseMaps(ctx context.Context, publishTime *int,
 	return result, nil
 }
 
-func (r *queryResolver) GetUserCourseMapByID(ctx context.Context, userCourseID string) (*model.UserCourse, error) {
-	result, err := queries.GetUserCourseMapByID(ctx, userCourseID)
+func (r *queryResolver) GetUserCourseMapByCourseID(ctx context.Context, courseID string) ([]*model.UserCourse, error) {
+	result, err := queries.GetUserCourseMapByCourseID(ctx, courseID)
 	if err != nil {
 		log.Errorf("Error getting course of a user: %v", err)
 		return nil, err

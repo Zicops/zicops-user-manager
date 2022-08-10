@@ -88,14 +88,14 @@ func GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string
 	return &outputResponse, nil
 }
 
-func GetUserCourseMapByID(ctx context.Context, userCourseID string) (*model.UserCourse, error) {
+func GetUserCourseMapByCourseID(ctx context.Context, courseID string) ([]*model.UserCourse, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and id <= '%s'  ALLOW FILTERING`, emailCreatorID, userCourseID)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and course_id='%s'  ALLOW FILTERING`, emailCreatorID, courseID)
 	getUsers := func() (courses []userz.UserCourse, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
 		defer q.Release()
@@ -107,24 +107,28 @@ func GetUserCourseMapByID(ctx context.Context, userCourseID string) (*model.User
 		return nil, err
 	}
 	if len(userCourses) == 0 {
-		return nil, fmt.Errorf("no user course found with id %s", userCourseID)
+		return nil, fmt.Errorf("no user course found with id %s", courseID)
 	}
-	courseCopy := userCourses[0]
-	endDate := strconv.FormatInt(courseCopy.EndDate, 10)
-	createdAt := strconv.FormatInt(courseCopy.CreatedAt, 10)
-	updatedAt := strconv.FormatInt(courseCopy.UpdatedAt, 10)
-	currentCourse := &model.UserCourse{
-		UserCourseID: &courseCopy.ID,
-		UserID:       courseCopy.UserID,
-		UserLspID:    courseCopy.UserLspID,
-		CourseID:     courseCopy.CourseID,
-		CourseType:   courseCopy.CourseType,
-		AddedBy:      courseCopy.AddedBy,
-		IsMandatory:  courseCopy.IsMandatory,
-		EndDate:      &endDate,
-		CourseStatus: courseCopy.CourseStatus,
-		CreatedAt:    createdAt,
-		UpdatedAt:    updatedAt,
+	allCourses := make([]*model.UserCourse, 0)
+	for _, copiedCourse := range userCourses {
+		courseCopy := copiedCourse
+		endDate := strconv.FormatInt(courseCopy.EndDate, 10)
+		createdAt := strconv.FormatInt(courseCopy.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(courseCopy.UpdatedAt, 10)
+		currentCourse := &model.UserCourse{
+			UserCourseID: &courseCopy.ID,
+			UserID:       courseCopy.UserID,
+			UserLspID:    courseCopy.UserLspID,
+			CourseID:     courseCopy.CourseID,
+			CourseType:   courseCopy.CourseType,
+			AddedBy:      courseCopy.AddedBy,
+			IsMandatory:  courseCopy.IsMandatory,
+			EndDate:      &endDate,
+			CourseStatus: courseCopy.CourseStatus,
+			CreatedAt:    createdAt,
+			UpdatedAt:    updatedAt,
+		}
+		allCourses = append(allCourses, currentCourse)
 	}
-	return currentCourse, nil
+	return allCourses, nil
 }
