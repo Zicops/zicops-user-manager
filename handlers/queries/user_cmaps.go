@@ -87,3 +87,44 @@ func GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string
 	outputResponse.Direction = direction
 	return &outputResponse, nil
 }
+
+func GetUserCourseMapByID(ctx context.Context, userCourseID string) (*model.UserCourse, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	email_creator := claims["email"].(string)
+	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and id <= '%s'  ALLOW FILTERING`, emailCreatorID, userCourseID)
+	getUsers := func() (courses []userz.UserCourse, err error) {
+		q := global.CassUserSession.Session.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return courses, iter.Select(&courses)
+	}
+	userCourses, err := getUsers()
+	if err != nil {
+		return nil, err
+	}
+	if len(userCourses) == 0 {
+		return nil, fmt.Errorf("no user course found with id %s", userCourseID)
+	}
+	courseCopy := userCourses[0]
+	endDate := strconv.FormatInt(courseCopy.EndDate, 10)
+	createdAt := strconv.FormatInt(courseCopy.CreatedAt, 10)
+	updatedAt := strconv.FormatInt(courseCopy.UpdatedAt, 10)
+	currentCourse := &model.UserCourse{
+		UserCourseID: &courseCopy.ID,
+		UserID:       courseCopy.UserID,
+		UserLspID:    courseCopy.UserLspID,
+		CourseID:     courseCopy.CourseID,
+		CourseType:   courseCopy.CourseType,
+		AddedBy:      courseCopy.AddedBy,
+		IsMandatory:  courseCopy.IsMandatory,
+		EndDate:      &endDate,
+		CourseStatus: courseCopy.CourseStatus,
+		CreatedAt:    createdAt,
+		UpdatedAt:    updatedAt,
+	}
+	return currentCourse, nil
+}

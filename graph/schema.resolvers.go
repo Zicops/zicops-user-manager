@@ -337,6 +337,15 @@ func (r *queryResolver) GetUserCourseMaps(ctx context.Context, publishTime *int,
 	return result, nil
 }
 
+func (r *queryResolver) GetUserCourseMapByID(ctx context.Context, userCourseID string) (*model.UserCourse, error) {
+	result, err := queries.GetUserCourseMapByID(ctx, userCourseID)
+	if err != nil {
+		log.Errorf("Error getting course of a user: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userCourseID string) ([]*model.UserCourseProgress, error) {
 	result, err := queries.GetUserCourseProgressByMapID(ctx, userCourseID)
 	if err != nil {

@@ -442,6 +442,7 @@ type Query {
   getUserPreferences: [UserPreference]
   getUserLsps: [UserLspMap]
   getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
+  getUserCourseMapByID(user_course_id: String!): UserCourse
   getUserCourseProgressByMapId(user_course_id: ID!): [UserCourseProgress]
   getUserCourseProgressByTopicId(topic_id: ID!): [UserCourseProgress]
 }
