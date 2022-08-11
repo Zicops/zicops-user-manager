@@ -38,7 +38,7 @@ func GetUserCourseProgressByMapID(ctx context.Context, userCourseID string) ([]*
 		timeStamp := strconv.FormatInt(userCP.TimeStamp, 10)
 		currentUserCP := &model.UserCourseProgress{
 			UserCpID:      &userCP.ID,
-			UserID:        emailCreatorID,
+			UserID:        userCP.UserID,
 			UserCourseID:  userCP.UserCmID,
 			TopicID:       userCP.TopicID,
 			TopicType:     userCP.TopicType,
@@ -81,7 +81,7 @@ func GetUserCourseProgressByTopicID(ctx context.Context, topicID string) ([]*mod
 		timeStamp := strconv.FormatInt(userCP.TimeStamp, 10)
 		currentUserCP := &model.UserCourseProgress{
 			UserCpID:      &userCP.ID,
-			UserID:        emailCreatorID,
+			UserID:        userCP.UserID,
 			UserCourseID:  userCP.UserCmID,
 			TopicID:       userCP.TopicID,
 			TopicType:     userCP.TopicType,

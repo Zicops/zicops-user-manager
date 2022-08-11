@@ -36,7 +36,7 @@ func GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, er
 		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
 		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
 		currentUserOrg := &model.UserOrganizationMap{
-			UserID:             emailCreatorID,
+			UserID:             copiedOrg.UserID,
 			UserOrganizationID: &copiedOrg.OrgID,
 			UserLspID:          copiedOrg.UserLspID,
 			OrganizationRole:   copiedOrg.OrgRole,
@@ -77,7 +77,7 @@ func GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error) {
 		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
 		currentUserOrg := &model.UserPreference{
 			UserPreferenceID: &copiedOrg.ID,
-			UserID:           emailCreatorID,
+			UserID:           copiedOrg.UserID,
 			UserLspID:        copiedOrg.UserLspID,
 			IsActive:         copiedOrg.IsActive,
 			CreatedBy:        &copiedOrg.CreatedBy,
@@ -117,7 +117,7 @@ func GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error) {
 		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
 		currentUserOrg := &model.UserLspMap{
 			UserLspID: &copiedOrg.ID,
-			UserID:    emailCreatorID,
+			UserID:    copiedOrg.UserID,
 			LspID:     copiedOrg.LspID,
 			Status:    copiedOrg.Status,
 			CreatedBy: &copiedOrg.CreatedBy,
@@ -128,4 +128,45 @@ func GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error) {
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
 	return userOrgs, nil
+}
+
+func GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model.UserOrganizationMap, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_org_map where user_id='%s' and user_lsp_id='%s'  ALLOW FILTERING`, userID, lspID)
+	getUsersOrgs := func() (users []userz.UserOrg, err error) {
+		q := global.CassUserSession.Session.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	usersOrgs, err := getUsersOrgs()
+	if err != nil {
+		return nil, err
+	}
+	if len(usersOrgs) == 0 {
+		return nil, fmt.Errorf("no user org found")
+	}
+	userOrgs := make([]*model.UserOrganizationMap, 0)
+	for _, userOrg := range usersOrgs {
+		copiedOrg := userOrg
+		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
+		currentUserOrg := &model.UserOrganizationMap{
+			UserID:             copiedOrg.UserID,
+			UserOrganizationID: &copiedOrg.OrgID,
+			UserLspID:          copiedOrg.UserLspID,
+			OrganizationRole:   copiedOrg.OrgRole,
+			IsActive:           copiedOrg.IsActive,
+			EmployeeID:         copiedOrg.EmpID,
+			CreatedBy:          &copiedOrg.CreatedBy,
+			UpdatedBy:          &copiedOrg.UpdatedBy,
+			CreatedAt:          createdAt,
+			UpdatedAt:          updatedAt,
+		}
+		userOrgs = append(userOrgs, currentUserOrg)
+	}
+	return userOrgs[0], nil
 }

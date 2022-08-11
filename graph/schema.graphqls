@@ -440,6 +440,7 @@ type Query {
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
   getUserDetails(user_id: String!): User
   getUserOrganizations: [UserOrganizationMap]
+  getUserOrgDetails(user_id: String!, lsp_id: String!): UserOrganizationMap
   getUserPreferences: [UserPreference]
   getUserLsps: [UserLspMap]
   getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps

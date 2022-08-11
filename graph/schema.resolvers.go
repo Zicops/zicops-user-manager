@@ -319,6 +319,15 @@ func (r *queryResolver) GetUserOrganizations(ctx context.Context) ([]*model.User
 	return result, nil
 }
 
+func (r *queryResolver) GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model.UserOrganizationMap, error) {
+	result, err := queries.GetUserOrgDetails(ctx, userID, lspID)
+	if err != nil {
+		log.Errorf("Error getting orgs of a user: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *queryResolver) GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error) {
 	result, err := queries.GetUserPreferences(ctx)
 	if err != nil {
