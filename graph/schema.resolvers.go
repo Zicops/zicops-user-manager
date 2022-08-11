@@ -301,6 +301,15 @@ func (r *queryResolver) GetUsersForAdmin(ctx context.Context, publishTime *int, 
 	return result, nil
 }
 
+func (r *queryResolver) GetUserDetails(ctx context.Context, userID string) (*model.User, error) {
+	result, err := queries.GetUserDetails(ctx, userID)
+	if err != nil {
+		log.Errorf("Error getting user of an admin: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *queryResolver) GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, error) {
 	result, err := queries.GetUserOrganizations(ctx)
 	if err != nil {
