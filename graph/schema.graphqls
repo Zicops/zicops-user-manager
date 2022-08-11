@@ -440,9 +440,11 @@ type Query {
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
   getUserDetails(user_id: String!): User
   getUserOrganizations: [UserOrganizationMap]
-  getUserOrgDetails(user_id: String!, lsp_id: String!): UserOrganizationMap
+  getUserOrgDetails(user_id: String!, user_lsp_id: String!): UserOrganizationMap
   getUserPreferences: [UserPreference]
+  getUserPreferenceForLsp(user_id: String!, user_lsp_id: String!): UserPreference
   getUserLsps: [UserLspMap]
+  getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
   getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
   getUserCourseMapByCourseID(course_id: String!): [UserCourse]
   getUserCourseProgressByMapId(user_course_id: ID!): [UserCourseProgress]

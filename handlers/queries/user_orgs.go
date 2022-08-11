@@ -170,3 +170,83 @@ func GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model
 	}
 	return userOrgs[0], nil
 }
+
+func GetUserPreferenceForLsp(ctx context.Context, userID string, lspID string) (*model.UserPreference, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_preferences where user_id='%s and user_lsp_id='%s' ALLOW FILTERING`, userID, lspID)
+	getUsersOrgs := func() (users []userz.UserPreferences, err error) {
+		q := global.CassUserSession.Session.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	usersOrgs, err := getUsersOrgs()
+	if err != nil {
+		return nil, err
+	}
+	if len(usersOrgs) == 0 {
+		return nil, fmt.Errorf("no user lsp preference found")
+	}
+	userOrgs := make([]*model.UserPreference, 0)
+	for _, userOrg := range usersOrgs {
+		copiedOrg := userOrg
+		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
+		currentUserOrg := &model.UserPreference{
+			UserPreferenceID: &copiedOrg.ID,
+			UserID:           copiedOrg.UserID,
+			UserLspID:        copiedOrg.UserLspID,
+			IsActive:         copiedOrg.IsActive,
+			CreatedBy:        &copiedOrg.CreatedBy,
+			UpdatedBy:        &copiedOrg.UpdatedBy,
+			CreatedAt:        createdAt,
+			UpdatedAt:        updatedAt,
+			SubCategory:      copiedOrg.SubCategory,
+			IsBase:           copiedOrg.IsBase,
+		}
+		userOrgs = append(userOrgs, currentUserOrg)
+	}
+	return userOrgs[0], nil
+}
+
+func GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model.UserLspMap, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id='%s' and lsp_id='%s' ALLOW FILTERING`, userID, lspID)
+	getUsersOrgs := func() (users []userz.UserLsp, err error) {
+		q := global.CassUserSession.Session.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	usersOrgs, err := getUsersOrgs()
+	if err != nil {
+		return nil, err
+	}
+	if len(usersOrgs) == 0 {
+		return nil, fmt.Errorf("no user lsp found")
+	}
+	userOrgs := make([]*model.UserLspMap, 0)
+	for _, userOrg := range usersOrgs {
+		copiedOrg := userOrg
+		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
+		currentUserOrg := &model.UserLspMap{
+			UserLspID: &copiedOrg.ID,
+			UserID:    copiedOrg.UserID,
+			LspID:     copiedOrg.LspID,
+			Status:    copiedOrg.Status,
+			CreatedBy: &copiedOrg.CreatedBy,
+			UpdatedBy: &copiedOrg.UpdatedBy,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+		}
+		userOrgs = append(userOrgs, currentUserOrg)
+	}
+	return userOrgs[0], nil
+}

@@ -95,9 +95,11 @@ type ComplexityRoot struct {
 		GetUserCourseProgressByMapID   func(childComplexity int, userCourseID string) int
 		GetUserCourseProgressByTopicID func(childComplexity int, topicID string) int
 		GetUserDetails                 func(childComplexity int, userID string) int
+		GetUserLspByLspID              func(childComplexity int, userID string, lspID string) int
 		GetUserLsps                    func(childComplexity int) int
-		GetUserOrgDetails              func(childComplexity int, userID string, lspID string) int
+		GetUserOrgDetails              func(childComplexity int, userID string, userLspID string) int
 		GetUserOrganizations           func(childComplexity int) int
+		GetUserPreferenceForLsp        func(childComplexity int, userID string, userLspID string) int
 		GetUserPreferences             func(childComplexity int) int
 		GetUsersForAdmin               func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		Logout                         func(childComplexity int) int
@@ -367,9 +369,11 @@ type QueryResolver interface {
 	GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUsers, error)
 	GetUserDetails(ctx context.Context, userID string) (*model.User, error)
 	GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, error)
-	GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model.UserOrganizationMap, error)
+	GetUserOrgDetails(ctx context.Context, userID string, userLspID string) (*model.UserOrganizationMap, error)
 	GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error)
+	GetUserPreferenceForLsp(ctx context.Context, userID string, userLspID string) (*model.UserPreference, error)
 	GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error)
+	GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model.UserLspMap, error)
 	GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error)
 	GetUserCourseMapByCourseID(ctx context.Context, courseID string) ([]*model.UserCourse, error)
 	GetUserCourseProgressByMapID(ctx context.Context, userCourseID string) ([]*model.UserCourseProgress, error)
@@ -862,6 +866,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetUserDetails(childComplexity, args["user_id"].(string)), true
 
+	case "Query.getUserLspByLspId":
+		if e.complexity.Query.GetUserLspByLspID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserLspByLspId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserLspByLspID(childComplexity, args["user_id"].(string), args["lsp_id"].(string)), true
+
 	case "Query.getUserLsps":
 		if e.complexity.Query.GetUserLsps == nil {
 			break
@@ -879,7 +895,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserOrgDetails(childComplexity, args["user_id"].(string), args["lsp_id"].(string)), true
+		return e.complexity.Query.GetUserOrgDetails(childComplexity, args["user_id"].(string), args["user_lsp_id"].(string)), true
 
 	case "Query.getUserOrganizations":
 		if e.complexity.Query.GetUserOrganizations == nil {
@@ -887,6 +903,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetUserOrganizations(childComplexity), true
+
+	case "Query.getUserPreferenceForLsp":
+		if e.complexity.Query.GetUserPreferenceForLsp == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserPreferenceForLsp_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserPreferenceForLsp(childComplexity, args["user_id"].(string), args["user_lsp_id"].(string)), true
 
 	case "Query.getUserPreferences":
 		if e.complexity.Query.GetUserPreferences == nil {
@@ -2687,9 +2715,11 @@ type Query {
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
   getUserDetails(user_id: String!): User
   getUserOrganizations: [UserOrganizationMap]
-  getUserOrgDetails(user_id: String!, lsp_id: String!): UserOrganizationMap
+  getUserOrgDetails(user_id: String!, user_lsp_id: String!): UserOrganizationMap
   getUserPreferences: [UserPreference]
+  getUserPreferenceForLsp(user_id: String!, user_lsp_id: String!): UserPreference
   getUserLsps: [UserLspMap]
+  getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
   getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
   getUserCourseMapByCourseID(course_id: String!): [UserCourse]
   getUserCourseProgressByMapId(user_course_id: ID!): [UserCourseProgress]
@@ -3288,7 +3318,7 @@ func (ec *executionContext) field_Query_getUserDetails_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_getUserOrgDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_getUserLspByLspId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -3309,6 +3339,54 @@ func (ec *executionContext) field_Query_getUserOrgDetails_args(ctx context.Conte
 		}
 	}
 	args["lsp_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserOrgDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["user_lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_lsp_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_lsp_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserPreferenceForLsp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["user_lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_lsp_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_lsp_id"] = arg1
 	return args, nil
 }
 
@@ -4978,7 +5056,7 @@ func (ec *executionContext) _Query_getUserOrgDetails(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserOrgDetails(rctx, args["user_id"].(string), args["lsp_id"].(string))
+		return ec.resolvers.Query().GetUserOrgDetails(rctx, args["user_id"].(string), args["user_lsp_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5024,6 +5102,45 @@ func (ec *executionContext) _Query_getUserPreferences(ctx context.Context, field
 	return ec.marshalOUserPreference2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserPreference(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_getUserPreferenceForLsp(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserPreferenceForLsp_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserPreferenceForLsp(rctx, args["user_id"].(string), args["user_lsp_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.UserPreference)
+	fc.Result = res
+	return ec.marshalOUserPreference2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserPreference(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_getUserLsps(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5054,6 +5171,45 @@ func (ec *executionContext) _Query_getUserLsps(ctx context.Context, field graphq
 	res := resTmp.([]*model.UserLspMap)
 	fc.Result = res
 	return ec.marshalOUserLspMap2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserLspMap(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getUserLspByLspId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserLspByLspId_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserLspByLspID(rctx, args["user_id"].(string), args["lsp_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.UserLspMap)
+	fc.Result = res
+	return ec.marshalOUserLspMap2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserLspMap(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getUserCourseMaps(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14573,6 +14729,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getUserPreferenceForLsp":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserPreferenceForLsp(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "getUserLsps":
 			field := field
 
@@ -14583,6 +14759,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getUserLsps(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getUserLspByLspId":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserLspByLspId(ctx, field)
 				return res
 			}
 

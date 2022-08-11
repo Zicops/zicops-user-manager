@@ -319,8 +319,8 @@ func (r *queryResolver) GetUserOrganizations(ctx context.Context) ([]*model.User
 	return result, nil
 }
 
-func (r *queryResolver) GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model.UserOrganizationMap, error) {
-	result, err := queries.GetUserOrgDetails(ctx, userID, lspID)
+func (r *queryResolver) GetUserOrgDetails(ctx context.Context, userID string, userLspID string) (*model.UserOrganizationMap, error) {
+	result, err := queries.GetUserOrgDetails(ctx, userID, userLspID)
 	if err != nil {
 		log.Errorf("Error getting orgs of a user: %v", err)
 		return nil, err
@@ -337,8 +337,26 @@ func (r *queryResolver) GetUserPreferences(ctx context.Context) ([]*model.UserPr
 	return result, nil
 }
 
+func (r *queryResolver) GetUserPreferenceForLsp(ctx context.Context, userID string, userLspID string) (*model.UserPreference, error) {
+	result, err := queries.GetUserPreferenceForLsp(ctx, userID, userLspID)
+	if err != nil {
+		log.Errorf("Error getting prefs of a user: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *queryResolver) GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error) {
 	result, err := queries.GetUserLsps(ctx)
+	if err != nil {
+		log.Errorf("Error getting lsps of a user: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model.UserLspMap, error) {
+	result, err := queries.GetUserLspByLspID(ctx, userID, lspID)
 	if err != nil {
 		log.Errorf("Error getting lsps of a user: %v", err)
 		return nil, err
