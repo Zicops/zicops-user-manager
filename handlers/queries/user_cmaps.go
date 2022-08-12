@@ -78,6 +78,8 @@ func GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string
 			CourseStatus: courseCopy.CourseStatus,
 			CreatedAt:    createdAt,
 			UpdatedAt:    updatedAt,
+			CreatedBy:    &courseCopy.CreatedBy,
+			UpdatedBy:    &courseCopy.UpdatedBy,
 		}
 		allCourses = append(allCourses, currentCourse)
 	}
@@ -127,6 +129,8 @@ func GetUserCourseMapByCourseID(ctx context.Context, courseID string) ([]*model.
 			CourseStatus: courseCopy.CourseStatus,
 			CreatedAt:    createdAt,
 			UpdatedAt:    updatedAt,
+			CreatedBy:    &courseCopy.CreatedBy,
+			UpdatedBy:    &courseCopy.UpdatedBy,
 		}
 		allCourses = append(allCourses, currentCourse)
 	}
