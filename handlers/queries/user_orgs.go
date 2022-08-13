@@ -176,7 +176,7 @@ func GetUserPreferenceForLsp(ctx context.Context, userID string, lspID string) (
 	if err != nil {
 		return nil, err
 	}
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_preferences where user_id='%s and user_lsp_id='%s' ALLOW FILTERING`, userID, lspID)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_preferences where user_id='%s' and user_lsp_id='%s' ALLOW FILTERING`, userID, lspID)
 	getUsersOrgs := func() (users []userz.UserPreferences, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
 		defer q.Release()
