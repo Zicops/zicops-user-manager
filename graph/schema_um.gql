@@ -105,6 +105,7 @@ type UserLanguageMap {
 }
 
 input UserPreferenceInput{
+  user_preference_id: ID
   user_id: String!
   user_lsp_id: String!
   sub_category: String!
@@ -462,6 +463,7 @@ type Mutation {
   updateUserOrganizationMap(input: UserOrganizationMapInput!): UserOrganizationMap
   addUserLanguageMap(input: [UserLanguageMapInput]!): [UserLanguageMap]
   addUserPreference(input: [UserPreferenceInput]!): [UserPreference]
+  updateUserPreference(input: UserPreferenceInput!):UserPreference
   addUserRoles(input: [UserRoleInput]!): [UserRole]
   updateUserRole(input: UserRoleInput!): UserRole
   addUserCohort(input: [UserCohortInput]!): [UserCohort]

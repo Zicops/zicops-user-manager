@@ -103,6 +103,15 @@ func (r *mutationResolver) AddUserPreference(ctx context.Context, input []*model
 	return result, nil
 }
 
+func (r *mutationResolver) UpdateUserPreference(ctx context.Context, input model.UserPreferenceInput) (*model.UserPreference, error) {
+	result, err := handlers.UpdateUserPreference(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating preference map for user: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *mutationResolver) AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.UserRole, error) {
 	result, err := handlers.AddUserRoles(ctx, input)
 	if err != nil {

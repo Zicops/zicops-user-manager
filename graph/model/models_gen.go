@@ -380,13 +380,14 @@ type UserPreference struct {
 }
 
 type UserPreferenceInput struct {
-	UserID      string  `json:"user_id"`
-	UserLspID   string  `json:"user_lsp_id"`
-	SubCategory string  `json:"sub_category"`
-	IsBase      bool    `json:"is_base"`
-	IsActive    bool    `json:"is_active"`
-	CreatedBy   *string `json:"created_by"`
-	UpdatedBy   *string `json:"updated_by"`
+	UserPreferenceID *string `json:"user_preference_id"`
+	UserID           string  `json:"user_id"`
+	UserLspID        string  `json:"user_lsp_id"`
+	SubCategory      string  `json:"sub_category"`
+	IsBase           bool    `json:"is_base"`
+	IsActive         bool    `json:"is_active"`
+	CreatedBy        *string `json:"created_by"`
+	UpdatedBy        *string `json:"updated_by"`
 }
 
 type UserQuizAttempt struct {

@@ -71,6 +71,7 @@ type ComplexityRoot struct {
 		UpdateUserLspMap          func(childComplexity int, input model.UserLspMapInput) int
 		UpdateUserNotes           func(childComplexity int, input model.UserNotesInput) int
 		UpdateUserOrganizationMap func(childComplexity int, input model.UserOrganizationMapInput) int
+		UpdateUserPreference      func(childComplexity int, input model.UserPreferenceInput) int
 		UpdateUserQuizAttempt     func(childComplexity int, input model.UserQuizAttemptInput) int
 		UpdateUserRole            func(childComplexity int, input model.UserRoleInput) int
 	}
@@ -343,6 +344,7 @@ type MutationResolver interface {
 	UpdateUserOrganizationMap(ctx context.Context, input model.UserOrganizationMapInput) (*model.UserOrganizationMap, error)
 	AddUserLanguageMap(ctx context.Context, input []*model.UserLanguageMapInput) ([]*model.UserLanguageMap, error)
 	AddUserPreference(ctx context.Context, input []*model.UserPreferenceInput) ([]*model.UserPreference, error)
+	UpdateUserPreference(ctx context.Context, input model.UserPreferenceInput) (*model.UserPreference, error)
 	AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.UserRole, error)
 	UpdateUserRole(ctx context.Context, input model.UserRoleInput) (*model.UserRole, error)
 	AddUserCohort(ctx context.Context, input []*model.UserCohortInput) ([]*model.UserCohort, error)
@@ -725,6 +727,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateUserOrganizationMap(childComplexity, args["input"].(model.UserOrganizationMapInput)), true
+
+	case "Mutation.updateUserPreference":
+		if e.complexity.Mutation.UpdateUserPreference == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateUserPreference_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateUserPreference(childComplexity, args["input"].(model.UserPreferenceInput)), true
 
 	case "Mutation.updateUserQuizAttempt":
 		if e.complexity.Mutation.UpdateUserQuizAttempt == nil {
@@ -2380,6 +2394,7 @@ type UserLanguageMap {
 }
 
 input UserPreferenceInput{
+  user_preference_id: ID
   user_id: String!
   user_lsp_id: String!
   sub_category: String!
@@ -2737,6 +2752,7 @@ type Mutation {
   updateUserOrganizationMap(input: UserOrganizationMapInput!): UserOrganizationMap
   addUserLanguageMap(input: [UserLanguageMapInput]!): [UserLanguageMap]
   addUserPreference(input: [UserPreferenceInput]!): [UserPreference]
+  updateUserPreference(input: UserPreferenceInput!):UserPreference
   addUserRoles(input: [UserRoleInput]!): [UserRole]
   updateUserRole(input: UserRoleInput!): UserRole
   addUserCohort(input: [UserCohortInput]!): [UserCohort]
@@ -3148,6 +3164,21 @@ func (ec *executionContext) field_Mutation_updateUserOrganizationMap_args(ctx co
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNUserOrganizationMapInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserOrganizationMapInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateUserPreference_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.UserPreferenceInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUserPreferenceInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserPreferenceInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3851,6 +3882,45 @@ func (ec *executionContext) _Mutation_addUserPreference(ctx context.Context, fie
 	res := resTmp.([]*model.UserPreference)
 	fc.Result = res
 	return ec.marshalOUserPreference2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserPreference(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateUserPreference(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateUserPreference_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateUserPreference(rctx, args["input"].(model.UserPreferenceInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.UserPreference)
+	fc.Result = res
+	return ec.marshalOUserPreference2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserPreference(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addUserRoles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14008,6 +14078,14 @@ func (ec *executionContext) unmarshalInputUserPreferenceInput(ctx context.Contex
 
 	for k, v := range asMap {
 		switch k {
+		case "user_preference_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_preference_id"))
+			it.UserPreferenceID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "user_id":
 			var err error
 
@@ -14337,6 +14415,13 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "addUserPreference":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_addUserPreference(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+		case "updateUserPreference":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateUserPreference(ctx, field)
 			}
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
@@ -17650,6 +17735,11 @@ func (ec *executionContext) unmarshalNUserOrganizationMapInput2ᚕᚖgithubᚗco
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalNUserPreferenceInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserPreferenceInput(ctx context.Context, v interface{}) (model.UserPreferenceInput, error) {
+	res, err := ec.unmarshalInputUserPreferenceInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNUserPreferenceInput2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserPreferenceInput(ctx context.Context, v interface{}) ([]*model.UserPreferenceInput, error) {
