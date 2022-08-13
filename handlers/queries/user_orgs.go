@@ -37,7 +37,8 @@ func GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, er
 		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
 		currentUserOrg := &model.UserOrganizationMap{
 			UserID:             copiedOrg.UserID,
-			UserOrganizationID: &copiedOrg.OrgID,
+			UserOrganizationID: &copiedOrg.ID,
+			OrganizationID:     copiedOrg.OrgID,
 			UserLspID:          copiedOrg.UserLspID,
 			OrganizationRole:   copiedOrg.OrgRole,
 			IsActive:           copiedOrg.IsActive,
