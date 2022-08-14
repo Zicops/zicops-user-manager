@@ -12,13 +12,16 @@ import (
 	"github.com/zicops/zicops-user-manager/helpers"
 )
 
-func GetUserCourseProgressByMapID(ctx context.Context, userCourseID string) ([]*model.UserCourseProgress, error) {
+func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourseID string) ([]*model.UserCourseProgress, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	if userId != "" {
+		emailCreatorID = userId
+	}
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and user_cm_id='%s' ALLOW FILTERING`, emailCreatorID, userCourseID)
 	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
@@ -55,13 +58,16 @@ func GetUserCourseProgressByMapID(ctx context.Context, userCourseID string) ([]*
 	return userCPsMap, nil
 }
 
-func GetUserCourseProgressByTopicID(ctx context.Context, topicID string) ([]*model.UserCourseProgress, error) {
+func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID string) ([]*model.UserCourseProgress, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	if userId != "" {
+		emailCreatorID = userId
+	}
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and topic_id='%s' ALLOW FILTERING`, emailCreatorID, topicID)
 	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)

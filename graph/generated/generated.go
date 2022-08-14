@@ -91,17 +91,17 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetUserCourseMapByCourseID     func(childComplexity int, courseID string) int
-		GetUserCourseMaps              func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
-		GetUserCourseProgressByMapID   func(childComplexity int, userCourseID string) int
-		GetUserCourseProgressByTopicID func(childComplexity int, topicID string) int
+		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string) int
+		GetUserCourseMaps              func(childComplexity int, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
+		GetUserCourseProgressByMapID   func(childComplexity int, userID string, userCourseID string) int
+		GetUserCourseProgressByTopicID func(childComplexity int, userID string, topicID string) int
 		GetUserDetails                 func(childComplexity int, userID string) int
 		GetUserLspByLspID              func(childComplexity int, userID string, lspID string) int
-		GetUserLsps                    func(childComplexity int) int
+		GetUserLsps                    func(childComplexity int, userID string) int
 		GetUserOrgDetails              func(childComplexity int, userID string, userLspID string) int
-		GetUserOrganizations           func(childComplexity int) int
+		GetUserOrganizations           func(childComplexity int, userID string) int
 		GetUserPreferenceForLsp        func(childComplexity int, userID string, userLspID string) int
-		GetUserPreferences             func(childComplexity int) int
+		GetUserPreferences             func(childComplexity int, userID string) int
 		GetUsersForAdmin               func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		Logout                         func(childComplexity int) int
 	}
@@ -370,16 +370,16 @@ type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
 	GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUsers, error)
 	GetUserDetails(ctx context.Context, userID string) (*model.User, error)
-	GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, error)
+	GetUserOrganizations(ctx context.Context, userID string) ([]*model.UserOrganizationMap, error)
 	GetUserOrgDetails(ctx context.Context, userID string, userLspID string) (*model.UserOrganizationMap, error)
-	GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error)
+	GetUserPreferences(ctx context.Context, userID string) ([]*model.UserPreference, error)
 	GetUserPreferenceForLsp(ctx context.Context, userID string, userLspID string) (*model.UserPreference, error)
-	GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error)
+	GetUserLsps(ctx context.Context, userID string) ([]*model.UserLspMap, error)
 	GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model.UserLspMap, error)
-	GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error)
-	GetUserCourseMapByCourseID(ctx context.Context, courseID string) ([]*model.UserCourse, error)
-	GetUserCourseProgressByMapID(ctx context.Context, userCourseID string) ([]*model.UserCourseProgress, error)
-	GetUserCourseProgressByTopicID(ctx context.Context, topicID string) ([]*model.UserCourseProgress, error)
+	GetUserCourseMaps(ctx context.Context, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error)
+	GetUserCourseMapByCourseID(ctx context.Context, userID string, courseID string) ([]*model.UserCourse, error)
+	GetUserCourseProgressByMapID(ctx context.Context, userID string, userCourseID string) ([]*model.UserCourseProgress, error)
+	GetUserCourseProgressByTopicID(ctx context.Context, userID string, topicID string) ([]*model.UserCourseProgress, error)
 }
 
 type executableSchema struct {
@@ -830,7 +830,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserCourseMapByCourseID(childComplexity, args["course_id"].(string)), true
+		return e.complexity.Query.GetUserCourseMapByCourseID(childComplexity, args["user_id"].(string), args["course_id"].(string)), true
 
 	case "Query.getUserCourseMaps":
 		if e.complexity.Query.GetUserCourseMaps == nil {
@@ -842,7 +842,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserCourseMaps(childComplexity, args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+		return e.complexity.Query.GetUserCourseMaps(childComplexity, args["user_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
 	case "Query.getUserCourseProgressByMapId":
 		if e.complexity.Query.GetUserCourseProgressByMapID == nil {
@@ -854,7 +854,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserCourseProgressByMapID(childComplexity, args["user_course_id"].(string)), true
+		return e.complexity.Query.GetUserCourseProgressByMapID(childComplexity, args["user_id"].(string), args["user_course_id"].(string)), true
 
 	case "Query.getUserCourseProgressByTopicId":
 		if e.complexity.Query.GetUserCourseProgressByTopicID == nil {
@@ -866,7 +866,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserCourseProgressByTopicID(childComplexity, args["topic_id"].(string)), true
+		return e.complexity.Query.GetUserCourseProgressByTopicID(childComplexity, args["user_id"].(string), args["topic_id"].(string)), true
 
 	case "Query.getUserDetails":
 		if e.complexity.Query.GetUserDetails == nil {
@@ -897,7 +897,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.GetUserLsps(childComplexity), true
+		args, err := ec.field_Query_getUserLsps_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserLsps(childComplexity, args["user_id"].(string)), true
 
 	case "Query.getUserOrgDetails":
 		if e.complexity.Query.GetUserOrgDetails == nil {
@@ -916,7 +921,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.GetUserOrganizations(childComplexity), true
+		args, err := ec.field_Query_getUserOrganizations_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserOrganizations(childComplexity, args["user_id"].(string)), true
 
 	case "Query.getUserPreferenceForLsp":
 		if e.complexity.Query.GetUserPreferenceForLsp == nil {
@@ -935,7 +945,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.GetUserPreferences(childComplexity), true
+		args, err := ec.field_Query_getUserPreferences_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserPreferences(childComplexity, args["user_id"].(string)), true
 
 	case "Query.getUsersForAdmin":
 		if e.complexity.Query.GetUsersForAdmin == nil {
@@ -2729,16 +2744,16 @@ type Query {
   logout: Boolean
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
   getUserDetails(user_id: String!): User
-  getUserOrganizations: [UserOrganizationMap]
+  getUserOrganizations(user_id: String!): [UserOrganizationMap]
   getUserOrgDetails(user_id: String!, user_lsp_id: String!): UserOrganizationMap
-  getUserPreferences: [UserPreference]
+  getUserPreferences(user_id: String!): [UserPreference]
   getUserPreferenceForLsp(user_id: String!, user_lsp_id: String!): UserPreference
-  getUserLsps: [UserLspMap]
+  getUserLsps(user_id: String!): [UserLspMap]
   getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
-  getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
-  getUserCourseMapByCourseID(course_id: String!): [UserCourse]
-  getUserCourseProgressByMapId(user_course_id: ID!): [UserCourseProgress]
-  getUserCourseProgressByTopicId(topic_id: ID!): [UserCourseProgress]
+  getUserCourseMaps(user_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
+  getUserCourseMapByCourseID(user_id: String!, course_id: String!): [UserCourse]
+  getUserCourseProgressByMapId(user_id: String!, user_course_id: ID!): [UserCourseProgress]
+  getUserCourseProgressByTopicId(user_id: String!, topic_id: ID!): [UserCourseProgress]
 }
 
 type Mutation {
@@ -3251,56 +3266,74 @@ func (ec *executionContext) field_Query_getUserCourseMapByCourseID_args(ctx cont
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["course_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("course_id"))
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["course_id"] = arg0
+	args["user_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["course_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("course_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["course_id"] = arg1
 	return args, nil
 }
 
 func (ec *executionContext) field_Query_getUserCourseMaps_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
+	var arg0 string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg0
+	var arg1 *int
 	if tmp, ok := rawArgs["publish_time"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("publish_time"))
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["publish_time"] = arg0
-	var arg1 *string
+	args["publish_time"] = arg1
+	var arg2 *string
 	if tmp, ok := rawArgs["pageCursor"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageCursor"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["pageCursor"] = arg1
-	var arg2 *string
-	if tmp, ok := rawArgs["Direction"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
 		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["Direction"] = arg2
-	var arg3 *int
-	if tmp, ok := rawArgs["pageSize"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	args["pageCursor"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["Direction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["pageSize"] = arg3
+	args["Direction"] = arg3
+	var arg4 *int
+	if tmp, ok := rawArgs["pageSize"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageSize"] = arg4
 	return args, nil
 }
 
@@ -3308,14 +3341,23 @@ func (ec *executionContext) field_Query_getUserCourseProgressByMapId_args(ctx co
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["user_course_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_course_id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["user_course_id"] = arg0
+	args["user_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["user_course_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_course_id"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_course_id"] = arg1
 	return args, nil
 }
 
@@ -3323,14 +3365,23 @@ func (ec *executionContext) field_Query_getUserCourseProgressByTopicId_args(ctx 
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
-	if tmp, ok := rawArgs["topic_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("topic_id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["topic_id"] = arg0
+	args["user_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["topic_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("topic_id"))
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["topic_id"] = arg1
 	return args, nil
 }
 
@@ -3373,6 +3424,21 @@ func (ec *executionContext) field_Query_getUserLspByLspId_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getUserLsps_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getUserOrgDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3397,6 +3463,21 @@ func (ec *executionContext) field_Query_getUserOrgDetails_args(ctx context.Conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getUserOrganizations_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getUserPreferenceForLsp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3418,6 +3499,21 @@ func (ec *executionContext) field_Query_getUserPreferenceForLsp_args(ctx context
 		}
 	}
 	args["user_lsp_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserPreferences_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg0
 	return args, nil
 }
 
@@ -5085,9 +5181,16 @@ func (ec *executionContext) _Query_getUserOrganizations(ctx context.Context, fie
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserOrganizations_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserOrganizations(rctx)
+		return ec.resolvers.Query().GetUserOrganizations(rctx, args["user_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5156,9 +5259,16 @@ func (ec *executionContext) _Query_getUserPreferences(ctx context.Context, field
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserPreferences_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserPreferences(rctx)
+		return ec.resolvers.Query().GetUserPreferences(rctx, args["user_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5227,9 +5337,16 @@ func (ec *executionContext) _Query_getUserLsps(ctx context.Context, field graphq
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserLsps_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserLsps(rctx)
+		return ec.resolvers.Query().GetUserLsps(rctx, args["user_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5307,7 +5424,7 @@ func (ec *executionContext) _Query_getUserCourseMaps(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserCourseMaps(rctx, args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
+		return ec.resolvers.Query().GetUserCourseMaps(rctx, args["user_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5346,7 +5463,7 @@ func (ec *executionContext) _Query_getUserCourseMapByCourseID(ctx context.Contex
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserCourseMapByCourseID(rctx, args["course_id"].(string))
+		return ec.resolvers.Query().GetUserCourseMapByCourseID(rctx, args["user_id"].(string), args["course_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5385,7 +5502,7 @@ func (ec *executionContext) _Query_getUserCourseProgressByMapId(ctx context.Cont
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserCourseProgressByMapID(rctx, args["user_course_id"].(string))
+		return ec.resolvers.Query().GetUserCourseProgressByMapID(rctx, args["user_id"].(string), args["user_course_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5424,7 +5541,7 @@ func (ec *executionContext) _Query_getUserCourseProgressByTopicId(ctx context.Co
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserCourseProgressByTopicID(rctx, args["topic_id"].(string))
+		return ec.resolvers.Query().GetUserCourseProgressByTopicID(rctx, args["user_id"].(string), args["topic_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

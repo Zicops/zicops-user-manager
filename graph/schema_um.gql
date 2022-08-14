@@ -440,16 +440,16 @@ type Query {
   logout: Boolean
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
   getUserDetails(user_id: String!): User
-  getUserOrganizations: [UserOrganizationMap]
+  getUserOrganizations(user_id: String!): [UserOrganizationMap]
   getUserOrgDetails(user_id: String!, user_lsp_id: String!): UserOrganizationMap
-  getUserPreferences: [UserPreference]
+  getUserPreferences(user_id: String!): [UserPreference]
   getUserPreferenceForLsp(user_id: String!, user_lsp_id: String!): UserPreference
-  getUserLsps: [UserLspMap]
+  getUserLsps(user_id: String!): [UserLspMap]
   getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
-  getUserCourseMaps(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
-  getUserCourseMapByCourseID(course_id: String!): [UserCourse]
-  getUserCourseProgressByMapId(user_course_id: ID!): [UserCourseProgress]
-  getUserCourseProgressByTopicId(topic_id: ID!): [UserCourseProgress]
+  getUserCourseMaps(user_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
+  getUserCourseMapByCourseID(user_id: String!, course_id: String!): [UserCourse]
+  getUserCourseProgressByMapId(user_id: String!, user_course_id: ID!): [UserCourseProgress]
+  getUserCourseProgressByTopicId(user_id: String!, topic_id: ID!): [UserCourseProgress]
 }
 
 type Mutation {

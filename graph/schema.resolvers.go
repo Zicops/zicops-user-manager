@@ -319,8 +319,8 @@ func (r *queryResolver) GetUserDetails(ctx context.Context, userID string) (*mod
 	return result, nil
 }
 
-func (r *queryResolver) GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, error) {
-	result, err := queries.GetUserOrganizations(ctx)
+func (r *queryResolver) GetUserOrganizations(ctx context.Context, userID string) ([]*model.UserOrganizationMap, error) {
+	result, err := queries.GetUserOrganizations(ctx, userID)
 	if err != nil {
 		log.Errorf("Error getting orgs of a user: %v", err)
 		return nil, err
@@ -337,8 +337,8 @@ func (r *queryResolver) GetUserOrgDetails(ctx context.Context, userID string, us
 	return result, nil
 }
 
-func (r *queryResolver) GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error) {
-	result, err := queries.GetUserPreferences(ctx)
+func (r *queryResolver) GetUserPreferences(ctx context.Context, userID string) ([]*model.UserPreference, error) {
+	result, err := queries.GetUserPreferences(ctx, userID)
 	if err != nil {
 		log.Errorf("Error getting prefs of a user: %v", err)
 		return nil, err
@@ -355,8 +355,8 @@ func (r *queryResolver) GetUserPreferenceForLsp(ctx context.Context, userID stri
 	return result, nil
 }
 
-func (r *queryResolver) GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error) {
-	result, err := queries.GetUserLsps(ctx)
+func (r *queryResolver) GetUserLsps(ctx context.Context, userID string) ([]*model.UserLspMap, error) {
+	result, err := queries.GetUserLsps(ctx, userID)
 	if err != nil {
 		log.Errorf("Error getting lsps of a user: %v", err)
 		return nil, err
@@ -373,8 +373,8 @@ func (r *queryResolver) GetUserLspByLspID(ctx context.Context, userID string, ls
 	return result, nil
 }
 
-func (r *queryResolver) GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error) {
-	result, err := queries.GetUserCourseMaps(ctx, publishTime, pageCursor, direction, pageSize)
+func (r *queryResolver) GetUserCourseMaps(ctx context.Context, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error) {
+	result, err := queries.GetUserCourseMaps(ctx, userID, publishTime, pageCursor, direction, pageSize)
 	if err != nil {
 		log.Errorf("Error getting courses of a user: %v", err)
 		return nil, err
@@ -382,8 +382,8 @@ func (r *queryResolver) GetUserCourseMaps(ctx context.Context, publishTime *int,
 	return result, nil
 }
 
-func (r *queryResolver) GetUserCourseMapByCourseID(ctx context.Context, courseID string) ([]*model.UserCourse, error) {
-	result, err := queries.GetUserCourseMapByCourseID(ctx, courseID)
+func (r *queryResolver) GetUserCourseMapByCourseID(ctx context.Context, userID string, courseID string) ([]*model.UserCourse, error) {
+	result, err := queries.GetUserCourseMapByCourseID(ctx, userID, courseID)
 	if err != nil {
 		log.Errorf("Error getting course of a user: %v", err)
 		return nil, err
@@ -391,8 +391,8 @@ func (r *queryResolver) GetUserCourseMapByCourseID(ctx context.Context, courseID
 	return result, nil
 }
 
-func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userCourseID string) ([]*model.UserCourseProgress, error) {
-	result, err := queries.GetUserCourseProgressByMapID(ctx, userCourseID)
+func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userID string, userCourseID string) ([]*model.UserCourseProgress, error) {
+	result, err := queries.GetUserCourseProgressByMapID(ctx, userID, userCourseID)
 	if err != nil {
 		log.Errorf("Error getting course progress of a user: %v", err)
 		return nil, err
@@ -400,8 +400,8 @@ func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userCo
 	return result, nil
 }
 
-func (r *queryResolver) GetUserCourseProgressByTopicID(ctx context.Context, topicID string) ([]*model.UserCourseProgress, error) {
-	result, err := queries.GetUserCourseProgressByTopicID(ctx, topicID)
+func (r *queryResolver) GetUserCourseProgressByTopicID(ctx context.Context, userID string, topicID string) ([]*model.UserCourseProgress, error) {
+	result, err := queries.GetUserCourseProgressByTopicID(ctx, userID, topicID)
 	if err != nil {
 		log.Errorf("Error getting course progress of a user by topic id: %v", err)
 		return nil, err

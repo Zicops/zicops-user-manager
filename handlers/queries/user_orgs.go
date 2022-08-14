@@ -12,13 +12,16 @@ import (
 	"github.com/zicops/zicops-user-manager/helpers"
 )
 
-func GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, error) {
+func GetUserOrganizations(ctx context.Context, userId string) ([]*model.UserOrganizationMap, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	if userId != "" {
+		emailCreatorID = userId
+	}
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_org_map where user_id='%s' ALLOW FILTERING`, emailCreatorID)
 	getUsersOrgs := func() (users []userz.UserOrg, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
@@ -53,13 +56,16 @@ func GetUserOrganizations(ctx context.Context) ([]*model.UserOrganizationMap, er
 	return userOrgs, nil
 }
 
-func GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error) {
+func GetUserPreferences(ctx context.Context, userId string) ([]*model.UserPreference, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	if userId != "" {
+		emailCreatorID = userId
+	}
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_preferences where user_id='%s' ALLOW FILTERING`, emailCreatorID)
 	getUsersOrgs := func() (users []userz.UserPreferences, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
@@ -93,13 +99,16 @@ func GetUserPreferences(ctx context.Context) ([]*model.UserPreference, error) {
 	return userOrgs, nil
 }
 
-func GetUserLsps(ctx context.Context) ([]*model.UserLspMap, error) {
+func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	if userId != "" {
+		emailCreatorID = userId
+	}
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id='%s' ALLOW FILTERING`, emailCreatorID)
 	getUsersOrgs := func() (users []userz.UserLsp, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)

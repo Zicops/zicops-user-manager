@@ -13,13 +13,16 @@ import (
 	"github.com/zicops/zicops-user-manager/helpers"
 )
 
-func GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error) {
+func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	if userId != "" {
+		emailCreatorID = userId
+	}
 	var newPage []byte
 	//var pageDirection string
 	var pageSizeInt int
@@ -90,13 +93,16 @@ func GetUserCourseMaps(ctx context.Context, publishTime *int, pageCursor *string
 	return &outputResponse, nil
 }
 
-func GetUserCourseMapByCourseID(ctx context.Context, courseID string) ([]*model.UserCourse, error) {
+func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID string) ([]*model.UserCourse, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	if userId != "" {
+		emailCreatorID = userId
+	}
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and course_id='%s'  ALLOW FILTERING`, emailCreatorID, courseID)
 	getUsers := func() (courses []userz.UserCourse, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
