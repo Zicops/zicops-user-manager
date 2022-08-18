@@ -76,11 +76,25 @@ type ComplexityRoot struct {
 		UpdateUserRole            func(childComplexity int, input model.UserRoleInput) int
 	}
 
+	PaginatedBookmarks struct {
+		Bookmarks  func(childComplexity int) int
+		Direction  func(childComplexity int) int
+		PageCursor func(childComplexity int) int
+		PageSize   func(childComplexity int) int
+	}
+
 	PaginatedCourseMaps struct {
 		Direction   func(childComplexity int) int
 		PageCursor  func(childComplexity int) int
 		PageSize    func(childComplexity int) int
 		UserCourses func(childComplexity int) int
+	}
+
+	PaginatedNotes struct {
+		Direction  func(childComplexity int) int
+		Notes      func(childComplexity int) int
+		PageCursor func(childComplexity int) int
+		PageSize   func(childComplexity int) int
 	}
 
 	PaginatedUsers struct {
@@ -91,6 +105,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		GetUserBookmarks               func(childComplexity int, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string) int
 		GetUserCourseMaps              func(childComplexity int, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseProgressByMapID   func(childComplexity int, userID string, userCourseID string) int
@@ -98,6 +113,7 @@ type ComplexityRoot struct {
 		GetUserDetails                 func(childComplexity int, userID string) int
 		GetUserLspByLspID              func(childComplexity int, userID string, lspID string) int
 		GetUserLsps                    func(childComplexity int, userID string) int
+		GetUserNotes                   func(childComplexity int, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserOrgDetails              func(childComplexity int, userID string, userLspID string) int
 		GetUserOrganizations           func(childComplexity int, userID string) int
 		GetUserPreferenceForLsp        func(childComplexity int, userID string, userLspID string) int
@@ -380,6 +396,8 @@ type QueryResolver interface {
 	GetUserCourseMapByCourseID(ctx context.Context, userID string, courseID string) ([]*model.UserCourse, error)
 	GetUserCourseProgressByMapID(ctx context.Context, userID string, userCourseID string) ([]*model.UserCourseProgress, error)
 	GetUserCourseProgressByTopicID(ctx context.Context, userID string, topicID string) ([]*model.UserCourseProgress, error)
+	GetUserNotes(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error)
+	GetUserBookmarks(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error)
 }
 
 type executableSchema struct {
@@ -764,6 +782,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUserRole(childComplexity, args["input"].(model.UserRoleInput)), true
 
+	case "PaginatedBookmarks.bookmarks":
+		if e.complexity.PaginatedBookmarks.Bookmarks == nil {
+			break
+		}
+
+		return e.complexity.PaginatedBookmarks.Bookmarks(childComplexity), true
+
+	case "PaginatedBookmarks.direction":
+		if e.complexity.PaginatedBookmarks.Direction == nil {
+			break
+		}
+
+		return e.complexity.PaginatedBookmarks.Direction(childComplexity), true
+
+	case "PaginatedBookmarks.pageCursor":
+		if e.complexity.PaginatedBookmarks.PageCursor == nil {
+			break
+		}
+
+		return e.complexity.PaginatedBookmarks.PageCursor(childComplexity), true
+
+	case "PaginatedBookmarks.pageSize":
+		if e.complexity.PaginatedBookmarks.PageSize == nil {
+			break
+		}
+
+		return e.complexity.PaginatedBookmarks.PageSize(childComplexity), true
+
 	case "PaginatedCourseMaps.direction":
 		if e.complexity.PaginatedCourseMaps.Direction == nil {
 			break
@@ -792,6 +838,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PaginatedCourseMaps.UserCourses(childComplexity), true
 
+	case "PaginatedNotes.direction":
+		if e.complexity.PaginatedNotes.Direction == nil {
+			break
+		}
+
+		return e.complexity.PaginatedNotes.Direction(childComplexity), true
+
+	case "PaginatedNotes.notes":
+		if e.complexity.PaginatedNotes.Notes == nil {
+			break
+		}
+
+		return e.complexity.PaginatedNotes.Notes(childComplexity), true
+
+	case "PaginatedNotes.pageCursor":
+		if e.complexity.PaginatedNotes.PageCursor == nil {
+			break
+		}
+
+		return e.complexity.PaginatedNotes.PageCursor(childComplexity), true
+
+	case "PaginatedNotes.pageSize":
+		if e.complexity.PaginatedNotes.PageSize == nil {
+			break
+		}
+
+		return e.complexity.PaginatedNotes.PageSize(childComplexity), true
+
 	case "PaginatedUsers.direction":
 		if e.complexity.PaginatedUsers.Direction == nil {
 			break
@@ -819,6 +893,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PaginatedUsers.Users(childComplexity), true
+
+	case "Query.getUserBookmarks":
+		if e.complexity.Query.GetUserBookmarks == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserBookmarks_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserBookmarks(childComplexity, args["user_id"].(string), args["user_lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
 	case "Query.getUserCourseMapByCourseID":
 		if e.complexity.Query.GetUserCourseMapByCourseID == nil {
@@ -903,6 +989,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetUserLsps(childComplexity, args["user_id"].(string)), true
+
+	case "Query.getUserNotes":
+		if e.complexity.Query.GetUserNotes == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserNotes_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserNotes(childComplexity, args["user_id"].(string), args["user_lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
 	case "Query.getUserOrgDetails":
 		if e.complexity.Query.GetUserOrgDetails == nil {
@@ -2740,6 +2838,20 @@ type PaginatedCourseMaps{
     pageSize: Int
 }
 
+type PaginatedNotes{
+    notes: [UserNotes]
+    pageCursor: String
+    direction: String
+    pageSize: Int
+}
+
+type PaginatedBookmarks{
+    bookmarks: [UserBookmark]
+    pageCursor: String
+    direction: String
+    pageSize: Int
+}
+
 type Query {
   logout: Boolean
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
@@ -2754,6 +2866,8 @@ type Query {
   getUserCourseMapByCourseID(user_id: String!, course_id: String!): [UserCourse]
   getUserCourseProgressByMapId(user_id: String!, user_course_id: ID!): [UserCourseProgress]
   getUserCourseProgressByTopicId(user_id: String!, topic_id: ID!): [UserCourseProgress]
+  getUserNotes(user_id: String!, user_lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedNotes
+  getUserBookmarks(user_id: String!, user_lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedBookmarks
 }
 
 type Mutation {
@@ -3262,6 +3376,66 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getUserBookmarks_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["user_lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_lsp_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_lsp_id"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["publish_time"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("publish_time"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["publish_time"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["pageCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageCursor"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageCursor"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["Direction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Direction"] = arg4
+	var arg5 *int
+	if tmp, ok := rawArgs["pageSize"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
+		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageSize"] = arg5
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getUserCourseMapByCourseID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3436,6 +3610,66 @@ func (ec *executionContext) field_Query_getUserLsps_args(ctx context.Context, ra
 		}
 	}
 	args["user_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserNotes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["user_lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_lsp_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_lsp_id"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["publish_time"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("publish_time"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["publish_time"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["pageCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageCursor"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageCursor"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["Direction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Direction"] = arg4
+	var arg5 *int
+	if tmp, ok := rawArgs["pageSize"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
+		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageSize"] = arg5
 	return args, nil
 }
 
@@ -4799,6 +5033,134 @@ func (ec *executionContext) _Mutation_updateUserExamResult(ctx context.Context, 
 	return ec.marshalOUserExamResult2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResult(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PaginatedBookmarks_bookmarks(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedBookmarks) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedBookmarks",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Bookmarks, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.UserBookmark)
+	fc.Result = res
+	return ec.marshalOUserBookmark2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserBookmark(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedBookmarks_pageCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedBookmarks) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedBookmarks",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedBookmarks_direction(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedBookmarks) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedBookmarks",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Direction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedBookmarks_pageSize(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedBookmarks) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedBookmarks",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PaginatedCourseMaps_user_courses(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCourseMaps) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4904,6 +5266,134 @@ func (ec *executionContext) _PaginatedCourseMaps_pageSize(ctx context.Context, f
 	}()
 	fc := &graphql.FieldContext{
 		Object:     "PaginatedCourseMaps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedNotes_notes(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedNotes) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedNotes",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Notes, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.UserNotes)
+	fc.Result = res
+	return ec.marshalOUserNotes2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserNotes(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedNotes_pageCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedNotes) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedNotes",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedNotes_direction(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedNotes) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedNotes",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Direction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedNotes_pageSize(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedNotes) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedNotes",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -5553,6 +6043,84 @@ func (ec *executionContext) _Query_getUserCourseProgressByTopicId(ctx context.Co
 	res := resTmp.([]*model.UserCourseProgress)
 	fc.Result = res
 	return ec.marshalOUserCourseProgress2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserCourseProgress(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getUserNotes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserNotes_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserNotes(rctx, args["user_id"].(string), args["user_lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PaginatedNotes)
+	fc.Result = res
+	return ec.marshalOPaginatedNotes2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedNotes(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getUserBookmarks(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserBookmarks_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserBookmarks(rctx, args["user_id"].(string), args["user_lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PaginatedBookmarks)
+	fc.Result = res
+	return ec.marshalOPaginatedBookmarks2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedBookmarks(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14694,6 +15262,55 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
+var paginatedBookmarksImplementors = []string{"PaginatedBookmarks"}
+
+func (ec *executionContext) _PaginatedBookmarks(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedBookmarks) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedBookmarksImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaginatedBookmarks")
+		case "bookmarks":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedBookmarks_bookmarks(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageCursor":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedBookmarks_pageCursor(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "direction":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedBookmarks_direction(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageSize":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedBookmarks_pageSize(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var paginatedCourseMapsImplementors = []string{"PaginatedCourseMaps"}
 
 func (ec *executionContext) _PaginatedCourseMaps(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedCourseMaps) graphql.Marshaler {
@@ -14728,6 +15345,55 @@ func (ec *executionContext) _PaginatedCourseMaps(ctx context.Context, sel ast.Se
 		case "pageSize":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._PaginatedCourseMaps_pageSize(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var paginatedNotesImplementors = []string{"PaginatedNotes"}
+
+func (ec *executionContext) _PaginatedNotes(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedNotes) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedNotesImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaginatedNotes")
+		case "notes":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedNotes_notes(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageCursor":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedNotes_pageCursor(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "direction":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedNotes_direction(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageSize":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedNotes_pageSize(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -15061,6 +15727,46 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getUserCourseProgressByTopicId(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getUserNotes":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserNotes(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getUserBookmarks":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserBookmarks(ctx, field)
 				return res
 			}
 
@@ -18231,11 +18937,25 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
+func (ec *executionContext) marshalOPaginatedBookmarks2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedBookmarks(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedBookmarks) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PaginatedBookmarks(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOPaginatedCourseMaps2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedCourseMaps(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedCourseMaps) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._PaginatedCourseMaps(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPaginatedNotes2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedNotes(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedNotes) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PaginatedNotes(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPaginatedUsers2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedUsers(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedUsers) graphql.Marshaler {

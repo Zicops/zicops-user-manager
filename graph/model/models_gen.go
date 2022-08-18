@@ -6,11 +6,25 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+type PaginatedBookmarks struct {
+	Bookmarks  []*UserBookmark `json:"bookmarks"`
+	PageCursor *string         `json:"pageCursor"`
+	Direction  *string         `json:"direction"`
+	PageSize   *int            `json:"pageSize"`
+}
+
 type PaginatedCourseMaps struct {
 	UserCourses []*UserCourse `json:"user_courses"`
 	PageCursor  *string       `json:"pageCursor"`
 	Direction   *string       `json:"direction"`
 	PageSize    *int          `json:"pageSize"`
+}
+
+type PaginatedNotes struct {
+	Notes      []*UserNotes `json:"notes"`
+	PageCursor *string      `json:"pageCursor"`
+	Direction  *string      `json:"direction"`
+	PageSize   *int         `json:"pageSize"`
 }
 
 type PaginatedUsers struct {

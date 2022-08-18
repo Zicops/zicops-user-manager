@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -407,6 +408,14 @@ func (r *queryResolver) GetUserCourseProgressByTopicID(ctx context.Context, user
 		return nil, err
 	}
 	return result, nil
+}
+
+func (r *queryResolver) GetUserNotes(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) GetUserBookmarks(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

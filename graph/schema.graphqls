@@ -436,6 +436,20 @@ type PaginatedCourseMaps{
     pageSize: Int
 }
 
+type PaginatedNotes{
+    notes: [UserNotes]
+    pageCursor: String
+    direction: String
+    pageSize: Int
+}
+
+type PaginatedBookmarks{
+    bookmarks: [UserBookmark]
+    pageCursor: String
+    direction: String
+    pageSize: Int
+}
+
 type Query {
   logout: Boolean
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
@@ -450,6 +464,8 @@ type Query {
   getUserCourseMapByCourseID(user_id: String!, course_id: String!): [UserCourse]
   getUserCourseProgressByMapId(user_id: String!, user_course_id: ID!): [UserCourseProgress]
   getUserCourseProgressByTopicId(user_id: String!, topic_id: ID!): [UserCourseProgress]
+  getUserNotes(user_id: String!, user_lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedNotes
+  getUserBookmarks(user_id: String!, user_lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedBookmarks
 }
 
 type Mutation {
