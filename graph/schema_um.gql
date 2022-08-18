@@ -466,6 +466,7 @@ type Query {
   getUserCourseProgressByTopicId(user_id: String!, topic_id: ID!): [UserCourseProgress]
   getUserNotes(user_id: String!, user_lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedNotes
   getUserBookmarks(user_id: String!, user_lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedBookmarks
+  getUserExamAttempts(user_id: String!, user_lsp_id: String!) : [UserExamAttempts]
 }
 
 type Mutation {

@@ -427,6 +427,15 @@ func (r *queryResolver) GetUserBookmarks(ctx context.Context, userID string, use
 	return result, nil
 }
 
+func (r *queryResolver) GetUserExamAttempts(ctx context.Context, userID string, userLspID string) ([]*model.UserExamAttempts, error) {
+	result, err := queries.GetUserExamAttempts(ctx, userID, userLspID)
+	if err != nil {
+		log.Errorf("Error getting exam attempts of a user : %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

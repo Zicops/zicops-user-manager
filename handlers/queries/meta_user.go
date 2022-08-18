@@ -179,3 +179,50 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publ
 	outputResponse.Direction = direction
 	return &outputResponse, nil
 }
+
+func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) ([]*model.UserExamAttempts, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_attempts where user_id='%s' and lsp_id='%s' ALLOW FILTERING`, userID, userLspID)
+	getUserEA := func() (users []userz.UserExamAttempts, err error) {
+		q := global.CassUserSession.Session.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	usersOrgs, err := getUserEA()
+	if err != nil {
+		return nil, err
+	}
+	if len(usersOrgs) == 0 {
+		return nil, fmt.Errorf("no user lsp found")
+	}
+	userOrgs := make([]*model.UserExamAttempts, 0)
+	for _, userOrg := range usersOrgs {
+		copiedOrg := userOrg
+		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
+		attemptDuration := strconv.FormatInt(userOrg.AttemptDuration, 10)
+		attemptStartTime := strconv.FormatInt(userOrg.AttemptStartTime, 10)
+		currentUserOrg := &model.UserExamAttempts{
+			UserEaID:         &copiedOrg.ID,
+			UserID:           copiedOrg.UserID,
+			UserLspID:        copiedOrg.UserLspID,
+			UserCpID:         copiedOrg.UserCpID,
+			UserCourseID:     copiedOrg.UserCmID,
+			ExamID:           copiedOrg.ExamID,
+			AttemptNo:        int(copiedOrg.AttemptNo),
+			AttemptDuration:  attemptDuration,
+			AttemptStatus:    copiedOrg.AttemptStatus,
+			AttemptStartTime: attemptStartTime,
+			CreatedBy:        &copiedOrg.CreatedBy,
+			UpdatedBy:        &copiedOrg.UpdatedBy,
+			CreatedAt:        createdAt,
+			UpdatedAt:        updatedAt,
+		}
+		userOrgs = append(userOrgs, currentUserOrg)
+	}
+	return userOrgs, nil
+}

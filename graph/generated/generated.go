@@ -111,6 +111,7 @@ type ComplexityRoot struct {
 		GetUserCourseProgressByMapID   func(childComplexity int, userID string, userCourseID string) int
 		GetUserCourseProgressByTopicID func(childComplexity int, userID string, topicID string) int
 		GetUserDetails                 func(childComplexity int, userID string) int
+		GetUserExamAttempts            func(childComplexity int, userID string, userLspID string) int
 		GetUserLspByLspID              func(childComplexity int, userID string, lspID string) int
 		GetUserLsps                    func(childComplexity int, userID string) int
 		GetUserNotes                   func(childComplexity int, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
@@ -398,6 +399,7 @@ type QueryResolver interface {
 	GetUserCourseProgressByTopicID(ctx context.Context, userID string, topicID string) ([]*model.UserCourseProgress, error)
 	GetUserNotes(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error)
 	GetUserBookmarks(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error)
+	GetUserExamAttempts(ctx context.Context, userID string, userLspID string) ([]*model.UserExamAttempts, error)
 }
 
 type executableSchema struct {
@@ -965,6 +967,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetUserDetails(childComplexity, args["user_id"].(string)), true
+
+	case "Query.getUserExamAttempts":
+		if e.complexity.Query.GetUserExamAttempts == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserExamAttempts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserExamAttempts(childComplexity, args["user_id"].(string), args["user_lsp_id"].(string)), true
 
 	case "Query.getUserLspByLspId":
 		if e.complexity.Query.GetUserLspByLspID == nil {
@@ -2868,6 +2882,7 @@ type Query {
   getUserCourseProgressByTopicId(user_id: String!, topic_id: ID!): [UserCourseProgress]
   getUserNotes(user_id: String!, user_lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedNotes
   getUserBookmarks(user_id: String!, user_lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedBookmarks
+  getUserExamAttempts(user_id: String!, user_lsp_id: String!) : [UserExamAttempts]
 }
 
 type Mutation {
@@ -3571,6 +3586,30 @@ func (ec *executionContext) field_Query_getUserDetails_args(ctx context.Context,
 		}
 	}
 	args["user_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserExamAttempts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["user_lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_lsp_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_lsp_id"] = arg1
 	return args, nil
 }
 
@@ -6121,6 +6160,45 @@ func (ec *executionContext) _Query_getUserBookmarks(ctx context.Context, field g
 	res := resTmp.(*model.PaginatedBookmarks)
 	fc.Result = res
 	return ec.marshalOPaginatedBookmarks2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedBookmarks(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getUserExamAttempts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserExamAttempts_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserExamAttempts(rctx, args["user_id"].(string), args["user_lsp_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.UserExamAttempts)
+	fc.Result = res
+	return ec.marshalOUserExamAttempts2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamAttempts(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15767,6 +15845,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getUserBookmarks(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getUserExamAttempts":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserExamAttempts(ctx, field)
 				return res
 			}
 
