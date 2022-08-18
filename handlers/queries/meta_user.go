@@ -185,7 +185,7 @@ func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) (
 	if err != nil {
 		return nil, err
 	}
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_attempts where user_id='%s' and lsp_id='%s' ALLOW FILTERING`, userID, userLspID)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_attempts where user_id='%s' and user_lsp_id='%s' ALLOW FILTERING`, userID, userLspID)
 	getUserEA := func() (users []userz.UserExamAttempts, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
 		defer q.Release()

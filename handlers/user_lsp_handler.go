@@ -46,6 +46,7 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*mode
 			UpdatedAt: time.Now().Unix(),
 			CreatedBy: createdBy,
 			UpdatedBy: updatedBy,
+			Status:    input.Status,
 		}
 		insertQuery := global.CassUserSession.Session.Query(userz.UserLspTable.Insert()).BindStruct(userLspMap)
 		if err := insertQuery.ExecRelease(); err != nil {
