@@ -197,7 +197,7 @@ func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) (
 		return nil, err
 	}
 	if len(usersOrgs) == 0 {
-		return nil, fmt.Errorf("no user lsp found")
+		return nil, fmt.Errorf("no user ea found")
 	}
 	userOrgs := make([]*model.UserExamAttempts, 0)
 	for _, userOrg := range usersOrgs {
@@ -225,4 +225,46 @@ func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) (
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
 	return userOrgs, nil
+}
+
+func GetUserExamResults(ctx context.Context, userID string, userEaID string) (*model.UserExamResult, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_results where user_id='%s' and user_ea_id='%s' ALLOW FILTERING`, userID, userEaID)
+	getUserEA := func() (users []userz.UserExamResults, err error) {
+		q := global.CassUserSession.Session.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	usersOrgs, err := getUserEA()
+	if err != nil {
+		return nil, err
+	}
+	if len(usersOrgs) == 0 {
+		return nil, fmt.Errorf("no user exam results found")
+	}
+	userOrgs := make([]*model.UserExamResult, 0)
+	for _, userOrg := range usersOrgs {
+		copiedOrg := userOrg
+		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
+		currentUserOrg := &model.UserExamResult{
+			UserErID:       &copiedOrg.ID,
+			UserID:         copiedOrg.UserID,
+			UserEaID:       copiedOrg.UserEaID,
+			UserScore:      int(copiedOrg.UserScore),
+			CorrectAnswers: int(copiedOrg.CorrectAnswers),
+			WrongAnswers:   int(copiedOrg.WrongAnswers),
+			ResultStatus:   copiedOrg.ResultStatus,
+			CreatedBy:      &copiedOrg.CreatedBy,
+			UpdatedBy:      &copiedOrg.UpdatedBy,
+			CreatedAt:      createdAt,
+			UpdatedAt:      updatedAt,
+		}
+		userOrgs = append(userOrgs, currentUserOrg)
+	}
+	return userOrgs[0], nil
 }

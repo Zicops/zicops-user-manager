@@ -436,6 +436,15 @@ func (r *queryResolver) GetUserExamAttempts(ctx context.Context, userID string, 
 	return result, nil
 }
 
+func (r *queryResolver) GetUserExamResults(ctx context.Context, userID string, userEaID string) (*model.UserExamResult, error) {
+	result, err := queries.GetUserExamResults(ctx, userID, userEaID)
+	if err != nil {
+		log.Errorf("Error getting exam results of a user : %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
