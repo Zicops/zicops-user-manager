@@ -468,6 +468,7 @@ type Query {
   getUserBookmarks(user_id: String!, user_lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedBookmarks
   getUserExamAttempts(user_id: String!, user_lsp_id: String!) : [UserExamAttempts]
   getUserExamResults(user_id: String!, user_ea_id: String!) : UserExamResult
+  getUserExamProgress(user_id: String!, user_ea_id: String!) : [UserExamProgress]
 }
 
 type Mutation {

@@ -268,3 +268,52 @@ func GetUserExamResults(ctx context.Context, userID string, userEaID string) (*m
 	}
 	return userOrgs[0], nil
 }
+
+func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([]*model.UserExamProgress, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_progress where user_id='%s' and user_ea_id='%s' ALLOW FILTERING`, userID, userEaID)
+	getUserEA := func() (users []userz.UserExamProgress, err error) {
+		q := global.CassUserSession.Session.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	usersOrgs, err := getUserEA()
+	if err != nil {
+		return nil, err
+	}
+	if len(usersOrgs) == 0 {
+		return nil, fmt.Errorf("no user ep found")
+	}
+	userOrgs := make([]*model.UserExamProgress, 0)
+	for _, userOrg := range usersOrgs {
+		copiedOrg := userOrg
+		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
+		totalTimeSpent := strconv.FormatInt(userOrg.TotalTimeSpent, 10)
+		currentUserOrg := &model.UserExamProgress{
+			UserEpID:       &copiedOrg.ID,
+			UserID:         copiedOrg.UserID,
+			UserLspID:      copiedOrg.UserLspID,
+			UserCpID:       copiedOrg.UserCpID,
+			UserEaID:       copiedOrg.UserEaID,
+			SrNo:           int(copiedOrg.SrNo),
+			QuestionID:     copiedOrg.QuestionID,
+			QuestionType:   copiedOrg.QuestionType,
+			Answer:         copiedOrg.Answer,
+			QAttemptStatus: copiedOrg.QAttemptStatus,
+			TotalTimeSpent: totalTimeSpent,
+			CorrectAnswer:  copiedOrg.CorrectAnswer,
+			SectionID:      copiedOrg.SectionID,
+			CreatedBy:      &copiedOrg.CreatedBy,
+			UpdatedBy:      &copiedOrg.UpdatedBy,
+			CreatedAt:      createdAt,
+			UpdatedAt:      updatedAt,
+		}
+		userOrgs = append(userOrgs, currentUserOrg)
+	}
+	return userOrgs, nil
+}

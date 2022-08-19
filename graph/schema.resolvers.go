@@ -445,6 +445,15 @@ func (r *queryResolver) GetUserExamResults(ctx context.Context, userID string, u
 	return result, nil
 }
 
+func (r *queryResolver) GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([]*model.UserExamProgress, error) {
+	result, err := queries.GetUserExamProgress(ctx, userID, userEaID)
+	if err != nil {
+		log.Errorf("Error getting exam progress of a user : %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
