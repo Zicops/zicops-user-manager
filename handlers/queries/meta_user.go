@@ -204,7 +204,6 @@ func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) (
 		copiedOrg := userOrg
 		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
 		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
-		attemptDuration := strconv.FormatInt(userOrg.AttemptDuration, 10)
 		attemptStartTime := strconv.FormatInt(userOrg.AttemptStartTime, 10)
 		currentUserOrg := &model.UserExamAttempts{
 			UserEaID:         &copiedOrg.ID,
@@ -214,7 +213,7 @@ func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) (
 			UserCourseID:     copiedOrg.UserCmID,
 			ExamID:           copiedOrg.ExamID,
 			AttemptNo:        int(copiedOrg.AttemptNo),
-			AttemptDuration:  attemptDuration,
+			AttemptDuration:  copiedOrg.AttemptDuration,
 			AttemptStatus:    copiedOrg.AttemptStatus,
 			AttemptStartTime: attemptStartTime,
 			CreatedBy:        &copiedOrg.CreatedBy,

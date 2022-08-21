@@ -40,7 +40,6 @@ func AddUserExamAttempts(ctx context.Context, input []*model.UserExamAttemptsInp
 		}
 		// convert input.QuizAttempt to int64
 		examAttemptStart, _ := strconv.ParseInt(input.AttemptStartTime, 10, 64)
-		examAttempDuration, _ := strconv.ParseInt(input.AttemptDuration, 10, 64)
 		userLspMap := userz.UserExamAttempts{
 			ID:               guid.String(),
 			UserID:           input.UserID,
@@ -51,7 +50,7 @@ func AddUserExamAttempts(ctx context.Context, input []*model.UserExamAttemptsInp
 			AttemptNo:        int64(input.AttemptNo),
 			AttemptStatus:    input.AttemptStatus,
 			AttemptStartTime: examAttemptStart,
-			AttemptDuration:  examAttempDuration,
+			AttemptDuration:  input.AttemptDuration,
 			CreatedAt:        time.Now().Unix(),
 			UpdatedAt:        time.Now().Unix(),
 			CreatedBy:        createdBy,
@@ -133,13 +132,12 @@ func UpdateUserExamAttempts(ctx context.Context, input model.UserExamAttemptsInp
 		updatedCols = append(updatedCols, "attempt_status")
 	}
 	attemptStartTime, _ := strconv.ParseInt(input.AttemptStartTime, 10, 64)
-	attemptDuration, _ := strconv.ParseInt(input.AttemptDuration, 10, 64)
 	if input.AttemptStartTime != "" && attemptStartTime != userLspMap.AttemptStartTime {
 		userLspMap.AttemptStartTime = attemptStartTime
 		updatedCols = append(updatedCols, "attempt_start_time")
 	}
-	if input.AttemptDuration != "" && attemptDuration != userLspMap.AttemptDuration {
-		userLspMap.AttemptDuration = attemptDuration
+	if input.AttemptDuration != "" && input.AttemptDuration != userLspMap.AttemptDuration {
+		userLspMap.AttemptDuration = input.AttemptDuration
 		updatedCols = append(updatedCols, "attempt_duration")
 	}
 	if input.UserLspID != "" && input.UserLspID != userLspMap.UserLspID {
