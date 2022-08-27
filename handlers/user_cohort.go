@@ -45,6 +45,7 @@ func AddUserCohort(ctx context.Context, input []*model.UserCohortInput) ([]*mode
 			CohortID:         input.CohortID,
 			AddedBy:          input.AddedBy,
 			MembershipStatus: input.MembershipStatus,
+			Role:             input.Role,
 			CreatedAt:        time.Now().Unix(),
 			UpdatedAt:        time.Now().Unix(),
 			CreatedBy:        createdBy,
@@ -61,6 +62,7 @@ func AddUserCohort(ctx context.Context, input []*model.UserCohortInput) ([]*mode
 			UserLspID:        userLspMap.UserLspID,
 			UserID:           userLspMap.UserID,
 			MembershipStatus: userLspMap.MembershipStatus,
+			Role:             userLspMap.Role,
 			CohortID:         userLspMap.CohortID,
 			AddedBy:          userLspMap.AddedBy,
 			CreatedAt:        created,
@@ -121,6 +123,10 @@ func UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.
 		userLspMap.UserLspID = input.UserLspID
 		updatedCols = append(updatedCols, "user_lsp_id")
 	}
+	if input.Role != "" && userLspMap.Role == input.Role {
+		userLspMap.Role = input.Role
+		updatedCols = append(updatedCols, "role")
+	}
 	updatedAt := time.Now().Unix()
 	userLspMap.UpdatedAt = updatedAt
 	updatedCols = append(updatedCols, "updated_at")
@@ -140,6 +146,7 @@ func UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.
 		UserLspID:        userLspMap.UserLspID,
 		UserID:           userLspMap.UserID,
 		MembershipStatus: userLspMap.MembershipStatus,
+		Role:             userLspMap.Role,
 		CohortID:         userLspMap.CohortID,
 		AddedBy:          userLspMap.AddedBy,
 		CreatedAt:        created,

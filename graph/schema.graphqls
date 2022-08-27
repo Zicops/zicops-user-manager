@@ -157,6 +157,7 @@ input UserCohortInput {
   cohort_id: String!
   added_by: String!
   membership_status: String!
+  role: String!
   created_by: String
   updated_by: String
 }
@@ -168,6 +169,7 @@ type UserCohort {
   cohort_id: String!
   added_by: String!
   membership_status: String!
+  role: String!
   created_by: String
   updated_by: String
   created_at: String!

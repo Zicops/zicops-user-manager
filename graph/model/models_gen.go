@@ -98,6 +98,7 @@ type UserCohort struct {
 	CohortID         string  `json:"cohort_id"`
 	AddedBy          string  `json:"added_by"`
 	MembershipStatus string  `json:"membership_status"`
+	Role             string  `json:"role"`
 	CreatedBy        *string `json:"created_by"`
 	UpdatedBy        *string `json:"updated_by"`
 	CreatedAt        string  `json:"created_at"`
@@ -111,6 +112,7 @@ type UserCohortInput struct {
 	CohortID         string  `json:"cohort_id"`
 	AddedBy          string  `json:"added_by"`
 	MembershipStatus string  `json:"membership_status"`
+	Role             string  `json:"role"`
 	CreatedBy        *string `json:"created_by"`
 	UpdatedBy        *string `json:"updated_by"`
 }

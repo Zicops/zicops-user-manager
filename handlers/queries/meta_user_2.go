@@ -84,6 +84,7 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 			UpdatedBy:        &cohortCopy.UpdatedBy,
 			AddedBy:          cohortCopy.AddedBy,
 			MembershipStatus: cohortCopy.MembershipStatus,
+			Role:             cohortCopy.Role,
 		}
 		allUsers = append(allUsers, userCohort)
 	}
@@ -146,6 +147,7 @@ func GetCohortUsers(ctx context.Context, cohortID string) ([]*model.UserCohort, 
 			UpdatedBy:        &cohortCopy.UpdatedBy,
 			AddedBy:          cohortCopy.AddedBy,
 			MembershipStatus: cohortCopy.MembershipStatus,
+			Role:             cohortCopy.Role,
 		}
 		cohortUsers = append(cohortUsers, userCohort)
 	}
