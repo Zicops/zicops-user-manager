@@ -154,7 +154,6 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publ
 		courseCopy := copiedCourse
 		createdAt := strconv.FormatInt(courseCopy.CreatedAt, 10)
 		updatedAt := strconv.FormatInt(courseCopy.UpdatedAt, 10)
-		timeStamp := strconv.FormatInt(courseCopy.TimeStamp, 10)
 		currentCourse := &model.UserBookmark{
 			UserBmID:     &courseCopy.ID,
 			UserCourseID: courseCopy.UserCPID,
@@ -165,7 +164,7 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publ
 			TopicID:      courseCopy.TopicID,
 			IsActive:     courseCopy.IsActive,
 			Name:         courseCopy.Name,
-			TimeStamp:    timeStamp,
+			TimeStamp:    courseCopy.TimeStamp,
 			CreatedAt:    createdAt,
 			UpdatedAt:    updatedAt,
 			CreatedBy:    &courseCopy.CreatedBy,
