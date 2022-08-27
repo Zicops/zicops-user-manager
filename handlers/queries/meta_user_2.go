@@ -1,18 +1,24 @@
 package queries
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/rs/xid"
 	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
+	"github.com/zicops/zicops-user-manager/lib/db/bucket"
+	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
 )
 
 func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error) {
@@ -152,4 +158,225 @@ func GetCohortUsers(ctx context.Context, cohortID string) ([]*model.UserCohort, 
 		cohortUsers = append(cohortUsers, userCohort)
 	}
 	return cohortUsers, nil
+}
+
+func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var storageC *bucket.Client
+	var photoBucket string
+	var photoUrl string
+	guid := xid.New()
+	cohortID := guid.String()
+	email_creator := claims["email"].(string)
+	if input.Image != nil && input.ImageURL == nil {
+		if storageC == nil {
+			storageC = bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err := storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				return nil, err
+			}
+		}
+		bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, input.Image.Filename)
+		writer, err := storageC.UploadToGCS(ctx, bucketPath)
+		if err != nil {
+			return nil, err
+		}
+		defer writer.Close()
+		fileBuffer := bytes.NewBuffer(nil)
+		if _, err := io.Copy(fileBuffer, input.Image.File); err != nil {
+			return nil, err
+		}
+		currentBytes := fileBuffer.Bytes()
+		_, err = io.Copy(writer, bytes.NewReader(currentBytes))
+		if err != nil {
+			return nil, err
+		}
+		photoBucket = bucketPath
+		photoUrl = storageC.GetSignedURLForObject(bucketPath)
+	} else {
+		photoBucket = ""
+		if input.ImageURL != nil {
+			photoUrl = *input.ImageURL
+		}
+	}
+	cohortMainTable := userz.Cohort{
+		ID:          cohortID,
+		Name:        input.Name,
+		Description: input.Description,
+		ImageBucket: photoBucket,
+		ImageUrl:    photoUrl,
+		CreatedAt:   time.Now().Unix(),
+		UpdatedAt:   time.Now().Unix(),
+		CreatedBy:   email_creator,
+		UpdatedBy:   email_creator,
+		Code:        input.Code,
+		Type:        input.Type,
+		IsActive:    input.IsActive,
+		Status:      input.Status,
+		LspID:       input.LspID,
+		Size:        input.Size,
+	}
+	insertQuery := global.CassUserSession.Session.Query(userz.CohortTable.Insert()).BindStruct(cohortMainTable)
+	if err := insertQuery.ExecRelease(); err != nil {
+		return nil, err
+	}
+	created := strconv.FormatInt(cohortMainTable.CreatedAt, 10)
+	updated := strconv.FormatInt(cohortMainTable.UpdatedAt, 10)
+	outputCohort := &model.CohortMain{
+		CohortID:    &cohortID,
+		Name:        cohortMainTable.Name,
+		Description: cohortMainTable.Description,
+		ImageURL:    &cohortMainTable.ImageUrl,
+		CreatedAt:   created,
+		UpdatedAt:   updated,
+		CreatedBy:   &cohortMainTable.CreatedBy,
+		UpdatedBy:   &cohortMainTable.UpdatedBy,
+		Code:        cohortMainTable.Code,
+		Type:        cohortMainTable.Type,
+		IsActive:    cohortMainTable.IsActive,
+		Status:      cohortMainTable.Status,
+		LspID:       cohortMainTable.LspID,
+		Size:        cohortMainTable.Size,
+	}
+
+	return outputCohort, nil
+}
+
+func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var storageC *bucket.Client
+	var photoBucket string
+	var photoUrl string
+	guid := xid.New()
+	cohortID := guid.String()
+	if input.CohortID == nil {
+		return nil, fmt.Errorf("cohort id is required")
+	}
+	currentCohort := userz.Cohort{
+		ID: *input.CohortID,
+	}
+	cohorts := []userz.Cohort{}
+	getQuery := global.CassUserSession.Session.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
+	if err := getQuery.SelectRelease(&cohorts); err != nil {
+		return nil, err
+	}
+	if len(cohorts) == 0 {
+		return nil, fmt.Errorf("cohorts not found")
+	}
+
+	if input.Image != nil && input.ImageURL == nil {
+		if storageC == nil {
+			storageC = bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err := storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				return nil, err
+			}
+		}
+		bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, input.Image.Filename)
+		writer, err := storageC.UploadToGCS(ctx, bucketPath)
+		if err != nil {
+			return nil, err
+		}
+		defer writer.Close()
+		fileBuffer := bytes.NewBuffer(nil)
+		if _, err := io.Copy(fileBuffer, input.Image.File); err != nil {
+			return nil, err
+		}
+		currentBytes := fileBuffer.Bytes()
+		_, err = io.Copy(writer, bytes.NewReader(currentBytes))
+		if err != nil {
+			return nil, err
+		}
+		photoBucket = bucketPath
+		photoUrl = storageC.GetSignedURLForObject(bucketPath)
+	} else {
+		photoBucket = ""
+		if input.ImageURL != nil {
+			photoUrl = *input.ImageURL
+		}
+	}
+	cohort := cohorts[0]
+	updatedCols := []string{}
+	if input.Name != "" {
+		cohort.Name = input.Name
+		updatedCols = append(updatedCols, "name")
+	}
+	if input.Description != "" {
+		cohort.Description = input.Description
+		updatedCols = append(updatedCols, "description")
+	}
+	if photoUrl != "" {
+		cohort.ImageUrl = *input.ImageURL
+		updatedCols = append(updatedCols, "imageUrl")
+	}
+	if input.Code != "" {
+		cohort.Code = input.Code
+		updatedCols = append(updatedCols, "code")
+	}
+	if input.Type != "" {
+		cohort.Type = input.Type
+		updatedCols = append(updatedCols, "type")
+	}
+	if input.IsActive != cohort.IsActive {
+		cohort.IsActive = input.IsActive
+		updatedCols = append(updatedCols, "is_active")
+	}
+	if photoBucket != "" {
+		cohort.ImageBucket = photoBucket
+		updatedCols = append(updatedCols, "imageBucket")
+	}
+	if input.Size > 0 {
+		cohort.Size = input.Size
+		updatedCols = append(updatedCols, "size")
+	}
+	if input.Status != "" {
+		cohort.Status = input.Status
+		updatedCols = append(updatedCols, "status")
+	}
+	if input.LspID != "" {
+		cohort.LspID = input.LspID
+		updatedCols = append(updatedCols, "lsp_id")
+	}
+	if input.UpdatedBy != nil {
+		cohort.UpdatedBy = *input.UpdatedBy
+		updatedCols = append(updatedCols, "updated_by")
+	}
+	cohort.UpdatedAt = time.Now().Unix()
+	updatedCols = append(updatedCols, "updated_at")
+	upStms, uNames := userz.CohortTable.Update(updatedCols...)
+	updateQuery := global.CassUserSession.Session.Query(upStms, uNames).BindStruct(&cohort)
+	if err := updateQuery.ExecRelease(); err != nil {
+		log.Errorf("error updating cohort: %v", err)
+		return nil, err
+	}
+	created := strconv.FormatInt(cohort.CreatedAt, 10)
+	updated := strconv.FormatInt(cohort.UpdatedAt, 10)
+	outputCohort := &model.CohortMain{
+		CohortID:    &cohortID,
+		Name:        cohort.Name,
+		Description: cohort.Description,
+		ImageURL:    &cohort.ImageUrl,
+		CreatedAt:   created,
+		UpdatedAt:   updated,
+		CreatedBy:   &cohort.CreatedBy,
+		UpdatedBy:   &cohort.UpdatedBy,
+		Code:        cohort.Code,
+		Type:        cohort.Type,
+		IsActive:    cohort.IsActive,
+		Status:      cohort.Status,
+		LspID:       cohort.LspID,
+		Size:        cohort.Size,
+	}
+
+	return outputCohort, nil
 }

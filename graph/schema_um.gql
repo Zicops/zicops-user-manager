@@ -459,6 +459,39 @@ type PaginatedCohorts {
     pageSize: Int
 }
 
+input CohortMainInput {
+  cohort_id: ID
+  name: String!
+  description: String!
+  lsp_id: String!
+  code: String!
+  status: String!
+  type: String!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+  size: Int!
+  image: Upload
+  imageUrl: String
+}
+
+type CohortMain {
+  cohort_id: ID
+  name: String!
+  description: String!
+  lsp_id: String!
+  code: String!
+  status: String!
+  type: String!
+  is_active: Boolean!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+  size: Int!
+  imageUrl: String
+}
+
 type Query {
   logout: Boolean
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
@@ -514,4 +547,6 @@ type Mutation {
   updateUserExamProgress(input: UserExamProgressInput!): UserExamProgress
   addUserExamResult(input: [UserExamResultInput]!): [UserExamResult]
   updateUserExamResult(input: UserExamResultInput!): UserExamResult
+  addCohortMain(input: CohortMainInput!): CohortMain
+  updateCohortMain(input: CohortMainInput!): CohortMain
 }

@@ -6,6 +6,39 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+type CohortMain struct {
+	CohortID    *string `json:"cohort_id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	LspID       string  `json:"lsp_id"`
+	Code        string  `json:"code"`
+	Status      string  `json:"status"`
+	Type        string  `json:"type"`
+	IsActive    bool    `json:"is_active"`
+	CreatedBy   *string `json:"created_by"`
+	UpdatedBy   *string `json:"updated_by"`
+	CreatedAt   string  `json:"created_at"`
+	UpdatedAt   string  `json:"updated_at"`
+	Size        int     `json:"size"`
+	ImageURL    *string `json:"imageUrl"`
+}
+
+type CohortMainInput struct {
+	CohortID    *string         `json:"cohort_id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	LspID       string          `json:"lsp_id"`
+	Code        string          `json:"code"`
+	Status      string          `json:"status"`
+	Type        string          `json:"type"`
+	IsActive    bool            `json:"is_active"`
+	CreatedBy   *string         `json:"created_by"`
+	UpdatedBy   *string         `json:"updated_by"`
+	Size        int             `json:"size"`
+	Image       *graphql.Upload `json:"image"`
+	ImageURL    *string         `json:"imageUrl"`
+}
+
 type PaginatedBookmarks struct {
 	Bookmarks  []*UserBookmark `json:"bookmarks"`
 	PageCursor *string         `json:"pageCursor"`

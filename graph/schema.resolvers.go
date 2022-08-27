@@ -292,6 +292,24 @@ func (r *mutationResolver) UpdateUserExamResult(ctx context.Context, input model
 	return result, nil
 }
 
+func (r *mutationResolver) AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error) {
+	result, err := queries.AddCohortMain(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding cohort: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *mutationResolver) UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error) {
+	result, err := queries.UpdateCohortMain(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating cohort: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
 	if err != nil {
