@@ -83,6 +83,13 @@ type ComplexityRoot struct {
 		PageSize   func(childComplexity int) int
 	}
 
+	PaginatedCohorts struct {
+		Cohorts    func(childComplexity int) int
+		Direction  func(childComplexity int) int
+		PageCursor func(childComplexity int) int
+		PageSize   func(childComplexity int) int
+	}
+
 	PaginatedCourseMaps struct {
 		Direction   func(childComplexity int) int
 		PageCursor  func(childComplexity int) int
@@ -105,6 +112,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		GetLatestCohorts               func(childComplexity int, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserBookmarks               func(childComplexity int, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string) int
 		GetUserCourseMaps              func(childComplexity int, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
@@ -404,6 +412,7 @@ type QueryResolver interface {
 	GetUserExamAttempts(ctx context.Context, userID string, userLspID string) ([]*model.UserExamAttempts, error)
 	GetUserExamResults(ctx context.Context, userID string, userEaID string) (*model.UserExamResult, error)
 	GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([]*model.UserExamProgress, error)
+	GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error)
 }
 
 type executableSchema struct {
@@ -816,6 +825,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PaginatedBookmarks.PageSize(childComplexity), true
 
+	case "PaginatedCohorts.cohorts":
+		if e.complexity.PaginatedCohorts.Cohorts == nil {
+			break
+		}
+
+		return e.complexity.PaginatedCohorts.Cohorts(childComplexity), true
+
+	case "PaginatedCohorts.direction":
+		if e.complexity.PaginatedCohorts.Direction == nil {
+			break
+		}
+
+		return e.complexity.PaginatedCohorts.Direction(childComplexity), true
+
+	case "PaginatedCohorts.pageCursor":
+		if e.complexity.PaginatedCohorts.PageCursor == nil {
+			break
+		}
+
+		return e.complexity.PaginatedCohorts.PageCursor(childComplexity), true
+
+	case "PaginatedCohorts.pageSize":
+		if e.complexity.PaginatedCohorts.PageSize == nil {
+			break
+		}
+
+		return e.complexity.PaginatedCohorts.PageSize(childComplexity), true
+
 	case "PaginatedCourseMaps.direction":
 		if e.complexity.PaginatedCourseMaps.Direction == nil {
 			break
@@ -899,6 +936,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PaginatedUsers.Users(childComplexity), true
+
+	case "Query.getLatestCohorts":
+		if e.complexity.Query.GetLatestCohorts == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getLatestCohorts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetLatestCohorts(childComplexity, args["user_id"].(*string), args["user_lsp_id"].(*string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
 	case "Query.getUserBookmarks":
 		if e.complexity.Query.GetUserBookmarks == nil {
@@ -2894,6 +2943,13 @@ type PaginatedBookmarks{
     pageSize: Int
 }
 
+type PaginatedCohorts {
+    cohorts: [UserCohort]
+    pageCursor: String
+    direction: String
+    pageSize: Int
+}
+
 type Query {
   logout: Boolean
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
@@ -2913,6 +2969,7 @@ type Query {
   getUserExamAttempts(user_id: String!, user_lsp_id: String!) : [UserExamAttempts]
   getUserExamResults(user_id: String!, user_ea_id: String!) : UserExamResult
   getUserExamProgress(user_id: String!, user_ea_id: String!) : [UserExamProgress]
+  getLatestCohorts(user_id:String, user_lsp_id:String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCohorts
 }
 
 type Mutation {
@@ -3418,6 +3475,66 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getLatestCohorts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["user_lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_lsp_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_lsp_id"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["publish_time"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("publish_time"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["publish_time"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["pageCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageCursor"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageCursor"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["Direction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Direction"] = arg4
+	var arg5 *int
+	if tmp, ok := rawArgs["pageSize"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
+		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageSize"] = arg5
 	return args, nil
 }
 
@@ -5278,6 +5395,134 @@ func (ec *executionContext) _PaginatedBookmarks_pageSize(ctx context.Context, fi
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PaginatedCohorts_cohorts(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCohorts) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedCohorts",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cohorts, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.UserCohort)
+	fc.Result = res
+	return ec.marshalOUserCohort2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserCohort(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedCohorts_pageCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCohorts) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedCohorts",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedCohorts_direction(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCohorts) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedCohorts",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Direction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedCohorts_pageSize(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCohorts) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedCohorts",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PaginatedCourseMaps_user_courses(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCourseMaps) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6355,6 +6600,45 @@ func (ec *executionContext) _Query_getUserExamProgress(ctx context.Context, fiel
 	res := resTmp.([]*model.UserExamProgress)
 	fc.Result = res
 	return ec.marshalOUserExamProgress2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamProgress(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getLatestCohorts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getLatestCohorts_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetLatestCohorts(rctx, args["user_id"].(*string), args["user_lsp_id"].(*string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PaginatedCohorts)
+	fc.Result = res
+	return ec.marshalOPaginatedCohorts2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedCohorts(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15545,6 +15829,55 @@ func (ec *executionContext) _PaginatedBookmarks(ctx context.Context, sel ast.Sel
 	return out
 }
 
+var paginatedCohortsImplementors = []string{"PaginatedCohorts"}
+
+func (ec *executionContext) _PaginatedCohorts(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedCohorts) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedCohortsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaginatedCohorts")
+		case "cohorts":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedCohorts_cohorts(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageCursor":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedCohorts_pageCursor(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "direction":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedCohorts_direction(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageSize":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedCohorts_pageSize(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var paginatedCourseMapsImplementors = []string{"PaginatedCourseMaps"}
 
 func (ec *executionContext) _PaginatedCourseMaps(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedCourseMaps) graphql.Marshaler {
@@ -16061,6 +16394,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getUserExamProgress(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getLatestCohorts":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getLatestCohorts(ctx, field)
 				return res
 			}
 
@@ -19236,6 +19589,13 @@ func (ec *executionContext) marshalOPaginatedBookmarks2ᚖgithubᚗcomᚋzicops�
 		return graphql.Null
 	}
 	return ec._PaginatedBookmarks(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPaginatedCohorts2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedCohorts(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedCohorts) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PaginatedCohorts(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPaginatedCourseMaps2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedCourseMaps(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedCourseMaps) graphql.Marshaler {

@@ -13,6 +13,13 @@ type PaginatedBookmarks struct {
 	PageSize   *int            `json:"pageSize"`
 }
 
+type PaginatedCohorts struct {
+	Cohorts    []*UserCohort `json:"cohorts"`
+	PageCursor *string       `json:"pageCursor"`
+	Direction  *string       `json:"direction"`
+	PageSize   *int          `json:"pageSize"`
+}
+
 type PaginatedCourseMaps struct {
 	UserCourses []*UserCourse `json:"user_courses"`
 	PageCursor  *string       `json:"pageCursor"`

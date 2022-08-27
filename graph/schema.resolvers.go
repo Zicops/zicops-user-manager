@@ -454,6 +454,15 @@ func (r *queryResolver) GetUserExamProgress(ctx context.Context, userID string, 
 	return result, nil
 }
 
+func (r *queryResolver) GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error) {
+	result, err := queries.GetLatestCohorts(ctx, userID, userLspID, publishTime, pageCursor, direction, pageSize)
+	if err != nil {
+		log.Errorf("Error getting users cohorts: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
