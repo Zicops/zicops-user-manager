@@ -463,6 +463,15 @@ func (r *queryResolver) GetLatestCohorts(ctx context.Context, userID *string, us
 	return result, nil
 }
 
+func (r *queryResolver) GetCohortUsers(ctx context.Context, cohortID string) ([]*model.UserCohort, error) {
+	result, err := queries.GetCohortUsers(ctx, cohortID)
+	if err != nil {
+		log.Errorf("Error getting users cohorts: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

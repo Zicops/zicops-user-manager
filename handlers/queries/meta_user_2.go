@@ -5,7 +5,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
+	"strings"
 
+	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-user-manager/global"
@@ -90,4 +92,62 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
 	return &outputResponse, nil
+}
+
+func GetCohortUsers(ctx context.Context, cohortID string) ([]*model.UserCohort, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	email_creator := claims["email"].(string)
+	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	userAdmin := userz.User{
+		ID: emailCreatorID,
+	}
+	users := []userz.User{}
+	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
+	if err := getQuery.SelectRelease(&users); err != nil {
+		return nil, err
+	}
+	if len(users) == 0 {
+		return nil, fmt.Errorf("user not found")
+	}
+	userAdmin = users[0]
+	if strings.ToLower(userAdmin.Role) != "admin" {
+		return nil, fmt.Errorf("user is not an admin")
+	}
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_cohort_map where cohort_id='%s' ALLOW FILTERING`, cohortID)
+	getUsersCohort := func() (users []userz.UserCohort, err error) {
+		q := global.CassUserSession.Session.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	userCohorts, err := getUsersCohort()
+	if err != nil {
+		return nil, err
+	}
+	if len(userCohorts) == 0 {
+		return nil, fmt.Errorf("no users found")
+	}
+	cohortUsers := make([]*model.UserCohort, 0)
+	for _, userOrg := range userCohorts {
+		cohortCopy := userOrg
+		createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
+		userCohort := &model.UserCohort{
+			UserID:           cohortCopy.UserID,
+			UserLspID:        cohortCopy.UserLspID,
+			UserCohortID:     &cohortCopy.ID,
+			CohortID:         cohortCopy.CohortID,
+			CreatedAt:        createdAt,
+			UpdatedAt:        updatedAt,
+			CreatedBy:        &cohortCopy.CreatedBy,
+			UpdatedBy:        &cohortCopy.UpdatedBy,
+			AddedBy:          cohortCopy.AddedBy,
+			MembershipStatus: cohortCopy.MembershipStatus,
+		}
+		cohortUsers = append(cohortUsers, userCohort)
+	}
+	return cohortUsers, nil
 }
