@@ -38,7 +38,6 @@ func AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*
 		if input.UpdatedBy != nil {
 			updatedBy = *input.UpdatedBy
 		}
-		timeStamp, _ := strconv.ParseInt(input.TimeStamp, 10, 64)
 		userLspMap := userz.UserBookmarks{
 			ID:        guid.String(),
 			UserID:    input.UserID,
@@ -48,7 +47,7 @@ func AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*
 			TopicID:   input.TopicID,
 			UserCPID:  input.UserCourseID,
 			Name:      input.Name,
-			TimeStamp: timeStamp,
+			TimeStamp: input.TimeStamp,
 			IsActive:  input.IsActive,
 			CreatedAt: time.Now().Unix(),
 			UpdatedAt: time.Now().Unix(),
@@ -111,8 +110,7 @@ func UpdateUserBookmark(ctx context.Context, input model.UserBookmarkInput) (*mo
 	userLspMap = userLsps[0]
 	updatedCols := []string{}
 	if input.TimeStamp != "" {
-		timeStamp, _ := strconv.ParseInt(input.TimeStamp, 10, 64)
-		userLspMap.TimeStamp = timeStamp
+		userLspMap.TimeStamp = input.TimeStamp
 		updatedCols = append(updatedCols, "time_stamp")
 	}
 	if input.UpdatedBy != nil {
