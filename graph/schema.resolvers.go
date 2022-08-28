@@ -13,6 +13,7 @@ import (
 	"github.com/zicops/zicops-user-manager/handlers/queries"
 )
 
+// RegisterUsers is the resolver for the registerUsers field.
 func (r *mutationResolver) RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error) {
 	result, err := handlers.RegisterUsers(ctx, input, true)
 	if err != nil {
@@ -22,6 +23,7 @@ func (r *mutationResolver) RegisterUsers(ctx context.Context, input []*model.Use
 	return result, nil
 }
 
+// InviteUsers is the resolver for the inviteUsers field.
 func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 	result, err := handlers.InviteUsers(ctx, emails)
 	if err != nil {
@@ -31,6 +33,7 @@ func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string) (*b
 	return result, nil
 }
 
+// UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UserInput) (*model.User, error) {
 	result, err := handlers.UpdateUser(ctx, input)
 	if err != nil {
@@ -40,6 +43,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UserInput
 	return result, nil
 }
 
+// Login is the resolver for the login field.
 func (r *mutationResolver) Login(ctx context.Context) (*model.User, error) {
 	result, err := handlers.LoginUser(ctx)
 	if err != nil {
@@ -49,6 +53,7 @@ func (r *mutationResolver) Login(ctx context.Context) (*model.User, error) {
 	return result, nil
 }
 
+// AddUserLspMap is the resolver for the addUserLspMap field.
 func (r *mutationResolver) AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*model.UserLspMap, error) {
 	result, err := handlers.AddUserLspMap(ctx, input)
 	if err != nil {
@@ -58,6 +63,7 @@ func (r *mutationResolver) AddUserLspMap(ctx context.Context, input []*model.Use
 	return result, nil
 }
 
+// UpdateUserLspMap is the resolver for the updateUserLspMap field.
 func (r *mutationResolver) UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.UserLspMap, error) {
 	result, err := handlers.UpdateUserLspMap(ctx, input)
 	if err != nil {
@@ -67,6 +73,7 @@ func (r *mutationResolver) UpdateUserLspMap(ctx context.Context, input model.Use
 	return result, nil
 }
 
+// AddUserOrganizationMap is the resolver for the addUserOrganizationMap field.
 func (r *mutationResolver) AddUserOrganizationMap(ctx context.Context, input []*model.UserOrganizationMapInput) ([]*model.UserOrganizationMap, error) {
 	result, err := handlers.AddUserOrganizationMap(ctx, input)
 	if err != nil {
@@ -76,6 +83,7 @@ func (r *mutationResolver) AddUserOrganizationMap(ctx context.Context, input []*
 	return result, nil
 }
 
+// UpdateUserOrganizationMap is the resolver for the updateUserOrganizationMap field.
 func (r *mutationResolver) UpdateUserOrganizationMap(ctx context.Context, input model.UserOrganizationMapInput) (*model.UserOrganizationMap, error) {
 	result, err := handlers.UpdateUserOrganizationMap(ctx, input)
 	if err != nil {
@@ -85,6 +93,7 @@ func (r *mutationResolver) UpdateUserOrganizationMap(ctx context.Context, input 
 	return result, nil
 }
 
+// AddUserLanguageMap is the resolver for the addUserLanguageMap field.
 func (r *mutationResolver) AddUserLanguageMap(ctx context.Context, input []*model.UserLanguageMapInput) ([]*model.UserLanguageMap, error) {
 	result, err := handlers.AddUserLanguageMap(ctx, input)
 	if err != nil {
@@ -94,6 +103,7 @@ func (r *mutationResolver) AddUserLanguageMap(ctx context.Context, input []*mode
 	return result, nil
 }
 
+// AddUserPreference is the resolver for the addUserPreference field.
 func (r *mutationResolver) AddUserPreference(ctx context.Context, input []*model.UserPreferenceInput) ([]*model.UserPreference, error) {
 	result, err := handlers.AddUserPreference(ctx, input)
 	if err != nil {
@@ -103,6 +113,7 @@ func (r *mutationResolver) AddUserPreference(ctx context.Context, input []*model
 	return result, nil
 }
 
+// UpdateUserPreference is the resolver for the updateUserPreference field.
 func (r *mutationResolver) UpdateUserPreference(ctx context.Context, input model.UserPreferenceInput) (*model.UserPreference, error) {
 	result, err := handlers.UpdateUserPreference(ctx, input)
 	if err != nil {
@@ -112,6 +123,7 @@ func (r *mutationResolver) UpdateUserPreference(ctx context.Context, input model
 	return result, nil
 }
 
+// AddUserRoles is the resolver for the addUserRoles field.
 func (r *mutationResolver) AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.UserRole, error) {
 	result, err := handlers.AddUserRoles(ctx, input)
 	if err != nil {
@@ -121,6 +133,7 @@ func (r *mutationResolver) AddUserRoles(ctx context.Context, input []*model.User
 	return result, nil
 }
 
+// UpdateUserRole is the resolver for the updateUserRole field.
 func (r *mutationResolver) UpdateUserRole(ctx context.Context, input model.UserRoleInput) (*model.UserRole, error) {
 	result, err := handlers.UpdateUserRole(ctx, input)
 	if err != nil {
@@ -130,6 +143,7 @@ func (r *mutationResolver) UpdateUserRole(ctx context.Context, input model.UserR
 	return result, nil
 }
 
+// AddUserCohort is the resolver for the addUserCohort field.
 func (r *mutationResolver) AddUserCohort(ctx context.Context, input []*model.UserCohortInput) ([]*model.UserCohort, error) {
 	result, err := handlers.AddUserCohort(ctx, input)
 	if err != nil {
@@ -139,6 +153,7 @@ func (r *mutationResolver) AddUserCohort(ctx context.Context, input []*model.Use
 	return result, nil
 }
 
+// UpdateUserCohort is the resolver for the updateUserCohort field.
 func (r *mutationResolver) UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.UserCohort, error) {
 	result, err := handlers.UpdateUserCohort(ctx, input)
 	if err != nil {
@@ -148,6 +163,7 @@ func (r *mutationResolver) UpdateUserCohort(ctx context.Context, input model.Use
 	return result, nil
 }
 
+// AddUserCourse is the resolver for the addUserCourse field.
 func (r *mutationResolver) AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*model.UserCourse, error) {
 	result, err := handlers.AddUserCourse(ctx, input)
 	if err != nil {
@@ -157,6 +173,7 @@ func (r *mutationResolver) AddUserCourse(ctx context.Context, input []*model.Use
 	return result, nil
 }
 
+// UpdateUserCourse is the resolver for the updateUserCourse field.
 func (r *mutationResolver) UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.UserCourse, error) {
 	result, err := handlers.UpdateUserCourse(ctx, input)
 	if err != nil {
@@ -166,6 +183,7 @@ func (r *mutationResolver) UpdateUserCourse(ctx context.Context, input model.Use
 	return result, nil
 }
 
+// AddUserCourseProgress is the resolver for the addUserCourseProgress field.
 func (r *mutationResolver) AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgressInput) ([]*model.UserCourseProgress, error) {
 	result, err := handlers.AddUserCourseProgress(ctx, input)
 	if err != nil {
@@ -175,6 +193,7 @@ func (r *mutationResolver) AddUserCourseProgress(ctx context.Context, input []*m
 	return result, nil
 }
 
+// UpdateUserCourseProgress is the resolver for the updateUserCourseProgress field.
 func (r *mutationResolver) UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgressInput) (*model.UserCourseProgress, error) {
 	result, err := handlers.UpdateUserCourseProgress(ctx, input)
 	if err != nil {
@@ -184,6 +203,7 @@ func (r *mutationResolver) UpdateUserCourseProgress(ctx context.Context, input m
 	return result, nil
 }
 
+// AddUserQuizAttempt is the resolver for the addUserQuizAttempt field.
 func (r *mutationResolver) AddUserQuizAttempt(ctx context.Context, input []*model.UserQuizAttemptInput) ([]*model.UserQuizAttempt, error) {
 	result, err := handlers.AddUserQuizAttempt(ctx, input)
 	if err != nil {
@@ -193,6 +213,7 @@ func (r *mutationResolver) AddUserQuizAttempt(ctx context.Context, input []*mode
 	return result, nil
 }
 
+// UpdateUserQuizAttempt is the resolver for the updateUserQuizAttempt field.
 func (r *mutationResolver) UpdateUserQuizAttempt(ctx context.Context, input model.UserQuizAttemptInput) (*model.UserQuizAttempt, error) {
 	result, err := handlers.UpdateUserQuizAttempt(ctx, input)
 	if err != nil {
@@ -202,6 +223,7 @@ func (r *mutationResolver) UpdateUserQuizAttempt(ctx context.Context, input mode
 	return result, nil
 }
 
+// AddUserBookmark is the resolver for the addUserBookmark field.
 func (r *mutationResolver) AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*model.UserBookmark, error) {
 	result, err := handlers.AddUserBookmark(ctx, input)
 	if err != nil {
@@ -211,6 +233,7 @@ func (r *mutationResolver) AddUserBookmark(ctx context.Context, input []*model.U
 	return result, nil
 }
 
+// UpdateUserBookmark is the resolver for the updateUserBookmark field.
 func (r *mutationResolver) UpdateUserBookmark(ctx context.Context, input model.UserBookmarkInput) (*model.UserBookmark, error) {
 	result, err := handlers.UpdateUserBookmark(ctx, input)
 	if err != nil {
@@ -220,6 +243,7 @@ func (r *mutationResolver) UpdateUserBookmark(ctx context.Context, input model.U
 	return result, nil
 }
 
+// AddUserNotes is the resolver for the addUserNotes field.
 func (r *mutationResolver) AddUserNotes(ctx context.Context, input []*model.UserNotesInput) ([]*model.UserNotes, error) {
 	result, err := handlers.AddUserNotes(ctx, input)
 	if err != nil {
@@ -229,6 +253,7 @@ func (r *mutationResolver) AddUserNotes(ctx context.Context, input []*model.User
 	return result, nil
 }
 
+// UpdateUserNotes is the resolver for the updateUserNotes field.
 func (r *mutationResolver) UpdateUserNotes(ctx context.Context, input model.UserNotesInput) (*model.UserNotes, error) {
 	result, err := handlers.UpdateUserNotes(ctx, input)
 	if err != nil {
@@ -238,6 +263,7 @@ func (r *mutationResolver) UpdateUserNotes(ctx context.Context, input model.User
 	return result, nil
 }
 
+// AddUserExamAttempts is the resolver for the addUserExamAttempts field.
 func (r *mutationResolver) AddUserExamAttempts(ctx context.Context, input []*model.UserExamAttemptsInput) ([]*model.UserExamAttempts, error) {
 	result, err := handlers.AddUserExamAttempts(ctx, input)
 	if err != nil {
@@ -247,6 +273,7 @@ func (r *mutationResolver) AddUserExamAttempts(ctx context.Context, input []*mod
 	return result, nil
 }
 
+// UpdateUserExamAttempts is the resolver for the updateUserExamAttempts field.
 func (r *mutationResolver) UpdateUserExamAttempts(ctx context.Context, input model.UserExamAttemptsInput) (*model.UserExamAttempts, error) {
 	result, err := handlers.UpdateUserExamAttempts(ctx, input)
 	if err != nil {
@@ -256,6 +283,7 @@ func (r *mutationResolver) UpdateUserExamAttempts(ctx context.Context, input mod
 	return result, nil
 }
 
+// AddUserExamProgress is the resolver for the addUserExamProgress field.
 func (r *mutationResolver) AddUserExamProgress(ctx context.Context, input []*model.UserExamProgressInput) ([]*model.UserExamProgress, error) {
 	result, err := handlers.AddUserExamProgress(ctx, input)
 	if err != nil {
@@ -265,6 +293,7 @@ func (r *mutationResolver) AddUserExamProgress(ctx context.Context, input []*mod
 	return result, nil
 }
 
+// UpdateUserExamProgress is the resolver for the updateUserExamProgress field.
 func (r *mutationResolver) UpdateUserExamProgress(ctx context.Context, input model.UserExamProgressInput) (*model.UserExamProgress, error) {
 	result, err := handlers.UpdateUserExamProgress(ctx, input)
 	if err != nil {
@@ -274,6 +303,7 @@ func (r *mutationResolver) UpdateUserExamProgress(ctx context.Context, input mod
 	return result, nil
 }
 
+// AddUserExamResult is the resolver for the addUserExamResult field.
 func (r *mutationResolver) AddUserExamResult(ctx context.Context, input []*model.UserExamResultInput) ([]*model.UserExamResult, error) {
 	result, err := handlers.AddUserExamResult(ctx, input)
 	if err != nil {
@@ -283,6 +313,7 @@ func (r *mutationResolver) AddUserExamResult(ctx context.Context, input []*model
 	return result, nil
 }
 
+// UpdateUserExamResult is the resolver for the updateUserExamResult field.
 func (r *mutationResolver) UpdateUserExamResult(ctx context.Context, input model.UserExamResultInput) (*model.UserExamResult, error) {
 	result, err := handlers.UpdateUserExamResult(ctx, input)
 	if err != nil {
@@ -292,6 +323,7 @@ func (r *mutationResolver) UpdateUserExamResult(ctx context.Context, input model
 	return result, nil
 }
 
+// AddCohortMain is the resolver for the addCohortMain field.
 func (r *mutationResolver) AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error) {
 	result, err := queries.AddCohortMain(ctx, input)
 	if err != nil {
@@ -301,6 +333,7 @@ func (r *mutationResolver) AddCohortMain(ctx context.Context, input model.Cohort
 	return result, nil
 }
 
+// UpdateCohortMain is the resolver for the updateCohortMain field.
 func (r *mutationResolver) UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error) {
 	result, err := queries.UpdateCohortMain(ctx, input)
 	if err != nil {
@@ -310,6 +343,7 @@ func (r *mutationResolver) UpdateCohortMain(ctx context.Context, input model.Coh
 	return result, nil
 }
 
+// Logout is the resolver for the logout field.
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
 	if err != nil {
@@ -319,6 +353,7 @@ func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	return result, nil
 }
 
+// GetUsersForAdmin is the resolver for the getUsersForAdmin field.
 func (r *queryResolver) GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUsers, error) {
 	result, err := queries.GetUsersForAdmin(ctx, publishTime, pageCursor, direction, pageSize)
 	if err != nil {
@@ -328,6 +363,7 @@ func (r *queryResolver) GetUsersForAdmin(ctx context.Context, publishTime *int, 
 	return result, nil
 }
 
+// GetUserDetails is the resolver for the getUserDetails field.
 func (r *queryResolver) GetUserDetails(ctx context.Context, userID string) (*model.User, error) {
 	result, err := queries.GetUserDetails(ctx, userID)
 	if err != nil {
@@ -337,6 +373,7 @@ func (r *queryResolver) GetUserDetails(ctx context.Context, userID string) (*mod
 	return result, nil
 }
 
+// GetUserOrganizations is the resolver for the getUserOrganizations field.
 func (r *queryResolver) GetUserOrganizations(ctx context.Context, userID string) ([]*model.UserOrganizationMap, error) {
 	result, err := queries.GetUserOrganizations(ctx, userID)
 	if err != nil {
@@ -346,6 +383,7 @@ func (r *queryResolver) GetUserOrganizations(ctx context.Context, userID string)
 	return result, nil
 }
 
+// GetUserOrgDetails is the resolver for the getUserOrgDetails field.
 func (r *queryResolver) GetUserOrgDetails(ctx context.Context, userID string, userLspID string) (*model.UserOrganizationMap, error) {
 	result, err := queries.GetUserOrgDetails(ctx, userID, userLspID)
 	if err != nil {
@@ -355,6 +393,7 @@ func (r *queryResolver) GetUserOrgDetails(ctx context.Context, userID string, us
 	return result, nil
 }
 
+// GetUserPreferences is the resolver for the getUserPreferences field.
 func (r *queryResolver) GetUserPreferences(ctx context.Context, userID string) ([]*model.UserPreference, error) {
 	result, err := queries.GetUserPreferences(ctx, userID)
 	if err != nil {
@@ -364,6 +403,7 @@ func (r *queryResolver) GetUserPreferences(ctx context.Context, userID string) (
 	return result, nil
 }
 
+// GetUserPreferenceForLsp is the resolver for the getUserPreferenceForLsp field.
 func (r *queryResolver) GetUserPreferenceForLsp(ctx context.Context, userID string, userLspID string) (*model.UserPreference, error) {
 	result, err := queries.GetUserPreferenceForLsp(ctx, userID, userLspID)
 	if err != nil {
@@ -373,6 +413,7 @@ func (r *queryResolver) GetUserPreferenceForLsp(ctx context.Context, userID stri
 	return result, nil
 }
 
+// GetUserLsps is the resolver for the getUserLsps field.
 func (r *queryResolver) GetUserLsps(ctx context.Context, userID string) ([]*model.UserLspMap, error) {
 	result, err := queries.GetUserLsps(ctx, userID)
 	if err != nil {
@@ -382,6 +423,7 @@ func (r *queryResolver) GetUserLsps(ctx context.Context, userID string) ([]*mode
 	return result, nil
 }
 
+// GetUserLspByLspID is the resolver for the getUserLspByLspId field.
 func (r *queryResolver) GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model.UserLspMap, error) {
 	result, err := queries.GetUserLspByLspID(ctx, userID, lspID)
 	if err != nil {
@@ -391,6 +433,7 @@ func (r *queryResolver) GetUserLspByLspID(ctx context.Context, userID string, ls
 	return result, nil
 }
 
+// GetUserCourseMaps is the resolver for the getUserCourseMaps field.
 func (r *queryResolver) GetUserCourseMaps(ctx context.Context, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error) {
 	result, err := queries.GetUserCourseMaps(ctx, userID, publishTime, pageCursor, direction, pageSize)
 	if err != nil {
@@ -400,6 +443,7 @@ func (r *queryResolver) GetUserCourseMaps(ctx context.Context, userID string, pu
 	return result, nil
 }
 
+// GetUserCourseMapByCourseID is the resolver for the getUserCourseMapByCourseID field.
 func (r *queryResolver) GetUserCourseMapByCourseID(ctx context.Context, userID string, courseID string) ([]*model.UserCourse, error) {
 	result, err := queries.GetUserCourseMapByCourseID(ctx, userID, courseID)
 	if err != nil {
@@ -409,6 +453,7 @@ func (r *queryResolver) GetUserCourseMapByCourseID(ctx context.Context, userID s
 	return result, nil
 }
 
+// GetUserCourseProgressByMapID is the resolver for the getUserCourseProgressByMapId field.
 func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userID string, userCourseID string) ([]*model.UserCourseProgress, error) {
 	result, err := queries.GetUserCourseProgressByMapID(ctx, userID, userCourseID)
 	if err != nil {
@@ -418,6 +463,7 @@ func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userID
 	return result, nil
 }
 
+// GetUserCourseProgressByTopicID is the resolver for the getUserCourseProgressByTopicId field.
 func (r *queryResolver) GetUserCourseProgressByTopicID(ctx context.Context, userID string, topicID string) ([]*model.UserCourseProgress, error) {
 	result, err := queries.GetUserCourseProgressByTopicID(ctx, userID, topicID)
 	if err != nil {
@@ -427,6 +473,7 @@ func (r *queryResolver) GetUserCourseProgressByTopicID(ctx context.Context, user
 	return result, nil
 }
 
+// GetUserNotes is the resolver for the getUserNotes field.
 func (r *queryResolver) GetUserNotes(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error) {
 	result, err := queries.GetUserNotes(ctx, userID, userLspID, publishTime, pageCursor, direction, pageSize)
 	if err != nil {
@@ -436,6 +483,7 @@ func (r *queryResolver) GetUserNotes(ctx context.Context, userID string, userLsp
 	return result, nil
 }
 
+// GetUserBookmarks is the resolver for the getUserBookmarks field.
 func (r *queryResolver) GetUserBookmarks(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error) {
 	result, err := queries.GetUserBookmarks(ctx, userID, userLspID, publishTime, pageCursor, direction, pageSize)
 	if err != nil {
@@ -445,6 +493,7 @@ func (r *queryResolver) GetUserBookmarks(ctx context.Context, userID string, use
 	return result, nil
 }
 
+// GetUserExamAttempts is the resolver for the getUserExamAttempts field.
 func (r *queryResolver) GetUserExamAttempts(ctx context.Context, userID string, userLspID string) ([]*model.UserExamAttempts, error) {
 	result, err := queries.GetUserExamAttempts(ctx, userID, userLspID)
 	if err != nil {
@@ -454,6 +503,7 @@ func (r *queryResolver) GetUserExamAttempts(ctx context.Context, userID string, 
 	return result, nil
 }
 
+// GetUserExamResults is the resolver for the getUserExamResults field.
 func (r *queryResolver) GetUserExamResults(ctx context.Context, userID string, userEaID string) (*model.UserExamResult, error) {
 	result, err := queries.GetUserExamResults(ctx, userID, userEaID)
 	if err != nil {
@@ -463,6 +513,7 @@ func (r *queryResolver) GetUserExamResults(ctx context.Context, userID string, u
 	return result, nil
 }
 
+// GetUserExamProgress is the resolver for the getUserExamProgress field.
 func (r *queryResolver) GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([]*model.UserExamProgress, error) {
 	result, err := queries.GetUserExamProgress(ctx, userID, userEaID)
 	if err != nil {
@@ -472,6 +523,7 @@ func (r *queryResolver) GetUserExamProgress(ctx context.Context, userID string, 
 	return result, nil
 }
 
+// GetLatestCohorts is the resolver for the getLatestCohorts field.
 func (r *queryResolver) GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error) {
 	result, err := queries.GetLatestCohorts(ctx, userID, userLspID, publishTime, pageCursor, direction, pageSize)
 	if err != nil {
@@ -481,10 +533,21 @@ func (r *queryResolver) GetLatestCohorts(ctx context.Context, userID *string, us
 	return result, nil
 }
 
+// GetCohortUsers is the resolver for the getCohortUsers field.
 func (r *queryResolver) GetCohortUsers(ctx context.Context, cohortID string) ([]*model.UserCohort, error) {
 	result, err := queries.GetCohortUsers(ctx, cohortID)
 	if err != nil {
 		log.Errorf("Error getting users cohorts: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+// GetCohortDetails is the resolver for the getCohortDetails field.
+func (r *queryResolver) GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, error) {
+	result, err := queries.GetCohortDetails(ctx, cohortID)
+	if err != nil {
+		log.Errorf("Error getting details cohorts: %v", err)
 		return nil, err
 	}
 	return result, nil

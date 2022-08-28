@@ -513,6 +513,7 @@ type Query {
   getUserExamProgress(user_id: String!, user_ea_id: String!) : [UserExamProgress]
   getLatestCohorts(user_id:String, user_lsp_id:String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCohorts
   getCohortUsers(cohort_id: String!) : [UserCohort]
+  getCohortDetails(cohort_id: String!) : CohortMain
 }
 
 type Mutation {
