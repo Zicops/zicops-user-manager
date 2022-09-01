@@ -363,6 +363,16 @@ func (r *queryResolver) GetUsersForAdmin(ctx context.Context, publishTime *int, 
 	return result, nil
 }
 
+// GetLatestCohortsDetails is the resolver for the getLatestCohortsDetails field.
+func (r *queryResolver) GetLatestCohortsDetails(ctx context.Context, lspID string, userID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.CohortMain, error) {
+	result, err := queries.GetLatestCohortDetails(ctx, lspID, userID, publishTime, pageCursor, direction, pageSize)
+	if err != nil {
+		log.Errorf("Error getting users of an admin: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 // GetUserDetails is the resolver for the getUserDetails field.
 func (r *queryResolver) GetUserDetails(ctx context.Context, userID string) (*model.User, error) {
 	result, err := queries.GetUserDetails(ctx, userID)
