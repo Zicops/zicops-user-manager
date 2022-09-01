@@ -120,12 +120,13 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 			Status:     user.Status,
 			PhotoURL:   &photoUrl,
 		}
-		// passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email)
-		// if err != nil {
-		// 	return nil, err
-		// }
-		// global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
-
+		if isZAdmin {
+			passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email)
+			if err != nil {
+				return nil, err
+			}
+			global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
+		}
 		outputUsers = append(outputUsers, &responseUser)
 	}
 	return outputUsers, nil
@@ -176,12 +177,12 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 		if err != nil {
 			return &registered, err
 		}
-		passwordReset, err := global.IDP.GetResetPasswordURL(ctx, email)
-		if err != nil {
-			return &registered, err
-		}
-		// send email with password reset link
-		global.SGClient.SendJoinEmail(email, passwordReset, userCass.FirstName+" "+userCass.LastName)
+		// passwordReset, err := global.IDP.GetResetPasswordURL(ctx, email)
+		// if err != nil {
+		// 	return &registered, err
+		// }
+		// // send email with password reset link
+		// global.SGClient.SendJoinEmail(email, passwordReset, userCass.FirstName+" "+userCass.LastName)
 	}
 	registered = true
 	return &registered, nil
