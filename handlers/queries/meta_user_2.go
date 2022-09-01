@@ -390,7 +390,7 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 
 	qryStr := fmt.Sprintf(`SELECT * from userz.cohort_main where id='%s' ALLOW FILTERING`, cohortID)
 
-	getCohortMain := func() (users userz.Cohort, err error) {
+	getCohortMain := func() (users []userz.Cohort, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
@@ -400,27 +400,28 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 	if err != nil {
 		return nil, err
 	}
-	if (userz.Cohort{}) == userCohort {
+	if len(userCohort) == 0 {
 		return nil, fmt.Errorf("no users found")
 	}
 
-	created := strconv.FormatInt(userCohort.CreatedAt, 10)
-	updated := strconv.FormatInt(userCohort.UpdatedAt, 10)
+	userCohortCopy := userCohort[0]
+	created := strconv.FormatInt(userCohortCopy.CreatedAt, 10)
+	updated := strconv.FormatInt(userCohortCopy.UpdatedAt, 10)
 	cohortDetails := &model.CohortMain{
-		CohortID:    &userCohort.ID,
-		Name:        userCohort.Name,
-		Description: userCohort.Description,
-		LspID:       userCohort.LspID,
-		Code:        userCohort.Code,
-		Status:      userCohort.Status,
-		Type:        userCohort.Type,
-		IsActive:    userCohort.IsActive,
-		CreatedBy:   &userCohort.CreatedBy,
-		UpdatedBy:   &userCohort.UpdatedBy,
+		CohortID:    &userCohortCopy.ID,
+		Name:        userCohortCopy.Name,
+		Description: userCohortCopy.Description,
+		LspID:       userCohortCopy.LspID,
+		Code:        userCohortCopy.Code,
+		Status:      userCohortCopy.Status,
+		Type:        userCohortCopy.Type,
+		IsActive:    userCohortCopy.IsActive,
+		CreatedBy:   &userCohortCopy.CreatedBy,
+		UpdatedBy:   &userCohortCopy.UpdatedBy,
 		CreatedAt:   created,
 		UpdatedAt:   updated,
-		Size:        userCohort.Size,
-		ImageURL:    &userCohort.ImageUrl,
+		Size:        userCohortCopy.Size,
+		ImageURL:    &userCohortCopy.ImageUrl,
 	}
 
 	return cohortDetails, nil
