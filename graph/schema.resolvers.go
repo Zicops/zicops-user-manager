@@ -328,8 +328,8 @@ func (r *queryResolver) GetUsersForAdmin(ctx context.Context, publishTime *int, 
 	return result, nil
 }
 
-func (r *queryResolver) GetUserDetails(ctx context.Context, userID string) (*model.User, error) {
-	result, err := queries.GetUserDetails(ctx, userID)
+func (r *queryResolver) GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, error) {
+	result, err := queries.GetUserDetails(ctx, userIds)
 	if err != nil {
 		log.Errorf("Error getting user of an admin: %v", err)
 		return nil, err
@@ -481,8 +481,8 @@ func (r *queryResolver) GetLatestCohorts(ctx context.Context, userID *string, us
 	return result, nil
 }
 
-func (r *queryResolver) GetCohortUsers(ctx context.Context, cohortID string) ([]*model.UserCohort, error) {
-	result, err := queries.GetCohortUsers(ctx, cohortID)
+func (r *queryResolver) GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error) {
+	result, err := queries.GetCohortUsers(ctx, cohortID, publishTime, pageCursor, direction, pageSize)
 	if err != nil {
 		log.Errorf("Error getting users cohorts: %v", err)
 		return nil, err

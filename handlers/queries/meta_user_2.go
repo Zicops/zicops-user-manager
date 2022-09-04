@@ -101,7 +101,7 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 	return &outputResponse, nil
 }
 
-func GetCohortUsers(ctx context.Context, cohortID string) ([]*model.UserCohort, error) {
+func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -123,16 +123,42 @@ func GetCohortUsers(ctx context.Context, cohortID string) ([]*model.UserCohort, 
 	if strings.ToLower(userAdmin.Role) != "admin" {
 		return nil, fmt.Errorf("user is not an admin")
 	}
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_cohort_map where cohort_id='%s' ALLOW FILTERING`, cohortID)
-	getUsersCohort := func() (users []userz.UserCohort, err error) {
+	var newPage []byte
+	//var pageDirection string
+	var pageSizeInt int
+	if pageCursor != nil && *pageCursor != "" {
+		page, err := global.CryptSession.DecryptString(*pageCursor, nil)
+		if err != nil {
+			return nil, fmt.Errorf("invalid page cursor: %v", err)
+		}
+		newPage = page
+	}
+	if pageSize == nil {
+		pageSizeInt = 10
+	} else {
+		pageSizeInt = *pageSize
+	}
+	var newCursor string
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_cohort_map where cohort_id='%s' and updated_at<=%d ALLOW FILTERING`, cohortID, *publishTime)
+	getUsersCohort := func(page []byte) (users []userz.UserCohort, nextPage []byte, err error) {
 		q := global.CassUserSession.Session.Query(qryStr, nil)
 		defer q.Release()
+		q.PageState(page)
+		q.PageSize(pageSizeInt)
 		iter := q.Iter()
-		return users, iter.Select(&users)
+		return users, iter.PageState(), iter.Select(&users)
 	}
-	userCohorts, err := getUsersCohort()
+	userCohorts, newPage, err := getUsersCohort(newPage)
 	if err != nil {
 		return nil, err
+	}
+	if len(newPage) != 0 {
+		newCursor, err = global.CryptSession.EncryptAsString(newPage, nil)
+		if err != nil {
+			return nil, fmt.Errorf("error encrypting cursor: %v", err)
+		}
+		log.Infof("Users: %v", string(newCursor))
+
 	}
 	if len(userCohorts) == 0 {
 		return nil, fmt.Errorf("no users found")
@@ -157,7 +183,12 @@ func GetCohortUsers(ctx context.Context, cohortID string) ([]*model.UserCohort, 
 		}
 		cohortUsers = append(cohortUsers, userCohort)
 	}
-	return cohortUsers, nil
+	var outputResponse model.PaginatedCohorts
+	outputResponse.Cohorts = cohortUsers
+	outputResponse.PageCursor = &newCursor
+	outputResponse.PageSize = &pageSizeInt
+	outputResponse.Direction = direction
+	return &outputResponse, nil
 }
 
 func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error) {

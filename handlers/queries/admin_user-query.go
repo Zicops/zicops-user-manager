@@ -127,7 +127,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	return &outputResponse, nil
 }
 
-func GetUserDetails(ctx context.Context, userID string) (*model.User, error) {
+func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -149,22 +149,7 @@ func GetUserDetails(ctx context.Context, userID string) (*model.User, error) {
 	if strings.ToLower(userAdmin.Role) != "admin" {
 		return nil, fmt.Errorf("user is not an admin")
 	}
-	qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, userID)
-	getUsers := func() (users []userz.User, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
-		defer q.Release()
-
-		iter := q.Iter()
-		return users, iter.Select(&users)
-	}
-	users, err = getUsers()
-	if err != nil {
-		return nil, err
-	}
-	if len(users) == 0 {
-		return nil, fmt.Errorf("user not found")
-	}
-
+	var outputResponse []*model.User
 	storageC := bucket.NewStorageHandler()
 	gproject := googleprojectlib.GetGoogleProjectID()
 	err = storageC.InitializeStorageClient(ctx, gproject)
@@ -172,36 +157,55 @@ func GetUserDetails(ctx context.Context, userID string) (*model.User, error) {
 		log.Errorf("Failed to upload image to course: %v", err.Error())
 		return nil, err
 	}
-	userCopy := users[0]
-	createdAt := strconv.FormatInt(userCopy.CreatedAt, 10)
-	updatedAt := strconv.FormatInt(userCopy.UpdatedAt, 10)
-	photoUrl := ""
-	if userCopy.PhotoBucket != "" {
-		photoUrl = storageC.GetSignedURLForObject(userCopy.PhotoBucket)
-	} else {
-		photoUrl = userCopy.PhotoURL
-	}
-	fireBaseUser, err := global.IDP.GetUserByEmail(ctx, userCopy.Email)
-	if err != nil {
-		log.Errorf("Failed to get user from firebase: %v", err.Error())
-	}
-	outputUser := &model.User{
-		ID:         &userCopy.ID,
-		Email:      userCopy.Email,
-		FirstName:  userCopy.FirstName,
-		LastName:   userCopy.LastName,
-		Role:       userCopy.Role,
-		CreatedAt:  createdAt,
-		UpdatedAt:  updatedAt,
-		PhotoURL:   &photoUrl,
-		IsVerified: userCopy.IsVerified,
-		IsActive:   userCopy.IsActive,
-		CreatedBy:  &userCopy.CreatedBy,
-		UpdatedBy:  &userCopy.UpdatedBy,
-		Status:     userCopy.Status,
-		Gender:     userCopy.Gender,
-		Phone:      fireBaseUser.PhoneNumber,
+	for _, userID := range userIds {
+		qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, *userID)
+		getUsers := func() (users []userz.User, err error) {
+			q := global.CassUserSession.Session.Query(qryStr, nil)
+			defer q.Release()
+
+			iter := q.Iter()
+			return users, iter.Select(&users)
+		}
+		users, err = getUsers()
+		if err != nil {
+			return nil, err
+		}
+		if len(users) == 0 {
+			return nil, fmt.Errorf("user not found")
+		}
+
+		userCopy := users[0]
+		createdAt := strconv.FormatInt(userCopy.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(userCopy.UpdatedAt, 10)
+		photoUrl := ""
+		if userCopy.PhotoBucket != "" {
+			photoUrl = storageC.GetSignedURLForObject(userCopy.PhotoBucket)
+		} else {
+			photoUrl = userCopy.PhotoURL
+		}
+		fireBaseUser, err := global.IDP.GetUserByEmail(ctx, userCopy.Email)
+		if err != nil {
+			log.Errorf("Failed to get user from firebase: %v", err.Error())
+		}
+		outputUser := &model.User{
+			ID:         &userCopy.ID,
+			Email:      userCopy.Email,
+			FirstName:  userCopy.FirstName,
+			LastName:   userCopy.LastName,
+			Role:       userCopy.Role,
+			CreatedAt:  createdAt,
+			UpdatedAt:  updatedAt,
+			PhotoURL:   &photoUrl,
+			IsVerified: userCopy.IsVerified,
+			IsActive:   userCopy.IsActive,
+			CreatedBy:  &userCopy.CreatedBy,
+			UpdatedBy:  &userCopy.UpdatedBy,
+			Status:     userCopy.Status,
+			Gender:     userCopy.Gender,
+			Phone:      fireBaseUser.PhoneNumber,
+		}
+		outputResponse = append(outputResponse, outputUser)
 	}
 
-	return outputUser, nil
+	return outputResponse, nil
 }
