@@ -315,3 +315,47 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 	}
 	return userOrgs, nil
 }
+
+func GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]*model.UserQuizAttempt, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_quiz_attempts where user_id='%s' and topic_id='%s' ALLOW FILTERING`, userID, topicID)
+	getUserQA := func() (users []userz.UserQuizAttempts, err error) {
+		q := global.CassUserSession.Session.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	usersOrgs, err := getUserQA()
+	if err != nil {
+		return nil, err
+	}
+	if len(usersOrgs) == 0 {
+		return nil, fmt.Errorf("no user qa found")
+	}
+	userOrgs := make([]*model.UserQuizAttempt, 0)
+	for _, userOrg := range usersOrgs {
+		copiedOrg := userOrg
+		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
+		currentUserOrg := &model.UserQuizAttempt{
+			UserQaID:     &copiedOrg.ID,
+			UserID:       copiedOrg.UserID,
+			TopicID:      copiedOrg.TopicID,
+			UserCpID:     copiedOrg.UserCpID,
+			UserCourseID: copiedOrg.UserCmID,
+			QuizID:       copiedOrg.QuizID,
+			QuizAttempt:  int(copiedOrg.QuizAttempt),
+			Result:       copiedOrg.Result,
+			IsActive:     copiedOrg.IsActive,
+			CreatedBy:    &copiedOrg.CreatedBy,
+			UpdatedBy:    &copiedOrg.UpdatedBy,
+			CreatedAt:    createdAt,
+			UpdatedAt:    updatedAt,
+		}
+		userOrgs = append(userOrgs, currentUserOrg)
+	}
+	return userOrgs, nil
+}
