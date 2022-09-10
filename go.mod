@@ -14,8 +14,8 @@ require (
 	github.com/scylladb/gocqlx v1.5.0
 	github.com/scylladb/gocqlx/v2 v2.7.0
 	github.com/sirupsen/logrus v1.9.0
-	github.com/vektah/gqlparser/v2 v2.5.0
-	github.com/zicops/contracts v0.0.0-20220909160152-c0adb21a9872
+	github.com/vektah/gqlparser/v2 v2.5.1
+	github.com/zicops/contracts v0.0.0-20220910222313-92d690cefd24
 	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1
 	google.golang.org/api v0.95.0
 	gopkg.in/tylerb/graceful.v1 v1.2.15
