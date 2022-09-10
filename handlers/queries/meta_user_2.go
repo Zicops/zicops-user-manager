@@ -411,3 +411,58 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 
 	return outputCohort, nil
 }
+
+func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var storageC *bucket.Client
+	var photoBucket string
+	var photoUrl string
+	currentCohort := userz.Cohort{
+		ID: cohortID,
+	}
+	cohorts := []userz.Cohort{}
+	getQuery := global.CassUserSession.Session.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
+	if err := getQuery.SelectRelease(&cohorts); err != nil {
+		return nil, err
+	}
+	if len(cohorts) == 0 {
+		return nil, fmt.Errorf("cohorts not found")
+	}
+	cohort := cohorts[0]
+	photoBucket = cohort.ImageBucket
+	if photoBucket != "" {
+		if storageC == nil {
+			storageC = bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err := storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				return nil, err
+			}
+		}
+		photoUrl = storageC.GetSignedURLForObject(photoBucket)
+	}
+	created := strconv.FormatInt(cohort.CreatedAt, 10)
+	updated := strconv.FormatInt(cohort.UpdatedAt, 10)
+	outputCohort := &model.CohortMain{
+		CohortID:    &cohortID,
+		Name:        cohort.Name,
+		Description: cohort.Description,
+		ImageURL:    &photoUrl,
+		CreatedAt:   created,
+		UpdatedAt:   updated,
+		CreatedBy:   &cohort.CreatedBy,
+		UpdatedBy:   &cohort.UpdatedBy,
+		Code:        cohort.Code,
+		Type:        cohort.Type,
+		IsActive:    cohort.IsActive,
+		Status:      cohort.Status,
+		LspID:       cohort.LspID,
+		Size:        cohort.Size,
+	}
+
+	return outputCohort, nil
+}

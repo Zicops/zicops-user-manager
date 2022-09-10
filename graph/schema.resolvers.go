@@ -499,6 +499,15 @@ func (r *queryResolver) GetUserQuizAttempts(ctx context.Context, userID string, 
 	return result, nil
 }
 
+func (r *queryResolver) GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, error) {
+	result, err := queries.GetCohortDetails(ctx, cohortID)
+	if err != nil {
+		log.Errorf("Error getting cohort main : %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
