@@ -102,26 +102,9 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 }
 
 func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
-	}
-	email_creator := claims["email"].(string)
-	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
-	userAdmin := userz.User{
-		ID: emailCreatorID,
-	}
-	users := []userz.User{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
-	if err := getQuery.SelectRelease(&users); err != nil {
-		return nil, err
-	}
-	if len(users) == 0 {
-		return nil, fmt.Errorf("user not found")
-	}
-	userAdmin = users[0]
-	if strings.ToLower(userAdmin.Role) != "admin" {
-		return nil, fmt.Errorf("user is not an admin")
 	}
 	var newPage []byte
 	//var pageDirection string
@@ -465,4 +448,108 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 	}
 
 	return outputCohort, nil
+}
+
+func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohortsMain, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	email_creator := claims["email"].(string)
+	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	userAdmin := userz.User{
+		ID: emailCreatorID,
+	}
+	users := []userz.User{}
+	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
+	if err := getQuery.SelectRelease(&users); err != nil {
+		return nil, err
+	}
+	if len(users) == 0 {
+		return nil, fmt.Errorf("user not found")
+	}
+	userAdmin = users[0]
+	if strings.ToLower(userAdmin.Role) != "admin" {
+		return nil, fmt.Errorf("user is not an admin")
+	}
+	var newPage []byte
+	//var pageDirection string
+	var pageSizeInt int
+	if pageCursor != nil && *pageCursor != "" {
+		page, err := global.CryptSession.DecryptString(*pageCursor, nil)
+		if err != nil {
+			return nil, fmt.Errorf("invalid page cursor: %v", err)
+		}
+		newPage = page
+	}
+	if pageSize == nil {
+		pageSizeInt = 10
+	} else {
+		pageSizeInt = *pageSize
+	}
+	var newCursor string
+	qryStr := fmt.Sprintf(`SELECT * from userz.cohort_main where lsp_id='%s' and updated_at<=%d ALLOW FILTERING`, lspID, *publishTime)
+	getCohorts := func(page []byte) (users []userz.Cohort, nextPage []byte, err error) {
+		q := global.CassUserSession.Session.Query(qryStr, nil)
+		defer q.Release()
+		q.PageState(page)
+		q.PageSize(pageSizeInt)
+		iter := q.Iter()
+		return users, iter.PageState(), iter.Select(&users)
+	}
+	cohorts, newPage, err := getCohorts(newPage)
+	if err != nil {
+		return nil, err
+	}
+	if len(newPage) != 0 {
+		newCursor, err = global.CryptSession.EncryptAsString(newPage, nil)
+		if err != nil {
+			return nil, fmt.Errorf("error encrypting cursor: %v", err)
+		}
+		log.Infof("Users: %v", string(newCursor))
+
+	}
+	if len(cohorts) == 0 {
+		return nil, fmt.Errorf("no cohorts found")
+	}
+	cohortUsers := make([]*model.CohortMain, 0)
+	for _, userOrg := range cohorts {
+		cohortCopy := userOrg
+		createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
+		imageBucket := cohortCopy.ImageBucket
+		var photoUrl string
+		if imageBucket != "" {
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err := storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				return nil, err
+			}
+			photoUrl = storageC.GetSignedURLForObject(imageBucket)
+		}
+		userCohort := &model.CohortMain{
+			LspID:       cohortCopy.LspID,
+			CohortID:    &cohortCopy.ID,
+			Name:        cohortCopy.Name,
+			Description: cohortCopy.Description,
+			ImageURL:    &photoUrl,
+			Code:        cohortCopy.Code,
+			Type:        cohortCopy.Type,
+			IsActive:    cohortCopy.IsActive,
+			Status:      cohortCopy.Status,
+			Size:        cohortCopy.Size,
+			CreatedAt:   createdAt,
+			UpdatedAt:   updatedAt,
+			CreatedBy:   &cohortCopy.CreatedBy,
+			UpdatedBy:   &cohortCopy.UpdatedBy,
+		}
+		cohortUsers = append(cohortUsers, userCohort)
+	}
+	var outputResponse model.PaginatedCohortsMain
+	outputResponse.Cohorts = cohortUsers
+	outputResponse.PageCursor = &newCursor
+	outputResponse.PageSize = &pageSizeInt
+	outputResponse.Direction = direction
+	return &outputResponse, nil
 }

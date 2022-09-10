@@ -508,6 +508,15 @@ func (r *queryResolver) GetCohortDetails(ctx context.Context, cohortID string) (
 	return result, nil
 }
 
+func (r *queryResolver) GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohortsMain, error) {
+	result, err := queries.GetCohortMains(ctx, lspID, publishTime, pageCursor, direction, pageSize)
+	if err != nil {
+		log.Errorf("Error getting cohorts: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

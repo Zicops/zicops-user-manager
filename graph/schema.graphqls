@@ -492,6 +492,13 @@ type CohortMain {
   imageUrl: String
 }
 
+type PaginatedCohortsMain {
+    cohorts: [CohortMain]
+    pageCursor: String
+    direction: String
+    pageSize: Int
+}
+
 type Query {
   logout: Boolean
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
@@ -515,6 +522,7 @@ type Query {
   getCohortUsers(cohort_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedCohorts
   getUserQuizAttempts(user_id: String!, topic_id: String!) : [UserQuizAttempt]
   getCohortDetails(cohort_id: String!): CohortMain
+  getCohortMains(lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCohortsMain
 }
 
 type Mutation {
