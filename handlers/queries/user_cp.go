@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -22,9 +23,15 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 	if userId != "" {
 		emailCreatorID = userId
 	}
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and user_cm_id='%s' ALLOW FILTERING`, emailCreatorID, userCourseID)
 	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
@@ -68,9 +75,15 @@ func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID 
 	if userId != "" {
 		emailCreatorID = userId
 	}
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and topic_id='%s' ALLOW FILTERING`, emailCreatorID, topicID)
 	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)

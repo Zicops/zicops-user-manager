@@ -8,6 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -18,6 +19,12 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 	if err != nil {
 		return nil, err
 	}
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
 	if userId != "" {
@@ -42,7 +49,7 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and updated_at <= %d  ALLOW FILTERING`, emailCreatorID, *publishTime)
 	getUsers := func(page []byte) (courses []userz.UserCourse, nextPage []byte, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)
@@ -103,9 +110,15 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 	if userId != "" {
 		emailCreatorID = userId
 	}
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and course_id='%s'  ALLOW FILTERING`, emailCreatorID, courseID)
 	getUsers := func() (courses []userz.UserCourse, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return courses, iter.Select(&courses)

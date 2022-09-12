@@ -11,6 +11,7 @@ import (
 	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
@@ -27,6 +28,12 @@ func AddUserOrganizationMap(ctx context.Context, input []*model.UserOrganization
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	userLspMaps := make([]*model.UserOrganizationMap, 0)
 	for _, input := range input {
 		guid := xid.New()
@@ -51,7 +58,7 @@ func AddUserOrganizationMap(ctx context.Context, input []*model.UserOrganization
 			CreatedBy: createdBy,
 			UpdatedBy: updatedBy,
 		}
-		insertQuery := global.CassUserSession.Session.Query(userz.UserOrgTable.Insert()).BindStruct(userLspMap)
+		insertQuery := global.CassUserSession.Query(userz.UserOrgTable.Insert()).BindStruct(userLspMap)
 		if err := insertQuery.ExecRelease(); err != nil {
 			return nil, err
 		}
@@ -90,11 +97,17 @@ func UpdateUserOrganizationMap(ctx context.Context, input model.UserOrganization
 	if input.UserOrganizationID == nil {
 		return nil, fmt.Errorf("user org id is required")
 	}
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	userLspMap := userz.UserOrg{
 		ID: *input.UserOrganizationID,
 	}
 	userLsps := []userz.UserOrg{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserOrgTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := global.CassUserSession.Query(userz.UserOrgTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -134,7 +147,7 @@ func UpdateUserOrganizationMap(ctx context.Context, input model.UserOrganization
 		return nil, fmt.Errorf("nothing to update")
 	}
 	upStms, uNames := userz.UserOrgTable.Update(updatedCols...)
-	updateQuery := global.CassUserSession.Session.Query(upStms, uNames).BindStruct(&userLspMap)
+	updateQuery := global.CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
 	if err := updateQuery.ExecRelease(); err != nil {
 		log.Errorf("error updating user org: %v", err)
 		return nil, err

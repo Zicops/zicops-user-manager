@@ -10,6 +10,7 @@ import (
 	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -27,8 +28,14 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	userAdmin := userz.User{
 		ID: emailCreatorID,
 	}
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	users := []userz.User{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
+	getQuery := global.CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
@@ -58,7 +65,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 
 	qryStr := fmt.Sprintf(`SELECT * from userz.users where created_by='%s' and updated_at <= %d  ALLOW FILTERING`, email_creator, *publishTime)
 	getUsers := func(page []byte) (users []userz.User, nextPage []byte, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)
@@ -137,8 +144,14 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	userAdmin := userz.User{
 		ID: emailCreatorID,
 	}
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	users := []userz.User{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
+	getQuery := global.CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
@@ -160,7 +173,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	for _, userID := range userIds {
 		qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, *userID)
 		getUsers := func() (users []userz.User, err error) {
-			q := global.CassUserSession.Session.Query(qryStr, nil)
+			q := global.CassUserSession.Query(qryStr, nil)
 			defer q.Release()
 
 			iter := q.Iter()

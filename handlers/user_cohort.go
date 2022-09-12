@@ -11,6 +11,7 @@ import (
 	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
@@ -20,6 +21,12 @@ func AddUserCohort(ctx context.Context, input []*model.UserCohortInput) ([]*mode
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	isAllowed := false
 	if userCass.ID == input[0].UserID || strings.ToLower(userCass.Role) == "admin" {
 		isAllowed = true
@@ -51,7 +58,7 @@ func AddUserCohort(ctx context.Context, input []*model.UserCohortInput) ([]*mode
 			CreatedBy:        createdBy,
 			UpdatedBy:        updatedBy,
 		}
-		insertQuery := global.CassUserSession.Session.Query(userz.UserCohortTable.Insert()).BindStruct(userLspMap)
+		insertQuery := global.CassUserSession.Query(userz.UserCohortTable.Insert()).BindStruct(userLspMap)
 		if err := insertQuery.ExecRelease(); err != nil {
 			return nil, err
 		}
@@ -90,11 +97,17 @@ func UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.
 	if input.UserCohortID == nil {
 		return nil, fmt.Errorf("user cohort id is required")
 	}
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	userLspMap := userz.UserCohort{
 		ID: *input.UserCohortID,
 	}
 	userLsps := []userz.UserCohort{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserCohortTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := global.CassUserSession.Query(userz.UserCohortTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -134,7 +147,7 @@ func UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.
 		return nil, fmt.Errorf("nothing to update")
 	}
 	upStms, uNames := userz.UserCohortTable.Update(updatedCols...)
-	updateQuery := global.CassUserSession.Session.Query(upStms, uNames).BindStruct(&userLspMap)
+	updateQuery := global.CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
 	if err := updateQuery.ExecRelease(); err != nil {
 		log.Errorf("error updating user org: %v", err)
 		return nil, err

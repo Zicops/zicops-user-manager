@@ -11,6 +11,7 @@ import (
 	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
@@ -20,6 +21,12 @@ func AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	isAllowed := false
 	if userCass.ID == input[0].UserID || strings.ToLower(userCass.Role) == "admin" {
 		isAllowed = true
@@ -54,7 +61,7 @@ func AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*
 			CreatedBy: createdBy,
 			UpdatedBy: updatedBy,
 		}
-		insertQuery := global.CassUserSession.Session.Query(userz.UserBookmarksTable.Insert()).BindStruct(userLspMap)
+		insertQuery := global.CassUserSession.Query(userz.UserBookmarksTable.Insert()).BindStruct(userLspMap)
 		if err := insertQuery.ExecRelease(); err != nil {
 			return nil, err
 		}
@@ -96,11 +103,17 @@ func UpdateUserBookmark(ctx context.Context, input model.UserBookmarkInput) (*mo
 	if input.UserBmID == nil {
 		return nil, fmt.Errorf("user bookmark id is required")
 	}
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	userLspMap := userz.UserBookmarks{
 		ID: *input.UserBmID,
 	}
 	userLsps := []userz.UserBookmarks{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserBookmarksTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := global.CassUserSession.Query(userz.UserBookmarksTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -152,7 +165,7 @@ func UpdateUserBookmark(ctx context.Context, input model.UserBookmarkInput) (*mo
 		return nil, fmt.Errorf("nothing to update")
 	}
 	upStms, uNames := userz.UserBookmarksTable.Update(updatedCols...)
-	updateQuery := global.CassUserSession.Session.Query(upStms, uNames).BindStruct(&userLspMap)
+	updateQuery := global.CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
 	if err := updateQuery.ExecRelease(); err != nil {
 		log.Errorf("error updating user bookmark: %v", err)
 		return nil, err
