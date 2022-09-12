@@ -28,7 +28,7 @@ func AddUserExamProgress(ctx context.Context, input []*model.UserExamProgressInp
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create exams mapping")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func UpdateUserExamProgress(ctx context.Context, input model.UserExamProgressInp
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

@@ -27,7 +27,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +209,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	if user.ID == nil {
 		return nil, fmt.Errorf("user id is required")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -393,7 +393,7 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

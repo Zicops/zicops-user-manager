@@ -21,7 +21,7 @@ func AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func UpdateUserBookmark(ctx context.Context, input model.UserBookmarkInput) (*mo
 	if input.UserBmID == nil {
 		return nil, fmt.Errorf("user bookmark id is required")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

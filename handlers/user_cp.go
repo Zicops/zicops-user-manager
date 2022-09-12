@@ -21,7 +21,7 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 	if input.UserCpID == nil {
 		return nil, fmt.Errorf("user cp id is required")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

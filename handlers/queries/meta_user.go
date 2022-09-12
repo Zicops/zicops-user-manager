@@ -24,7 +24,7 @@ func GetUserNotes(ctx context.Context, userID string, userLspID string, publishT
 	if userID != "" {
 		emailCreatorID = userID
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publ
 	if userID != "" {
 		emailCreatorID = userID
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +197,7 @@ func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) (
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func GetUserExamResults(ctx context.Context, userID string, userEaID string) (*m
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -297,7 +297,7 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -352,7 +352,7 @@ func GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

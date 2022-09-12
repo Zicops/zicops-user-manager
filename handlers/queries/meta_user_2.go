@@ -32,7 +32,7 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 	if userID != nil {
 		emailCreatorID = *userID
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 	} else {
 		pageSizeInt = *pageSize
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +199,7 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 	guid := xid.New()
 	cohortID := guid.String()
 	email_creator := claims["email"].(string)
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -294,7 +294,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	if input.CohortID == nil {
 		return nil, fmt.Errorf("cohort id is required")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -432,7 +432,7 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 	currentCohort := userz.Cohort{
 		ID: cohortID,
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -491,7 +491,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	userAdmin := userz.User{
 		ID: emailCreatorID,
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

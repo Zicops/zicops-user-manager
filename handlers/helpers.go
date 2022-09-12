@@ -17,7 +17,7 @@ func GetUserFromCass(ctx context.Context) (*userz.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

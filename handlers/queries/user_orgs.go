@@ -23,7 +23,7 @@ func GetUserOrganizations(ctx context.Context, userId string) ([]*model.UserOrga
 	if userId != "" {
 		emailCreatorID = userId
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +73,7 @@ func GetUserPreferences(ctx context.Context, userId string) ([]*model.UserPrefer
 	if userId != "" {
 		emailCreatorID = userId
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 	if userId != "" {
 		emailCreatorID = userId
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +212,7 @@ func GetUserPreferenceForLsp(ctx context.Context, userID string, lspID string) (
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +259,7 @@ func GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

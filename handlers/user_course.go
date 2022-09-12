@@ -21,7 +21,7 @@ func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*mode
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 	if input.UserCourseID == nil {
 		return nil, fmt.Errorf("user course id is required")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

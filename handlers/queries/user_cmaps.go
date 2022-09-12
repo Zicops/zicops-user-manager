@@ -19,7 +19,7 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 	if userId != "" {
 		emailCreatorID = userId
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

@@ -28,7 +28,7 @@ func AddUserQuizAttempt(ctx context.Context, input []*model.UserQuizAttemptInput
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func UpdateUserQuizAttempt(ctx context.Context, input model.UserQuizAttemptInput
 	if input.UserQaID == nil {
 		return nil, fmt.Errorf("user qa id is required")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

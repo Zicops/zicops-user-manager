@@ -28,7 +28,7 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*mode
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create lsp mapping")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 	if input.UserLspID == nil {
 		return nil, fmt.Errorf("user lsp id is required")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

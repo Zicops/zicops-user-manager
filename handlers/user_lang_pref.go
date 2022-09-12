@@ -28,7 +28,7 @@ func AddUserLanguageMap(ctx context.Context, input []*model.UserLanguageMapInput
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create lang mapping")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func AddUserPreference(ctx context.Context, input []*model.UserPreferenceInput) 
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create lang mapping")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func UpdateUserPreference(ctx context.Context, input model.UserPreferenceInput) 
 	if input.UserPreferenceID == nil {
 		return nil, fmt.Errorf("user preference id is required")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

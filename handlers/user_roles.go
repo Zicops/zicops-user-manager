@@ -28,7 +28,7 @@ func AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.U
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func UpdateUserRole(ctx context.Context, input model.UserRoleInput) (*model.User
 	userLspMap := userz.UserRole{
 		ID: *input.UserRoleID,
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

@@ -23,7 +23,7 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 	if userId != "" {
 		emailCreatorID = userId
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID 
 	if userId != "" {
 		emailCreatorID = userId
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

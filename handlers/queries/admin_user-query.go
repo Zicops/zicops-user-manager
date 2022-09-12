@@ -28,7 +28,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	userAdmin := userz.User{
 		ID: emailCreatorID,
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	userAdmin := userz.User{
 		ID: emailCreatorID,
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

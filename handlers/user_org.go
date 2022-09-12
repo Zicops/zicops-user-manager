@@ -28,7 +28,7 @@ func AddUserOrganizationMap(ctx context.Context, input []*model.UserOrganization
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func UpdateUserOrganizationMap(ctx context.Context, input model.UserOrganization
 	if input.UserOrganizationID == nil {
 		return nil, fmt.Errorf("user org id is required")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}

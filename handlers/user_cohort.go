@@ -21,7 +21,7 @@ func AddUserCohort(ctx context.Context, input []*model.UserCohortInput) ([]*mode
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.
 	if input.UserCohortID == nil {
 		return nil, fmt.Errorf("user cohort id is required")
 	}
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
