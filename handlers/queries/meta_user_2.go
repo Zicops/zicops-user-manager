@@ -14,6 +14,7 @@ import (
 	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -31,6 +32,12 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 	if userID != nil {
 		emailCreatorID = *userID
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	var newPage []byte
 	//var pageDirection string
 	var pageSizeInt int
@@ -53,7 +60,7 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 	}
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_cohort_map where user_id='%s' and updated_at <= %d %s ALLOW FILTERING`, emailCreatorID, *publishTime, lspClause)
 	getUsers := func(page []byte) (users []userz.UserCohort, nextPage []byte, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)
@@ -121,10 +128,16 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 	} else {
 		pageSizeInt = *pageSize
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	var newCursor string
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_cohort_map where cohort_id='%s' and updated_at<=%d ALLOW FILTERING`, cohortID, *publishTime)
 	getUsersCohort := func(page []byte) (users []userz.UserCohort, nextPage []byte, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)
@@ -186,6 +199,12 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 	guid := xid.New()
 	cohortID := guid.String()
 	email_creator := claims["email"].(string)
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	if input.Image != nil && input.ImageURL == nil {
 		if storageC == nil {
 			storageC = bucket.NewStorageHandler()
@@ -235,7 +254,7 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 		LspID:       input.LspID,
 		Size:        input.Size,
 	}
-	insertQuery := global.CassUserSession.Session.Query(userz.CohortTable.Insert()).BindStruct(cohortMainTable)
+	insertQuery := global.CassUserSession.Query(userz.CohortTable.Insert()).BindStruct(cohortMainTable)
 	if err := insertQuery.ExecRelease(); err != nil {
 		return nil, err
 	}
@@ -275,11 +294,17 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	if input.CohortID == nil {
 		return nil, fmt.Errorf("cohort id is required")
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	currentCohort := userz.Cohort{
 		ID: *input.CohortID,
 	}
 	cohorts := []userz.Cohort{}
-	getQuery := global.CassUserSession.Session.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
+	getQuery := global.CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
 	if err := getQuery.SelectRelease(&cohorts); err != nil {
 		return nil, err
 	}
@@ -368,7 +393,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	cohort.UpdatedAt = time.Now().Unix()
 	updatedCols = append(updatedCols, "updated_at")
 	upStms, uNames := userz.CohortTable.Update(updatedCols...)
-	updateQuery := global.CassUserSession.Session.Query(upStms, uNames).BindStruct(&cohort)
+	updateQuery := global.CassUserSession.Query(upStms, uNames).BindStruct(&cohort)
 	if err := updateQuery.ExecRelease(); err != nil {
 		log.Errorf("error updating cohort: %v", err)
 		return nil, err
@@ -407,8 +432,14 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 	currentCohort := userz.Cohort{
 		ID: cohortID,
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	cohorts := []userz.Cohort{}
-	getQuery := global.CassUserSession.Session.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
+	getQuery := global.CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
 	if err := getQuery.SelectRelease(&cohorts); err != nil {
 		return nil, err
 	}
@@ -460,8 +491,14 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	userAdmin := userz.User{
 		ID: emailCreatorID,
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	users := []userz.User{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
+	getQuery := global.CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
@@ -490,7 +527,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	var newCursor string
 	qryStr := fmt.Sprintf(`SELECT * from userz.cohort_main where lsp_id='%s' and updated_at<=%d ALLOW FILTERING`, lspID, *publishTime)
 	getCohorts := func(page []byte) (users []userz.Cohort, nextPage []byte, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)

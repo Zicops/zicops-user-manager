@@ -11,6 +11,7 @@ import (
 	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
@@ -27,6 +28,12 @@ func AddUserQuizAttempt(ctx context.Context, input []*model.UserQuizAttemptInput
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	userLspMaps := make([]*model.UserQuizAttempt, 0)
 	for _, input := range input {
 		guid := xid.New()
@@ -55,7 +62,7 @@ func AddUserQuizAttempt(ctx context.Context, input []*model.UserQuizAttemptInput
 			CreatedBy:   createdBy,
 			UpdatedBy:   updatedBy,
 		}
-		insertQuery := global.CassUserSession.Session.Query(userz.UserQuizAttemptsTable.Insert()).BindStruct(userLspMap)
+		insertQuery := global.CassUserSession.Query(userz.UserQuizAttemptsTable.Insert()).BindStruct(userLspMap)
 		if err := insertQuery.ExecRelease(); err != nil {
 			return nil, err
 		}
@@ -74,7 +81,7 @@ func AddUserQuizAttempt(ctx context.Context, input []*model.UserQuizAttemptInput
 			UpdatedAt:    updated,
 			CreatedBy:    &userLspMap.CreatedBy,
 			UpdatedBy:    &userLspMap.UpdatedBy,
-			TopicID: 	userLspMap.TopicID,
+			TopicID:      userLspMap.TopicID,
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
 	}
@@ -96,11 +103,17 @@ func UpdateUserQuizAttempt(ctx context.Context, input model.UserQuizAttemptInput
 	if input.UserQaID == nil {
 		return nil, fmt.Errorf("user qa id is required")
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	userLspMap := userz.UserQuizAttempts{
 		ID: *input.UserQaID,
 	}
 	userLsps := []userz.UserQuizAttempts{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserQuizAttemptsTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := global.CassUserSession.Query(userz.UserQuizAttemptsTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -148,7 +161,7 @@ func UpdateUserQuizAttempt(ctx context.Context, input model.UserQuizAttemptInput
 		return nil, fmt.Errorf("nothing to update")
 	}
 	upStms, uNames := userz.UserQuizAttemptsTable.Update(updatedCols...)
-	updateQuery := global.CassUserSession.Session.Query(upStms, uNames).BindStruct(&userLspMap)
+	updateQuery := global.CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
 	if err := updateQuery.ExecRelease(); err != nil {
 		log.Errorf("error updating user quiz attempts: %v", err)
 		return nil, err
@@ -168,7 +181,7 @@ func UpdateUserQuizAttempt(ctx context.Context, input model.UserQuizAttemptInput
 		UpdatedAt:    updated,
 		CreatedBy:    &userLspMap.CreatedBy,
 		UpdatedBy:    &userLspMap.UpdatedBy,
-		TopicID: 	userLspMap.TopicID,
+		TopicID:      userLspMap.TopicID,
 	}
 	return userLspOutput, nil
 }
