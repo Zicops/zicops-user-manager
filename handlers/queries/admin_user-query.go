@@ -277,7 +277,7 @@ func GetLatestCohortDetails(ctx context.Context, lspID string, userID *string, p
 	} else {
 		//here we have both user_id and lsp_id
 		//pass user_id to get cohort_map
-		qryStr := fmt.Sprintf(`SELECT cohort_id  from userz.user_cohort_map where user_id = '%s ALLOW FILTERING`, *userID)
+		qryStr := fmt.Sprintf(`SELECT cohort_id from userz.user_cohort_map where user_id = '%s ALLOW FILTERING`, *userID)
 
 		getCohortId := func() (cohortId []string, err error) {
 			q := global.CassUserSession.Session.Query(qryStr, nil)
