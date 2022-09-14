@@ -8,7 +8,6 @@ import (
 
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
-	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
 )
@@ -27,11 +26,11 @@ func GetUserOrganizations(ctx context.Context, userId string) ([]*model.UserOrga
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_org_map where user_id='%s' ALLOW FILTERING`, emailCreatorID)
 	getUsersOrgs := func() (users []userz.UserOrg, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
@@ -77,11 +76,11 @@ func GetUserPreferences(ctx context.Context, userId string) ([]*model.UserPrefer
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_preferences where user_id='%s' ALLOW FILTERING`, emailCreatorID)
 	getUsersOrgs := func() (users []userz.UserPreferences, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
@@ -126,11 +125,11 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id='%s' ALLOW FILTERING`, emailCreatorID)
 	getUsersOrgs := func() (users []userz.UserLsp, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
@@ -168,11 +167,11 @@ func GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_org_map where user_id='%s' and user_lsp_id='%s'  ALLOW FILTERING`, userID, lspID)
 	getUsersOrgs := func() (users []userz.UserOrg, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
@@ -216,11 +215,11 @@ func GetUserPreferenceForLsp(ctx context.Context, userID string, lspID string) (
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_preferences where user_id='%s' and user_lsp_id='%s' ALLOW FILTERING`, userID, lspID)
 	getUsersOrgs := func() (users []userz.UserPreferences, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
@@ -263,11 +262,11 @@ func GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id='%s' and lsp_id='%s' ALLOW FILTERING`, userID, lspID)
 	getUsersOrgs := func() (users []userz.UserLsp, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)

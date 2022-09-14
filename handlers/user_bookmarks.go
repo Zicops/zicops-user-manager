@@ -12,7 +12,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
-	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
@@ -25,8 +24,8 @@ func AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	isAllowed := false
 	if userCass.ID == input[0].UserID || strings.ToLower(userCass.Role) == "admin" {
 		isAllowed = true
@@ -61,7 +60,7 @@ func AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*
 			CreatedBy: createdBy,
 			UpdatedBy: updatedBy,
 		}
-		insertQuery := global.CassUserSession.Query(userz.UserBookmarksTable.Insert()).BindStruct(userLspMap)
+		insertQuery := CassUserSession.Query(userz.UserBookmarksTable.Insert()).BindStruct(userLspMap)
 		if err := insertQuery.ExecRelease(); err != nil {
 			return nil, err
 		}
@@ -107,13 +106,13 @@ func UpdateUserBookmark(ctx context.Context, input model.UserBookmarkInput) (*mo
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	userLspMap := userz.UserBookmarks{
 		ID: *input.UserBmID,
 	}
 	userLsps := []userz.UserBookmarks{}
-	getQuery := global.CassUserSession.Query(userz.UserBookmarksTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := CassUserSession.Query(userz.UserBookmarksTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -165,7 +164,7 @@ func UpdateUserBookmark(ctx context.Context, input model.UserBookmarkInput) (*mo
 		return nil, fmt.Errorf("nothing to update")
 	}
 	upStms, uNames := userz.UserBookmarksTable.Update(updatedCols...)
-	updateQuery := global.CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
+	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
 	if err := updateQuery.ExecRelease(); err != nil {
 		log.Errorf("error updating user bookmark: %v", err)
 		return nil, err

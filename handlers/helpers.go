@@ -8,7 +8,6 @@ import (
 	"github.com/scylladb/gocqlx/qb"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
-	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/helpers"
 )
 
@@ -21,14 +20,14 @@ func GetUserFromCass(ctx context.Context) (*userz.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
+	CassUserSession := session
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
 	userCass := userz.User{
 		ID: emailCreatorID,
 	}
 	users := []userz.User{}
-	getQuery := global.CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
+	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}

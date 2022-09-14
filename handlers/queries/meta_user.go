@@ -28,8 +28,8 @@ func GetUserNotes(ctx context.Context, userID string, userLspID string, publishT
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	var newPage []byte
 	//var pageDirection string
 	var pageSizeInt int
@@ -49,7 +49,7 @@ func GetUserNotes(ctx context.Context, userID string, userLspID string, publishT
 
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_notes where user_id='%s' and updated_at <= %d and user_lsp_id='%s' ALLOW FILTERING`, emailCreatorID, *publishTime, userLspID)
 	getUsers := func(page []byte) (courses []userz.UserNotes, nextPage []byte, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)
@@ -117,8 +117,8 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publ
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	var newPage []byte
 	//var pageDirection string
 	var pageSizeInt int
@@ -138,7 +138,7 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publ
 
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_bookmarks where user_id='%s' and updated_at <= %d and user_lsp_id='%s' ALLOW FILTERING`, emailCreatorID, *publishTime, userLspID)
 	getUsers := func(page []byte) (courses []userz.UserBookmarks, nextPage []byte, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)
@@ -201,11 +201,11 @@ func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) (
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_attempts where user_id='%s' and user_lsp_id='%s' ALLOW FILTERING`, userID, userLspID)
 	getUserEA := func() (users []userz.UserExamAttempts, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
@@ -253,11 +253,11 @@ func GetUserExamResults(ctx context.Context, userID string, userEaID string) (*m
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_results where user_id='%s' and user_ea_id='%s' ALLOW FILTERING`, userID, userEaID)
 	getUserEA := func() (users []userz.UserExamResults, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
@@ -301,11 +301,11 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_progress where user_id='%s' and user_ea_id='%s' ALLOW FILTERING`, userID, userEaID)
 	getUserEA := func() (users []userz.UserExamProgress, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
@@ -356,11 +356,11 @@ func GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_quiz_attempts where user_id='%s' and topic_id='%s' ALLOW FILTERING`, userID, topicID)
 	getUserQA := func() (users []userz.UserQuizAttempts, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)

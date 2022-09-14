@@ -12,7 +12,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
-	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
@@ -32,8 +31,8 @@ func AddUserNotes(ctx context.Context, input []*model.UserNotesInput) ([]*model.
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	userLspMaps := make([]*model.UserNotes, 0)
 	for _, input := range input {
 		guid := xid.New()
@@ -61,7 +60,7 @@ func AddUserNotes(ctx context.Context, input []*model.UserNotesInput) ([]*model.
 			CreatedBy: createdBy,
 			UpdatedBy: updatedBy,
 		}
-		insertQuery := global.CassUserSession.Query(userz.UserNotesTable.Insert()).BindStruct(userLspMap)
+		insertQuery := CassUserSession.Query(userz.UserNotesTable.Insert()).BindStruct(userLspMap)
 		if err := insertQuery.ExecRelease(); err != nil {
 			return nil, err
 		}
@@ -107,13 +106,13 @@ func UpdateUserNotes(ctx context.Context, input model.UserNotesInput) (*model.Us
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	userLspMap := userz.UserNotes{
 		ID: *input.UserNotesID,
 	}
 	userLsps := []userz.UserNotes{}
-	getQuery := global.CassUserSession.Query(userz.UserNotesTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := CassUserSession.Query(userz.UserNotesTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -165,7 +164,7 @@ func UpdateUserNotes(ctx context.Context, input model.UserNotesInput) (*model.Us
 		return nil, fmt.Errorf("nothing to update")
 	}
 	upStms, uNames := userz.UserNotesTable.Update(updatedCols...)
-	updateQuery := global.CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
+	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
 	if err := updateQuery.ExecRelease(); err != nil {
 		log.Errorf("error updating user notes: %v", err)
 		return nil, err

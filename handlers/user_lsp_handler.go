@@ -12,7 +12,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
-	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
@@ -32,8 +31,8 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*mode
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	userLspMaps := make([]*model.UserLspMap, 0)
 	for _, input := range input {
 		guid := xid.New()
@@ -55,7 +54,7 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*mode
 			UpdatedBy: updatedBy,
 			Status:    input.Status,
 		}
-		insertQuery := global.CassUserSession.Query(userz.UserLspTable.Insert()).BindStruct(userLspMap)
+		insertQuery := CassUserSession.Query(userz.UserLspTable.Insert()).BindStruct(userLspMap)
 		if err := insertQuery.ExecRelease(); err != nil {
 			return nil, err
 		}
@@ -95,13 +94,13 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	userLspMap := userz.UserLsp{
 		ID: *input.UserLspID,
 	}
 	userLsps := []userz.UserLsp{}
-	getQuery := global.CassUserSession.Query(userz.UserLspTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := CassUserSession.Query(userz.UserLspTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -129,7 +128,7 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 		return nil, fmt.Errorf("nothing to update")
 	}
 	upStms, uNames := userz.UserLspTable.Update(updatedCols...)
-	updateQuery := global.CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
+	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
 	if err := updateQuery.ExecRelease(); err != nil {
 		log.Errorf("error updating user lsp: %v", err)
 		return nil, err

@@ -36,8 +36,8 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	var newPage []byte
 	//var pageDirection string
 	var pageSizeInt int
@@ -60,7 +60,7 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 	}
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_cohort_map where user_id='%s' and updated_at <= %d %s ALLOW FILTERING`, emailCreatorID, *publishTime, lspClause)
 	getUsers := func(page []byte) (users []userz.UserCohort, nextPage []byte, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)
@@ -132,12 +132,12 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	var newCursor string
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_cohort_map where cohort_id='%s' and updated_at<=%d ALLOW FILTERING`, cohortID, *publishTime)
 	getUsersCohort := func(page []byte) (users []userz.UserCohort, nextPage []byte, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)
@@ -203,8 +203,8 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	if input.Image != nil && input.ImageURL == nil {
 		if storageC == nil {
 			storageC = bucket.NewStorageHandler()
@@ -254,7 +254,7 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 		LspID:       input.LspID,
 		Size:        input.Size,
 	}
-	insertQuery := global.CassUserSession.Query(userz.CohortTable.Insert()).BindStruct(cohortMainTable)
+	insertQuery := CassUserSession.Query(userz.CohortTable.Insert()).BindStruct(cohortMainTable)
 	if err := insertQuery.ExecRelease(); err != nil {
 		return nil, err
 	}
@@ -298,13 +298,13 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	currentCohort := userz.Cohort{
 		ID: *input.CohortID,
 	}
 	cohorts := []userz.Cohort{}
-	getQuery := global.CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
+	getQuery := CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
 	if err := getQuery.SelectRelease(&cohorts); err != nil {
 		return nil, err
 	}
@@ -393,7 +393,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	cohort.UpdatedAt = time.Now().Unix()
 	updatedCols = append(updatedCols, "updated_at")
 	upStms, uNames := userz.CohortTable.Update(updatedCols...)
-	updateQuery := global.CassUserSession.Query(upStms, uNames).BindStruct(&cohort)
+	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&cohort)
 	if err := updateQuery.ExecRelease(); err != nil {
 		log.Errorf("error updating cohort: %v", err)
 		return nil, err
@@ -436,10 +436,10 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	cohorts := []userz.Cohort{}
-	getQuery := global.CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
+	getQuery := CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
 	if err := getQuery.SelectRelease(&cohorts); err != nil {
 		return nil, err
 	}
@@ -495,10 +495,10 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	users := []userz.User{}
-	getQuery := global.CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
+	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
@@ -527,7 +527,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	var newCursor string
 	qryStr := fmt.Sprintf(`SELECT * from userz.cohort_main where lsp_id='%s' and updated_at<=%d ALLOW FILTERING`, lspID, *publishTime)
 	getCohorts := func(page []byte) (users []userz.Cohort, nextPage []byte, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)

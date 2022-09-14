@@ -50,12 +50,11 @@ func main() {
 		port = 8094
 	}
 	// test cassandra connection
-	session, err := cassandra.GetCassSession("coursez")
-	if err != nil {
-		log.Fatalf("Error connecting to cassandra: %v", err)
+	_, err1 := cassandra.GetCassSession("userz")
+	if err1 != nil {
+		log.Fatalf("Error connecting to cassandra: %v ", err1)
 	} else {
 		log.Infof("Cassandra connection successful")
-		session.Close()
 	}
 	bootUPErrors := make(chan error, 1)
 	go monitorSystem(cancel, bootUPErrors)

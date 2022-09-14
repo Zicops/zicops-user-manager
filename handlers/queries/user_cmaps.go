@@ -23,8 +23,8 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
 	if userId != "" {
@@ -49,7 +49,7 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and updated_at <= %d  ALLOW FILTERING`, emailCreatorID, *publishTime)
 	getUsers := func(page []byte) (courses []userz.UserCourse, nextPage []byte, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)
@@ -114,11 +114,11 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and course_id='%s'  ALLOW FILTERING`, emailCreatorID, courseID)
 	getUsers := func() (courses []userz.UserCourse, err error) {
-		q := global.CassUserSession.Query(qryStr, nil)
+		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return courses, iter.Select(&courses)

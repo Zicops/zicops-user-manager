@@ -31,8 +31,8 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	roleValue := claims["email"]
 	if !isZAdmin {
 		if strings.ToLower(roleValue.(string)) != "puneet@zicops.com" {
@@ -104,7 +104,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 			PhotoURL:    photoUrl,
 			Email:       user.Email,
 		}
-		insertQuery := global.CassUserSession.Query(userz.UserTable.Insert()).BindStruct(userCass)
+		insertQuery := CassUserSession.Query(userz.UserTable.Insert()).BindStruct(userCass)
 		if err := insertQuery.ExecRelease(); err != nil {
 			return nil, err
 		}
@@ -148,8 +148,8 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	registered := false
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
@@ -157,7 +157,7 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 		ID: emailCreatorID,
 	}
 	users := []userz.User{}
-	getQuery := global.CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
+	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
@@ -213,8 +213,8 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	canUpdate := false
 	userID := base64.URLEncoding.EncodeToString([]byte(user.Email))
 	if err != nil {
@@ -235,7 +235,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		ID: userID,
 	}
 	users := []userz.User{}
-	getQuery := global.CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
+	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
@@ -363,7 +363,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		return nil, fmt.Errorf("nothing to update")
 	}
 	upStms, uNames := userz.UserTable.Update(updatedCols...)
-	updateQuery := global.CassUserSession.Query(upStms, uNames).BindStruct(&userCass)
+	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userCass)
 	if err := updateQuery.ExecRelease(); err != nil {
 		log.Errorf("error updating user: %v", err)
 		return nil, err
@@ -397,8 +397,8 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	global.CassUserSession = session
-	defer global.CassUserSession.Close()
+	CassUserSession := session
+
 	userEmail := claims["email"].(string)
 	if userEmail == "puneet@zicops.com" {
 		return nil, fmt.Errorf("user is not allowed to proceed with zicops apis")
@@ -412,7 +412,7 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		ID: userID,
 	}
 	users := []userz.User{}
-	getQuery := global.CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
+	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
