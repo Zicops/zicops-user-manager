@@ -27,6 +27,7 @@ spec:
         {{ $zcbcert := printf "%s/%s" .Values.zcCertAstra.cert.dir .Values.zcCertAstra.cert.file }}
         {{ $zcbcertca := printf "%s/%s" .Values.zcCertCAAstra.cert.dir .Values.zcCertCAAstra.cert.file }}
         {{ $zcbkey := printf "%s/%s" .Values.zcAstraKey.key.dir .Values.zcAstraKey.key.file }}        - name: {{ .Chart.Name }}-asp
+        - name: {{ .Chart.Name }}-asp
           image: "{{ .Values.asp.repository }}:{{ .Values.asp.tag }}"
           imagePullPolicy: {{ .Values.asp.pullPolicy }}
           args: [
