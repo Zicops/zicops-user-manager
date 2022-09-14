@@ -8,6 +8,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -23,6 +24,12 @@ func GetUserNotes(ctx context.Context, userID string, userLspID string, publishT
 	if userID != "" {
 		emailCreatorID = userID
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	var newPage []byte
 	//var pageDirection string
 	var pageSizeInt int
@@ -42,7 +49,7 @@ func GetUserNotes(ctx context.Context, userID string, userLspID string, publishT
 
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_notes where user_id='%s' and updated_at <= %d and user_lsp_id='%s' ALLOW FILTERING`, emailCreatorID, *publishTime, userLspID)
 	getUsers := func(page []byte) (courses []userz.UserNotes, nextPage []byte, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)
@@ -106,6 +113,12 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publ
 	if userID != "" {
 		emailCreatorID = userID
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	var newPage []byte
 	//var pageDirection string
 	var pageSizeInt int
@@ -125,7 +138,7 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publ
 
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_bookmarks where user_id='%s' and updated_at <= %d and user_lsp_id='%s' ALLOW FILTERING`, emailCreatorID, *publishTime, userLspID)
 	getUsers := func(page []byte) (courses []userz.UserBookmarks, nextPage []byte, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)
@@ -184,9 +197,15 @@ func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) (
 	if err != nil {
 		return nil, err
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_attempts where user_id='%s' and user_lsp_id='%s' ALLOW FILTERING`, userID, userLspID)
 	getUserEA := func() (users []userz.UserExamAttempts, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
@@ -230,9 +249,15 @@ func GetUserExamResults(ctx context.Context, userID string, userEaID string) (*m
 	if err != nil {
 		return nil, err
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_results where user_id='%s' and user_ea_id='%s' ALLOW FILTERING`, userID, userEaID)
 	getUserEA := func() (users []userz.UserExamResults, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
@@ -272,9 +297,15 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 	if err != nil {
 		return nil, err
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_progress where user_id='%s' and user_ea_id='%s' ALLOW FILTERING`, userID, userEaID)
 	getUserEA := func() (users []userz.UserExamProgress, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
@@ -310,6 +341,56 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 			UpdatedBy:      &copiedOrg.UpdatedBy,
 			CreatedAt:      createdAt,
 			UpdatedAt:      updatedAt,
+		}
+		userOrgs = append(userOrgs, currentUserOrg)
+	}
+	return userOrgs, nil
+}
+
+func GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]*model.UserQuizAttempt, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_quiz_attempts where user_id='%s' and topic_id='%s' ALLOW FILTERING`, userID, topicID)
+	getUserQA := func() (users []userz.UserQuizAttempts, err error) {
+		q := global.CassUserSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	usersOrgs, err := getUserQA()
+	if err != nil {
+		return nil, err
+	}
+	if len(usersOrgs) == 0 {
+		return nil, fmt.Errorf("no user qa found")
+	}
+	userOrgs := make([]*model.UserQuizAttempt, 0)
+	for _, userOrg := range usersOrgs {
+		copiedOrg := userOrg
+		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
+		currentUserOrg := &model.UserQuizAttempt{
+			UserQaID:     &copiedOrg.ID,
+			UserID:       copiedOrg.UserID,
+			TopicID:      copiedOrg.TopicID,
+			UserCpID:     copiedOrg.UserCpID,
+			UserCourseID: copiedOrg.UserCmID,
+			QuizID:       copiedOrg.QuizID,
+			QuizAttempt:  int(copiedOrg.QuizAttempt),
+			Result:       copiedOrg.Result,
+			IsActive:     copiedOrg.IsActive,
+			CreatedBy:    &copiedOrg.CreatedBy,
+			UpdatedBy:    &copiedOrg.UpdatedBy,
+			CreatedAt:    createdAt,
+			UpdatedAt:    updatedAt,
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
 	}

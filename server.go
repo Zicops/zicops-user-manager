@@ -10,11 +10,10 @@ import (
 	"os"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/zicops/zicops-user-manager/config"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/controller"
 	"github.com/zicops/zicops-user-manager/global"
 	cry "github.com/zicops/zicops-user-manager/lib/crypto"
-	"github.com/zicops/zicops-user-manager/lib/db/cassandra"
 	"github.com/zicops/zicops-user-manager/lib/identity"
 	"github.com/zicops/zicops-user-manager/lib/sendgrid"
 )
@@ -26,12 +25,7 @@ func main() {
 	log.Infof("Starting zicops user manager service")
 	ctx, cancel := context.WithCancel(context.Background())
 	crySession := cry.New("09afa9f9544a7ff1ae9988f73ba42134")
-	cassConfig := config.NewCassandraConfig()
-	cassSession, err := cassandra.New(cassConfig)
-	if err != nil {
-		log.Errorf("Error connecting to cassandra: %s", err)
-		log.Infof("zicops user manager intialization failed")
-	}
+
 	idp, err := identity.NewIDPEP(ctx, "zicops-one")
 	if err != nil {
 		log.Errorf("Error connecting to identity: %s", err)
@@ -46,7 +40,6 @@ func main() {
 	}
 	global.SGClient = sgClient
 	global.CTX = ctx
-	global.CassUserSession = cassSession
 	global.Cancel = cancel
 	global.CryptSession = &crySession
 	log.Infof("zicops course query initialization complete")
@@ -55,6 +48,14 @@ func main() {
 
 	if err != nil {
 		port = 8094
+	}
+	// test cassandra connection
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		log.Fatalf("Error connecting to cassandra: %v", err)
+	} else {
+		log.Infof("Cassandra connection successful")
+		session.Close()
 	}
 	bootUPErrors := make(chan error, 1)
 	go monitorSystem(cancel, bootUPErrors)

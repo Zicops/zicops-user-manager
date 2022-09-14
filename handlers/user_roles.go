@@ -11,6 +11,7 @@ import (
 	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
@@ -27,6 +28,12 @@ func AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.U
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	userLspMaps := make([]*model.UserRole, 0)
 	for _, input := range input {
 		guid := xid.New()
@@ -49,7 +56,7 @@ func AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.U
 			CreatedBy: createdBy,
 			UpdatedBy: updatedBy,
 		}
-		insertQuery := global.CassUserSession.Session.Query(userz.UserRoleTable.Insert()).BindStruct(userLspMap)
+		insertQuery := global.CassUserSession.Query(userz.UserRoleTable.Insert()).BindStruct(userLspMap)
 		if err := insertQuery.ExecRelease(); err != nil {
 			return nil, err
 		}
@@ -89,8 +96,14 @@ func UpdateUserRole(ctx context.Context, input model.UserRoleInput) (*model.User
 	userLspMap := userz.UserRole{
 		ID: *input.UserRoleID,
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	userLsps := []userz.UserRole{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserRoleTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := global.CassUserSession.Query(userz.UserRoleTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -122,7 +135,7 @@ func UpdateUserRole(ctx context.Context, input model.UserRoleInput) (*model.User
 		return nil, fmt.Errorf("nothing to update")
 	}
 	upStms, uNames := userz.UserRoleTable.Update(updatedCols...)
-	updateQuery := global.CassUserSession.Session.Query(upStms, uNames).BindStruct(&userLspMap)
+	updateQuery := global.CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
 	if err := updateQuery.ExecRelease(); err != nil {
 		log.Errorf("error updating user org: %v", err)
 		return nil, err

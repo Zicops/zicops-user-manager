@@ -492,11 +492,22 @@ type CohortMain {
   imageUrl: String
 }
 
+type PaginatedCohortsMain {
+    cohorts: [CohortMain]
+    pageCursor: String
+    direction: String
+    pageSize: Int
+}
+
 type Query {
   logout: Boolean
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
+<<<<<<< HEAD
   getLatestCohortsDetails(lsp_id: String!, user_id: String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): [CohortMain]
   getUserDetails(user_id: String!): User
+=======
+  getUserDetails(user_ids: [String]): [User]
+>>>>>>> 10486cdb24bbf8e2aa8a065d4ac031a661a1b80e
   getUserOrganizations(user_id: String!): [UserOrganizationMap]
   getUserOrgDetails(user_id: String!, user_lsp_id: String!): UserOrganizationMap
   getUserPreferences(user_id: String!): [UserPreference]
@@ -513,8 +524,15 @@ type Query {
   getUserExamResults(user_id: String!, user_ea_id: String!) : UserExamResult
   getUserExamProgress(user_id: String!, user_ea_id: String!) : [UserExamProgress]
   getLatestCohorts(user_id:String, user_lsp_id:String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCohorts
+<<<<<<< HEAD
   getCohortUsers(cohort_id: String!) : [UserCohort]
   getCohortDetails(cohort_id: String!) : CohortMain
+=======
+  getCohortUsers(cohort_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedCohorts
+  getUserQuizAttempts(user_id: String!, topic_id: String!) : [UserQuizAttempt]
+  getCohortDetails(cohort_id: String!): CohortMain
+  getCohortMains(lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCohortsMain
+>>>>>>> 10486cdb24bbf8e2aa8a065d4ac031a661a1b80e
 }
 
 type Mutation {

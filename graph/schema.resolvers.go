@@ -363,6 +363,7 @@ func (r *queryResolver) GetUsersForAdmin(ctx context.Context, publishTime *int, 
 	return result, nil
 }
 
+<<<<<<< HEAD
 // GetLatestCohortsDetails is the resolver for the getLatestCohortsDetails field.
 func (r *queryResolver) GetLatestCohortsDetails(ctx context.Context, lspID string, userID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.CohortMain, error) {
 	result, err := queries.GetLatestCohortDetails(ctx, lspID, userID, publishTime, pageCursor, direction, pageSize)
@@ -376,6 +377,10 @@ func (r *queryResolver) GetLatestCohortsDetails(ctx context.Context, lspID strin
 // GetUserDetails is the resolver for the getUserDetails field.
 func (r *queryResolver) GetUserDetails(ctx context.Context, userID string) (*model.User, error) {
 	result, err := queries.GetUserDetails(ctx, userID)
+=======
+func (r *queryResolver) GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, error) {
+	result, err := queries.GetUserDetails(ctx, userIds)
+>>>>>>> 10486cdb24bbf8e2aa8a065d4ac031a661a1b80e
 	if err != nil {
 		log.Errorf("Error getting user of an admin: %v", err)
 		return nil, err
@@ -543,9 +548,14 @@ func (r *queryResolver) GetLatestCohorts(ctx context.Context, userID *string, us
 	return result, nil
 }
 
+<<<<<<< HEAD
 // GetCohortUsers is the resolver for the getCohortUsers field.
 func (r *queryResolver) GetCohortUsers(ctx context.Context, cohortID string) ([]*model.UserCohort, error) {
 	result, err := queries.GetCohortUsers(ctx, cohortID)
+=======
+func (r *queryResolver) GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error) {
+	result, err := queries.GetCohortUsers(ctx, cohortID, publishTime, pageCursor, direction, pageSize)
+>>>>>>> 10486cdb24bbf8e2aa8a065d4ac031a661a1b80e
 	if err != nil {
 		log.Errorf("Error getting users cohorts: %v", err)
 		return nil, err
@@ -553,11 +563,36 @@ func (r *queryResolver) GetCohortUsers(ctx context.Context, cohortID string) ([]
 	return result, nil
 }
 
+<<<<<<< HEAD
 // GetCohortDetails is the resolver for the getCohortDetails field.
 func (r *queryResolver) GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, error) {
 	result, err := queries.GetCohortDetails(ctx, cohortID)
 	if err != nil {
 		log.Errorf("Error getting details cohorts: %v", err)
+=======
+func (r *queryResolver) GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]*model.UserQuizAttempt, error) {
+	result, err := queries.GetUserQuizAttempts(ctx, userID, topicID)
+	if err != nil {
+		log.Errorf("Error getting quiz attempts of a user : %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, error) {
+	result, err := queries.GetCohortDetails(ctx, cohortID)
+	if err != nil {
+		log.Errorf("Error getting cohort main : %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohortsMain, error) {
+	result, err := queries.GetCohortMains(ctx, lspID, publishTime, pageCursor, direction, pageSize)
+	if err != nil {
+		log.Errorf("Error getting cohorts: %v", err)
+>>>>>>> 10486cdb24bbf8e2aa8a065d4ac031a661a1b80e
 		return nil, err
 	}
 	return result, nil

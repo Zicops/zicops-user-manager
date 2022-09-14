@@ -10,6 +10,7 @@ import (
 	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -27,8 +28,14 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	userAdmin := userz.User{
 		ID: emailCreatorID,
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	users := []userz.User{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
+	getQuery := global.CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
@@ -58,7 +65,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 
 	qryStr := fmt.Sprintf(`SELECT * from userz.users where created_by='%s' and updated_at <= %d  ALLOW FILTERING`, email_creator, *publishTime)
 	getUsers := func(page []byte) (users []userz.User, nextPage []byte, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
+		q := global.CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		q.PageState(page)
 		q.PageSize(pageSizeInt)
@@ -127,7 +134,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	return &outputResponse, nil
 }
 
-func GetUserDetails(ctx context.Context, userID string) (*model.User, error) {
+func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -137,8 +144,14 @@ func GetUserDetails(ctx context.Context, userID string) (*model.User, error) {
 	userAdmin := userz.User{
 		ID: emailCreatorID,
 	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	global.CassUserSession = session
+	defer global.CassUserSession.Close()
 	users := []userz.User{}
-	getQuery := global.CassUserSession.Session.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
+	getQuery := global.CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
@@ -149,22 +162,7 @@ func GetUserDetails(ctx context.Context, userID string) (*model.User, error) {
 	if strings.ToLower(userAdmin.Role) != "admin" {
 		return nil, fmt.Errorf("user is not an admin")
 	}
-	qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, userID)
-	getUsers := func() (users []userz.User, err error) {
-		q := global.CassUserSession.Session.Query(qryStr, nil)
-		defer q.Release()
-
-		iter := q.Iter()
-		return users, iter.Select(&users)
-	}
-	users, err = getUsers()
-	if err != nil {
-		return nil, err
-	}
-	if len(users) == 0 {
-		return nil, fmt.Errorf("user not found")
-	}
-
+	var outputResponse []*model.User
 	storageC := bucket.NewStorageHandler()
 	gproject := googleprojectlib.GetGoogleProjectID()
 	err = storageC.InitializeStorageClient(ctx, gproject)
@@ -172,38 +170,57 @@ func GetUserDetails(ctx context.Context, userID string) (*model.User, error) {
 		log.Errorf("Failed to upload image to course: %v", err.Error())
 		return nil, err
 	}
-	userCopy := users[0]
-	createdAt := strconv.FormatInt(userCopy.CreatedAt, 10)
-	updatedAt := strconv.FormatInt(userCopy.UpdatedAt, 10)
-	photoUrl := ""
-	if userCopy.PhotoBucket != "" {
-		photoUrl = storageC.GetSignedURLForObject(userCopy.PhotoBucket)
-	} else {
-		photoUrl = userCopy.PhotoURL
-	}
-	fireBaseUser, err := global.IDP.GetUserByEmail(ctx, userCopy.Email)
-	if err != nil {
-		log.Errorf("Failed to get user from firebase: %v", err.Error())
-	}
-	outputUser := &model.User{
-		ID:         &userCopy.ID,
-		Email:      userCopy.Email,
-		FirstName:  userCopy.FirstName,
-		LastName:   userCopy.LastName,
-		Role:       userCopy.Role,
-		CreatedAt:  createdAt,
-		UpdatedAt:  updatedAt,
-		PhotoURL:   &photoUrl,
-		IsVerified: userCopy.IsVerified,
-		IsActive:   userCopy.IsActive,
-		CreatedBy:  &userCopy.CreatedBy,
-		UpdatedBy:  &userCopy.UpdatedBy,
-		Status:     userCopy.Status,
-		Gender:     userCopy.Gender,
-		Phone:      fireBaseUser.PhoneNumber,
+	for _, userID := range userIds {
+		qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, *userID)
+		getUsers := func() (users []userz.User, err error) {
+			q := global.CassUserSession.Query(qryStr, nil)
+			defer q.Release()
+
+			iter := q.Iter()
+			return users, iter.Select(&users)
+		}
+		users, err = getUsers()
+		if err != nil {
+			return nil, err
+		}
+		if len(users) == 0 {
+			return nil, fmt.Errorf("user not found")
+		}
+
+		userCopy := users[0]
+		createdAt := strconv.FormatInt(userCopy.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(userCopy.UpdatedAt, 10)
+		photoUrl := ""
+		if userCopy.PhotoBucket != "" {
+			photoUrl = storageC.GetSignedURLForObject(userCopy.PhotoBucket)
+		} else {
+			photoUrl = userCopy.PhotoURL
+		}
+		fireBaseUser, err := global.IDP.GetUserByEmail(ctx, userCopy.Email)
+		if err != nil {
+			log.Errorf("Failed to get user from firebase: %v", err.Error())
+		}
+		outputUser := &model.User{
+			ID:         &userCopy.ID,
+			Email:      userCopy.Email,
+			FirstName:  userCopy.FirstName,
+			LastName:   userCopy.LastName,
+			Role:       userCopy.Role,
+			CreatedAt:  createdAt,
+			UpdatedAt:  updatedAt,
+			PhotoURL:   &photoUrl,
+			IsVerified: userCopy.IsVerified,
+			IsActive:   userCopy.IsActive,
+			CreatedBy:  &userCopy.CreatedBy,
+			UpdatedBy:  &userCopy.UpdatedBy,
+			Status:     userCopy.Status,
+			Gender:     userCopy.Gender,
+			Phone:      fireBaseUser.PhoneNumber,
+		}
+		outputResponse = append(outputResponse, outputUser)
 	}
 
-	return outputUser, nil
+	return outputResponse, nil
 }
 
 func GetLatestCohortDetails(ctx context.Context, lspID string, userID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) ([]*model.CohortMain, error) {
