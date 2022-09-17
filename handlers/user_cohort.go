@@ -135,7 +135,7 @@ func UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.
 		userLspMap.UserLspID = input.UserLspID
 		updatedCols = append(updatedCols, "user_lsp_id")
 	}
-	if input.Role != "" && userLspMap.Role == input.Role {
+	if input.Role != "" && userLspMap.Role != input.Role {
 		userLspMap.Role = input.Role
 		updatedCols = append(updatedCols, "role")
 	}
