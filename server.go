@@ -11,6 +11,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/controller"
 	"github.com/zicops/zicops-user-manager/global"
 	cry "github.com/zicops/zicops-user-manager/lib/crypto"
@@ -55,6 +56,12 @@ func main() {
 		log.Fatalf("Error connecting to cassandra: %v ", err1)
 	} else {
 		log.Infof("Cassandra connection successful")
+	}
+	_, err = redis.Initialize()
+	if err != nil {
+		log.Fatalf("Error connecting to redis: %v ", err)
+	} else {
+		log.Infof("Redis connection successful")
 	}
 	bootUPErrors := make(chan error, 1)
 	go monitorSystem(cancel, bootUPErrors)

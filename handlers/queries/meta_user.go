@@ -3,12 +3,14 @@ package queries
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -39,6 +41,16 @@ func GetUserNotes(ctx context.Context, userID string, userLspID string, publishT
 			return nil, fmt.Errorf("invalid page cursor: %v", err)
 		}
 		newPage = page
+	}
+	var outputResponse model.PaginatedNotes
+
+	key := "GetUserNotes" + userLspID + string(newPage)
+	result, err := redis.GetRedisValue(key)
+	if err == nil {
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return &outputResponse, nil
+		}
 	}
 	if pageSize == nil {
 		pageSizeInt = 10
@@ -72,7 +84,6 @@ func GetUserNotes(ctx context.Context, userID string, userLspID string, publishT
 		log.Infof("Users: %v", string(newCursor))
 
 	}
-	var outputResponse model.PaginatedNotes
 	allCourses := make([]*model.UserNotes, 0)
 	for _, copiedCourse := range userNotes {
 		courseCopy := copiedCourse
@@ -100,6 +111,11 @@ func GetUserNotes(ctx context.Context, userID string, userLspID string, publishT
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
+	redisBytes, err := json.Marshal(outputResponse)
+	if err == nil {
+		redis.SetTTL(key, 3600)
+		redis.SetRedisValue(key, string(redisBytes))
+	}
 	return &outputResponse, nil
 }
 
@@ -128,6 +144,15 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publ
 			return nil, fmt.Errorf("invalid page cursor: %v", err)
 		}
 		newPage = page
+	}
+	key := "GetUserBookmarks" + userLspID + string(newPage) + userID
+	result, err := redis.GetRedisValue(key)
+	var outputResponse model.PaginatedBookmarks
+	if err == nil {
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return &outputResponse, nil
+		}
 	}
 	if pageSize == nil {
 		pageSizeInt = 10
@@ -161,7 +186,6 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publ
 		log.Infof("Users: %v", string(newCursor))
 
 	}
-	var outputResponse model.PaginatedBookmarks
 	allCourses := make([]*model.UserBookmark, 0)
 	for _, copiedCourse := range userNotes {
 		courseCopy := copiedCourse
@@ -189,6 +213,11 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publ
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
+	redisBytes, err := json.Marshal(outputResponse)
+	if err == nil {
+		redis.SetTTL(key, 3600)
+		redis.SetRedisValue(key, string(redisBytes))
+	}
 	return &outputResponse, nil
 }
 
@@ -196,6 +225,15 @@ func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) (
 	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
+	}
+	key := "GetUserExamAttempts" + userLspID + userID
+	result, err := redis.GetRedisValue(key)
+	var outputResponse []*model.UserExamAttempts
+	if err == nil {
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return outputResponse, nil
+		}
 	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
@@ -241,6 +279,11 @@ func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) (
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
+	redisBytes, err := json.Marshal(userOrgs)
+	if err == nil {
+		redis.SetTTL(key, 3600)
+		redis.SetRedisValue(key, string(redisBytes))
+	}
 	return userOrgs, nil
 }
 
@@ -249,6 +292,16 @@ func GetUserExamResults(ctx context.Context, userID string, userEaID string) (*m
 	if err != nil {
 		return nil, err
 	}
+	key := "GetUserExamResults" + userEaID + userID
+	result, err := redis.GetRedisValue(key)
+	var outputResponse model.UserExamResult
+	if err == nil {
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return &outputResponse, nil
+		}
+	}
+
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
@@ -289,6 +342,11 @@ func GetUserExamResults(ctx context.Context, userID string, userEaID string) (*m
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
+	redisBytes, err := json.Marshal(userOrgs[0])
+	if err == nil {
+		redis.SetTTL(key, 3600)
+		redis.SetRedisValue(key, string(redisBytes))
+	}
 	return userOrgs[0], nil
 }
 
@@ -296,6 +354,15 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
+	}
+	key := "GetUserExamProgress" + userEaID + userID
+	result, err := redis.GetRedisValue(key)
+	var outputResponse []*model.UserExamProgress
+	if err == nil {
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return outputResponse, nil
+		}
 	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
@@ -344,6 +411,11 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
+	redisBytes, err := json.Marshal(userOrgs)
+	if err == nil {
+		redis.SetTTL(key, 60)
+		redis.SetRedisValue(key, string(redisBytes))
+	}
 	return userOrgs, nil
 }
 
@@ -351,6 +423,15 @@ func GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]
 	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
+	}
+	key := "GetUserQuizAttempts" + topicID + userID
+	result, err := redis.GetRedisValue(key)
+	var outputResponse []*model.UserQuizAttempt
+	if err == nil {
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return outputResponse, nil
+		}
 	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
@@ -393,6 +474,11 @@ func GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]
 			UpdatedAt:    updatedAt,
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
+	}
+	redisBytes, err := json.Marshal(userOrgs)
+	if err == nil {
+		redis.SetTTL(key, 60)
+		redis.SetRedisValue(key, string(redisBytes))
 	}
 	return userOrgs, nil
 }

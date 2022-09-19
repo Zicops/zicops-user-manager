@@ -3,6 +3,7 @@ package queries
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -23,8 +25,27 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	if err != nil {
 		return nil, err
 	}
+	var outputResponse model.PaginatedUsers
+	var newPage []byte
+	//var pageDirection string
+	var pageSizeInt int
+	if pageCursor != nil && *pageCursor != "" {
+		page, err := global.CryptSession.DecryptString(*pageCursor, nil)
+		if err != nil {
+			return nil, fmt.Errorf("invalid page cursor: %v", err)
+		}
+		newPage = page
+	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	key := "GetUsersForAdmin" + emailCreatorID + string(newPage)
+	result, err := redis.GetRedisValue(key)
+	if err == nil {
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return &outputResponse, nil
+		}
+	}
 	userAdmin := userz.User{
 		ID: emailCreatorID,
 	}
@@ -45,16 +66,6 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	userAdmin = users[0]
 	if strings.ToLower(userAdmin.Role) != "admin" {
 		return nil, fmt.Errorf("user is not an admin")
-	}
-	var newPage []byte
-	//var pageDirection string
-	var pageSizeInt int
-	if pageCursor != nil && *pageCursor != "" {
-		page, err := global.CryptSession.DecryptString(*pageCursor, nil)
-		if err != nil {
-			return nil, fmt.Errorf("invalid page cursor: %v", err)
-		}
-		newPage = page
 	}
 	if pageSize == nil {
 		pageSizeInt = 10
@@ -85,7 +96,6 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 		log.Infof("Users: %v", string(newCursor))
 
 	}
-	var outputResponse model.PaginatedUsers
 	storageC := bucket.NewStorageHandler()
 	gproject := googleprojectlib.GetGoogleProjectID()
 	err = storageC.InitializeStorageClient(ctx, gproject)
@@ -131,6 +141,11 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
+	redisBytes, err := json.Marshal(outputResponse)
+	if err == nil {
+		redis.SetTTL(key, 3600)
+		redis.SetRedisValue(key, string(redisBytes))
+	}
 	return &outputResponse, nil
 }
 
@@ -141,6 +156,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	var outputResponse []*model.User
 	userAdmin := userz.User{
 		ID: emailCreatorID,
 	}
@@ -162,7 +178,6 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	if strings.ToLower(userAdmin.Role) != "admin" {
 		return nil, fmt.Errorf("user is not an admin")
 	}
-	var outputResponse []*model.User
 	storageC := bucket.NewStorageHandler()
 	gproject := googleprojectlib.GetGoogleProjectID()
 	err = storageC.InitializeStorageClient(ctx, gproject)
@@ -171,6 +186,17 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 		return nil, err
 	}
 	for _, userID := range userIds {
+		key := "GetUserDetails" + *userID
+		result, err := redis.GetRedisValue(key)
+		if err == nil {
+			cachedUser := &model.User{}
+			err = json.Unmarshal([]byte(result), cachedUser)
+			if err == nil {
+				outputResponse = append(outputResponse, cachedUser)
+				continue
+			}
+		}
+
 		qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, *userID)
 		getUsers := func() (users []userz.User, err error) {
 			q := CassUserSession.Query(qryStr, nil)
@@ -218,6 +244,11 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			Phone:      fireBaseUser.PhoneNumber,
 		}
 		outputResponse = append(outputResponse, outputUser)
+		redisBytes, err := json.Marshal(outputUser)
+		if err == nil {
+			redis.SetTTL(key, 3600)
+			redis.SetRedisValue(key, string(redisBytes))
+		}
 	}
 
 	return outputResponse, nil

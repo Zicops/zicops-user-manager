@@ -3,12 +3,14 @@ package queries
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -39,6 +41,15 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 			return nil, fmt.Errorf("invalid page cursor: %v", err)
 		}
 		newPage = page
+	}
+	key := "GetUserCourseMaps" + emailCreatorID + string(newPage)
+	result, err := redis.GetRedisValue(key)
+	if err == nil {
+		var outputResponse model.PaginatedCourseMaps
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return &outputResponse, nil
+		}
 	}
 	if pageSize == nil {
 		pageSizeInt = 10
@@ -97,6 +108,11 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
+	redisBytes, err := json.Marshal(outputResponse)
+	if err == nil {
+		redis.SetTTL(key, 90)
+		redis.SetRedisValue(key, string(redisBytes))
+	}
 	return &outputResponse, nil
 }
 
@@ -109,6 +125,15 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
 	if userId != "" {
 		emailCreatorID = userId
+	}
+	key := "GetUserCourseMapByCourseID" + emailCreatorID + courseID
+	result, err := redis.GetRedisValue(key)
+	if err == nil {
+		var outputResponse []*model.UserCourse
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return outputResponse, nil
+		}
 	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
@@ -152,6 +177,11 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 			UpdatedBy:    &courseCopy.UpdatedBy,
 		}
 		allCourses = append(allCourses, currentCourse)
+	}
+	redisBytes, err := json.Marshal(allCourses)
+	if err == nil {
+		redis.SetTTL(key, 90)
+		redis.SetRedisValue(key, string(redisBytes))
 	}
 	return allCourses, nil
 }
