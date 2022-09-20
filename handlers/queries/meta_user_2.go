@@ -463,34 +463,33 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 	}
 	key := "GetCohortDetails" + cohortID
 	result, err := redis.GetRedisValue(key)
+	cohort := userz.Cohort{}
 	if err == nil {
-		var cohort model.CohortMain
-		err = json.Unmarshal([]byte(result), &cohort)
-		if err == nil {
-			return &cohort, nil
-		}
+		json.Unmarshal([]byte(result), &cohort)
 	}
 	var storageC *bucket.Client
 	var photoBucket string
 	var photoUrl string
-	currentCohort := userz.Cohort{
-		ID: cohortID,
-	}
-	session, err := cassandra.GetCassSession("userz")
-	if err != nil {
-		return nil, err
-	}
-	CassUserSession := session
+	if cohort.ID == "" {
+		currentCohort := userz.Cohort{
+			ID: cohortID,
+		}
+		session, err := cassandra.GetCassSession("userz")
+		if err != nil {
+			return nil, err
+		}
+		CassUserSession := session
 
-	cohorts := []userz.Cohort{}
-	getQuery := CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
-	if err := getQuery.SelectRelease(&cohorts); err != nil {
-		return nil, err
+		cohorts := []userz.Cohort{}
+		getQuery := CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
+		if err := getQuery.SelectRelease(&cohorts); err != nil {
+			return nil, err
+		}
+		if len(cohorts) == 0 {
+			return nil, fmt.Errorf("cohorts not found")
+		}
+		cohort = cohorts[0]
 	}
-	if len(cohorts) == 0 {
-		return nil, fmt.Errorf("cohorts not found")
-	}
-	cohort := cohorts[0]
 	photoBucket = cohort.ImageBucket
 	if photoBucket != "" {
 		if storageC == nil {
@@ -521,7 +520,7 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 		LspID:       cohort.LspID,
 		Size:        cohort.Size,
 	}
-	redisBytes, err := json.Marshal(outputCohort)
+	redisBytes, err := json.Marshal(cohort)
 	if err == nil {
 		redis.SetTTL(key, 3600)
 		redis.SetRedisValue(key, string(redisBytes))
@@ -547,54 +546,54 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 		newPage = page
 	}
 	key := "GetCohortMains" + lspID + string(newPage)
+	cohorts := make([]userz.Cohort, 0)
 	result, err := redis.GetRedisValue(key)
 	if err == nil {
-		var cohorts model.PaginatedCohortsMain
-		err = json.Unmarshal([]byte(result), &cohorts)
-		if err == nil {
-			return &cohorts, nil
-		}
-	}
-	userAdmin := userz.User{
-		ID: emailCreatorID,
-	}
-	session, err := cassandra.GetCassSession("userz")
-	if err != nil {
-		return nil, err
-	}
-	CassUserSession := session
-
-	users := []userz.User{}
-	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
-	if err := getQuery.SelectRelease(&users); err != nil {
-		return nil, err
-	}
-	if len(users) == 0 {
-		return nil, fmt.Errorf("user not found")
-	}
-	userAdmin = users[0]
-	if strings.ToLower(userAdmin.Role) != "admin" {
-		return nil, fmt.Errorf("user is not an admin")
-	}
-
-	if pageSize == nil {
-		pageSizeInt = 10
-	} else {
-		pageSizeInt = *pageSize
+		json.Unmarshal([]byte(result), &cohorts)
 	}
 	var newCursor string
-	qryStr := fmt.Sprintf(`SELECT * from userz.cohort_main where lsp_id='%s' and updated_at<=%d ALLOW FILTERING`, lspID, *publishTime)
-	getCohorts := func(page []byte) (users []userz.Cohort, nextPage []byte, err error) {
-		q := CassUserSession.Query(qryStr, nil)
-		defer q.Release()
-		q.PageState(page)
-		q.PageSize(pageSizeInt)
-		iter := q.Iter()
-		return users, iter.PageState(), iter.Select(&users)
-	}
-	cohorts, newPage, err := getCohorts(newPage)
-	if err != nil {
-		return nil, err
+
+	if len(cohorts) <= 0 {
+		userAdmin := userz.User{
+			ID: emailCreatorID,
+		}
+		session, err := cassandra.GetCassSession("userz")
+		if err != nil {
+			return nil, err
+		}
+		CassUserSession := session
+
+		users := []userz.User{}
+		getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
+		if err := getQuery.SelectRelease(&users); err != nil {
+			return nil, err
+		}
+		if len(users) == 0 {
+			return nil, fmt.Errorf("user not found")
+		}
+		userAdmin = users[0]
+		if strings.ToLower(userAdmin.Role) != "admin" {
+			return nil, fmt.Errorf("user is not an admin")
+		}
+
+		if pageSize == nil {
+			pageSizeInt = 10
+		} else {
+			pageSizeInt = *pageSize
+		}
+		qryStr := fmt.Sprintf(`SELECT * from userz.cohort_main where lsp_id='%s' and updated_at<=%d ALLOW FILTERING`, lspID, *publishTime)
+		getCohorts := func(page []byte) (users []userz.Cohort, nextPage []byte, err error) {
+			q := CassUserSession.Query(qryStr, nil)
+			defer q.Release()
+			q.PageState(page)
+			q.PageSize(pageSizeInt)
+			iter := q.Iter()
+			return users, iter.PageState(), iter.Select(&users)
+		}
+		cohorts, newPage, err = getCohorts(newPage)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if len(newPage) != 0 {
 		newCursor, err = global.CryptSession.EncryptAsString(newPage, nil)
@@ -646,7 +645,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
-	redisBytes, err := json.Marshal(outputResponse)
+	redisBytes, err := json.Marshal(cohorts)
 	if err == nil {
 		redis.SetTTL(key, 3600)
 		redis.SetRedisValue(key, string(redisBytes))

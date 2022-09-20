@@ -26,6 +26,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 		return nil, err
 	}
 	var outputResponse model.PaginatedUsers
+	users := make([]userz.User, 0)
 	var newPage []byte
 	//var pageDirection string
 	var pageSizeInt int
@@ -41,52 +42,54 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	key := "GetUsersForAdmin" + emailCreatorID + string(newPage)
 	result, err := redis.GetRedisValue(key)
 	if err == nil {
-		err = json.Unmarshal([]byte(result), &outputResponse)
-		if err == nil {
-			return &outputResponse, nil
+		err = json.Unmarshal([]byte(result), &users)
+		if err != nil {
+			log.Errorf("error while unmarshalling redis value: %v", err)
 		}
 	}
-	userAdmin := userz.User{
-		ID: emailCreatorID,
-	}
-	session, err := cassandra.GetCassSession("userz")
-	if err != nil {
-		return nil, err
-	}
-	CassUserSession := session
-
-	users := []userz.User{}
-	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
-	if err := getQuery.SelectRelease(&users); err != nil {
-		return nil, err
-	}
-	if len(users) == 0 {
-		return nil, fmt.Errorf("user not found")
-	}
-	userAdmin = users[0]
-	if strings.ToLower(userAdmin.Role) != "admin" {
-		return nil, fmt.Errorf("user is not an admin")
-	}
-	if pageSize == nil {
-		pageSizeInt = 10
-	} else {
-		pageSizeInt = *pageSize
-	}
 	var newCursor string
+	if len(users) <= 0 {
+		userAdmin := userz.User{
+			ID: emailCreatorID,
+		}
+		session, err := cassandra.GetCassSession("userz")
+		if err != nil {
+			return nil, err
+		}
+		CassUserSession := session
 
-	qryStr := fmt.Sprintf(`SELECT * from userz.users where created_by='%s' and updated_at <= %d  ALLOW FILTERING`, email_creator, *publishTime)
-	getUsers := func(page []byte) (users []userz.User, nextPage []byte, err error) {
-		q := CassUserSession.Query(qryStr, nil)
-		defer q.Release()
-		q.PageState(page)
-		q.PageSize(pageSizeInt)
+		users := []userz.User{}
+		getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
+		if err := getQuery.SelectRelease(&users); err != nil {
+			return nil, err
+		}
+		if len(users) == 0 {
+			return nil, fmt.Errorf("user not found")
+		}
+		userAdmin = users[0]
+		if strings.ToLower(userAdmin.Role) != "admin" {
+			return nil, fmt.Errorf("user is not an admin")
+		}
+		if pageSize == nil {
+			pageSizeInt = 10
+		} else {
+			pageSizeInt = *pageSize
+		}
 
-		iter := q.Iter()
-		return users, iter.PageState(), iter.Select(&users)
-	}
-	users, newPage, err = getUsers(newPage)
-	if err != nil {
-		return nil, err
+		qryStr := fmt.Sprintf(`SELECT * from userz.users where created_by='%s' and updated_at <= %d  ALLOW FILTERING`, email_creator, *publishTime)
+		getUsers := func(page []byte) (users []userz.User, nextPage []byte, err error) {
+			q := CassUserSession.Query(qryStr, nil)
+			defer q.Release()
+			q.PageState(page)
+			q.PageSize(pageSizeInt)
+
+			iter := q.Iter()
+			return users, iter.PageState(), iter.Select(&users)
+		}
+		users, newPage, err = getUsers(newPage)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if len(newPage) != 0 {
 		newCursor, err = global.CryptSession.EncryptAsString(newPage, nil)
@@ -141,7 +144,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
-	redisBytes, err := json.Marshal(outputResponse)
+	redisBytes, err := json.Marshal(users)
 	if err == nil {
 		redis.SetTTL(key, 3600)
 		redis.SetRedisValue(key, string(redisBytes))
@@ -186,34 +189,32 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 		return nil, err
 	}
 	for _, userID := range userIds {
+		userCopy := userz.User{}
 		key := "GetUserDetails" + *userID
 		result, err := redis.GetRedisValue(key)
 		if err == nil {
-			cachedUser := &model.User{}
-			err = json.Unmarshal([]byte(result), cachedUser)
-			if err == nil {
-				outputResponse = append(outputResponse, cachedUser)
-				continue
+			json.Unmarshal([]byte(result), &userCopy)
+
+		}
+		if userCopy.ID == "" {
+			qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, *userID)
+			getUsers := func() (users []userz.User, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+
+				iter := q.Iter()
+				return users, iter.Select(&users)
 			}
-		}
+			users, err = getUsers()
+			if err != nil {
+				return nil, err
+			}
+			if len(users) == 0 {
+				return nil, fmt.Errorf("user not found")
+			}
 
-		qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, *userID)
-		getUsers := func() (users []userz.User, err error) {
-			q := CassUserSession.Query(qryStr, nil)
-			defer q.Release()
-
-			iter := q.Iter()
-			return users, iter.Select(&users)
+			userCopy = users[0]
 		}
-		users, err = getUsers()
-		if err != nil {
-			return nil, err
-		}
-		if len(users) == 0 {
-			return nil, fmt.Errorf("user not found")
-		}
-
-		userCopy := users[0]
 		createdAt := strconv.FormatInt(userCopy.CreatedAt, 10)
 		updatedAt := strconv.FormatInt(userCopy.UpdatedAt, 10)
 		photoUrl := ""
@@ -244,7 +245,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			Phone:      fireBaseUser.PhoneNumber,
 		}
 		outputResponse = append(outputResponse, outputUser)
-		redisBytes, err := json.Marshal(outputUser)
+		redisBytes, err := json.Marshal(userCopy)
 		if err == nil {
 			redis.SetTTL(key, 3600)
 			redis.SetRedisValue(key, string(redisBytes))
