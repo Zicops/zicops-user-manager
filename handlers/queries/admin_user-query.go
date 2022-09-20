@@ -58,7 +58,6 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 		}
 		CassUserSession := session
 
-		users := []userz.User{}
 		getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
 		if err := getQuery.SelectRelease(&users); err != nil {
 			return nil, err
