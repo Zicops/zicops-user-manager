@@ -12,6 +12,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph"
 	"github.com/zicops/zicops-user-manager/graph/generated"
 	"github.com/zicops/zicops-user-manager/lib/jwt"
@@ -34,11 +35,33 @@ func CCRouter() (*gin.Engine, error) {
 		c.Set("zclaims", claimsFromToken)
 	})
 	restRouter.GET("/healthz", HealthCheckHandler)
+	restRouter.POST("/reset-password", ResetPasswordHandler)
 	// create group for restRouter
 	version1 := restRouter.Group("/api/v1")
 	version1.POST("/query", graphqlHandler())
 	version1.GET("/playql", playgroundHandler())
 	return restRouter, nil
+}
+
+type ResetPasswordRequest struct {
+	Email string `json:"email"`
+}
+
+func ResetPasswordHandler(c *gin.Context) {
+	// get the request body
+	var resetPasswordRequest ResetPasswordRequest
+	if err := c.ShouldBindJSON(&resetPasswordRequest); err != nil {
+		log.Error(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	email := resetPasswordRequest.Email
+	ctx := c.Request.Context()
+	passwordReset, err := global.IDP.GetResetPasswordURL(ctx, email)
+	if err != nil {
+		return
+	}
+	global.SGClient.SendJoinEmail(email, passwordReset, "")
 }
 
 func HealthCheckHandler(c *gin.Context) {

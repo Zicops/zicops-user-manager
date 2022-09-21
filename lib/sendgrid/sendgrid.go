@@ -28,12 +28,28 @@ func (sgc *ClientSendGrid) InitializeSendGridClient() error {
 	return nil
 }
 
-// SendPasswordResetEmail ......
+// SendJoinEmail ......
 func (sgc *ClientSendGrid) SendJoinEmail(
 	email string,
 	verifyURL string, username string) error {
 	from := mail.NewEmail("Zicops Admin", "noreply@zicops.com")
 	subject := "You are invited to join Zicops"
+	to := mail.NewEmail(username, email)
+	plainTextContent := "Follow the link to reset your password: " + verifyURL
+	message := mail.NewSingleEmail(from, subject, to, plainTextContent, "")
+	_, err := sgc.client.Send(message)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SendPasswordResetEmail ......
+func (sgc *ClientSendGrid) SendPasswordResetEmail(
+	email string,
+	verifyURL string, username string) error {
+	from := mail.NewEmail("Zicops Admin", "noreply@zicops.com")
+	subject := "Link to reset your password"
 	to := mail.NewEmail(username, email)
 	plainTextContent := "Follow the link to reset your password: " + verifyURL
 	message := mail.NewSingleEmail(from, subject, to, plainTextContent, "")
