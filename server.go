@@ -57,6 +57,7 @@ func main() {
 	} else {
 		log.Infof("Cassandra connection successful")
 	}
+	// test redis connection
 	_, err = redis.Initialize()
 	if err != nil {
 		log.Fatalf("Error connecting to redis: %v ", err)
