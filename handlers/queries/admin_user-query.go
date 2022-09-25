@@ -152,34 +152,17 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 }
 
 func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	email_creator := claims["email"].(string)
-	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
 	var outputResponse []*model.User
-	userAdmin := userz.User{
-		ID: emailCreatorID,
-	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
 	CassUserSession := session
 
-	users := []userz.User{}
-	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
-	if err := getQuery.SelectRelease(&users); err != nil {
-		return nil, err
-	}
-	if len(users) == 0 {
-		return nil, fmt.Errorf("user not found")
-	}
-	userAdmin = users[0]
-	if strings.ToLower(userAdmin.Role) != "admin" {
-		return nil, fmt.Errorf("user is not an admin")
-	}
 	storageC := bucket.NewStorageHandler()
 	gproject := googleprojectlib.GetGoogleProjectID()
 	err = storageC.InitializeStorageClient(ctx, gproject)
@@ -204,7 +187,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 				iter := q.Iter()
 				return users, iter.Select(&users)
 			}
-			users, err = getUsers()
+			users, err := getUsers()
 			if err != nil {
 				return nil, err
 			}
