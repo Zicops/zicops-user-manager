@@ -79,7 +79,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 		}
 		_, err := global.IDP.RegisterUser(ctx, user.Email, user.FirstName, user.LastName, user.Phone)
 		if err != nil {
-			return nil, err
+			log.Errorf("error while registering user: %v", err)
 		}
 		if user.CreatedBy == nil {
 			user.CreatedBy = &user.Email
