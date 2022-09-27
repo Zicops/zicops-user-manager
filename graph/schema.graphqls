@@ -499,8 +499,16 @@ type PaginatedCohortsMain {
     pageSize: Int
 }
 
+type PaginatedUserLspMaps {
+    user_lsp_maps: [UserLspMap]
+    pageCursor: String
+    direction: String
+    pageSize: Int
+}
+
 type Query {
   logout: Boolean
+  getUserLspMapsByLspId(lsp_id: String!, pageCursor: String, Direction: String, pageSize:Int): PaginatedUserLspMaps
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
   getUserDetails(user_ids: [String]): [User]
   getUserOrganizations(user_id: String!): [UserOrganizationMap]

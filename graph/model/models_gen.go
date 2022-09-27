@@ -74,6 +74,13 @@ type PaginatedNotes struct {
 	PageSize   *int         `json:"pageSize"`
 }
 
+type PaginatedUserLspMaps struct {
+	UserLspMaps []*UserLspMap `json:"user_lsp_maps"`
+	PageCursor  *string       `json:"pageCursor"`
+	Direction   *string       `json:"direction"`
+	PageSize    *int          `json:"pageSize"`
+}
+
 type PaginatedUsers struct {
 	Users      []*User `json:"users"`
 	PageCursor *string `json:"pageCursor"`
