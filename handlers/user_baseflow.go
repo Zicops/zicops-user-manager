@@ -169,6 +169,10 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 		return nil, fmt.Errorf("user is not an admin")
 	}
 	for _, email := range emails {
+		if email == email_creator {
+			log.Errorf("user %v is trying to invite himself", email_creator)
+			continue
+		}
 		userID := base64.URLEncoding.EncodeToString([]byte(email))
 		userInput := model.UserInput{
 			ID:         &userID,
