@@ -3,13 +3,11 @@ package queries
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"strconv"
 
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
-	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
 )
@@ -24,15 +22,15 @@ func GetUserOrganizations(ctx context.Context, userId string) ([]*model.UserOrga
 	if userId != "" {
 		emailCreatorID = userId
 	}
-	key := "GetUserOrganizations" + emailCreatorID
-	result, err := redis.GetRedisValue(key)
-	if err == nil {
-		var userOrgs []*model.UserOrganizationMap
-		err = json.Unmarshal([]byte(result), &userOrgs)
-		if err == nil {
-			return userOrgs, nil
-		}
-	}
+	//key := "GetUserOrganizations" + emailCreatorID
+	//result, err := redis.GetRedisValue(key)
+	//if err == nil {
+	//	var userOrgs []*model.UserOrganizationMap
+	//	err = json.Unmarshal([]byte(result), &userOrgs)
+	//	if err == nil {
+	//		return userOrgs, nil
+	//	}
+	//}
 
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
@@ -71,11 +69,11 @@ func GetUserOrganizations(ctx context.Context, userId string) ([]*model.UserOrga
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
-	redisBytes, err := json.Marshal(userOrgs)
-	if err == nil {
-		redis.SetTTL(key, 3600)
-		redis.SetRedisValue(key, string(redisBytes))
-	}
+	//redisBytes, err := json.Marshal(userOrgs)
+	//if err == nil {
+	//	redis.SetTTL(key, 3600)
+	//	redis.SetRedisValue(key, string(redisBytes))
+	//}
 	return userOrgs, nil
 }
 
@@ -89,15 +87,15 @@ func GetUserPreferences(ctx context.Context, userId string) ([]*model.UserPrefer
 	if userId != "" {
 		emailCreatorID = userId
 	}
-	key := "GetUserPreferences" + emailCreatorID
-	result, err := redis.GetRedisValue(key)
-	if err == nil {
-		var userPreferences []*model.UserPreference
-		err = json.Unmarshal([]byte(result), &userPreferences)
-		if err == nil {
-			return userPreferences, nil
-		}
-	}
+	//key := "GetUserPreferences" + emailCreatorID
+	//result, err := redis.GetRedisValue(key)
+	//if err == nil {
+	//	var userPreferences []*model.UserPreference
+	//	err = json.Unmarshal([]byte(result), &userPreferences)
+	//	if err == nil {
+	//		return userPreferences, nil
+	//	}
+	//}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
@@ -134,11 +132,11 @@ func GetUserPreferences(ctx context.Context, userId string) ([]*model.UserPrefer
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
-	redisBytes, err := json.Marshal(userOrgs)
-	if err == nil {
-		redis.SetTTL(key, 3600)
-		redis.SetRedisValue(key, string(redisBytes))
-	}
+	//redisBytes, err := json.Marshal(userOrgs)
+	//if err == nil {
+	//	redis.SetTTL(key, 3600)
+	//	redis.SetRedisValue(key, string(redisBytes))
+	//}
 	return userOrgs, nil
 }
 
@@ -152,15 +150,15 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 	if userId != "" {
 		emailCreatorID = userId
 	}
-	key := "GetUserLsps" + emailCreatorID
-	result, err := redis.GetRedisValue(key)
-	if err == nil {
-		var userLsps []*model.UserLspMap
-		err = json.Unmarshal([]byte(result), &userLsps)
-		if err == nil {
-			return userLsps, nil
-		}
-	}
+	//key := "GetUserLsps" + emailCreatorID
+	//result, err := redis.GetRedisValue(key)
+	//if err == nil {
+	//	var userLsps []*model.UserLspMap
+	//	err = json.Unmarshal([]byte(result), &userLsps)
+	//	if err == nil {
+	//		return userLsps, nil
+	//	}
+	//}
 
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
@@ -196,11 +194,11 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
-	redisBytes, err := json.Marshal(userOrgs)
-	if err == nil {
-		redis.SetTTL(key, 3600)
-		redis.SetRedisValue(key, string(redisBytes))
-	}
+	//redisBytes, err := json.Marshal(userOrgs)
+	//if err == nil {
+	//	redis.SetTTL(key, 3600)
+	//	redis.SetRedisValue(key, string(redisBytes))
+	//}
 
 	return userOrgs, nil
 }
@@ -210,15 +208,15 @@ func GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model
 	if err != nil {
 		return nil, err
 	}
-	key := "GetUserOrgDetails" + userID + lspID
-	result, err := redis.GetRedisValue(key)
-	if err == nil {
-		var userOrgDetails *model.UserOrganizationMap
-		err = json.Unmarshal([]byte(result), &userOrgDetails)
-		if err == nil {
-			return userOrgDetails, nil
-		}
-	}
+	//key := "GetUserOrgDetails" + userID + lspID
+	//result, err := redis.GetRedisValue(key)
+	//if err == nil {
+	//	var userOrgDetails *model.UserOrganizationMap
+	//	err = json.Unmarshal([]byte(result), &userOrgDetails)
+	//	if err == nil {
+	//		return userOrgDetails, nil
+	//	}
+	//}
 
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
@@ -260,11 +258,11 @@ func GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
-	redisBytes, err := json.Marshal(userOrgs[0])
-	if err == nil {
-		redis.SetTTL(key, 3600)
-		redis.SetRedisValue(key, string(redisBytes))
-	}
+	//redisBytes, err := json.Marshal(userOrgs[0])
+	//if err == nil {
+	//	redis.SetTTL(key, 3600)
+	//	redis.SetRedisValue(key, string(redisBytes))
+	//}
 
 	return userOrgs[0], nil
 }
@@ -274,15 +272,15 @@ func GetUserPreferenceForLsp(ctx context.Context, userID string, lspID string) (
 	if err != nil {
 		return nil, err
 	}
-	key := "GetUserPreferenceForLsp" + userID + lspID
-	result, err := redis.GetRedisValue(key)
-	if err == nil {
-		var userPreference *model.UserPreference
-		err = json.Unmarshal([]byte(result), &userPreference)
-		if err == nil {
-			return userPreference, nil
-		}
-	}
+	//key := "GetUserPreferenceForLsp" + userID + lspID
+	//result, err := redis.GetRedisValue(key)
+	//if err == nil {
+	//	var userPreference *model.UserPreference
+	//	err = json.Unmarshal([]byte(result), &userPreference)
+	//	if err == nil {
+	//		return userPreference, nil
+	//	}
+	//}
 
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
@@ -323,11 +321,11 @@ func GetUserPreferenceForLsp(ctx context.Context, userID string, lspID string) (
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
-	redisBytes, err := json.Marshal(userOrgs[0])
-	if err == nil {
-		redis.SetTTL(key, 3600)
-		redis.SetRedisValue(key, string(redisBytes))
-	}
+	//redisBytes, err := json.Marshal(userOrgs[0])
+	//if err == nil {
+	//	redis.SetTTL(key, 3600)
+	//	redis.SetRedisValue(key, string(redisBytes))
+	//}
 	return userOrgs[0], nil
 }
 
@@ -336,15 +334,15 @@ func GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model
 	if err != nil {
 		return nil, err
 	}
-	key := "GetUserLspByLspID" + userID + lspID
-	result, err := redis.GetRedisValue(key)
-	if err == nil {
-		var userLsp *model.UserLspMap
-		err = json.Unmarshal([]byte(result), &userLsp)
-		if err == nil {
-			return userLsp, nil
-		}
-	}
+	//key := "GetUserLspByLspID" + userID + lspID
+	//result, err := redis.GetRedisValue(key)
+	//if err == nil {
+	//	var userLsp *model.UserLspMap
+	//	err = json.Unmarshal([]byte(result), &userLsp)
+	//	if err == nil {
+	//		return userLsp, nil
+	//	}
+	//}
 
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
@@ -383,11 +381,11 @@ func GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
-	redisBytes, err := json.Marshal(userOrgs[0])
-	if err == nil {
-		redis.SetTTL(key, 3600)
-		redis.SetRedisValue(key, string(redisBytes))
-	}
+	//redisBytes, err := json.Marshal(userOrgs[0])
+	//if err == nil {
+	//	redis.SetTTL(key, 3600)
+	//	redis.SetRedisValue(key, string(redisBytes))
+	//}
 
 	return userOrgs[0], nil
 }
