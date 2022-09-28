@@ -535,7 +535,7 @@ type Query {
 
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
-  inviteUsers(emails: [String!]!): Boolean
+  inviteUsers(emails: [String!]!, lsp_id: String!): Boolean
   updateUser(input: UserInput!): User
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]

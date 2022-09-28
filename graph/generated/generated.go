@@ -75,7 +75,7 @@ type ComplexityRoot struct {
 		AddUserPreference         func(childComplexity int, input []*model.UserPreferenceInput) int
 		AddUserQuizAttempt        func(childComplexity int, input []*model.UserQuizAttemptInput) int
 		AddUserRoles              func(childComplexity int, input []*model.UserRoleInput) int
-		InviteUsers               func(childComplexity int, emails []string) int
+		InviteUsers               func(childComplexity int, emails []string, lspID string) int
 		Login                     func(childComplexity int) int
 		RegisterUsers             func(childComplexity int, input []*model.UserInput) int
 		UpdateCohortMain          func(childComplexity int, input model.CohortMainInput) int
@@ -401,7 +401,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error)
-	InviteUsers(ctx context.Context, emails []string) (*bool, error)
+	InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, error)
 	UpdateUser(ctx context.Context, input model.UserInput) (*model.User, error)
 	Login(ctx context.Context) (*model.User, error)
 	AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*model.UserLspMap, error)
@@ -764,7 +764,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InviteUsers(childComplexity, args["emails"].([]string)), true
+		return e.complexity.Mutation.InviteUsers(childComplexity, args["emails"].([]string), args["lsp_id"].(string)), true
 
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
@@ -3319,7 +3319,7 @@ type Query {
 
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
-  inviteUsers(emails: [String!]!): Boolean
+  inviteUsers(emails: [String!]!, lsp_id: String!): Boolean
   updateUser(input: UserInput!): User
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
@@ -3597,6 +3597,15 @@ func (ec *executionContext) field_Mutation_inviteUsers_args(ctx context.Context,
 		}
 	}
 	args["emails"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lsp_id"] = arg1
 	return args, nil
 }
 
@@ -5167,7 +5176,7 @@ func (ec *executionContext) _Mutation_inviteUsers(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InviteUsers(rctx, args["emails"].([]string))
+		return ec.resolvers.Mutation().InviteUsers(rctx, args["emails"].([]string), args["lsp_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

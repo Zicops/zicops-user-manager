@@ -139,7 +139,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 	return outputUsers, nil
 }
 
-func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
+func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -191,6 +191,15 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 			Phone:      "",
 		}
 		_, err = RegisterUsers(ctx, []*model.UserInput{&userInput}, true)
+		if err != nil {
+			return &registered, err
+		}
+		userLspMap := &model.UserLspMapInput{
+			UserID: userID,
+			LspID:  lspID,
+			Status: "",
+		}
+		_, err = AddUserLspMap(ctx, []*model.UserLspMapInput{userLspMap})
 		if err != nil {
 			return &registered, err
 		}
