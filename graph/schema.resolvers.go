@@ -22,8 +22,8 @@ func (r *mutationResolver) RegisterUsers(ctx context.Context, input []*model.Use
 	return result, nil
 }
 
-func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string) (*bool, error) {
-	result, err := handlers.InviteUsers(ctx, emails)
+func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, error) {
+	result, err := handlers.InviteUsers(ctx, emails, lspID)
 	if err != nil {
 		log.Errorf("Error inviting users: %v", err)
 		return nil, err
@@ -314,6 +314,15 @@ func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
 	if err != nil {
 		log.Errorf("Error logging out user: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserLspMaps, error) {
+	result, err := queries.GetUserLspMapsByLspID(ctx, lspID, pageCursor, direction, pageSize)
+	if err != nil {
+		log.Errorf("Error getting lsps of users: %v", err)
 		return nil, err
 	}
 	return result, nil

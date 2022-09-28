@@ -139,7 +139,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 	return outputUsers, nil
 }
 
-func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
+func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -169,6 +169,10 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 		return nil, fmt.Errorf("user is not an admin")
 	}
 	for _, email := range emails {
+		if email == email_creator {
+			log.Errorf("user %v is trying to invite himself", email_creator)
+			continue
+		}
 		userID := base64.URLEncoding.EncodeToString([]byte(email))
 		userInput := model.UserInput{
 			ID:         &userID,
@@ -187,6 +191,15 @@ func InviteUsers(ctx context.Context, emails []string) (*bool, error) {
 			Phone:      "",
 		}
 		_, err = RegisterUsers(ctx, []*model.UserInput{&userInput}, true)
+		if err != nil {
+			return &registered, err
+		}
+		userLspMap := &model.UserLspMapInput{
+			UserID: userID,
+			LspID:  lspID,
+			Status: "",
+		}
+		_, err = AddUserLspMap(ctx, []*model.UserLspMapInput{userLspMap})
 		if err != nil {
 			return &registered, err
 		}

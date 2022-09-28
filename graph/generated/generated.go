@@ -75,7 +75,7 @@ type ComplexityRoot struct {
 		AddUserPreference         func(childComplexity int, input []*model.UserPreferenceInput) int
 		AddUserQuizAttempt        func(childComplexity int, input []*model.UserQuizAttemptInput) int
 		AddUserRoles              func(childComplexity int, input []*model.UserRoleInput) int
-		InviteUsers               func(childComplexity int, emails []string) int
+		InviteUsers               func(childComplexity int, emails []string, lspID string) int
 		Login                     func(childComplexity int) int
 		RegisterUsers             func(childComplexity int, input []*model.UserInput) int
 		UpdateCohortMain          func(childComplexity int, input model.CohortMainInput) int
@@ -130,6 +130,13 @@ type ComplexityRoot struct {
 		PageSize   func(childComplexity int) int
 	}
 
+	PaginatedUserLspMaps struct {
+		Direction   func(childComplexity int) int
+		PageCursor  func(childComplexity int) int
+		PageSize    func(childComplexity int) int
+		UserLspMaps func(childComplexity int) int
+	}
+
 	PaginatedUsers struct {
 		Direction  func(childComplexity int) int
 		PageCursor func(childComplexity int) int
@@ -152,6 +159,7 @@ type ComplexityRoot struct {
 		GetUserExamProgress            func(childComplexity int, userID string, userEaID string) int
 		GetUserExamResults             func(childComplexity int, userID string, userEaID string) int
 		GetUserLspByLspID              func(childComplexity int, userID string, lspID string) int
+		GetUserLspMapsByLspID          func(childComplexity int, lspID string, pageCursor *string, direction *string, pageSize *int) int
 		GetUserLsps                    func(childComplexity int, userID string) int
 		GetUserNotes                   func(childComplexity int, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserOrgDetails              func(childComplexity int, userID string, userLspID string) int
@@ -393,7 +401,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error)
-	InviteUsers(ctx context.Context, emails []string) (*bool, error)
+	InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, error)
 	UpdateUser(ctx context.Context, input model.UserInput) (*model.User, error)
 	Login(ctx context.Context) (*model.User, error)
 	AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*model.UserLspMap, error)
@@ -428,6 +436,7 @@ type MutationResolver interface {
 }
 type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
+	GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserLspMaps, error)
 	GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUsers, error)
 	GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, error)
 	GetUserOrganizations(ctx context.Context, userID string) ([]*model.UserOrganizationMap, error)
@@ -755,7 +764,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InviteUsers(childComplexity, args["emails"].([]string)), true
+		return e.complexity.Mutation.InviteUsers(childComplexity, args["emails"].([]string), args["lsp_id"].(string)), true
 
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
@@ -1096,6 +1105,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PaginatedNotes.PageSize(childComplexity), true
 
+	case "PaginatedUserLspMaps.direction":
+		if e.complexity.PaginatedUserLspMaps.Direction == nil {
+			break
+		}
+
+		return e.complexity.PaginatedUserLspMaps.Direction(childComplexity), true
+
+	case "PaginatedUserLspMaps.pageCursor":
+		if e.complexity.PaginatedUserLspMaps.PageCursor == nil {
+			break
+		}
+
+		return e.complexity.PaginatedUserLspMaps.PageCursor(childComplexity), true
+
+	case "PaginatedUserLspMaps.pageSize":
+		if e.complexity.PaginatedUserLspMaps.PageSize == nil {
+			break
+		}
+
+		return e.complexity.PaginatedUserLspMaps.PageSize(childComplexity), true
+
+	case "PaginatedUserLspMaps.user_lsp_maps":
+		if e.complexity.PaginatedUserLspMaps.UserLspMaps == nil {
+			break
+		}
+
+		return e.complexity.PaginatedUserLspMaps.UserLspMaps(childComplexity), true
+
 	case "PaginatedUsers.direction":
 		if e.complexity.PaginatedUsers.Direction == nil {
 			break
@@ -1291,6 +1328,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetUserLspByLspID(childComplexity, args["user_id"].(string), args["lsp_id"].(string)), true
+
+	case "Query.getUserLspMapsByLspId":
+		if e.complexity.Query.GetUserLspMapsByLspID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUserLspMapsByLspId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUserLspMapsByLspID(childComplexity, args["lsp_id"].(string), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
 	case "Query.getUserLsps":
 		if e.complexity.Query.GetUserLsps == nil {
@@ -3234,8 +3283,16 @@ type PaginatedCohortsMain {
     pageSize: Int
 }
 
+type PaginatedUserLspMaps {
+    user_lsp_maps: [UserLspMap]
+    pageCursor: String
+    direction: String
+    pageSize: Int
+}
+
 type Query {
   logout: Boolean
+  getUserLspMapsByLspId(lsp_id: String!, pageCursor: String, Direction: String, pageSize:Int): PaginatedUserLspMaps
   getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
   getUserDetails(user_ids: [String]): [User]
   getUserOrganizations(user_id: String!): [UserOrganizationMap]
@@ -3262,7 +3319,7 @@ type Query {
 
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
-  inviteUsers(emails: [String!]!): Boolean
+  inviteUsers(emails: [String!]!, lsp_id: String!): Boolean
   updateUser(input: UserInput!): User
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
@@ -3540,6 +3597,15 @@ func (ec *executionContext) field_Mutation_inviteUsers_args(ctx context.Context,
 		}
 	}
 	args["emails"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lsp_id"] = arg1
 	return args, nil
 }
 
@@ -4266,6 +4332,48 @@ func (ec *executionContext) field_Query_getUserLspByLspId_args(ctx context.Conte
 		}
 	}
 	args["lsp_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUserLspMapsByLspId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lsp_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["pageCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageCursor"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["Direction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Direction"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["pageSize"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageSize"] = arg3
 	return args, nil
 }
 
@@ -5068,7 +5176,7 @@ func (ec *executionContext) _Mutation_inviteUsers(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InviteUsers(rctx, args["emails"].([]string))
+		return ec.resolvers.Mutation().InviteUsers(rctx, args["emails"].([]string), args["lsp_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6924,6 +7032,134 @@ func (ec *executionContext) _PaginatedNotes_pageSize(ctx context.Context, field 
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PaginatedUserLspMaps_user_lsp_maps(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedUserLspMaps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedUserLspMaps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserLspMaps, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.UserLspMap)
+	fc.Result = res
+	return ec.marshalOUserLspMap2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserLspMap(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedUserLspMaps_pageCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedUserLspMaps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedUserLspMaps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedUserLspMaps_direction(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedUserLspMaps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedUserLspMaps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Direction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedUserLspMaps_pageSize(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedUserLspMaps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedUserLspMaps",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PaginatedUsers_users(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedUsers) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7082,6 +7318,45 @@ func (ec *executionContext) _Query_logout(ctx context.Context, field graphql.Col
 	res := resTmp.(*bool)
 	fc.Result = res
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getUserLspMapsByLspId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUserLspMapsByLspId_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUserLspMapsByLspID(rctx, args["lsp_id"].(string), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PaginatedUserLspMaps)
+	fc.Result = res
+	return ec.marshalOPaginatedUserLspMaps2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedUserLspMaps(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getUsersForAdmin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -17651,6 +17926,55 @@ func (ec *executionContext) _PaginatedNotes(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var paginatedUserLspMapsImplementors = []string{"PaginatedUserLspMaps"}
+
+func (ec *executionContext) _PaginatedUserLspMaps(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedUserLspMaps) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedUserLspMapsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaginatedUserLspMaps")
+		case "user_lsp_maps":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedUserLspMaps_user_lsp_maps(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageCursor":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedUserLspMaps_pageCursor(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "direction":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedUserLspMaps_direction(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageSize":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedUserLspMaps_pageSize(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var paginatedUsersImplementors = []string{"PaginatedUsers"}
 
 func (ec *executionContext) _PaginatedUsers(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedUsers) graphql.Marshaler {
@@ -17729,6 +18053,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_logout(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getUserLspMapsByLspId":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUserLspMapsByLspId(ctx, field)
 				return res
 			}
 
@@ -21435,6 +21779,13 @@ func (ec *executionContext) marshalOPaginatedNotes2ᚖgithubᚗcomᚋzicopsᚋzi
 		return graphql.Null
 	}
 	return ec._PaginatedNotes(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPaginatedUserLspMaps2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedUserLspMaps(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedUserLspMaps) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PaginatedUserLspMaps(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPaginatedUsers2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedUsers(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedUsers) graphql.Marshaler {
