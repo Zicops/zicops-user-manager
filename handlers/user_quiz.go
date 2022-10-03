@@ -112,7 +112,7 @@ func UpdateUserQuizAttempt(ctx context.Context, input model.UserQuizAttemptInput
 		ID: *input.UserQaID,
 	}
 	userLsps := []userz.UserQuizAttempts{}
-	getQuery := CassUserSession.Query(userz.UserQuizAttemptsTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := CassUserSession.Query(userz.UserQuizAttemptsTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}

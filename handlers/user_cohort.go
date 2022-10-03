@@ -106,7 +106,7 @@ func UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.
 		ID: *input.UserCohortID,
 	}
 	userLsps := []userz.UserCohort{}
-	getQuery := CassUserSession.Query(userz.UserCohortTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := CassUserSession.Query(userz.UserCohortTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}

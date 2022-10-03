@@ -102,7 +102,7 @@ func UpdateUserRole(ctx context.Context, input model.UserRoleInput) (*model.User
 	CassUserSession := session
 
 	userLsps := []userz.UserRole{}
-	getQuery := CassUserSession.Query(userz.UserRoleTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := CassUserSession.Query(userz.UserRoleTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}

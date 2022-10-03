@@ -119,7 +119,7 @@ func UpdateUserExamProgress(ctx context.Context, input model.UserExamProgressInp
 		ID: *input.UserEpID,
 	}
 	userLsps := []userz.UserExamProgress{}
-	getQuery := CassUserSession.Query(userz.UserExamProgressTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := CassUserSession.Query(userz.UserExamProgressTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}

@@ -100,7 +100,7 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 		ID: *input.UserLspID,
 	}
 	userLsps := []userz.UserLsp{}
-	getQuery := CassUserSession.Query(userz.UserLspTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := CassUserSession.Query(userz.UserLspTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
