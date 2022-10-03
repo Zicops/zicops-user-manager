@@ -470,7 +470,7 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 	userBytes, err := json.Marshal(userCass)
 	if err == nil {
 		redis.SetRedisValue(userCass.ID, string(userBytes))
-		redis.SetTTL(userCass.ID, 3600)
+		redis.SetTTL(userCass.ID, 7200)
 		log.Infof("user logged in: %v", userCass.ID)
 	}
 	return &currentUser, nil
