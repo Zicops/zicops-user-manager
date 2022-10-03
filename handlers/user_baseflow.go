@@ -471,6 +471,7 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 	if err == nil {
 		redis.SetRedisValue(userCass.ID, string(userBytes))
 		redis.SetTTL(userCass.ID, 3600)
+		log.Infof("user logged in: %v", userCass.ID)
 	}
 	return &currentUser, nil
 }
