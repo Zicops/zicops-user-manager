@@ -187,7 +187,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 		currentUserOrg := &model.UserLspMap{
 			UserLspID: &copiedOrg.ID,
 			UserID:    copiedOrg.UserID,
-			LspID:     copiedOrg.LspID,
+			LspID:     copiedOrg.LspId,
 			Status:    copiedOrg.Status,
 			CreatedBy: &copiedOrg.CreatedBy,
 			UpdatedBy: &copiedOrg.UpdatedBy,
@@ -244,7 +244,7 @@ func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string
 		currentUserOrg := &model.UserLspMap{
 			UserLspID: &copiedOrg.ID,
 			UserID:    copiedOrg.UserID,
-			LspID:     copiedOrg.LspID,
+			LspID:     copiedOrg.LspId,
 			Status:    copiedOrg.Status,
 			CreatedBy: &copiedOrg.CreatedBy,
 			UpdatedBy: &copiedOrg.UpdatedBy,
@@ -440,7 +440,7 @@ func GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model
 		currentUserOrg := &model.UserLspMap{
 			UserLspID: &copiedOrg.ID,
 			UserID:    copiedOrg.UserID,
-			LspID:     copiedOrg.LspID,
+			LspID:     copiedOrg.LspId,
 			Status:    copiedOrg.Status,
 			CreatedBy: &copiedOrg.CreatedBy,
 			UpdatedBy: &copiedOrg.UpdatedBy,

@@ -168,7 +168,7 @@ func UpdateUserPreference(ctx context.Context, input model.UserPreferenceInput) 
 		ID: *input.UserPreferenceID,
 	}
 	userLsps := []userz.UserPreferences{}
-	getQuery := CassUserSession.Query(userz.UserPreferencesTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := CassUserSession.Query(userz.UserPreferencesTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}

@@ -285,7 +285,7 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 		Type:        input.Type,
 		IsActive:    input.IsActive,
 		Status:      input.Status,
-		LspID:       input.LspID,
+		LspId:       input.LspID,
 		Size:        input.Size,
 	}
 	insertQuery := CassUserSession.Query(userz.CohortTable.Insert()).BindStruct(cohortMainTable)
@@ -307,7 +307,7 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 		Type:        cohortMainTable.Type,
 		IsActive:    cohortMainTable.IsActive,
 		Status:      cohortMainTable.Status,
-		LspID:       cohortMainTable.LspID,
+		LspID:       cohortMainTable.LspId,
 		Size:        cohortMainTable.Size,
 	}
 
@@ -315,11 +315,11 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 }
 
 func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-
+	lspID := claims["lsp_id"].(string)
 	var storageC *bucket.Client
 	var photoBucket string
 	var photoUrl string
@@ -338,7 +338,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		ID: *input.CohortID,
 	}
 	cohorts := []userz.Cohort{}
-	getQuery := CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
+	getQuery := CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID, "lsp_id": lspID})
 	if err := getQuery.SelectRelease(&cohorts); err != nil {
 		return nil, err
 	}
@@ -417,7 +417,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		updatedCols = append(updatedCols, "status")
 	}
 	if input.LspID != "" {
-		cohort.LspID = input.LspID
+		cohort.LspId = input.LspID
 		updatedCols = append(updatedCols, "lsp_id")
 	}
 	if input.UpdatedBy != nil {
@@ -447,7 +447,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		Type:        cohort.Type,
 		IsActive:    cohort.IsActive,
 		Status:      cohort.Status,
-		LspID:       cohort.LspID,
+		LspID:       cohort.LspId,
 		Size:        cohort.Size,
 	}
 
@@ -455,10 +455,11 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 }
 
 func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
+	lspID := claims["lsp_id"].(string)
 	//key := "GetCohortDetails" + cohortID
 	//result, err := redis.GetRedisValue(key)
 	cohort := userz.Cohort{}
@@ -479,7 +480,7 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 		CassUserSession := session
 
 		cohorts := []userz.Cohort{}
-		getQuery := CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID})
+		getQuery := CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID, "lsp_id": lspID})
 		if err := getQuery.SelectRelease(&cohorts); err != nil {
 			return nil, err
 		}
@@ -515,7 +516,7 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 		Type:        cohort.Type,
 		IsActive:    cohort.IsActive,
 		Status:      cohort.Status,
-		LspID:       cohort.LspID,
+		LspID:       cohort.LspId,
 		Size:        cohort.Size,
 	}
 	//redisBytes, err := json.Marshal(cohort)
@@ -621,7 +622,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 			photoUrl = storageC.GetSignedURLForObject(imageBucket)
 		}
 		userCohort := &model.CohortMain{
-			LspID:       cohortCopy.LspID,
+			LspID:       cohortCopy.LspId,
 			CohortID:    &cohortCopy.ID,
 			Name:        cohortCopy.Name,
 			Description: cohortCopy.Description,

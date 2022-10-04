@@ -47,7 +47,7 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*mode
 		userLspMap := userz.UserLsp{
 			ID:        guid.String(),
 			UserID:    input.UserID,
-			LspID:     input.LspID,
+			LspId:     input.LspID,
 			CreatedAt: time.Now().Unix(),
 			UpdatedAt: time.Now().Unix(),
 			CreatedBy: createdBy,
@@ -63,7 +63,7 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*mode
 		userLspOutput := &model.UserLspMap{
 			UserLspID: &userLspMap.ID,
 			UserID:    userLspMap.UserID,
-			LspID:     userLspMap.LspID,
+			LspID:     userLspMap.LspId,
 			CreatedAt: created,
 			UpdatedAt: updated,
 			CreatedBy: &userLspMap.CreatedBy,
@@ -100,7 +100,7 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 		ID: *input.UserLspID,
 	}
 	userLsps := []userz.UserLsp{}
-	getQuery := CassUserSession.Query(userz.UserLspTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := CassUserSession.Query(userz.UserLspTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -118,7 +118,7 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 		updatedCols = append(updatedCols, "updated_by")
 	}
 	if input.LspID != "" {
-		userLspMap.LspID = input.LspID
+		userLspMap.LspId = input.LspID
 		updatedCols = append(updatedCols, "lsp_id")
 	}
 	updatedAt := time.Now().Unix()
@@ -138,7 +138,7 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 	userLspOutput := &model.UserLspMap{
 		UserLspID: &userLspMap.ID,
 		UserID:    userLspMap.UserID,
-		LspID:     userLspMap.LspID,
+		LspID:     userLspMap.LspId,
 		CreatedAt: created,
 		UpdatedAt: updated,
 		CreatedBy: &userLspMap.CreatedBy,

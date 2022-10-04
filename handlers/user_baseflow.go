@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 	"github.com/scylladb/gocqlx/qb"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -398,6 +400,11 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		Status:     user.Status,
 		PhotoURL:   &photoUrl,
 	}
+	userBytes, err := json.Marshal(user)
+	if err == nil {
+		redis.SetRedisValue(*user.ID, string(userBytes))
+		redis.SetTTL(*user.ID, 3600)
+	}
 	return &responseUser, nil
 }
 
@@ -460,6 +467,12 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		PhotoURL:   &photoURL,
 		Phone:      currentUserIT.PhoneNumber,
 	}
+	userBytes, err := json.Marshal(userCass)
+	if err == nil {
+		redis.SetRedisValue(userCass.ID, string(userBytes))
+		redis.SetTTL(userCass.ID, 7200)
+		log.Infof("user logged in: %v", userCass.ID)
+	}
 	return &currentUser, nil
 }
 
@@ -470,5 +483,6 @@ func Logout(ctx context.Context) (*bool, error) {
 	if err != nil {
 		return &logoutSuccess, err
 	}
+	redis.DeleteRedisValue(base64.URLEncoding.EncodeToString([]byte(email)))
 	return &logoutSuccess, nil
 }

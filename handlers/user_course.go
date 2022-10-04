@@ -114,7 +114,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 		ID: *input.UserCourseID,
 	}
 	userLsps := []userz.UserCourse{}
-	getQuery := CassUserSession.Query(userz.UserCourseTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := CassUserSession.Query(userz.UserCourseTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}

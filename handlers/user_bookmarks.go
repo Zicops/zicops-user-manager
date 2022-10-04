@@ -112,7 +112,7 @@ func UpdateUserBookmark(ctx context.Context, input model.UserBookmarkInput) (*mo
 		ID: *input.UserBmID,
 	}
 	userLsps := []userz.UserBookmarks{}
-	getQuery := CassUserSession.Query(userz.UserBookmarksTable.Get()).BindMap(qb.M{"id": userLspMap.ID})
+	getQuery := CassUserSession.Query(userz.UserBookmarksTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
