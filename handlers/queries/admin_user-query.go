@@ -39,14 +39,14 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
-	key := "GetUsersForAdmin" + emailCreatorID + string(newPage)
-	result, err := redis.GetRedisValue(key)
-	if err == nil {
-		err = json.Unmarshal([]byte(result), &users)
-		if err != nil {
-			log.Errorf("error while unmarshalling redis value: %v", err)
-		}
-	}
+	//key := "GetUsersForAdmin" + emailCreatorID + string(newPage)
+	// result, err := redis.GetRedisValue(key)
+	// if err == nil {
+	// 	err = json.Unmarshal([]byte(result), &users)
+	// 	if err != nil {
+	// 		log.Errorf("error while unmarshalling redis value: %v", err)
+	// 	}
+	// }
 	var newCursor string
 	if len(users) <= 0 {
 		userAdmin := userz.User{
@@ -143,11 +143,11 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
-	redisBytes, err := json.Marshal(users)
-	if err == nil {
-		redis.SetTTL(key, 3600)
-		redis.SetRedisValue(key, string(redisBytes))
-	}
+	// redisBytes, err := json.Marshal(users)
+	// if err == nil {
+	// 	redis.SetTTL(key, 3600)
+	// 	redis.SetRedisValue(key, string(redisBytes))
+	// }
 	return &outputResponse, nil
 }
 
