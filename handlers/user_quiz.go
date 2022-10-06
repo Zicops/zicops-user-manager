@@ -21,7 +21,8 @@ func AddUserQuizAttempt(ctx context.Context, input []*model.UserQuizAttemptInput
 		return nil, fmt.Errorf("user not found")
 	}
 	isAllowed := false
-	if userCass.ID == input[0].UserID || strings.ToLower(userCass.Role) == "admin" {
+	role := strings.ToLower(userCass.Role)
+	if userCass.ID == input[0].UserID || role == "admin" || strings.Contains(role, "manager") {
 		isAllowed = true
 	}
 	if !isAllowed {
@@ -93,7 +94,8 @@ func UpdateUserQuizAttempt(ctx context.Context, input model.UserQuizAttemptInput
 		return nil, fmt.Errorf("user not found")
 	}
 	isAllowed := false
-	if userCass.ID == input.UserID || strings.ToLower(userCass.Role) == "admin" {
+	role := strings.ToLower(userCass.Role)
+	if userCass.ID == input.UserID || role == "admin" || strings.Contains(role, "manager") {
 		isAllowed = true
 	}
 	if !isAllowed {
