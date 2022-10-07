@@ -416,10 +416,6 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		cohort.Status = input.Status
 		updatedCols = append(updatedCols, "status")
 	}
-	if input.LspID != "" {
-		cohort.LspId = input.LspID
-		updatedCols = append(updatedCols, "lsp_id")
-	}
 	if input.UpdatedBy != nil {
 		cohort.UpdatedBy = *input.UpdatedBy
 		updatedCols = append(updatedCols, "updated_by")
