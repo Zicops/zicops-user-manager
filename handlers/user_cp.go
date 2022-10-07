@@ -27,7 +27,8 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 	CassUserSession := session
 
 	isAllowed := false
-	if userCass.ID == input[0].UserID || strings.ToLower(userCass.Role) == "admin" {
+	role := strings.ToLower(userCass.Role)
+	if userCass.ID == input[0].UserID || role == "admin" || strings.Contains(role, "manager") {
 		isAllowed = true
 	}
 	if !isAllowed {
@@ -95,7 +96,8 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 		return nil, fmt.Errorf("user not found")
 	}
 	isAllowed := false
-	if userCass.ID == input.UserID || strings.ToLower(userCass.Role) == "admin" {
+	role := strings.ToLower(userCass.Role)
+	if userCass.ID == input.UserID || role == "admin" || strings.Contains(role, "manager") {
 		isAllowed = true
 	}
 	if !isAllowed {
