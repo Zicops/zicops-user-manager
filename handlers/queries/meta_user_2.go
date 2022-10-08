@@ -346,7 +346,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		return nil, fmt.Errorf("cohorts not found")
 	}
 
-	if input.Image != nil && input.ImageURL == nil {
+	if input.Image != nil {
 		if storageC == nil {
 			storageC = bucket.NewStorageHandler()
 			gproject := googleprojectlib.GetGoogleProjectID()
@@ -389,8 +389,8 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		updatedCols = append(updatedCols, "description")
 	}
 	if photoUrl != "" {
-		cohort.ImageUrl = *input.ImageURL
-		updatedCols = append(updatedCols, "imageUrl")
+		cohort.ImageUrl = photoUrl
+		updatedCols = append(updatedCols, "imageurl")
 	}
 	if input.Code != "" {
 		cohort.Code = input.Code
@@ -400,13 +400,9 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		cohort.Type = input.Type
 		updatedCols = append(updatedCols, "type")
 	}
-	if input.IsActive != cohort.IsActive {
-		cohort.IsActive = input.IsActive
-		updatedCols = append(updatedCols, "is_active")
-	}
 	if photoBucket != "" {
 		cohort.ImageBucket = photoBucket
-		updatedCols = append(updatedCols, "imageBucket")
+		updatedCols = append(updatedCols, "imagebucket")
 	}
 	if input.Size > 0 {
 		cohort.Size = input.Size
@@ -415,10 +411,6 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	if input.Status != "" {
 		cohort.Status = input.Status
 		updatedCols = append(updatedCols, "status")
-	}
-	if input.LspID != "" {
-		cohort.LspId = input.LspID
-		updatedCols = append(updatedCols, "lsp_id")
 	}
 	if input.UpdatedBy != nil {
 		cohort.UpdatedBy = *input.UpdatedBy

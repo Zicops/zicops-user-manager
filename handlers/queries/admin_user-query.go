@@ -3,7 +3,6 @@ package queries
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -12,7 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
-	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -172,12 +170,12 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	}
 	for _, userID := range userIds {
 		userCopy := userz.User{}
-		key := "GetUserDetails" + *userID
-		result, err := redis.GetRedisValue(key)
-		if err == nil {
-			json.Unmarshal([]byte(result), &userCopy)
+		//key := "GetUserDetails" + *userID
+		//result, err := redis.GetRedisValue(key)
+		//if err == nil {
+		//	json.Unmarshal([]byte(result), &userCopy)
 
-		}
+		//}
 		if userCopy.ID == "" {
 			qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, *userID)
 			getUsers := func() (users []userz.User, err error) {
@@ -227,11 +225,11 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			Phone:      fireBaseUser.PhoneNumber,
 		}
 		outputResponse = append(outputResponse, outputUser)
-		redisBytes, err := json.Marshal(userCopy)
-		if err == nil {
-			redis.SetTTL(key, 3600)
-			redis.SetRedisValue(key, string(redisBytes))
-		}
+		//redisBytes, err := json.Marshal(userCopy)
+		//if err == nil {
+		//	redis.SetTTL(key, 3600)
+		//	redis.SetRedisValue(key, string(redisBytes))
+		//}
 	}
 
 	return outputResponse, nil
