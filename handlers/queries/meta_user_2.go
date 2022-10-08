@@ -346,7 +346,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		return nil, fmt.Errorf("cohorts not found")
 	}
 
-	if input.Image != nil && input.ImageURL == nil {
+	if input.Image != nil {
 		if storageC == nil {
 			storageC = bucket.NewStorageHandler()
 			gproject := googleprojectlib.GetGoogleProjectID()
