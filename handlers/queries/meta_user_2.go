@@ -390,7 +390,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	}
 	if photoUrl != "" {
 		cohort.ImageUrl = photoUrl
-		updatedCols = append(updatedCols, "imageUrl")
+		updatedCols = append(updatedCols, "imageurl")
 	}
 	if input.Code != "" {
 		cohort.Code = input.Code
@@ -402,7 +402,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	}
 	if photoBucket != "" {
 		cohort.ImageBucket = photoBucket
-		updatedCols = append(updatedCols, "imageBucket")
+		updatedCols = append(updatedCols, "imagebucket")
 	}
 	if input.Size > 0 {
 		cohort.Size = input.Size
