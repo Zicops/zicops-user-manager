@@ -146,7 +146,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		GetCohortDetails               func(childComplexity int, cohortID string) int
-		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
+		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) int
 		GetCohortUsers                 func(childComplexity int, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetLatestCohorts               func(childComplexity int, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserBookmarks               func(childComplexity int, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
@@ -458,7 +458,7 @@ type QueryResolver interface {
 	GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error)
 	GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]*model.UserQuizAttempt, error)
 	GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, error)
-	GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohortsMain, error)
+	GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) (*model.PaginatedCohortsMain, error)
 }
 
 type executableSchema struct {
@@ -1183,7 +1183,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetCohortMains(childComplexity, args["lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+		return e.complexity.Query.GetCohortMains(childComplexity, args["lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int), args["searchText"].(*string)), true
 
 	case "Query.getCohortUsers":
 		if e.complexity.Query.GetCohortUsers == nil {
@@ -3314,7 +3314,7 @@ type Query {
   getCohortUsers(cohort_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedCohorts
   getUserQuizAttempts(user_id: String!, topic_id: String!) : [UserQuizAttempt]
   getCohortDetails(cohort_id: String!): CohortMain
-  getCohortMains(lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCohortsMain
+  getCohortMains(lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int, searchText: String): PaginatedCohortsMain
 }
 
 type Mutation {
@@ -3927,6 +3927,15 @@ func (ec *executionContext) field_Query_getCohortMains_args(ctx context.Context,
 		}
 	}
 	args["pageSize"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["searchText"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchText"))
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["searchText"] = arg5
 	return args, nil
 }
 
@@ -8203,7 +8212,7 @@ func (ec *executionContext) _Query_getCohortMains(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetCohortMains(rctx, args["lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
+		return ec.resolvers.Query().GetCohortMains(rctx, args["lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int), args["searchText"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

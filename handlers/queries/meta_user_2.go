@@ -519,7 +519,7 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 	return outputCohort, nil
 }
 
-func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohortsMain, error) {
+func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) (*model.PaginatedCohortsMain, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -572,7 +572,11 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 		} else {
 			pageSizeInt = *pageSize
 		}
-		qryStr := fmt.Sprintf(`SELECT * from userz.cohort_main where lsp_id='%s' and updated_at<=%d ALLOW FILTERING`, lspID, *publishTime)
+		whereClause := ""
+		if searchText != nil && *searchText != "" {
+			whereClause = fmt.Sprintf(" AND name CONTAINS '%s'", *searchText)
+		}
+		qryStr := fmt.Sprintf(`SELECT * from userz.cohort_main where lsp_id='%s' and updated_at<=%d %s ALLOW FILTERING`, lspID, *publishTime, whereClause)
 		getCohorts := func(page []byte) (users []userz.Cohort, nextPage []byte, err error) {
 			q := CassUserSession.Query(qryStr, nil)
 			defer q.Release()

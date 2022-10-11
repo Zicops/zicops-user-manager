@@ -530,7 +530,7 @@ type Query {
   getCohortUsers(cohort_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedCohorts
   getUserQuizAttempts(user_id: String!, topic_id: String!) : [UserQuizAttempt]
   getCohortDetails(cohort_id: String!): CohortMain
-  getCohortMains(lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCohortsMain
+  getCohortMains(lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int, searchText: String): PaginatedCohortsMain
 }
 
 type Mutation {

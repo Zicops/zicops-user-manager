@@ -517,8 +517,8 @@ func (r *queryResolver) GetCohortDetails(ctx context.Context, cohortID string) (
 	return result, nil
 }
 
-func (r *queryResolver) GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohortsMain, error) {
-	result, err := queries.GetCohortMains(ctx, lspID, publishTime, pageCursor, direction, pageSize)
+func (r *queryResolver) GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) (*model.PaginatedCohortsMain, error) {
+	result, err := queries.GetCohortMains(ctx, lspID, publishTime, pageCursor, direction, pageSize, searchText)
 	if err != nil {
 		log.Errorf("Error getting cohorts: %v", err)
 		return nil, err
