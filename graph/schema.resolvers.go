@@ -445,7 +445,7 @@ func (r *queryResolver) GetUserNotes(ctx context.Context, userID string, userLsp
 	return result, nil
 }
 
-func (r *queryResolver) GetUserBookmarks(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error) {
+func (r *queryResolver) GetUserBookmarks(ctx context.Context, userID string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error) {
 	result, err := queries.GetUserBookmarks(ctx, userID, userLspID, publishTime, pageCursor, direction, pageSize)
 	if err != nil {
 		log.Errorf("Error getting bookmarks of a user: %v", err)
