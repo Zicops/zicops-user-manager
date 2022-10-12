@@ -106,6 +106,9 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 	if input.UserCourseID == nil {
 		return nil, fmt.Errorf("user course id is required")
 	}
+	if input.UserID == "" {
+		return nil, fmt.Errorf("user id is required")
+	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
@@ -116,7 +119,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 		ID: *input.UserCourseID,
 	}
 	userLsps := []userz.UserCourse{}
-	getQuery := CassUserSession.Query(userz.UserCourseTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
+	getQuery := CassUserSession.Query(userz.UserCourseTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": input.UserID})
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
