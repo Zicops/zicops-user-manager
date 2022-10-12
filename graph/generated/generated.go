@@ -146,10 +146,10 @@ type ComplexityRoot struct {
 
 	Query struct {
 		GetCohortDetails               func(childComplexity int, cohortID string) int
-		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
+		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) int
 		GetCohortUsers                 func(childComplexity int, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetLatestCohorts               func(childComplexity int, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
-		GetUserBookmarks               func(childComplexity int, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
+		GetUserBookmarks               func(childComplexity int, userID string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string) int
 		GetUserCourseMaps              func(childComplexity int, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseProgressByMapID   func(childComplexity int, userID string, userCourseID string) int
@@ -450,7 +450,7 @@ type QueryResolver interface {
 	GetUserCourseProgressByMapID(ctx context.Context, userID string, userCourseID string) ([]*model.UserCourseProgress, error)
 	GetUserCourseProgressByTopicID(ctx context.Context, userID string, topicID string) ([]*model.UserCourseProgress, error)
 	GetUserNotes(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error)
-	GetUserBookmarks(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error)
+	GetUserBookmarks(ctx context.Context, userID string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error)
 	GetUserExamAttempts(ctx context.Context, userID string, userLspID string) ([]*model.UserExamAttempts, error)
 	GetUserExamResults(ctx context.Context, userID string, userEaID string) (*model.UserExamResult, error)
 	GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([]*model.UserExamProgress, error)
@@ -458,7 +458,7 @@ type QueryResolver interface {
 	GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error)
 	GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]*model.UserQuizAttempt, error)
 	GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, error)
-	GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohortsMain, error)
+	GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) (*model.PaginatedCohortsMain, error)
 }
 
 type executableSchema struct {
@@ -1183,7 +1183,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetCohortMains(childComplexity, args["lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+		return e.complexity.Query.GetCohortMains(childComplexity, args["lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int), args["searchText"].(*string)), true
 
 	case "Query.getCohortUsers":
 		if e.complexity.Query.GetCohortUsers == nil {
@@ -1219,7 +1219,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserBookmarks(childComplexity, args["user_id"].(string), args["user_lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+		return e.complexity.Query.GetUserBookmarks(childComplexity, args["user_id"].(string), args["user_lsp_id"].(*string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
 	case "Query.getUserCourseMapByCourseID":
 		if e.complexity.Query.GetUserCourseMapByCourseID == nil {
@@ -3306,7 +3306,7 @@ type Query {
   getUserCourseProgressByMapId(user_id: String!, user_course_id: ID!): [UserCourseProgress]
   getUserCourseProgressByTopicId(user_id: String!, topic_id: ID!): [UserCourseProgress]
   getUserNotes(user_id: String!, user_lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedNotes
-  getUserBookmarks(user_id: String!, user_lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedBookmarks
+  getUserBookmarks(user_id: String!, user_lsp_id: String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedBookmarks
   getUserExamAttempts(user_id: String!, user_lsp_id: String!) : [UserExamAttempts]
   getUserExamResults(user_id: String!, user_ea_id: String!) : UserExamResult
   getUserExamProgress(user_id: String!, user_ea_id: String!) : [UserExamProgress]
@@ -3314,7 +3314,7 @@ type Query {
   getCohortUsers(cohort_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedCohorts
   getUserQuizAttempts(user_id: String!, topic_id: String!) : [UserQuizAttempt]
   getCohortDetails(cohort_id: String!): CohortMain
-  getCohortMains(lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCohortsMain
+  getCohortMains(lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int, searchText: String): PaginatedCohortsMain
 }
 
 type Mutation {
@@ -3927,6 +3927,15 @@ func (ec *executionContext) field_Query_getCohortMains_args(ctx context.Context,
 		}
 	}
 	args["pageSize"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["searchText"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("searchText"))
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["searchText"] = arg5
 	return args, nil
 }
 
@@ -4053,10 +4062,10 @@ func (ec *executionContext) field_Query_getUserBookmarks_args(ctx context.Contex
 		}
 	}
 	args["user_id"] = arg0
-	var arg1 string
+	var arg1 *string
 	if tmp, ok := rawArgs["user_lsp_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_lsp_id"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7891,7 +7900,7 @@ func (ec *executionContext) _Query_getUserBookmarks(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserBookmarks(rctx, args["user_id"].(string), args["user_lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
+		return ec.resolvers.Query().GetUserBookmarks(rctx, args["user_id"].(string), args["user_lsp_id"].(*string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8203,7 +8212,7 @@ func (ec *executionContext) _Query_getCohortMains(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetCohortMains(rctx, args["lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
+		return ec.resolvers.Query().GetCohortMains(rctx, args["lsp_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int), args["searchText"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

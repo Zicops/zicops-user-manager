@@ -117,7 +117,7 @@ func GetUserNotes(ctx context.Context, userID string, userLspID string, publishT
 	return &outputResponse, nil
 }
 
-func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error) {
+func GetUserBookmarks(ctx context.Context, userID string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -158,8 +158,11 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID string, publ
 		pageSizeInt = *pageSize
 	}
 	var newCursor string
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_bookmarks where user_id='%s' and updated_at <= %d and user_lsp_id='%s' ALLOW FILTERING`, emailCreatorID, *publishTime, userLspID)
+	whereClause := ""
+	if userLspID != nil {
+		whereClause = fmt.Sprintf(" and user_lsp_id='%s'", *userLspID)
+	}
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_bookmarks where user_id='%s' and updated_at<=%d %s ALLOW FILTERING`, emailCreatorID, *publishTime, whereClause)
 	getUsers := func(page []byte) (courses []userz.UserBookmarks, nextPage []byte, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
