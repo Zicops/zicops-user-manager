@@ -335,7 +335,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		lastNameUpdate = user.LastName
 	}
 
-	if emailUpdate != "" || phoneUpdate != "" || firstNameUpdate != "" || lastNameUpdate != "" {
+	if emailUpdate != "" || firstNameUpdate != "" || lastNameUpdate != "" || phoneUpdate != "" {
 		_, err := global.IDP.UpdateUser(ctx, emailUpdate, firstNameUpdate, lastNameUpdate, phoneUpdate, fireUser.UID)
 		if err != nil {
 			return nil, err

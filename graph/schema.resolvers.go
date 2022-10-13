@@ -436,8 +436,8 @@ func (r *queryResolver) GetUserCourseProgressByTopicID(ctx context.Context, user
 	return result, nil
 }
 
-func (r *queryResolver) GetUserNotes(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error) {
-	result, err := queries.GetUserNotes(ctx, userID, userLspID, publishTime, pageCursor, direction, pageSize)
+func (r *queryResolver) GetUserNotes(ctx context.Context, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error) {
+	result, err := queries.GetUserNotes(ctx, userID, userLspID, courseID, publishTime, pageCursor, direction, pageSize)
 	if err != nil {
 		log.Errorf("Error getting notes of a user: %v", err)
 		return nil, err
@@ -445,8 +445,8 @@ func (r *queryResolver) GetUserNotes(ctx context.Context, userID string, userLsp
 	return result, nil
 }
 
-func (r *queryResolver) GetUserBookmarks(ctx context.Context, userID string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error) {
-	result, err := queries.GetUserBookmarks(ctx, userID, userLspID, publishTime, pageCursor, direction, pageSize)
+func (r *queryResolver) GetUserBookmarks(ctx context.Context, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error) {
+	result, err := queries.GetUserBookmarks(ctx, userID, userLspID, courseID, publishTime, pageCursor, direction, pageSize)
 	if err != nil {
 		log.Errorf("Error getting bookmarks of a user: %v", err)
 		return nil, err
