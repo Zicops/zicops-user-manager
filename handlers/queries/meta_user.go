@@ -14,7 +14,7 @@ import (
 	"github.com/zicops/zicops-user-manager/helpers"
 )
 
-func GetUserNotes(ctx context.Context, userID string, userLspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error) {
+func GetUserNotes(ctx context.Context, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -56,8 +56,18 @@ func GetUserNotes(ctx context.Context, userID string, userLspID string, publishT
 		pageSizeInt = *pageSize
 	}
 	var newCursor string
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_notes where user_id='%s' and updated_at <= %d and user_lsp_id='%s' ALLOW FILTERING`, emailCreatorID, *publishTime, userLspID)
+	whereClause := ""
+	if userLspID != nil && *userLspID != "" {
+		whereClause = fmt.Sprintf(`user_lsp_id='%s'`, *userLspID)
+	}
+	if courseID != nil && *courseID != "" {
+		if whereClause != "" {
+			whereClause = whereClause + fmt.Sprintf(` AND course_id='%s'`, *courseID)
+		} else {
+			whereClause = fmt.Sprintf(`course_id='%s'`, *courseID)
+		}
+	}
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_notes where user_id='%s' and updated_at <= %d and %s ALLOW FILTERING`, emailCreatorID, *publishTime, whereClause)
 	getUsers := func(page []byte) (courses []userz.UserNotes, nextPage []byte, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -117,7 +127,7 @@ func GetUserNotes(ctx context.Context, userID string, userLspID string, publishT
 	return &outputResponse, nil
 }
 
-func GetUserBookmarks(ctx context.Context, userID string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error) {
+func GetUserBookmarks(ctx context.Context, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -161,6 +171,9 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID *string, pub
 	whereClause := ""
 	if userLspID != nil {
 		whereClause = fmt.Sprintf(" and user_lsp_id='%s'", *userLspID)
+	}
+	if courseID != nil {
+		whereClause = whereClause + fmt.Sprintf(" and course_id='%s'", *courseID)
 	}
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_bookmarks where user_id='%s' and updated_at<=%d %s ALLOW FILTERING`, emailCreatorID, *publishTime, whereClause)
 	getUsers := func(page []byte) (courses []userz.UserBookmarks, nextPage []byte, err error) {
