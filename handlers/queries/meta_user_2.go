@@ -271,9 +271,18 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 			photoUrl = *input.ImageURL
 		}
 	}
+	words := []string{}
+	if input.Name != "" {
+		name := strings.ToLower(input.Name)
+		for _, word := range name {
+			wordsLower := strings.ToLower(string(word))
+			words = append(words, wordsLower)
+		}
+	}
 	cohortMainTable := userz.Cohort{
 		ID:          cohortID,
 		Name:        input.Name,
+		Words:       words,
 		Description: input.Description,
 		ImageBucket: photoBucket,
 		ImageUrl:    photoUrl,
@@ -383,6 +392,14 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	if input.Name != "" {
 		cohort.Name = input.Name
 		updatedCols = append(updatedCols, "name")
+		words := []string{}
+		name := input.Name
+		for _, word := range name {
+			wordsLower := strings.ToLower(string(word))
+			words = append(words, wordsLower)
+		}
+		cohort.Words = words
+		updatedCols = append(updatedCols, "words")
 	}
 	if input.Description != "" {
 		cohort.Description = input.Description
