@@ -107,8 +107,8 @@ func UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.
 		ID: *input.UserCohortID,
 	}
 	userLsps := []userz.UserCohort{}
-	createdAt := time.Now().Unix()
-	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_cohort_map WHERE id:='%s' AND user_id:='%s' AND created_at < %d ", *input.UserCohortID, input.UserID, createdAt)
+
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_cohort_map WHERE id:='%s' AND user_id:='%s'  ", *input.UserCohortID, input.UserID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err

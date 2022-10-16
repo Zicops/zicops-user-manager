@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
@@ -255,8 +254,8 @@ func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) (
 		return nil, err
 	}
 	CassUserSession := session
-	createdAt := time.Now().Unix()
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_attempts where user_id='%s' and user_lsp_id='%s' AND created_at < %d ALLOW FILTERING`, userID, userLspID, createdAt)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_attempts where user_id='%s' and user_lsp_id='%s'  ALLOW FILTERING`, userID, userLspID)
 	getUserEA := func() (users []userz.UserExamAttempts, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -322,8 +321,8 @@ func GetUserExamResults(ctx context.Context, userID string, userEaID string) (*m
 		return nil, err
 	}
 	CassUserSession := session
-	createdAt := time.Now().Unix()
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_results where user_id='%s' and user_ea_id='%s' AND created_at < %d ALLOW FILTERING`, userID, userEaID, createdAt)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_results where user_id='%s' and user_ea_id='%s'  ALLOW FILTERING`, userID, userEaID)
 	getUserEA := func() (users []userz.UserExamResults, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -384,8 +383,8 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 		return nil, err
 	}
 	CassUserSession := session
-	createdAt := time.Now().Unix()
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_progress where user_id='%s' and user_ea_id='%s' AND created_at < %d ALLOW FILTERING`, userID, userEaID, createdAt)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_progress where user_id='%s' and user_ea_id='%s'  ALLOW FILTERING`, userID, userEaID)
 	getUserEA := func() (users []userz.UserExamProgress, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -453,8 +452,8 @@ func GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]
 		return nil, err
 	}
 	CassUserSession := session
-	createdAt := time.Now().Unix()
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_quiz_attempts where user_id='%s' and topic_id='%s' AND created_at < %d ALLOW FILTERING`, userID, topicID, createdAt)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_quiz_attempts where user_id='%s' and topic_id='%s'  ALLOW FILTERING`, userID, topicID)
 	getUserQA := func() (users []userz.UserQuizAttempts, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()

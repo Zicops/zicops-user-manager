@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
@@ -55,8 +54,8 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 			return nil, err
 		}
 		CassUserSession := session
-		createdAt := time.Now().Unix()
-		getUserQString := fmt.Sprintf("SELECT * FROM userz.users WHERE id = '%s' AND created_at < %d", userAdmin.ID, createdAt)
+
+		getUserQString := fmt.Sprintf("SELECT * FROM userz.users WHERE id = '%s' ", userAdmin.ID)
 		getQuery := CassUserSession.Query(getUserQString, nil)
 		if err := getQuery.SelectRelease(&users); err != nil {
 			return nil, err
@@ -74,7 +73,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 			pageSizeInt = *pageSize
 		}
 
-		qryStr := fmt.Sprintf(`SELECT * from userz.users where created_by='%s' and updated_at <= %d  ALLOW FILTERING`, email_creator, *publishTime)
+		qryStr := fmt.Sprintf(`SELECT * from userz.users where created_by='%s' and created_at <= %d  ALLOW FILTERING`, email_creator, *publishTime)
 		getUsers := func(page []byte) (users []userz.User, nextPage []byte, err error) {
 			q := CassUserSession.Query(qryStr, nil)
 			defer q.Release()

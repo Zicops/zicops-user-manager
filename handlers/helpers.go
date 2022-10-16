@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"time"
 
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -24,8 +23,8 @@ func GetUserFromCass(ctx context.Context) (*userz.User, error) {
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
 	users := []userz.User{}
-	createdAt := time.Now().Unix()
-	getQueryStr := fmt.Sprintf(`SELECT * from userz.user where id='%s' AND created_at < %d`, emailCreatorID, createdAt)
+
+	getQueryStr := fmt.Sprintf(`SELECT * from userz.user where id='%s' `, emailCreatorID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err

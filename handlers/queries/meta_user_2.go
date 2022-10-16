@@ -468,8 +468,8 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 		}
 		CassUserSession := session
 		cohorts := []userz.Cohort{}
-		createdAt := time.Now().Unix()
-		getCohortQueryStr := fmt.Sprintf("SELECT * FROM userz.cohort_main WHERE id = '%s' AND lsp_id = '%s' AND created_at < %d", cohortID, lspID, createdAt)
+
+		getCohortQueryStr := fmt.Sprintf("SELECT * FROM userz.cohort_main WHERE id = '%s' AND lsp_id = '%s' ", cohortID, lspID)
 		getQuery := CassUserSession.Query(getCohortQueryStr, nil)
 		if err := getQuery.SelectRelease(&cohorts); err != nil {
 			return nil, err
@@ -553,8 +553,8 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 		CassUserSession := session
 
 		users := []userz.User{}
-		createdAt := time.Now().Unix()
-		qryStr := fmt.Sprintf("SELECT * FROM userz.user WHERE id = '%s' AND created_at < %d", emailCreatorID, createdAt)
+
+		qryStr := fmt.Sprintf("SELECT * FROM userz.user WHERE id = '%s' ", emailCreatorID)
 		getQuery := CassUserSession.Query(qryStr, nil)
 		if err := getQuery.SelectRelease(&users); err != nil {
 			return nil, err

@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
@@ -139,8 +138,8 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 		return nil, err
 	}
 	CassUserSession := session
-	createdAt := time.Now().Unix()
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and course_id='%s' AND created_at < %d ALLOW FILTERING`, emailCreatorID, courseID, createdAt)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and course_id='%s'  ALLOW FILTERING`, emailCreatorID, courseID)
 	getUsers := func() (courses []userz.UserCourse, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()

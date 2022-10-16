@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -38,8 +37,8 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 		return nil, err
 	}
 	CassUserSession := session
-	createdAt := time.Now().Unix()
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and user_cm_id='%s' AND created_at < %d ALLOW FILTERING`, emailCreatorID, userCourseID, createdAt)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and user_cm_id='%s'  ALLOW FILTERING`, emailCreatorID, userCourseID)
 	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -104,8 +103,8 @@ func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID 
 		return nil, err
 	}
 	CassUserSession := session
-	createdAt := time.Now().Unix()
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and topic_id='%s' AND created_at < %d ALLOW FILTERING`, emailCreatorID, topicID, createdAt)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and topic_id='%s'  ALLOW FILTERING`, emailCreatorID, topicID)
 	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()

@@ -113,8 +113,8 @@ func UpdateUserBookmark(ctx context.Context, input model.UserBookmarkInput) (*mo
 		ID: *input.UserBmID,
 	}
 	userLsps := []userz.UserBookmarks{}
-	createdAt := time.Now().Unix()
-	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_bookmarks WHERE id:='%s' AND user_id:='%s' AND created_at < %d ", userLspMap.ID, userCass.ID, createdAt)
+
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_bookmarks WHERE id:='%s' AND user_id:='%s'  ", userLspMap.ID, userCass.ID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err

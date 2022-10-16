@@ -107,8 +107,8 @@ func UpdateUserExamResult(ctx context.Context, input model.UserExamResultInput) 
 		ID: *input.UserErID,
 	}
 	userLsps := []userz.UserExamResults{}
-	createdAt := time.Now().Unix()
-	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_exam_results WHERE id:='%s' AND user_id:='%s' AND created_at < %d ", userLspMap.ID, userCass.ID, createdAt)
+
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_exam_results WHERE id:='%s' AND user_id:='%s'  ", userLspMap.ID, userCass.ID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
