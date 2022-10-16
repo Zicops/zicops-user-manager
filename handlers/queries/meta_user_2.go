@@ -554,7 +554,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 
 		users := []userz.User{}
 
-		qryStr := fmt.Sprintf("SELECT * FROM userz.user WHERE id = '%s' ", emailCreatorID)
+		qryStr := fmt.Sprintf("SELECT * FROM userz.users WHERE id = '%s' ", emailCreatorID)
 		getQuery := CassUserSession.Query(qryStr, nil)
 		if err := getQuery.SelectRelease(&users); err != nil {
 			return nil, err

@@ -159,7 +159,7 @@ func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, err
 	}
 	users := []userz.User{}
 
-	getQueryStr := fmt.Sprintf(`SELECT * from userz.user where id='%s' `, emailCreatorID)
+	getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, emailCreatorID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
@@ -252,7 +252,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	}
 	users := []userz.User{}
 
-	getQueryStr := fmt.Sprintf(`SELECT * from userz.user where id='%s' `, userID)
+	getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, userID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
@@ -433,7 +433,7 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 	}
 	users := []userz.User{}
 
-	getQueryStr := fmt.Sprintf(`SELECT * from userz.user where id='%s' `, userID)
+	getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, userID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err

@@ -24,7 +24,7 @@ func GetUserFromCass(ctx context.Context) (*userz.User, error) {
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
 	users := []userz.User{}
 
-	getQueryStr := fmt.Sprintf(`SELECT * from userz.user where id='%s' `, emailCreatorID)
+	getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, emailCreatorID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
