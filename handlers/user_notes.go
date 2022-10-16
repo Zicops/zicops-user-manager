@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/rs/xid"
-	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -114,7 +113,9 @@ func UpdateUserNotes(ctx context.Context, input model.UserNotesInput) (*model.Us
 		ID: *input.UserNotesID,
 	}
 	userLsps := []userz.UserNotes{}
-	getQuery := CassUserSession.Query(userz.UserNotesTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
+	createdAt := time.Now().Unix()
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_notes WHERE id:='%s' AND user_id:='%s' AND created_at < %d ", userLspMap.ID, userCass.ID, createdAt)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/rs/xid"
-	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -116,7 +115,9 @@ func UpdateUserExamAttempts(ctx context.Context, input model.UserExamAttemptsInp
 		ID: *input.UserEaID,
 	}
 	userLsps := []userz.UserExamAttempts{}
-	getQuery := CassUserSession.Query(userz.UserExamAttemptsTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
+	createdAt := time.Now().Unix()
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_exam_attempts WHERE id:='%s' AND user_id:='%s' AND created_at < %d ", userLspMap.ID, userCass.ID, createdAt)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}

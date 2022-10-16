@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -55,8 +55,9 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 			return nil, err
 		}
 		CassUserSession := session
-
-		getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
+		createdAt := time.Now().Unix()
+		getUserQString := fmt.Sprintf("SELECT * FROM userz.users WHERE id = '%s' AND created_at < %d", userAdmin.ID, createdAt)
+		getQuery := CassUserSession.Query(getUserQString, nil)
 		if err := getQuery.SelectRelease(&users); err != nil {
 			return nil, err
 		}

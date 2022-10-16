@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/rs/xid"
-	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -108,7 +107,9 @@ func UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.
 		ID: *input.UserCohortID,
 	}
 	userLsps := []userz.UserCohort{}
-	getQuery := CassUserSession.Query(userz.UserCohortTable.Get()).BindMap(qb.M{"id": *input.UserCohortID, "user_id": input.UserID})
+	createdAt := time.Now().Unix()
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_cohort_map WHERE id:='%s' AND user_id:='%s' AND created_at < %d ", *input.UserCohortID, input.UserID, createdAt)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}

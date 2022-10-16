@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
@@ -56,7 +57,7 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 	}
 	var newCursor string
 
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and updated_at <= %d  ALLOW FILTERING`, emailCreatorID, *publishTime)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and created_at <= %d  ALLOW FILTERING`, emailCreatorID, *publishTime)
 	getUsers := func(page []byte) (courses []userz.UserCourse, nextPage []byte, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -138,8 +139,8 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 		return nil, err
 	}
 	CassUserSession := session
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and course_id='%s'  ALLOW FILTERING`, emailCreatorID, courseID)
+	createdAt := time.Now().Unix()
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and course_id='%s' AND created_at < %d ALLOW FILTERING`, emailCreatorID, courseID, createdAt)
 	getUsers := func() (courses []userz.UserCourse, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()

@@ -13,7 +13,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/scylladb/gocqlx/qb"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-cass-pool/redis"
@@ -159,7 +158,9 @@ func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, err
 		ID: emailCreatorID,
 	}
 	users := []userz.User{}
-	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
+	createdAt := time.Now().Unix()
+	getQueryStr := fmt.Sprintf(`SELECT * from userz.user where id='%s' AND created_at < %d`, emailCreatorID, createdAt)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
@@ -250,12 +251,11 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		ID: userID,
 	}
 	users := []userz.User{}
-	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
+	createdAt := time.Now().Unix()
+	getQueryStr := fmt.Sprintf(`SELECT * from userz.user where id='%s' AND created_at < %d`, userID, createdAt)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
-	}
-	if len(users) == 0 {
-		return nil, fmt.Errorf("users not found")
 	}
 	userCass = users[0]
 	updatedCols := []string{}
@@ -432,7 +432,9 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		ID: userID,
 	}
 	users := []userz.User{}
-	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
+	createdAt := time.Now().Unix()
+	getQueryStr := fmt.Sprintf(`SELECT * from userz.user where id='%s' AND created_at < %d`, userID, createdAt)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
