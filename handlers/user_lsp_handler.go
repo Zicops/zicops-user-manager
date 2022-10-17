@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/rs/xid"
-	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -102,7 +101,9 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 		ID: *input.UserLspID,
 	}
 	userLsps := []userz.UserLsp{}
-	getQuery := CassUserSession.Query(userz.UserLspTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
+
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_lsp_map WHERE id='%s' AND user_id='%s'  ", userLspMap.ID, userCass.ID)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -123,17 +124,16 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 		userLspMap.LspId = input.LspID
 		updatedCols = append(updatedCols, "lsp_id")
 	}
-	updatedAt := time.Now().Unix()
-	userLspMap.UpdatedAt = updatedAt
-	updatedCols = append(updatedCols, "updated_at")
-	if len(updatedCols) == 0 {
-		return nil, fmt.Errorf("nothing to update")
-	}
-	upStms, uNames := userz.UserLspTable.Update(updatedCols...)
-	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
-	if err := updateQuery.ExecRelease(); err != nil {
-		log.Errorf("error updating user lsp: %v", err)
-		return nil, err
+	if len(updatedCols) > 0 {
+		updatedAt := time.Now().Unix()
+		userLspMap.UpdatedAt = updatedAt
+		updatedCols = append(updatedCols, "updated_at")
+		upStms, uNames := userz.UserLspTable.Update(updatedCols...)
+		updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
+		if err := updateQuery.ExecRelease(); err != nil {
+			log.Errorf("error updating user lsp: %v", err)
+			return nil, err
+		}
 	}
 	created := strconv.FormatInt(userLspMap.CreatedAt, 10)
 	updated := strconv.FormatInt(userLspMap.UpdatedAt, 10)

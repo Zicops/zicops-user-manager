@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/rs/xid"
-	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -108,7 +107,9 @@ func UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.
 		ID: *input.UserCohortID,
 	}
 	userLsps := []userz.UserCohort{}
-	getQuery := CassUserSession.Query(userz.UserCohortTable.Get()).BindMap(qb.M{"id": *input.UserCohortID, "user_id": input.UserID})
+
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_cohort_map WHERE id='%s' AND user_id='%s'  ", *input.UserCohortID, input.UserID)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -141,17 +142,17 @@ func UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.
 		userLspMap.Role = input.Role
 		updatedCols = append(updatedCols, "role")
 	}
-	updatedAt := time.Now().Unix()
-	userLspMap.UpdatedAt = updatedAt
-	updatedCols = append(updatedCols, "updated_at")
-	if len(updatedCols) == 0 {
-		return nil, fmt.Errorf("nothing to update")
-	}
-	upStms, uNames := userz.UserCohortTable.Update(updatedCols...)
-	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
-	if err := updateQuery.ExecRelease(); err != nil {
-		log.Errorf("error updating user org: %v", err)
-		return nil, err
+	if len(updatedCols) > 0 {
+		updatedAt := time.Now().Unix()
+		userLspMap.UpdatedAt = updatedAt
+		updatedCols = append(updatedCols, "updated_at")
+
+		upStms, uNames := userz.UserCohortTable.Update(updatedCols...)
+		updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
+		if err := updateQuery.ExecRelease(); err != nil {
+			log.Errorf("error updating user org: %v", err)
+			return nil, err
+		}
 	}
 	created := strconv.FormatInt(userLspMap.CreatedAt, 10)
 	updated := strconv.FormatInt(userLspMap.UpdatedAt, 10)

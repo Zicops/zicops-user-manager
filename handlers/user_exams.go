@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/rs/xid"
-	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -116,7 +115,9 @@ func UpdateUserExamAttempts(ctx context.Context, input model.UserExamAttemptsInp
 		ID: *input.UserEaID,
 	}
 	userLsps := []userz.UserExamAttempts{}
-	getQuery := CassUserSession.Query(userz.UserExamAttemptsTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
+
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_exam_attempts WHERE id='%s' AND user_id='%s'  ", userLspMap.ID, userCass.ID)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -162,17 +163,16 @@ func UpdateUserExamAttempts(ctx context.Context, input model.UserExamAttemptsInp
 		userLspMap.UpdatedBy = *input.UpdatedBy
 		updatedCols = append(updatedCols, "updated_by")
 	}
-	updatedAt := time.Now().Unix()
-	userLspMap.UpdatedAt = updatedAt
-	updatedCols = append(updatedCols, "updated_at")
-	if len(updatedCols) == 0 {
-		return nil, fmt.Errorf("nothing to update")
-	}
-	upStms, uNames := userz.UserExamAttemptsTable.Update(updatedCols...)
-	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
-	if err := updateQuery.ExecRelease(); err != nil {
-		log.Errorf("error updating user exam attempts: %v", err)
-		return nil, err
+	if len(updatedCols) > 0 {
+		updatedAt := time.Now().Unix()
+		userLspMap.UpdatedAt = updatedAt
+		updatedCols = append(updatedCols, "updated_at")
+		upStms, uNames := userz.UserExamAttemptsTable.Update(updatedCols...)
+		updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
+		if err := updateQuery.ExecRelease(); err != nil {
+			log.Errorf("error updating user exam attempts: %v", err)
+			return nil, err
+		}
 	}
 	created := strconv.FormatInt(userLspMap.CreatedAt, 10)
 	updated := strconv.FormatInt(userLspMap.UpdatedAt, 10)

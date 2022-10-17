@@ -37,8 +37,8 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 		return nil, err
 	}
 	CassUserSession := session
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and user_cm_id='%s' ALLOW FILTERING`, emailCreatorID, userCourseID)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and user_cm_id='%s'  ALLOW FILTERING`, emailCreatorID, userCourseID)
 	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -103,8 +103,8 @@ func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID 
 		return nil, err
 	}
 	CassUserSession := session
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and topic_id='%s' ALLOW FILTERING`, emailCreatorID, topicID)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and topic_id='%s'  ALLOW FILTERING`, emailCreatorID, topicID)
 	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()

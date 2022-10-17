@@ -39,8 +39,8 @@ func GetUserOrganizations(ctx context.Context, userId string) ([]*model.UserOrga
 		return nil, err
 	}
 	CassUserSession := session
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_org_map where user_id='%s' ALLOW FILTERING`, emailCreatorID)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_org_map where user_id='%s'   ALLOW FILTERING`, emailCreatorID)
 	getUsersOrgs := func() (users []userz.UserOrg, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -103,8 +103,8 @@ func GetUserPreferences(ctx context.Context, userId string) ([]*model.UserPrefer
 		return nil, err
 	}
 	CassUserSession := session
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_preferences where user_id='%s' ALLOW FILTERING`, emailCreatorID)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_preferences where user_id='%s'  ALLOW FILTERING`, emailCreatorID)
 	getUsersOrgs := func() (users []userz.UserPreferences, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -167,8 +167,8 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 		return nil, err
 	}
 	CassUserSession := session
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id='%s' ALLOW FILTERING`, emailCreatorID)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id='%s'  ALLOW FILTERING`, emailCreatorID)
 	getUsersOrgs := func() (users []userz.UserLsp, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -221,8 +221,8 @@ func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string
 		return nil, err
 	}
 	CassUserSession := session
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where lsp_id='%s' ALLOW FILTERING`, lspID)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where lsp_id='%s'  ALLOW FILTERING`, lspID)
 	getUsers := func(page []byte) (users []userz.UserLsp, nextPage []byte, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -291,8 +291,8 @@ func GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model
 		return nil, err
 	}
 	CassUserSession := session
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_org_map where user_id='%s' and user_lsp_id='%s'  ALLOW FILTERING`, userID, lspID)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_org_map where user_id='%s' and user_lsp_id='%s'   ALLOW FILTERING`, userID, lspID)
 	getUsersOrgs := func() (users []userz.UserOrg, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -355,8 +355,8 @@ func GetUserPreferenceForLsp(ctx context.Context, userID string, lspID string) (
 		return nil, err
 	}
 	CassUserSession := session
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_preferences where user_id='%s' and user_lsp_id='%s' ALLOW FILTERING`, userID, lspID)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_preferences where user_id='%s' and user_lsp_id='%s'  ALLOW FILTERING`, userID, lspID)
 	getUsersOrgs := func() (users []userz.UserPreferences, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -417,8 +417,8 @@ func GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model
 		return nil, err
 	}
 	CassUserSession := session
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id='%s' and lsp_id='%s' ALLOW FILTERING`, userID, lspID)
+	
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id='%s' and lsp_id='%s'  ALLOW FILTERING`, userID, lspID)
 	getUsersOrgs := func() (users []userz.UserLsp, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()

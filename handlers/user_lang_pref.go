@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/rs/xid"
-	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -171,7 +170,9 @@ func UpdateUserPreference(ctx context.Context, input model.UserPreferenceInput) 
 		ID: *input.UserPreferenceID,
 	}
 	userLsps := []userz.UserPreferences{}
-	getQuery := CassUserSession.Query(userz.UserPreferencesTable.Get()).BindMap(qb.M{"id": userLspMap.ID, "user_id": userCass.ID})
+
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_preferences WHERE id='%s' AND user_id='%s'  ", userLspMap.ID, userCass.ID)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
 	}
@@ -200,17 +201,16 @@ func UpdateUserPreference(ctx context.Context, input model.UserPreferenceInput) 
 		userLspMap.UserLspID = input.UserLspID
 		updatedCols = append(updatedCols, "user_lsp_id")
 	}
-	updatedAt := time.Now().Unix()
-	userLspMap.UpdatedAt = updatedAt
-	updatedCols = append(updatedCols, "updated_at")
-	if len(updatedCols) == 0 {
-		return nil, fmt.Errorf("nothing to update")
-	}
-	upStms, uNames := userz.UserPreferencesTable.Update(updatedCols...)
-	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
-	if err := updateQuery.ExecRelease(); err != nil {
-		log.Errorf("error updating user pref: %v", err)
-		return nil, err
+	if len(updatedCols) > 0 {
+		updatedAt := time.Now().Unix()
+		userLspMap.UpdatedAt = updatedAt
+		updatedCols = append(updatedCols, "updated_at")
+		upStms, uNames := userz.UserPreferencesTable.Update(updatedCols...)
+		updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
+		if err := updateQuery.ExecRelease(); err != nil {
+			log.Errorf("error updating user pref: %v", err)
+			return nil, err
+		}
 	}
 	created := strconv.FormatInt(userLspMap.CreatedAt, 10)
 	updated := strconv.FormatInt(userLspMap.UpdatedAt, 10)

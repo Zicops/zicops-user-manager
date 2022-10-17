@@ -13,7 +13,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/scylladb/gocqlx/qb"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-cass-pool/redis"
@@ -151,24 +150,18 @@ func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, err
 		return nil, err
 	}
 	CassUserSession := session
-
 	registered := false
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
-	userCass := userz.User{
-		ID: emailCreatorID,
-	}
 	users := []userz.User{}
-	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
+
+	getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, emailCreatorID)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}
 	if len(users) == 0 {
 		return nil, fmt.Errorf("user not found")
-	}
-	userCass = users[0]
-	if strings.ToLower(userCass.Role) != "admin" {
-		return nil, fmt.Errorf("user is not an admin")
 	}
 	for _, email := range emails {
 		if email == email_creator {
@@ -250,12 +243,11 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		ID: userID,
 	}
 	users := []userz.User{}
-	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
+
+	getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, userID)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
-	}
-	if len(users) == 0 {
-		return nil, fmt.Errorf("users not found")
 	}
 	userCass = users[0]
 	updatedCols := []string{}
@@ -361,28 +353,24 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		userCass.Role = user.Role
 		updatedCols = append(updatedCols, "role")
 	}
-	if user.IsActive != userCass.IsActive {
-		userCass.IsActive = user.IsActive
-		updatedCols = append(updatedCols, "is_active")
-	}
 	if user.IsVerified != userCass.IsVerified {
 		userCass.IsVerified = user.IsVerified
 		updatedCols = append(updatedCols, "is_verified")
 	}
-	updatedAt := time.Now().Unix()
-	userCass.UpdatedAt = updatedAt
-	updatedCols = append(updatedCols, "updated_at")
 	created := strconv.FormatInt(userCass.CreatedAt, 10)
 	updated := strconv.FormatInt(userCass.UpdatedAt, 10)
-	if len(updatedCols) == 0 {
-		return nil, fmt.Errorf("nothing to update")
+	if len(updatedCols) > 0 {
+		updatedAt := time.Now().Unix()
+		userCass.UpdatedAt = updatedAt
+		updatedCols = append(updatedCols, "updated_at")
+		upStms, uNames := userz.UserTable.Update(updatedCols...)
+		updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userCass)
+		if err := updateQuery.ExecRelease(); err != nil {
+			log.Errorf("error updating user: %v", err)
+			return nil, err
+		}
 	}
-	upStms, uNames := userz.UserTable.Update(updatedCols...)
-	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userCass)
-	if err := updateQuery.ExecRelease(); err != nil {
-		log.Errorf("error updating user: %v", err)
-		return nil, err
-	}
+
 	responseUser := model.User{
 		ID:         &userCass.ID,
 		FirstName:  user.FirstName,
@@ -432,7 +420,9 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		ID: userID,
 	}
 	users := []userz.User{}
-	getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userCass.ID})
+
+	getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, userID)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&users); err != nil {
 		return nil, err
 	}

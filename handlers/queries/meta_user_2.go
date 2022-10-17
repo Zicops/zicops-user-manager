@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/rs/xid"
-	"github.com/scylladb/gocqlx/qb"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -73,7 +72,7 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 	if userLspID != nil {
 		lspClause = fmt.Sprintf(" and user_lsp_id='%s'", *userLspID)
 	}
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_cohort_map where user_id='%s' and updated_at <= %d %s ALLOW FILTERING`, emailCreatorID, *publishTime, lspClause)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_cohort_map where user_id='%s' and created_at <= %d %s ALLOW FILTERING`, emailCreatorID, *publishTime, lspClause)
 	getUsers := func(page []byte) (users []userz.UserCohort, nextPage []byte, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -164,7 +163,7 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 	CassUserSession := session
 
 	var newCursor string
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_cohort_map where cohort_id='%s' and updated_at<=%d ALLOW FILTERING`, cohortID, *publishTime)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_cohort_map where cohort_id='%s' and created_at<=%d ALLOW FILTERING`, cohortID, *publishTime)
 	getUsersCohort := func(page []byte) (users []userz.UserCohort, nextPage []byte, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -347,7 +346,8 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		ID: *input.CohortID,
 	}
 	cohorts := []userz.Cohort{}
-	getQuery := CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID, "lsp_id": lspID})
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.cohort_main WHERE id='%s' AND lsp_id='%s'  ", currentCohort.ID, lspID)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&cohorts); err != nil {
 		return nil, err
 	}
@@ -479,17 +479,15 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 	var photoBucket string
 	var photoUrl string
 	if cohort.ID == "" {
-		currentCohort := userz.Cohort{
-			ID: cohortID,
-		}
 		session, err := cassandra.GetCassSession("userz")
 		if err != nil {
 			return nil, err
 		}
 		CassUserSession := session
-
 		cohorts := []userz.Cohort{}
-		getQuery := CassUserSession.Query(userz.CohortTable.Get()).BindMap(qb.M{"id": currentCohort.ID, "lsp_id": lspID})
+
+		getCohortQueryStr := fmt.Sprintf("SELECT * FROM userz.cohort_main WHERE id = '%s' AND lsp_id = '%s' ", cohortID, lspID)
+		getQuery := CassUserSession.Query(getCohortQueryStr, nil)
 		if err := getQuery.SelectRelease(&cohorts); err != nil {
 			return nil, err
 		}
@@ -572,7 +570,9 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 		CassUserSession := session
 
 		users := []userz.User{}
-		getQuery := CassUserSession.Query(userz.UserTable.Get()).BindMap(qb.M{"id": userAdmin.ID})
+
+		qryStr := fmt.Sprintf("SELECT * FROM userz.users WHERE id = '%s' ", emailCreatorID)
+		getQuery := CassUserSession.Query(qryStr, nil)
 		if err := getQuery.SelectRelease(&users); err != nil {
 			return nil, err
 		}
@@ -593,7 +593,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 		if searchText != nil && *searchText != "" {
 			whereClause = fmt.Sprintf(" AND name LIKE '%%%s%%'", *searchText)
 		}
-		qryStr := fmt.Sprintf(`SELECT * from userz.cohort_main where lsp_id='%s' and updated_at<=%d %s ALLOW FILTERING`, lspID, *publishTime, whereClause)
+		qryStr = fmt.Sprintf(`SELECT * from userz.cohort_main where lsp_id='%s' and created_at<=%d %s ALLOW FILTERING`, lspID, *publishTime, whereClause)
 		getCohorts := func(page []byte) (users []userz.Cohort, nextPage []byte, err error) {
 			q := CassUserSession.Query(qryStr, nil)
 			defer q.Release()
