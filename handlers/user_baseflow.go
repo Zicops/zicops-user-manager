@@ -365,20 +365,20 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		userCass.IsVerified = user.IsVerified
 		updatedCols = append(updatedCols, "is_verified")
 	}
-	updatedAt := time.Now().Unix()
-	userCass.UpdatedAt = updatedAt
-	updatedCols = append(updatedCols, "updated_at")
 	created := strconv.FormatInt(userCass.CreatedAt, 10)
 	updated := strconv.FormatInt(userCass.UpdatedAt, 10)
-	if len(updatedCols) == 0 {
-		return nil, fmt.Errorf("nothing to update")
+	if len(updatedCols) > 0 {
+		updatedAt := time.Now().Unix()
+		userCass.UpdatedAt = updatedAt
+		updatedCols = append(updatedCols, "updated_at")
+		upStms, uNames := userz.UserTable.Update(updatedCols...)
+		updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userCass)
+		if err := updateQuery.ExecRelease(); err != nil {
+			log.Errorf("error updating user: %v", err)
+			return nil, err
+		}
 	}
-	upStms, uNames := userz.UserTable.Update(updatedCols...)
-	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userCass)
-	if err := updateQuery.ExecRelease(); err != nil {
-		log.Errorf("error updating user: %v", err)
-		return nil, err
-	}
+
 	responseUser := model.User{
 		ID:         &userCass.ID,
 		FirstName:  user.FirstName,

@@ -124,17 +124,16 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 		userLspMap.LspId = input.LspID
 		updatedCols = append(updatedCols, "lsp_id")
 	}
-	updatedAt := time.Now().Unix()
-	userLspMap.UpdatedAt = updatedAt
-	updatedCols = append(updatedCols, "updated_at")
-	if len(updatedCols) == 0 {
-		return nil, fmt.Errorf("nothing to update")
-	}
-	upStms, uNames := userz.UserLspTable.Update(updatedCols...)
-	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
-	if err := updateQuery.ExecRelease(); err != nil {
-		log.Errorf("error updating user lsp: %v", err)
-		return nil, err
+	if len(updatedCols) > 0 {
+		updatedAt := time.Now().Unix()
+		userLspMap.UpdatedAt = updatedAt
+		updatedCols = append(updatedCols, "updated_at")
+		upStms, uNames := userz.UserLspTable.Update(updatedCols...)
+		updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
+		if err := updateQuery.ExecRelease(); err != nil {
+			log.Errorf("error updating user lsp: %v", err)
+			return nil, err
+		}
 	}
 	created := strconv.FormatInt(userLspMap.CreatedAt, 10)
 	updated := strconv.FormatInt(userLspMap.UpdatedAt, 10)

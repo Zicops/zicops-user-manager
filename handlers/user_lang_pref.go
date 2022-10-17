@@ -201,17 +201,16 @@ func UpdateUserPreference(ctx context.Context, input model.UserPreferenceInput) 
 		userLspMap.UserLspID = input.UserLspID
 		updatedCols = append(updatedCols, "user_lsp_id")
 	}
-	updatedAt := time.Now().Unix()
-	userLspMap.UpdatedAt = updatedAt
-	updatedCols = append(updatedCols, "updated_at")
-	if len(updatedCols) == 0 {
-		return nil, fmt.Errorf("nothing to update")
-	}
-	upStms, uNames := userz.UserPreferencesTable.Update(updatedCols...)
-	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
-	if err := updateQuery.ExecRelease(); err != nil {
-		log.Errorf("error updating user pref: %v", err)
-		return nil, err
+	if len(updatedCols) > 0 {
+		updatedAt := time.Now().Unix()
+		userLspMap.UpdatedAt = updatedAt
+		updatedCols = append(updatedCols, "updated_at")
+		upStms, uNames := userz.UserPreferencesTable.Update(updatedCols...)
+		updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&userLspMap)
+		if err := updateQuery.ExecRelease(); err != nil {
+			log.Errorf("error updating user pref: %v", err)
+			return nil, err
+		}
 	}
 	created := strconv.FormatInt(userLspMap.CreatedAt, 10)
 	updated := strconv.FormatInt(userLspMap.UpdatedAt, 10)
