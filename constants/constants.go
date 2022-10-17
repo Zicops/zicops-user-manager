@@ -8,5 +8,5 @@ const (
 	RESPONSE_JSON_DATA  string = "data"
 	RESPONSE_JSON_ERROR string = "error"
 	USERS_BUCKET             = "users-zicops-one"
-	CONTINUE_URL               = "https://demo.zicops.com"
+	CONTINUE_URL               = "https://staging.zicops.com"
 )
