@@ -114,7 +114,7 @@ func UpdateUserNotes(ctx context.Context, input model.UserNotesInput) (*model.Us
 	}
 	userLsps := []userz.UserNotes{}
 
-	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_notes WHERE id:='%s' AND user_id:='%s'  ", userLspMap.ID, userCass.ID)
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_notes WHERE id='%s' AND user_id='%s'  ", userLspMap.ID, userCass.ID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err

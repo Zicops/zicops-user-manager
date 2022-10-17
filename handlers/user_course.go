@@ -119,7 +119,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 	}
 	userLsps := []userz.UserCourse{}
 
-	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_course_map WHERE id:='%s' AND user_id:='%s'  ", userLspMap.ID, input.UserID)
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_course_map WHERE id='%s' AND user_id='%s'  ", userLspMap.ID, input.UserID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err

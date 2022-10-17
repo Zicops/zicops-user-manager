@@ -171,7 +171,7 @@ func UpdateUserPreference(ctx context.Context, input model.UserPreferenceInput) 
 	}
 	userLsps := []userz.UserPreferences{}
 
-	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_preferences WHERE id:='%s' AND user_id:='%s'  ", userLspMap.ID, userCass.ID)
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_preferences WHERE id='%s' AND user_id='%s'  ", userLspMap.ID, userCass.ID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err

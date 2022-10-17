@@ -361,10 +361,6 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		userCass.Role = user.Role
 		updatedCols = append(updatedCols, "role")
 	}
-	if user.IsActive != userCass.IsActive {
-		userCass.IsActive = user.IsActive
-		updatedCols = append(updatedCols, "is_active")
-	}
 	if user.IsVerified != userCass.IsVerified {
 		userCass.IsVerified = user.IsVerified
 		updatedCols = append(updatedCols, "is_verified")

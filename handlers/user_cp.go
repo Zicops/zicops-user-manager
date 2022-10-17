@@ -116,7 +116,7 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 	}
 	userLsps := []userz.UserCourseProgress{}
 
-	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_course_progress WHERE id:='%s' AND user_id:='%s'  ", userLspMap.ID, userCass.ID)
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_course_progress WHERE id='%s' AND user_id='%s'  ", userLspMap.ID, userCass.ID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err
