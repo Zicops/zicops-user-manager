@@ -138,11 +138,14 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 		}
 		outputUsers = append(outputUsers, &responseUser)
 		userLspMap := &model.UserLspMapInput{
-			UserID: userID,
-			LspID:  lspId,
-			Status: "",
+			UserID:    userID,
+			LspID:     lspId,
+			Status:    "",
+			CreatedBy: user.CreatedBy,
+			UpdatedBy: user.UpdatedBy,
 		}
-		_, err = AddUserLspMap(ctx, []*model.UserLspMapInput{userLspMap})
+		isAdminCall := true
+		_, err = AddUserLspMap(ctx, []*model.UserLspMapInput{userLspMap}, &isAdminCall)
 		if err != nil {
 			return nil, err
 		}

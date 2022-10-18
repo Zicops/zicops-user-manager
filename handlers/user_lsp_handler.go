@@ -14,15 +14,20 @@ import (
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
-func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*model.UserLspMap, error) {
+func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput, isAdmin *bool) ([]*model.UserLspMap, error) {
 	userCass, err := GetUserFromCass(ctx)
-	if err != nil {
+	if err != nil && isAdmin == nil {
 		return nil, fmt.Errorf("user not found")
 	}
 	isAllowed := false
-	role := strings.ToLower(userCass.Role)
-	if userCass.ID == input[0].UserID || role == "admin" || strings.Contains(role, "manager") {
-		isAllowed = true
+	if isAdmin != nil && *isAdmin {
+		isAllowed = *isAdmin
+	}
+	if !isAllowed {
+		role := strings.ToLower(userCass.Role)
+		if userCass.ID == input[0].UserID || role == "admin" || strings.Contains(role, "manager") {
+			isAllowed = true
+		}
 	}
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create lsp mapping")
@@ -32,17 +37,20 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*mode
 		return nil, err
 	}
 	CassUserSession := session
-
 	userLspMaps := make([]*model.UserLspMap, 0)
 	for _, input := range input {
 		guid := xid.New()
-		createdBy := userCass.Email
-		updatedBy := userCass.Email
+		createdBy := ""
+		updatedBy := ""
 		if input.CreatedBy != nil {
 			createdBy = *input.CreatedBy
+		} else {
+			createdBy = userCass.Email
 		}
 		if input.UpdatedBy != nil {
 			updatedBy = *input.UpdatedBy
+		} else {
+			updatedBy = userCass.Email
 		}
 		userLspMap := userz.UserLsp{
 			ID:        guid.String(),
