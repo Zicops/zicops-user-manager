@@ -50,7 +50,8 @@ func (r *mutationResolver) Login(ctx context.Context) (*model.User, error) {
 }
 
 func (r *mutationResolver) AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*model.UserLspMap, error) {
-	result, err := handlers.AddUserLspMap(ctx, input)
+	isAdmin := false
+	result, err := handlers.AddUserLspMap(ctx, input, &isAdmin)
 	if err != nil {
 		log.Errorf("Error adding lsp map for user: %v", err)
 		return nil, err
