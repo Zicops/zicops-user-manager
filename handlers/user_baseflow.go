@@ -35,6 +35,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 	CassUserSession := session
 
 	roleValue := claims["email"]
+	lspId := claims["lsp_id"].(string)
 	if !isZAdmin {
 		if strings.ToLower(roleValue.(string)) != "puneet@zicops.com" {
 			return nil, fmt.Errorf("user is a not an admin: Unauthorized")
@@ -136,6 +137,15 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 			global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
 		}
 		outputUsers = append(outputUsers, &responseUser)
+		userLspMap := &model.UserLspMapInput{
+			UserID: userID,
+			LspID:  lspId,
+			Status: "",
+		}
+		_, err = AddUserLspMap(ctx, []*model.UserLspMapInput{userLspMap})
+		if err != nil {
+			return nil, err
+		}
 	}
 	return outputUsers, nil
 }

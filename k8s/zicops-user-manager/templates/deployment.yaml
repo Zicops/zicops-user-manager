@@ -52,17 +52,17 @@ spec:
           - name: GOOGLE_APPLICATION_CREDENTIALS
             value: {{ $zcbcred }}
           - name: CASSANDRA_CERT
-            value: ""
+            value: {{ $zcbcert }}
           - name: CASSANDRA_CA
-            value: ""
+            value: {{ $zcbcertca }}
           - name: CASSANDRA_KEY
-            value: ""
+            value: {{ $zcbkey }}
           - name: REDIS_HOST
-            value: "staging-redis-cluster.redis.svc.cluster.local"
+            value: "prod-redis-cluster.redis.svc.cluster.local"
           - name: REDIS_PORT
             value: "6379"
           - name: REDIS_PASSWORD
-            value: "C6aXVndjSb"
+            value: "AI2GIErdjD"
           ports:
             - name: http-server-um
               containerPort: {{ .Values.asp.port }}
@@ -97,25 +97,25 @@ spec:
           - name: GOOGLE_APPLICATION_CREDENTIALS
             value: {{ $zcbcred }}
           - name: CASSANDRA_HOST
-            value: "dbdev-cassandra.default.svc.cluster.local"
+            value: "3adcf077-0f2e-447a-b901-4b7b77b8e78d-asia-south1.db.astra.datastax.com"
           - name: CASSANDRA_PORT
-            value: "9042"
+            value: "29042"
           - name: CASSANDRA_USERNAME
-            value: "cassandra"
+            value: "oNMMDhfoAmdhhaNMWajICmnk"
           - name: CASSANDRA_PASSWORD
-            value: "lExbGbVh2r"
+            value: "Ah0_7-ZCiOlC+J+8vTtC,T-a,36IW0cQvHY0Km3AhPQeWxrKJpjvGJ,34UZhMGsn93uBQz5Yle_j6ZTDdi0+IW7lZjB9f.wK8bLZBOWyTraZLB-B.P.Dkljqw0j2QnZE"
           - name: CASSANDRA_CERT
-            value: ""
+            value: {{ $zcbcert }}
           - name: CASSANDRA_CA
-            value: ""
+            value: {{ $zcbcertca }}
           - name: CASSANDRA_KEY
-            value: ""
+            value: {{ $zcbkey }}
           - name: REDIS_HOST
-            value: "staging-redis-cluster.redis.svc.cluster.local"
+            value: "prod-redis-cluster.redis.svc.cluster.local"
           - name: REDIS_PORT
             value: "6379"
           - name: REDIS_PASSWORD
-            value: "C6aXVndjSb"
+            value: "AI2GIErdjD"
       volumes:
       - name: zicops-cc
         secret:
