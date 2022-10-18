@@ -103,8 +103,11 @@ func UpdateUserRole(ctx context.Context, input model.UserRoleInput) (*model.User
 	CassUserSession := session
 
 	userLsps := []userz.UserRole{}
-
-	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_role WHERE id='%s' AND user_id='%s'  ", userLspMap.ID, userCass.ID)
+	userID := userCass.ID
+	if input.UserID != "" {
+		userID = input.UserID
+	}
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_role WHERE id='%s' AND user_id='%s'  ", userLspMap.ID, userID)
 	getQuery := CassUserSession.Query(getQueryStr, nil)
 	if err := getQuery.SelectRelease(&userLsps); err != nil {
 		return nil, err

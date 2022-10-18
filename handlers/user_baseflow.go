@@ -275,7 +275,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 				return nil, err
 			}
 		}
-		bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", userCass.ID, user.Photo.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", *user.ID, user.Photo.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
