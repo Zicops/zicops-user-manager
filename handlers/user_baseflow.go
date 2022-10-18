@@ -199,15 +199,6 @@ func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, err
 		if err != nil {
 			return &registered, err
 		}
-		userLspMap := &model.UserLspMapInput{
-			UserID: userID,
-			LspID:  lspID,
-			Status: "",
-		}
-		_, err = AddUserLspMap(ctx, []*model.UserLspMapInput{userLspMap})
-		if err != nil {
-			return &registered, err
-		}
 		// passwordReset, err := global.IDP.GetResetPasswordURL(ctx, email)
 		// if err != nil {
 		// 	return &registered, err
