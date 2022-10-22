@@ -39,32 +39,43 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput, isAdmin 
 	CassUserSession := session
 	userLspMaps := make([]*model.UserLspMap, 0)
 	for _, input := range input {
-		guid := xid.New()
-		createdBy := ""
-		updatedBy := ""
-		if input.CreatedBy != nil {
-			createdBy = *input.CreatedBy
-		} else {
-			createdBy = userCass.Email
-		}
-		if input.UpdatedBy != nil {
-			updatedBy = *input.UpdatedBy
-		} else {
-			updatedBy = userCass.Email
-		}
-		userLspMap := userz.UserLsp{
-			ID:        guid.String(),
-			UserID:    input.UserID,
-			LspId:     input.LspID,
-			CreatedAt: time.Now().Unix(),
-			UpdatedAt: time.Now().Unix(),
-			CreatedBy: createdBy,
-			UpdatedBy: updatedBy,
-			Status:    input.Status,
-		}
-		insertQuery := CassUserSession.Query(userz.UserLspTable.Insert()).BindStruct(userLspMap)
-		if err := insertQuery.ExecRelease(); err != nil {
+		userLsps := []userz.UserLsp{}
+		getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_lsp_map WHERE user_id='%s' AND lsp_id='%s'  ", input.UserID, input.LspID)
+		getQuery := CassUserSession.Query(getQueryStr, nil)
+		if err := getQuery.SelectRelease(&userLsps); err != nil {
 			return nil, err
+		}
+		userLspMap := userz.UserLsp{}
+		if len(userLsps) == 0 {
+			guid := xid.New()
+			createdBy := ""
+			updatedBy := ""
+			if input.CreatedBy != nil {
+				createdBy = *input.CreatedBy
+			} else {
+				createdBy = userCass.Email
+			}
+			if input.UpdatedBy != nil {
+				updatedBy = *input.UpdatedBy
+			} else {
+				updatedBy = userCass.Email
+			}
+			userLspMap = userz.UserLsp{
+				ID:        guid.String(),
+				UserID:    input.UserID,
+				LspId:     input.LspID,
+				CreatedAt: time.Now().Unix(),
+				UpdatedAt: time.Now().Unix(),
+				CreatedBy: createdBy,
+				UpdatedBy: updatedBy,
+				Status:    input.Status,
+			}
+			insertQuery := CassUserSession.Query(userz.UserLspTable.Insert()).BindStruct(userLspMap)
+			if err := insertQuery.ExecRelease(); err != nil {
+				return nil, err
+			}
+		} else {
+			userLspMap = userLsps[0]
 		}
 		created := strconv.FormatInt(userLspMap.CreatedAt, 10)
 		updated := strconv.FormatInt(userLspMap.UpdatedAt, 10)
