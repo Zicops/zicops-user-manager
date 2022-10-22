@@ -40,7 +40,7 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput, isAdmin 
 	userLspMaps := make([]*model.UserLspMap, 0)
 	for _, input := range input {
 		userLsps := []userz.UserLsp{}
-		getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_lsp_map WHERE user_id='%s' AND lsp_id='%s'  ", input.UserID, input.LspID)
+		getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_lsp_map WHERE user_id='%s' AND lsp_id='%s' ALLOW FILTERING", input.UserID, input.LspID)
 		getQuery := CassUserSession.Query(getQueryStr, nil)
 		if err := getQuery.SelectRelease(&userLsps); err != nil {
 			return nil, err
