@@ -129,13 +129,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 			Status:     user.Status,
 			PhotoURL:   &photoUrl,
 		}
-		if isZAdmin {
-			passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email)
-			if err != nil {
-				return nil, err
-			}
-			global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
-		}
+
 		outputUsers = append(outputUsers, &responseUser)
 		userLspMap := &model.UserLspMapInput{
 			UserID:    userID,
@@ -145,10 +139,26 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 			UpdatedBy: user.UpdatedBy,
 		}
 		isAdminCall := true
-		_, err = AddUserLspMap(ctx, []*model.UserLspMapInput{userLspMap}, &isAdminCall)
+		usrLspMap, err := AddUserLspMap(ctx, []*model.UserLspMapInput{userLspMap}, &isAdminCall)
 		if err != nil {
 			return nil, err
 		}
+		shouldSendEmail := false
+		for _, usrLsp := range usrLspMap {
+			if usrLsp.Status == "" {
+				shouldSendEmail = true
+			}
+		}
+		if shouldSendEmail {
+			if isZAdmin {
+				passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email)
+				if err != nil {
+					return nil, err
+				}
+				global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
+			}
+		}
+
 	}
 	return outputUsers, nil
 }
