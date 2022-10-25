@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"os"
 
@@ -66,6 +67,7 @@ func main() {
 	}
 	bootUPErrors := make(chan error, 1)
 	go monitorSystem(cancel, bootUPErrors)
+	go checkAndInitCassandraSession()
 	controller.CCBackendController(ctx, port, bootUPErrors)
 	err = <-bootUPErrors
 	if err != nil {
@@ -84,4 +86,23 @@ func monitorSystem(cancel context.CancelFunc, errorChannel chan error) {
 	cancel()
 	// send error to channel
 	errorChannel <- fmt.Errorf("System termination signal received")
+}
+
+func checkAndInitCassandraSession() error {
+	// get user session every 1 minute
+	// if session is nil then create new session
+	for {
+
+		_, err := cassandra.GetCassSession("userz")
+		if err != nil {
+			//delete session
+			delete(cassandra.GlobalSession, "userz")
+			_, err := cassandra.GetCassSession("userz")
+			if err != nil {
+				log.Fatal("Error connecting to cassandra: %v ", err)
+				panic(err)
+			}
+		}
+		time.Sleep(5 * time.Minute)
+	}
 }
