@@ -22,8 +22,8 @@ func (r *mutationResolver) RegisterUsers(ctx context.Context, input []*model.Use
 	return result, nil
 }
 
-func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, error) {
-	result, err := handlers.InviteUsers(ctx, emails, lspID)
+func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string, lspID *string) (*bool, error) {
+	result, err := handlers.InviteUsers(ctx, emails, *lspID)
 	if err != nil {
 		log.Errorf("Error inviting users: %v", err)
 		return nil, err
