@@ -118,6 +118,10 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 		if err != nil {
 			log.Errorf("Failed to get user from firebase: %v", err.Error())
 		}
+		phone := ""
+		if fireBaseUser != nil {
+			phone = fireBaseUser.PhoneNumber
+		}
 		currentUser := &model.User{
 			ID:         &userCopy.ID,
 			Email:      userCopy.Email,
@@ -133,7 +137,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 			UpdatedBy:  &userCopy.UpdatedBy,
 			Status:     userCopy.Status,
 			Gender:     userCopy.Gender,
-			Phone:      fireBaseUser.PhoneNumber,
+			Phone:      phone,
 		}
 		allUsers = append(allUsers, currentUser)
 	}
@@ -208,7 +212,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			log.Errorf("Failed to get user from firebase: %v", err.Error())
 		}
 		phone := ""
-		if fireBaseUser.PhoneNumber != "" {
+		if fireBaseUser != nil {
 			phone = fireBaseUser.PhoneNumber
 		}
 		outputUser := &model.User{
