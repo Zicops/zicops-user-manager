@@ -519,7 +519,7 @@ type Query {
   getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
   getUserCourseMaps(user_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
   getUserCourseMapByCourseID(user_id: String!, course_id: String!): [UserCourse]
-  getUserCourseProgressByMapId(user_id: String!, user_course_id: ID!): [UserCourseProgress]
+  getUserCourseProgressByMapId(user_id: String!, user_course_id: [ID!]): [UserCourseProgress]
   getUserCourseProgressByTopicId(user_id: String!, topic_id: ID!): [UserCourseProgress]
   getUserNotes(user_id: String!, user_lsp_id: String, course_id: String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedNotes
   getUserBookmarks(user_id: String!, user_lsp_id: String, course_id: String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedBookmarks

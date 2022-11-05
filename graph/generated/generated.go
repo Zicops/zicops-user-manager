@@ -152,7 +152,7 @@ type ComplexityRoot struct {
 		GetUserBookmarks               func(childComplexity int, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string) int
 		GetUserCourseMaps              func(childComplexity int, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
-		GetUserCourseProgressByMapID   func(childComplexity int, userID string, userCourseID string) int
+		GetUserCourseProgressByMapID   func(childComplexity int, userID string, userCourseID []string) int
 		GetUserCourseProgressByTopicID func(childComplexity int, userID string, topicID string) int
 		GetUserDetails                 func(childComplexity int, userIds []*string) int
 		GetUserExamAttempts            func(childComplexity int, userID string, userLspID string) int
@@ -447,7 +447,7 @@ type QueryResolver interface {
 	GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model.UserLspMap, error)
 	GetUserCourseMaps(ctx context.Context, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error)
 	GetUserCourseMapByCourseID(ctx context.Context, userID string, courseID string) ([]*model.UserCourse, error)
-	GetUserCourseProgressByMapID(ctx context.Context, userID string, userCourseID string) ([]*model.UserCourseProgress, error)
+	GetUserCourseProgressByMapID(ctx context.Context, userID string, userCourseID []string) ([]*model.UserCourseProgress, error)
 	GetUserCourseProgressByTopicID(ctx context.Context, userID string, topicID string) ([]*model.UserCourseProgress, error)
 	GetUserNotes(ctx context.Context, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error)
 	GetUserBookmarks(ctx context.Context, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error)
@@ -1255,7 +1255,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserCourseProgressByMapID(childComplexity, args["user_id"].(string), args["user_course_id"].(string)), true
+		return e.complexity.Query.GetUserCourseProgressByMapID(childComplexity, args["user_id"].(string), args["user_course_id"].([]string)), true
 
 	case "Query.getUserCourseProgressByTopicId":
 		if e.complexity.Query.GetUserCourseProgressByTopicID == nil {
@@ -3303,7 +3303,7 @@ type Query {
   getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
   getUserCourseMaps(user_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
   getUserCourseMapByCourseID(user_id: String!, course_id: String!): [UserCourse]
-  getUserCourseProgressByMapId(user_id: String!, user_course_id: ID!): [UserCourseProgress]
+  getUserCourseProgressByMapId(user_id: String!, user_course_id: [ID!]): [UserCourseProgress]
   getUserCourseProgressByTopicId(user_id: String!, topic_id: ID!): [UserCourseProgress]
   getUserNotes(user_id: String!, user_lsp_id: String, course_id: String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedNotes
   getUserBookmarks(user_id: String!, user_lsp_id: String, course_id: String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedBookmarks
@@ -4206,10 +4206,10 @@ func (ec *executionContext) field_Query_getUserCourseProgressByMapId_args(ctx co
 		}
 	}
 	args["user_id"] = arg0
-	var arg1 string
+	var arg1 []string
 	if tmp, ok := rawArgs["user_course_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_course_id"))
-		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7801,7 +7801,7 @@ func (ec *executionContext) _Query_getUserCourseProgressByMapId(ctx context.Cont
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserCourseProgressByMapID(rctx, args["user_id"].(string), args["user_course_id"].(string))
+		return ec.resolvers.Query().GetUserCourseProgressByMapID(rctx, args["user_id"].(string), args["user_course_id"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21739,6 +21739,44 @@ func (ec *executionContext) marshalOCohortMain2ᚖgithubᚗcomᚋzicopsᚋzicops
 		return graphql.Null
 	}
 	return ec._CohortMain(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

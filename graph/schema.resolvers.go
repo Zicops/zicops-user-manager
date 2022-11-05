@@ -424,7 +424,7 @@ func (r *queryResolver) GetUserCourseMapByCourseID(ctx context.Context, userID s
 	return result, nil
 }
 
-func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userID string, userCourseID string) ([]*model.UserCourseProgress, error) {
+func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userID string, userCourseID []string) ([]*model.UserCourseProgress, error) {
 	result, err := queries.GetUserCourseProgressByMapID(ctx, userID, userCourseID)
 	if err != nil {
 		log.Errorf("Error getting course progress of a user: %v", err)
