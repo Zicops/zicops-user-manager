@@ -49,7 +49,7 @@ func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model
 				return nil, err
 			}
 		}
-		bucketPath := fmt.Sprintf("%s/%s/%s", "logos", orgId, input.Logo.Filename)
+		bucketPath := fmt.Sprintf("orgs/%s/%s/%s", "logos", orgId, input.Logo.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -181,7 +181,7 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 				return nil, err
 			}
 		}
-		bucketPath := fmt.Sprintf("%s/%s/%s", "logos", orgCass.ID, input.Logo.Filename)
+		bucketPath := fmt.Sprintf("orgs/%s/%s/%s", "logos", orgCass.ID, input.Logo.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err

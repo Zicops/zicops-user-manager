@@ -571,6 +571,40 @@ type OrganizationUnit {
   updated_by: String
 }
 
+input LearningSpaceInput {
+  lsp_id: ID
+  org_id: String!
+  ou_id: String!
+  name : String!
+  logo_url: String
+  logo : Upload
+  profile_url: String
+  profile : Upload
+  no_users: Int!
+  owners : [String]
+  is_default: Boolean!
+  status: String!
+  created_by: String
+  updated_by: String
+}
+
+type LearningSpace {
+  lsp_id: ID
+  org_id: String!
+  ou_id: String!
+  name : String!
+  logo_url: String
+  profile_url: String
+  no_users: Int!
+  owners : [String]
+  is_default: Boolean!
+  status: String!
+  created_at: String!
+  updated_at: String!
+  created_by: String
+  updated_by: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -663,6 +697,9 @@ type Query {
   getOrganizations(org_ids: [String]): [Organization]
   getOrganizationUnits(ou_ids: [String]): [OrganizationUnit]
   getUnitsByOrgId(org_id: String!): [OrganizationUnit]
+  getLearningSpacesByOrgId(org_id: String!): [LearningSpace]
+  getLearningSpacesByOuId(ou_id: String!, org_id: String!): [LearningSpace]
+  getLearningSpaceDetails(lsp_ids: [String]): [LearningSpace]
 }
 
 type Mutation {
@@ -707,4 +744,6 @@ type Mutation {
   updateOrganization(input: OrganizationInput!): Organization
   addOrganizationUnit(input: OrganizationUnitInput!): OrganizationUnit
   updateOrganizationUnit(input: OrganizationUnitInput!): OrganizationUnit
+  addLearningSpace(input: LearningSpaceInput!): LearningSpace
+  updateLearningSpace(input: LearningSpaceInput!): LearningSpace
 }

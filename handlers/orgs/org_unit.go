@@ -136,10 +136,6 @@ func UpdateOrganizationUnit(ctx context.Context, input model.OrganizationUnitInp
 		orgCass.Status = input.Status
 		updatedCols = append(updatedCols, "status")
 	}
-	if input.Status != orgCass.Status {
-		orgCass.Status = input.Status
-		updatedCols = append(updatedCols, "status")
-	}
 	if len(updatedCols) > 0 {
 		orgCass.UpdatedAt = time.Now().Unix()
 		orgCass.UpdatedBy = role

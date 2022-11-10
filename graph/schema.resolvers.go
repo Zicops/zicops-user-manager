@@ -353,6 +353,24 @@ func (r *mutationResolver) UpdateOrganizationUnit(ctx context.Context, input mod
 	return result, nil
 }
 
+func (r *mutationResolver) AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*model.LearningSpace, error) {
+	result, err := orgs.AddLearningSpace(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding learning space: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *mutationResolver) UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*model.LearningSpace, error) {
+	result, err := orgs.UpdateLearningSpace(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating learning space: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
 	if err != nil {
@@ -591,6 +609,33 @@ func (r *queryResolver) GetUnitsByOrgID(ctx context.Context, orgID string) ([]*m
 	result, err := orgs.GetUnitsByOrgID(ctx, orgID)
 	if err != nil {
 		log.Errorf("Error getting organization units: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetLearningSpacesByOrgID(ctx context.Context, orgID string) ([]*model.LearningSpace, error) {
+	result, err := orgs.GetLearningSpacesByOrgID(ctx, orgID)
+	if err != nil {
+		log.Errorf("Error getting learning spaces: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetLearningSpacesByOuID(ctx context.Context, ouID string, orgID string) ([]*model.LearningSpace, error) {
+	result, err := orgs.GetLearningSpacesByOuID(ctx, ouID, orgID)
+	if err != nil {
+		log.Errorf("Error getting learning spaces: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.LearningSpace, error) {
+	result, err := orgs.GetLearningSpaceDetails(ctx, lspIds)
+	if err != nil {
+		log.Errorf("Error getting learning spaces: %v", err)
 		return nil, err
 	}
 	return result, nil
