@@ -10,6 +10,7 @@ import (
 	"github.com/zicops/zicops-user-manager/graph/generated"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/handlers"
+	"github.com/zicops/zicops-user-manager/handlers/orgs"
 	"github.com/zicops/zicops-user-manager/handlers/queries"
 )
 
@@ -316,6 +317,24 @@ func (r *mutationResolver) UpdateCohortMain(ctx context.Context, input model.Coh
 	return result, nil
 }
 
+func (r *mutationResolver) AddOrganization(ctx context.Context, input model.OrganizationInput) (*model.Organization, error) {
+	result, err := orgs.AddOrganization(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding organization: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *mutationResolver) UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*model.Organization, error) {
+	result, err := orgs.UpdateOrganization(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating organization: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
 	if err != nil {
@@ -527,6 +546,15 @@ func (r *queryResolver) GetCohortMains(ctx context.Context, lspID string, publis
 	result, err := queries.GetCohortMains(ctx, lspID, publishTime, pageCursor, direction, pageSize, searchText)
 	if err != nil {
 		log.Errorf("Error getting cohorts: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organization, error) {
+	result, err := orgs.GetOrganizations(ctx, orgIds)
+	if err != nil {
+		log.Errorf("Error getting organizations: %v", err)
 		return nil, err
 	}
 	return result, nil

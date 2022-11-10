@@ -61,6 +61,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddCohortMain             func(childComplexity int, input model.CohortMainInput) int
+		AddOrganization           func(childComplexity int, input model.OrganizationInput) int
 		AddUserBookmark           func(childComplexity int, input []*model.UserBookmarkInput) int
 		AddUserCohort             func(childComplexity int, input []*model.UserCohortInput) int
 		AddUserCourse             func(childComplexity int, input []*model.UserCourseInput) int
@@ -79,6 +80,7 @@ type ComplexityRoot struct {
 		Login                     func(childComplexity int) int
 		RegisterUsers             func(childComplexity int, input []*model.UserInput) int
 		UpdateCohortMain          func(childComplexity int, input model.CohortMainInput) int
+		UpdateOrganization        func(childComplexity int, input model.OrganizationInput) int
 		UpdateUser                func(childComplexity int, input model.UserInput) int
 		UpdateUserBookmark        func(childComplexity int, input model.UserBookmarkInput) int
 		UpdateUserCohort          func(childComplexity int, input model.UserCohortInput) int
@@ -93,6 +95,25 @@ type ComplexityRoot struct {
 		UpdateUserPreference      func(childComplexity int, input model.UserPreferenceInput) int
 		UpdateUserQuizAttempt     func(childComplexity int, input model.UserQuizAttemptInput) int
 		UpdateUserRole            func(childComplexity int, input model.UserRoleInput) int
+	}
+
+	Organization struct {
+		CreatedAt     func(childComplexity int) int
+		CreatedBy     func(childComplexity int) int
+		EmployeeCount func(childComplexity int) int
+		FacebookURL   func(childComplexity int) int
+		Industry      func(childComplexity int) int
+		LinkedinURL   func(childComplexity int) int
+		LogoURL       func(childComplexity int) int
+		Name          func(childComplexity int) int
+		OrgID         func(childComplexity int) int
+		Status        func(childComplexity int) int
+		Subdomain     func(childComplexity int) int
+		TwitterURL    func(childComplexity int) int
+		Type          func(childComplexity int) int
+		UpdatedAt     func(childComplexity int) int
+		UpdatedBy     func(childComplexity int) int
+		Website       func(childComplexity int) int
 	}
 
 	PaginatedBookmarks struct {
@@ -149,6 +170,7 @@ type ComplexityRoot struct {
 		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) int
 		GetCohortUsers                 func(childComplexity int, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetLatestCohorts               func(childComplexity int, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
+		GetOrganizations               func(childComplexity int, orgIds []*string) int
 		GetUserBookmarks               func(childComplexity int, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string) int
 		GetUserCourseMaps              func(childComplexity int, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
@@ -433,6 +455,8 @@ type MutationResolver interface {
 	UpdateUserExamResult(ctx context.Context, input model.UserExamResultInput) (*model.UserExamResult, error)
 	AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error)
 	UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error)
+	AddOrganization(ctx context.Context, input model.OrganizationInput) (*model.Organization, error)
+	UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*model.Organization, error)
 }
 type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
@@ -459,6 +483,7 @@ type QueryResolver interface {
 	GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]*model.UserQuizAttempt, error)
 	GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, error)
 	GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) (*model.PaginatedCohortsMain, error)
+	GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organization, error)
 }
 
 type executableSchema struct {
@@ -585,6 +610,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddCohortMain(childComplexity, args["input"].(model.CohortMainInput)), true
+
+	case "Mutation.addOrganization":
+		if e.complexity.Mutation.AddOrganization == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addOrganization_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddOrganization(childComplexity, args["input"].(model.OrganizationInput)), true
 
 	case "Mutation.addUserBookmark":
 		if e.complexity.Mutation.AddUserBookmark == nil {
@@ -797,6 +834,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateCohortMain(childComplexity, args["input"].(model.CohortMainInput)), true
 
+	case "Mutation.updateOrganization":
+		if e.complexity.Mutation.UpdateOrganization == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateOrganization_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateOrganization(childComplexity, args["input"].(model.OrganizationInput)), true
+
 	case "Mutation.updateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
 			break
@@ -964,6 +1013,118 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateUserRole(childComplexity, args["input"].(model.UserRoleInput)), true
+
+	case "Organization.created_at":
+		if e.complexity.Organization.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Organization.CreatedAt(childComplexity), true
+
+	case "Organization.created_by":
+		if e.complexity.Organization.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.Organization.CreatedBy(childComplexity), true
+
+	case "Organization.employee_count":
+		if e.complexity.Organization.EmployeeCount == nil {
+			break
+		}
+
+		return e.complexity.Organization.EmployeeCount(childComplexity), true
+
+	case "Organization.facebook_url":
+		if e.complexity.Organization.FacebookURL == nil {
+			break
+		}
+
+		return e.complexity.Organization.FacebookURL(childComplexity), true
+
+	case "Organization.industry":
+		if e.complexity.Organization.Industry == nil {
+			break
+		}
+
+		return e.complexity.Organization.Industry(childComplexity), true
+
+	case "Organization.linkedin_url":
+		if e.complexity.Organization.LinkedinURL == nil {
+			break
+		}
+
+		return e.complexity.Organization.LinkedinURL(childComplexity), true
+
+	case "Organization.logo_url":
+		if e.complexity.Organization.LogoURL == nil {
+			break
+		}
+
+		return e.complexity.Organization.LogoURL(childComplexity), true
+
+	case "Organization.name":
+		if e.complexity.Organization.Name == nil {
+			break
+		}
+
+		return e.complexity.Organization.Name(childComplexity), true
+
+	case "Organization.org_id":
+		if e.complexity.Organization.OrgID == nil {
+			break
+		}
+
+		return e.complexity.Organization.OrgID(childComplexity), true
+
+	case "Organization.status":
+		if e.complexity.Organization.Status == nil {
+			break
+		}
+
+		return e.complexity.Organization.Status(childComplexity), true
+
+	case "Organization.subdomain":
+		if e.complexity.Organization.Subdomain == nil {
+			break
+		}
+
+		return e.complexity.Organization.Subdomain(childComplexity), true
+
+	case "Organization.twitter_url":
+		if e.complexity.Organization.TwitterURL == nil {
+			break
+		}
+
+		return e.complexity.Organization.TwitterURL(childComplexity), true
+
+	case "Organization.type":
+		if e.complexity.Organization.Type == nil {
+			break
+		}
+
+		return e.complexity.Organization.Type(childComplexity), true
+
+	case "Organization.updated_at":
+		if e.complexity.Organization.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.Organization.UpdatedAt(childComplexity), true
+
+	case "Organization.updated_by":
+		if e.complexity.Organization.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.Organization.UpdatedBy(childComplexity), true
+
+	case "Organization.website":
+		if e.complexity.Organization.Website == nil {
+			break
+		}
+
+		return e.complexity.Organization.Website(childComplexity), true
 
 	case "PaginatedBookmarks.bookmarks":
 		if e.complexity.PaginatedBookmarks.Bookmarks == nil {
@@ -1208,6 +1369,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetLatestCohorts(childComplexity, args["user_id"].(*string), args["user_lsp_id"].(*string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+
+	case "Query.getOrganizations":
+		if e.complexity.Query.GetOrganizations == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getOrganizations_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetOrganizations(childComplexity, args["org_ids"].([]*string)), true
 
 	case "Query.getUserBookmarks":
 		if e.complexity.Query.GetUserBookmarks == nil {
@@ -2819,7 +2992,7 @@ input UserInput {
   photo_url: String
 }
 
-input UserLspMapInput{
+input UserLspMapInput {
   user_lsp_id: ID
   user_id: String!
   lsp_id: String!
@@ -2839,7 +3012,7 @@ type UserLspMap {
   updated_at: String!
 }
 
-input UserOrganizationMapInput{
+input UserOrganizationMapInput {
   user_organization_id: ID
   user_id: String!
   user_lsp_id: String!
@@ -2865,7 +3038,7 @@ type UserOrganizationMap {
   updated_at: String!
 }
 
-input UserLanguageMapInput{
+input UserLanguageMapInput {
   user_id: String!
   user_lsp_id: String!
   language: String!
@@ -2888,7 +3061,7 @@ type UserLanguageMap {
   updated_at: String!
 }
 
-input UserPreferenceInput{
+input UserPreferenceInput {
   user_preference_id: ID
   user_id: String!
   user_lsp_id: String!
@@ -2912,7 +3085,7 @@ type UserPreference {
   updated_at: String!
 }
 
-input UserRoleInput{
+input UserRoleInput {
   user_role_id: ID
   user_id: String!
   user_lsp_id: String!
@@ -2960,7 +3133,7 @@ type UserCohort {
   updated_at: String!
 }
 
-input UserCourseInput{
+input UserCourseInput {
   user_course_id: ID
   user_id: String!
   user_lsp_id: String!
@@ -2990,7 +3163,7 @@ type UserCourse {
   updated_at: String!
 }
 
-input UserCourseProgressInput{
+input UserCourseProgressInput {
   user_cp_id: ID
   user_id: String!
   user_course_id: String!
@@ -3018,13 +3191,13 @@ type UserCourseProgress {
   updated_at: String!
 }
 
-input UserQuizAttemptInput{
+input UserQuizAttemptInput {
   user_qa_id: ID
   user_id: String!
   user_cp_id: String!
   user_course_id: String!
   quiz_id: String!
-  quiz_attempt:Int!
+  quiz_attempt: Int!
   topic_id: String!
   result: String!
   is_active: Boolean!
@@ -3038,7 +3211,7 @@ type UserQuizAttempt {
   user_cp_id: String!
   user_course_id: String!
   quiz_id: String!
-  quiz_attempt:Int!
+  quiz_attempt: Int!
   topic_id: String!
   result: String!
   is_active: Boolean!
@@ -3080,7 +3253,7 @@ type UserBookmark {
   updated_at: String!
 }
 
-input UserNotesInput{
+input UserNotesInput {
   user_notes_id: ID
   user_id: String!
   user_lsp_id: String!
@@ -3112,7 +3285,7 @@ type UserNotes {
   updated_at: String!
 }
 
-input UserExamAttemptsInput{
+input UserExamAttemptsInput {
   user_ea_id: ID
   user_id: String!
   user_lsp_id: String!
@@ -3144,7 +3317,7 @@ type UserExamAttempts {
   updated_at: String!
 }
 
-input UserExamProgressInput{
+input UserExamProgressInput {
   user_ep_id: ID
   user_id: String!
   user_ea_id: String!
@@ -3182,7 +3355,7 @@ type UserExamProgress {
   updated_at: String!
 }
 
-input UserExamResultInput{
+input UserExamResultInput {
   user_er_id: ID
   user_id: String!
   user_ea_id: String!
@@ -3208,39 +3381,39 @@ type UserExamResult {
   updated_at: String!
 }
 
-type PaginatedUsers{
-    users: [User]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+type PaginatedUsers {
+  users: [User]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
-type PaginatedCourseMaps{
-    user_courses: [UserCourse]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+type PaginatedCourseMaps {
+  user_courses: [UserCourse]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
-type PaginatedNotes{
-    notes: [UserNotes]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+type PaginatedNotes {
+  notes: [UserNotes]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
-type PaginatedBookmarks{
-    bookmarks: [UserBookmark]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+type PaginatedBookmarks {
+  bookmarks: [UserBookmark]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
 type PaginatedCohorts {
-    cohorts: [UserCohort]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+  cohorts: [UserCohort]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
 input CohortMainInput {
@@ -3277,44 +3450,144 @@ type CohortMain {
 }
 
 type PaginatedCohortsMain {
-    cohorts: [CohortMain]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+  cohorts: [CohortMain]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
 type PaginatedUserLspMaps {
-    user_lsp_maps: [UserLspMap]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+  user_lsp_maps: [UserLspMap]
+  pageCursor: String
+  direction: String
+  pageSize: Int
+}
+
+input OrganizationInput {
+  org_id: ID
+  name: String!
+  logo_url: String
+  industry: String!
+  type: String!
+  subdomain: String!
+  employee_count: Int!
+  website: String!
+  linkedin_url: String
+  facebook_url: String
+  twitter_url: String
+  status: String!
+  logo: Upload
+}
+
+type Organization {
+  org_id: ID
+  name: String!
+  logo_url: String
+  industry: String!
+  type: String!
+  subdomain: String!
+  employee_count: Int!
+  website: String!
+  linkedin_url: String
+  facebook_url: String
+  twitter_url: String
+  status: String!
+  created_at: String!
+  updated_at: String!
+  created_by: String
+  updated_by: String
 }
 
 type Query {
   logout: Boolean
-  getUserLspMapsByLspId(lsp_id: String!, pageCursor: String, Direction: String, pageSize:Int): PaginatedUserLspMaps
-  getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
+  getUserLspMapsByLspId(
+    lsp_id: String!
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedUserLspMaps
+  getUsersForAdmin(
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedUsers
   getUserDetails(user_ids: [String]): [User]
   getUserOrganizations(user_id: String!): [UserOrganizationMap]
   getUserOrgDetails(user_id: String!, user_lsp_id: String!): UserOrganizationMap
   getUserPreferences(user_id: String!): [UserPreference]
-  getUserPreferenceForLsp(user_id: String!, user_lsp_id: String!): UserPreference
+  getUserPreferenceForLsp(
+    user_id: String!
+    user_lsp_id: String!
+  ): UserPreference
   getUserLsps(user_id: String!): [UserLspMap]
   getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
-  getUserCourseMaps(user_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
+  getUserCourseMaps(
+    user_id: String!
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedCourseMaps
   getUserCourseMapByCourseID(user_id: String!, course_id: String!): [UserCourse]
-  getUserCourseProgressByMapId(user_id: String!, user_course_id: [ID!]): [UserCourseProgress]
-  getUserCourseProgressByTopicId(user_id: String!, topic_id: ID!): [UserCourseProgress]
-  getUserNotes(user_id: String!, user_lsp_id: String, course_id: String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedNotes
-  getUserBookmarks(user_id: String!, user_lsp_id: String, course_id: String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedBookmarks
-  getUserExamAttempts(user_id: String!, user_lsp_id: String!) : [UserExamAttempts]
-  getUserExamResults(user_id: String!, user_ea_id: String!) : UserExamResult
-  getUserExamProgress(user_id: String!, user_ea_id: String!) : [UserExamProgress]
-  getLatestCohorts(user_id:String, user_lsp_id:String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCohorts
-  getCohortUsers(cohort_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedCohorts
-  getUserQuizAttempts(user_id: String!, topic_id: String!) : [UserQuizAttempt]
+  getUserCourseProgressByMapId(
+    user_id: String!
+    user_course_id: [ID!]
+  ): [UserCourseProgress]
+  getUserCourseProgressByTopicId(
+    user_id: String!
+    topic_id: ID!
+  ): [UserCourseProgress]
+  getUserNotes(
+    user_id: String!
+    user_lsp_id: String
+    course_id: String
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedNotes
+  getUserBookmarks(
+    user_id: String!
+    user_lsp_id: String
+    course_id: String
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedBookmarks
+  getUserExamAttempts(
+    user_id: String!
+    user_lsp_id: String!
+  ): [UserExamAttempts]
+  getUserExamResults(user_id: String!, user_ea_id: String!): UserExamResult
+  getUserExamProgress(user_id: String!, user_ea_id: String!): [UserExamProgress]
+  getLatestCohorts(
+    user_id: String
+    user_lsp_id: String
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedCohorts
+  getCohortUsers(
+    cohort_id: String!
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedCohorts
+  getUserQuizAttempts(user_id: String!, topic_id: String!): [UserQuizAttempt]
   getCohortDetails(cohort_id: String!): CohortMain
-  getCohortMains(lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int, searchText: String): PaginatedCohortsMain
+  getCohortMains(
+    lsp_id: String!
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+    searchText: String
+  ): PaginatedCohortsMain
+  getOrganizations(org_ids: [String]): [Organization]
 }
 
 type Mutation {
@@ -3324,11 +3597,15 @@ type Mutation {
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
   updateUserLspMap(input: UserLspMapInput!): UserLspMap
-  addUserOrganizationMap(input: [UserOrganizationMapInput]!): [UserOrganizationMap]
-  updateUserOrganizationMap(input: UserOrganizationMapInput!): UserOrganizationMap
+  addUserOrganizationMap(
+    input: [UserOrganizationMapInput]!
+  ): [UserOrganizationMap]
+  updateUserOrganizationMap(
+    input: UserOrganizationMapInput!
+  ): UserOrganizationMap
   addUserLanguageMap(input: [UserLanguageMapInput]!): [UserLanguageMap]
   addUserPreference(input: [UserPreferenceInput]!): [UserPreference]
-  updateUserPreference(input: UserPreferenceInput!):UserPreference
+  updateUserPreference(input: UserPreferenceInput!): UserPreference
   addUserRoles(input: [UserRoleInput]!): [UserRole]
   updateUserRole(input: UserRoleInput!): UserRole
   addUserCohort(input: [UserCohortInput]!): [UserCohort]
@@ -3351,6 +3628,8 @@ type Mutation {
   updateUserExamResult(input: UserExamResultInput!): UserExamResult
   addCohortMain(input: CohortMainInput!): CohortMain
   updateCohortMain(input: CohortMainInput!): CohortMain
+  addOrganization(input: OrganizationInput!): Organization
+  updateOrganization(input: OrganizationInput!): Organization
 }
 `, BuiltIn: false},
 }
@@ -3367,6 +3646,21 @@ func (ec *executionContext) field_Mutation_addCohortMain_args(ctx context.Contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCohortMainInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCohortMainInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addOrganization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.OrganizationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNOrganizationInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3631,6 +3925,21 @@ func (ec *executionContext) field_Mutation_updateCohortMain_args(ctx context.Con
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCohortMainInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCohortMainInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateOrganization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.OrganizationInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNOrganizationInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4047,6 +4356,21 @@ func (ec *executionContext) field_Query_getLatestCohorts_args(ctx context.Contex
 		}
 	}
 	args["pageSize"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getOrganizations_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*string
+	if tmp, ok := rawArgs["org_ids"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("org_ids"))
+		arg0, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["org_ids"] = arg0
 	return args, nil
 }
 
@@ -6419,6 +6743,623 @@ func (ec *executionContext) _Mutation_updateCohortMain(ctx context.Context, fiel
 	return ec.marshalOCohortMain2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCohortMain(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_addOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addOrganization_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddOrganization(rctx, args["input"].(model.OrganizationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Organization)
+	fc.Result = res
+	return ec.marshalOOrganization2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganization(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateOrganization_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateOrganization(rctx, args["input"].(model.OrganizationInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Organization)
+	fc.Result = res
+	return ec.marshalOOrganization2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganization(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_org_id(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrgID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_name(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_logo_url(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogoURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_industry(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Industry, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_type(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_subdomain(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Subdomain, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_employee_count(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EmployeeCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_website(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Website, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_linkedin_url(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LinkedinURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_facebook_url(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FacebookURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_twitter_url(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TwitterURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_status(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_created_at(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_created_by(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_updated_by(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PaginatedBookmarks_bookmarks(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedBookmarks) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8242,6 +9183,45 @@ func (ec *executionContext) _Query_getCohortMains(ctx context.Context, field gra
 	res := resTmp.(*model.PaginatedCohortsMain)
 	fc.Result = res
 	return ec.marshalOPaginatedCohortsMain2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedCohortsMain(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getOrganizations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getOrganizations_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetOrganizations(rctx, args["org_ids"].([]*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Organization)
+	fc.Result = res
+	return ec.marshalOOrganization2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15849,6 +16829,125 @@ func (ec *executionContext) unmarshalInputCohortMainInput(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputOrganizationInput(ctx context.Context, obj interface{}) (model.OrganizationInput, error) {
+	var it model.OrganizationInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "org_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("org_id"))
+			it.OrgID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "logo_url":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("logo_url"))
+			it.LogoURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "industry":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("industry"))
+			it.Industry, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "subdomain":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("subdomain"))
+			it.Subdomain, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "employee_count":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("employee_count"))
+			it.EmployeeCount, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "website":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("website"))
+			it.Website, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "linkedin_url":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedin_url"))
+			it.LinkedinURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "facebook_url":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("facebook_url"))
+			it.FacebookURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "twitter_url":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("twitter_url"))
+			it.TwitterURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "logo":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("logo"))
+			it.Logo, err = ec.unmarshalOUpload2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUserBookmarkInput(ctx context.Context, obj interface{}) (model.UserBookmarkInput, error) {
 	var it model.UserBookmarkInput
 	asMap := map[string]interface{}{}
@@ -17697,6 +18796,180 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
 
+		case "addOrganization":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addOrganization(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+		case "updateOrganization":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateOrganization(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var organizationImplementors = []string{"Organization"}
+
+func (ec *executionContext) _Organization(ctx context.Context, sel ast.SelectionSet, obj *model.Organization) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, organizationImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Organization")
+		case "org_id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_org_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "name":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_name(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "logo_url":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_logo_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "industry":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_industry(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_type(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "subdomain":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_subdomain(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "employee_count":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_employee_count(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "website":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_website(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "linkedin_url":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_linkedin_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "facebook_url":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_facebook_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "twitter_url":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_twitter_url(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "status":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_status(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "created_at":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_created_at(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updated_at":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_updated_at(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "created_by":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_created_by(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "updated_by":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Organization_updated_by(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18540,6 +19813,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getCohortMains(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getOrganizations":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getOrganizations(ctx, field)
 				return res
 			}
 
@@ -21042,6 +22335,11 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
+func (ec *executionContext) unmarshalNOrganizationInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationInput(ctx context.Context, v interface{}) (model.OrganizationInput, error) {
+	res, err := ec.unmarshalInputOrganizationInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -21809,6 +23107,54 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOOrganization2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganization(ctx context.Context, sel ast.SelectionSet, v []*model.Organization) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOOrganization2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganization(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOOrganization2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganization(ctx context.Context, sel ast.SelectionSet, v *model.Organization) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Organization(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPaginatedBookmarks2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedBookmarks(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedBookmarks) graphql.Marshaler {
