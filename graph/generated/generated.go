@@ -62,6 +62,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddCohortMain             func(childComplexity int, input model.CohortMainInput) int
 		AddOrganization           func(childComplexity int, input model.OrganizationInput) int
+		AddOrganizationUnit       func(childComplexity int, input model.OrganizationUnitInput) int
 		AddUserBookmark           func(childComplexity int, input []*model.UserBookmarkInput) int
 		AddUserCohort             func(childComplexity int, input []*model.UserCohortInput) int
 		AddUserCourse             func(childComplexity int, input []*model.UserCourseInput) int
@@ -81,6 +82,7 @@ type ComplexityRoot struct {
 		RegisterUsers             func(childComplexity int, input []*model.UserInput) int
 		UpdateCohortMain          func(childComplexity int, input model.CohortMainInput) int
 		UpdateOrganization        func(childComplexity int, input model.OrganizationInput) int
+		UpdateOrganizationUnit    func(childComplexity int, input model.OrganizationUnitInput) int
 		UpdateUser                func(childComplexity int, input model.UserInput) int
 		UpdateUserBookmark        func(childComplexity int, input model.UserBookmarkInput) int
 		UpdateUserCohort          func(childComplexity int, input model.UserCohortInput) int
@@ -114,6 +116,22 @@ type ComplexityRoot struct {
 		UpdatedAt     func(childComplexity int) int
 		UpdatedBy     func(childComplexity int) int
 		Website       func(childComplexity int) int
+	}
+
+	OrganizationUnit struct {
+		Address    func(childComplexity int) int
+		City       func(childComplexity int) int
+		Country    func(childComplexity int) int
+		CreatedAt  func(childComplexity int) int
+		CreatedBy  func(childComplexity int) int
+		EmpCount   func(childComplexity int) int
+		OrgID      func(childComplexity int) int
+		OuID       func(childComplexity int) int
+		PostalCode func(childComplexity int) int
+		State      func(childComplexity int) int
+		Status     func(childComplexity int) int
+		UpdatedAt  func(childComplexity int) int
+		UpdatedBy  func(childComplexity int) int
 	}
 
 	PaginatedBookmarks struct {
@@ -170,7 +188,9 @@ type ComplexityRoot struct {
 		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) int
 		GetCohortUsers                 func(childComplexity int, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetLatestCohorts               func(childComplexity int, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
+		GetOrganizationUnits           func(childComplexity int, ouIds []*string) int
 		GetOrganizations               func(childComplexity int, orgIds []*string) int
+		GetUnitsByOrgID                func(childComplexity int, orgID string) int
 		GetUserBookmarks               func(childComplexity int, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string) int
 		GetUserCourseMaps              func(childComplexity int, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
@@ -457,6 +477,8 @@ type MutationResolver interface {
 	UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error)
 	AddOrganization(ctx context.Context, input model.OrganizationInput) (*model.Organization, error)
 	UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*model.Organization, error)
+	AddOrganizationUnit(ctx context.Context, input model.OrganizationUnitInput) (*model.OrganizationUnit, error)
+	UpdateOrganizationUnit(ctx context.Context, input model.OrganizationUnitInput) (*model.OrganizationUnit, error)
 }
 type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
@@ -484,6 +506,8 @@ type QueryResolver interface {
 	GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, error)
 	GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) (*model.PaginatedCohortsMain, error)
 	GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organization, error)
+	GetOrganizationUnits(ctx context.Context, ouIds []*string) ([]*model.OrganizationUnit, error)
+	GetUnitsByOrgID(ctx context.Context, orgID string) ([]*model.OrganizationUnit, error)
 }
 
 type executableSchema struct {
@@ -622,6 +646,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddOrganization(childComplexity, args["input"].(model.OrganizationInput)), true
+
+	case "Mutation.addOrganizationUnit":
+		if e.complexity.Mutation.AddOrganizationUnit == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addOrganizationUnit_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddOrganizationUnit(childComplexity, args["input"].(model.OrganizationUnitInput)), true
 
 	case "Mutation.addUserBookmark":
 		if e.complexity.Mutation.AddUserBookmark == nil {
@@ -845,6 +881,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateOrganization(childComplexity, args["input"].(model.OrganizationInput)), true
+
+	case "Mutation.updateOrganizationUnit":
+		if e.complexity.Mutation.UpdateOrganizationUnit == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateOrganizationUnit_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateOrganizationUnit(childComplexity, args["input"].(model.OrganizationUnitInput)), true
 
 	case "Mutation.updateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
@@ -1126,6 +1174,97 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Organization.Website(childComplexity), true
 
+	case "OrganizationUnit.address":
+		if e.complexity.OrganizationUnit.Address == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.Address(childComplexity), true
+
+	case "OrganizationUnit.city":
+		if e.complexity.OrganizationUnit.City == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.City(childComplexity), true
+
+	case "OrganizationUnit.country":
+		if e.complexity.OrganizationUnit.Country == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.Country(childComplexity), true
+
+	case "OrganizationUnit.created_at":
+		if e.complexity.OrganizationUnit.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.CreatedAt(childComplexity), true
+
+	case "OrganizationUnit.created_by":
+		if e.complexity.OrganizationUnit.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.CreatedBy(childComplexity), true
+
+	case "OrganizationUnit.emp_count":
+		if e.complexity.OrganizationUnit.EmpCount == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.EmpCount(childComplexity), true
+
+	case "OrganizationUnit.org_id":
+		if e.complexity.OrganizationUnit.OrgID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.OrgID(childComplexity), true
+
+	case "OrganizationUnit.ou_id":
+		if e.complexity.OrganizationUnit.OuID == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.OuID(childComplexity), true
+
+	case "OrganizationUnit.postal_code":
+		if e.complexity.OrganizationUnit.PostalCode == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.PostalCode(childComplexity), true
+
+	case "OrganizationUnit.state":
+		if e.complexity.OrganizationUnit.State == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.State(childComplexity), true
+
+	case "OrganizationUnit.status":
+		if e.complexity.OrganizationUnit.Status == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.Status(childComplexity), true
+
+	case "OrganizationUnit.updated_at":
+		if e.complexity.OrganizationUnit.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.UpdatedAt(childComplexity), true
+
+	case "OrganizationUnit.updated_by":
+		if e.complexity.OrganizationUnit.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.OrganizationUnit.UpdatedBy(childComplexity), true
+
 	case "PaginatedBookmarks.bookmarks":
 		if e.complexity.PaginatedBookmarks.Bookmarks == nil {
 			break
@@ -1370,6 +1509,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetLatestCohorts(childComplexity, args["user_id"].(*string), args["user_lsp_id"].(*string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
+	case "Query.getOrganizationUnits":
+		if e.complexity.Query.GetOrganizationUnits == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getOrganizationUnits_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetOrganizationUnits(childComplexity, args["ou_ids"].([]*string)), true
+
 	case "Query.getOrganizations":
 		if e.complexity.Query.GetOrganizations == nil {
 			break
@@ -1381,6 +1532,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetOrganizations(childComplexity, args["org_ids"].([]*string)), true
+
+	case "Query.getUnitsByOrgId":
+		if e.complexity.Query.GetUnitsByOrgID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getUnitsByOrgId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetUnitsByOrgID(childComplexity, args["org_id"].(string)), true
 
 	case "Query.getUserBookmarks":
 		if e.complexity.Query.GetUserBookmarks == nil {
@@ -3498,6 +3661,36 @@ type Organization {
   updated_by: String
 }
 
+input OrganizationUnitInput {
+  ou_id: ID
+  org_id: String!
+  emp_count: Int!
+  address : String!
+  city: String!
+  state: String!
+  country: String!
+  postal_code: String!
+  status: String!
+  created_by: String
+  updated_by: String
+} 
+
+type OrganizationUnit {
+  ou_id: ID
+  org_id: String!
+  emp_count: Int!
+  address : String!
+  city: String!
+  state: String!
+  country: String!
+  postal_code: String!
+  status: String!
+  created_at: String!
+  updated_at: String!
+  created_by: String
+  updated_by: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -3588,6 +3781,8 @@ type Query {
     searchText: String
   ): PaginatedCohortsMain
   getOrganizations(org_ids: [String]): [Organization]
+  getOrganizationUnits(ou_ids: [String]): [OrganizationUnit]
+  getUnitsByOrgId(org_id: String!): [OrganizationUnit]
 }
 
 type Mutation {
@@ -3630,6 +3825,8 @@ type Mutation {
   updateCohortMain(input: CohortMainInput!): CohortMain
   addOrganization(input: OrganizationInput!): Organization
   updateOrganization(input: OrganizationInput!): Organization
+  addOrganizationUnit(input: OrganizationUnitInput!): OrganizationUnit
+  updateOrganizationUnit(input: OrganizationUnitInput!): OrganizationUnit
 }
 `, BuiltIn: false},
 }
@@ -3646,6 +3843,21 @@ func (ec *executionContext) field_Mutation_addCohortMain_args(ctx context.Contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCohortMainInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCohortMainInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addOrganizationUnit_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.OrganizationUnitInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNOrganizationUnitInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationUnitInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3925,6 +4137,21 @@ func (ec *executionContext) field_Mutation_updateCohortMain_args(ctx context.Con
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCohortMainInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCohortMainInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateOrganizationUnit_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.OrganizationUnitInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNOrganizationUnitInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationUnitInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4359,6 +4586,21 @@ func (ec *executionContext) field_Query_getLatestCohorts_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getOrganizationUnits_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*string
+	if tmp, ok := rawArgs["ou_ids"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ou_ids"))
+		arg0, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["ou_ids"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getOrganizations_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4371,6 +4613,21 @@ func (ec *executionContext) field_Query_getOrganizations_args(ctx context.Contex
 		}
 	}
 	args["org_ids"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getUnitsByOrgId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["org_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("org_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["org_id"] = arg0
 	return args, nil
 }
 
@@ -6821,6 +7078,84 @@ func (ec *executionContext) _Mutation_updateOrganization(ctx context.Context, fi
 	return ec.marshalOOrganization2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganization(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_addOrganizationUnit(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addOrganizationUnit_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddOrganizationUnit(rctx, args["input"].(model.OrganizationUnitInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.OrganizationUnit)
+	fc.Result = res
+	return ec.marshalOOrganizationUnit2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationUnit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateOrganizationUnit(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateOrganizationUnit_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateOrganizationUnit(rctx, args["input"].(model.OrganizationUnitInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.OrganizationUnit)
+	fc.Result = res
+	return ec.marshalOOrganizationUnit2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationUnit(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Organization_org_id(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7337,6 +7672,452 @@ func (ec *executionContext) _Organization_updated_by(ctx context.Context, field 
 	}()
 	fc := &graphql.FieldContext{
 		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_ou_id(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OuID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_org_id(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrgID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_emp_count(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EmpCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_address(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Address, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_city(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.City, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_state(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.State, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_country(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Country, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_postal_code(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PostalCode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_status(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_created_at(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_created_by(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _OrganizationUnit_updated_by(ctx context.Context, field graphql.CollectedField, obj *model.OrganizationUnit) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "OrganizationUnit",
 		Field:      field,
 		Args:       nil,
 		IsMethod:   false,
@@ -9222,6 +10003,84 @@ func (ec *executionContext) _Query_getOrganizations(ctx context.Context, field g
 	res := resTmp.([]*model.Organization)
 	fc.Result = res
 	return ec.marshalOOrganization2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganization(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getOrganizationUnits(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getOrganizationUnits_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetOrganizationUnits(rctx, args["ou_ids"].([]*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.OrganizationUnit)
+	fc.Result = res
+	return ec.marshalOOrganizationUnit2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationUnit(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_getUnitsByOrgId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_getUnitsByOrgId_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetUnitsByOrgID(rctx, args["org_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.OrganizationUnit)
+	fc.Result = res
+	return ec.marshalOOrganizationUnit2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationUnit(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -16948,6 +17807,109 @@ func (ec *executionContext) unmarshalInputOrganizationInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputOrganizationUnitInput(ctx context.Context, obj interface{}) (model.OrganizationUnitInput, error) {
+	var it model.OrganizationUnitInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "ou_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ou_id"))
+			it.OuID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "org_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("org_id"))
+			it.OrgID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "emp_count":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("emp_count"))
+			it.EmpCount, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "address":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("address"))
+			it.Address, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "city":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city"))
+			it.City, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "state":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
+			it.State, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "country":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("country"))
+			it.Country, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "postal_code":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("postal_code"))
+			it.PostalCode, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "created_by":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("created_by"))
+			it.CreatedBy, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "updated_by":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updated_by"))
+			it.UpdatedBy, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUserBookmarkInput(ctx context.Context, obj interface{}) (model.UserBookmarkInput, error) {
 	var it model.UserBookmarkInput
 	asMap := map[string]interface{}{}
@@ -18810,6 +19772,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
 
+		case "addOrganizationUnit":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addOrganizationUnit(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+		case "updateOrganizationUnit":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateOrganizationUnit(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -18966,6 +19942,148 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 		case "updated_by":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Organization_updated_by(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var organizationUnitImplementors = []string{"OrganizationUnit"}
+
+func (ec *executionContext) _OrganizationUnit(ctx context.Context, sel ast.SelectionSet, obj *model.OrganizationUnit) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, organizationUnitImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("OrganizationUnit")
+		case "ou_id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_ou_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "org_id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_org_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "emp_count":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_emp_count(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "address":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_address(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "city":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_city(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "state":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_state(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "country":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_country(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "postal_code":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_postal_code(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_status(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "created_at":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_created_at(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updated_at":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_updated_at(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "created_by":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_created_by(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "updated_by":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._OrganizationUnit_updated_by(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -19833,6 +20951,46 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getOrganizations(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getOrganizationUnits":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getOrganizationUnits(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getUnitsByOrgId":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getUnitsByOrgId(ctx, field)
 				return res
 			}
 
@@ -22340,6 +23498,11 @@ func (ec *executionContext) unmarshalNOrganizationInput2githubᚗcomᚋzicopsᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNOrganizationUnitInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationUnitInput(ctx context.Context, v interface{}) (model.OrganizationUnitInput, error) {
+	res, err := ec.unmarshalInputOrganizationUnitInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -23155,6 +24318,54 @@ func (ec *executionContext) marshalOOrganization2ᚖgithubᚗcomᚋzicopsᚋzico
 		return graphql.Null
 	}
 	return ec._Organization(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOOrganizationUnit2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationUnit(ctx context.Context, sel ast.SelectionSet, v []*model.OrganizationUnit) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOOrganizationUnit2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationUnit(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOOrganizationUnit2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationUnit(ctx context.Context, sel ast.SelectionSet, v *model.OrganizationUnit) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._OrganizationUnit(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPaginatedBookmarks2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedBookmarks(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedBookmarks) graphql.Marshaler {

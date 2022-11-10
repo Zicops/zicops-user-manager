@@ -541,6 +541,36 @@ type Organization {
   updated_by: String
 }
 
+input OrganizationUnitInput {
+  ou_id: ID
+  org_id: String!
+  emp_count: Int!
+  address : String!
+  city: String!
+  state: String!
+  country: String!
+  postal_code: String!
+  status: String!
+  created_by: String
+  updated_by: String
+} 
+
+type OrganizationUnit {
+  ou_id: ID
+  org_id: String!
+  emp_count: Int!
+  address : String!
+  city: String!
+  state: String!
+  country: String!
+  postal_code: String!
+  status: String!
+  created_at: String!
+  updated_at: String!
+  created_by: String
+  updated_by: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -631,6 +661,8 @@ type Query {
     searchText: String
   ): PaginatedCohortsMain
   getOrganizations(org_ids: [String]): [Organization]
+  getOrganizationUnits(ou_ids: [String]): [OrganizationUnit]
+  getUnitsByOrgId(org_id: String!): [OrganizationUnit]
 }
 
 type Mutation {
@@ -673,4 +705,6 @@ type Mutation {
   updateCohortMain(input: CohortMainInput!): CohortMain
   addOrganization(input: OrganizationInput!): Organization
   updateOrganization(input: OrganizationInput!): Organization
+  addOrganizationUnit(input: OrganizationUnitInput!): OrganizationUnit
+  updateOrganizationUnit(input: OrganizationUnitInput!): OrganizationUnit
 }

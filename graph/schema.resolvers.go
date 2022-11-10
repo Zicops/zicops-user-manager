@@ -335,6 +335,24 @@ func (r *mutationResolver) UpdateOrganization(ctx context.Context, input model.O
 	return result, nil
 }
 
+func (r *mutationResolver) AddOrganizationUnit(ctx context.Context, input model.OrganizationUnitInput) (*model.OrganizationUnit, error) {
+	result, err := orgs.AddOrganizationUnit(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding organization unit: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *mutationResolver) UpdateOrganizationUnit(ctx context.Context, input model.OrganizationUnitInput) (*model.OrganizationUnit, error) {
+	result, err := orgs.UpdateOrganizationUnit(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating organization unit: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
 	if err != nil {
@@ -555,6 +573,24 @@ func (r *queryResolver) GetOrganizations(ctx context.Context, orgIds []*string) 
 	result, err := orgs.GetOrganizations(ctx, orgIds)
 	if err != nil {
 		log.Errorf("Error getting organizations: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetOrganizationUnits(ctx context.Context, ouIds []*string) ([]*model.OrganizationUnit, error) {
+	result, err := orgs.GetOrganizationUnits(ctx, ouIds)
+	if err != nil {
+		log.Errorf("Error getting organization units: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetUnitsByOrgID(ctx context.Context, orgID string) ([]*model.OrganizationUnit, error) {
+	result, err := orgs.GetUnitsByOrgID(ctx, orgID)
+	if err != nil {
+		log.Errorf("Error getting organization units: %v", err)
 		return nil, err
 	}
 	return result, nil

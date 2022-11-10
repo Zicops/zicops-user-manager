@@ -74,6 +74,36 @@ type OrganizationInput struct {
 	Logo          *graphql.Upload `json:"logo"`
 }
 
+type OrganizationUnit struct {
+	OuID       *string `json:"ou_id"`
+	OrgID      string  `json:"org_id"`
+	EmpCount   int     `json:"emp_count"`
+	Address    string  `json:"address"`
+	City       string  `json:"city"`
+	State      string  `json:"state"`
+	Country    string  `json:"country"`
+	PostalCode string  `json:"postal_code"`
+	Status     string  `json:"status"`
+	CreatedAt  string  `json:"created_at"`
+	UpdatedAt  string  `json:"updated_at"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedBy  *string `json:"updated_by"`
+}
+
+type OrganizationUnitInput struct {
+	OuID       *string `json:"ou_id"`
+	OrgID      string  `json:"org_id"`
+	EmpCount   int     `json:"emp_count"`
+	Address    string  `json:"address"`
+	City       string  `json:"city"`
+	State      string  `json:"state"`
+	Country    string  `json:"country"`
+	PostalCode string  `json:"postal_code"`
+	Status     string  `json:"status"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedBy  *string `json:"updated_by"`
+}
+
 type PaginatedBookmarks struct {
 	Bookmarks  []*UserBookmark `json:"bookmarks"`
 	PageCursor *string         `json:"pageCursor"`
