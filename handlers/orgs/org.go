@@ -40,7 +40,7 @@ func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model
 	var storageC *bucket.Client
 	uniqueOrgId := input.Name + input.Website + input.Industry
 	orgId := base64.URLEncoding.EncodeToString([]byte(uniqueOrgId))
-	if input.Logo != nil && input.Logo == nil {
+	if input.Logo != nil {
 		if storageC == nil {
 			storageC = bucket.NewStorageHandler()
 			gproject := googleprojectlib.GetGoogleProjectID()
@@ -102,6 +102,7 @@ func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model
 		UpdatedAt:       time.Now().Unix(),
 		CreatedBy:       role,
 		UpdatedBy:       role,
+		Type:            input.Type,
 	}
 	insertQuery := CassUserSession.Query(userz.OrganizationTable.Insert()).BindStruct(orgCass)
 	if err := insertQuery.ExecRelease(); err != nil {
@@ -125,6 +126,7 @@ func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model
 		UpdatedAt:     updated,
 		CreatedBy:     &orgCass.CreatedBy,
 		UpdatedBy:     &orgCass.UpdatedBy,
+		Type:          orgCass.Type,
 	}
 	return org, nil
 }
@@ -172,7 +174,7 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 		updatedCols = append(updatedCols, "industry")
 	}
 	storageC := bucket.NewStorageHandler()
-	if input.Logo != nil && input.Logo == nil {
+	if input.Logo != nil {
 		if storageC == nil {
 			storageC = bucket.NewStorageHandler()
 			gproject := googleprojectlib.GetGoogleProjectID()
@@ -201,6 +203,10 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 		updatedCols = append(updatedCols, "logo_url")
 		updatedCols = append(updatedCols, "logo_bucket")
 	}
+	if input.LogoURL != nil && input.Logo == nil && *input.LogoURL != orgCass.LogoURL {
+		orgCass.LogoURL = *input.LogoURL
+		updatedCols = append(updatedCols, "logo_url")
+	}
 	if input.Subdomain != orgCass.ZicopsSubdomain {
 		orgCass.ZicopsSubdomain = input.Subdomain
 		updatedCols = append(updatedCols, "zicops_subdomain")
@@ -225,6 +231,10 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 	if empCnt != orgCass.EmpCount {
 		orgCass.EmpCount = empCnt
 		updatedCols = append(updatedCols, "emp_count")
+	}
+	if input.Type != orgCass.Type {
+		orgCass.Type = input.Type
+		updatedCols = append(updatedCols, "type")
 	}
 	if len(updatedCols) > 0 {
 		orgCass.UpdatedAt = time.Now().Unix()
@@ -255,6 +265,7 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 		CreatedBy:     &orgCass.CreatedBy,
 		UpdatedAt:     updated,
 		UpdatedBy:     &orgCass.UpdatedBy,
+		Type:          orgCass.Type,
 	}
 	return result, nil
 
@@ -323,6 +334,7 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 			CreatedBy:     &orgCass.CreatedBy,
 			UpdatedAt:     updated,
 			UpdatedBy:     &orgCass.UpdatedBy,
+			Type:          orgCass.Type,
 		}
 		outputOrgs = append(outputOrgs, result)
 	}
