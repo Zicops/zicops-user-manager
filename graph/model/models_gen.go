@@ -39,6 +39,105 @@ type CohortMainInput struct {
 	ImageURL    *string         `json:"imageUrl"`
 }
 
+type LearningSpace struct {
+	LspID      *string   `json:"lsp_id"`
+	OrgID      string    `json:"org_id"`
+	OuID       string    `json:"ou_id"`
+	Name       string    `json:"name"`
+	LogoURL    *string   `json:"logo_url"`
+	ProfileURL *string   `json:"profile_url"`
+	NoUsers    int       `json:"no_users"`
+	Owners     []*string `json:"owners"`
+	IsDefault  bool      `json:"is_default"`
+	Status     string    `json:"status"`
+	CreatedAt  string    `json:"created_at"`
+	UpdatedAt  string    `json:"updated_at"`
+	CreatedBy  *string   `json:"created_by"`
+	UpdatedBy  *string   `json:"updated_by"`
+}
+
+type LearningSpaceInput struct {
+	LspID      *string         `json:"lsp_id"`
+	OrgID      string          `json:"org_id"`
+	OuID       string          `json:"ou_id"`
+	Name       string          `json:"name"`
+	LogoURL    *string         `json:"logo_url"`
+	Logo       *graphql.Upload `json:"logo"`
+	ProfileURL *string         `json:"profile_url"`
+	Profile    *graphql.Upload `json:"profile"`
+	NoUsers    int             `json:"no_users"`
+	Owners     []*string       `json:"owners"`
+	IsDefault  bool            `json:"is_default"`
+	Status     string          `json:"status"`
+	CreatedBy  *string         `json:"created_by"`
+	UpdatedBy  *string         `json:"updated_by"`
+}
+
+type Organization struct {
+	OrgID         *string `json:"org_id"`
+	Name          string  `json:"name"`
+	LogoURL       *string `json:"logo_url"`
+	Industry      string  `json:"industry"`
+	Type          string  `json:"type"`
+	Subdomain     string  `json:"subdomain"`
+	EmployeeCount int     `json:"employee_count"`
+	Website       string  `json:"website"`
+	LinkedinURL   *string `json:"linkedin_url"`
+	FacebookURL   *string `json:"facebook_url"`
+	TwitterURL    *string `json:"twitter_url"`
+	Status        string  `json:"status"`
+	CreatedAt     string  `json:"created_at"`
+	UpdatedAt     string  `json:"updated_at"`
+	CreatedBy     *string `json:"created_by"`
+	UpdatedBy     *string `json:"updated_by"`
+}
+
+type OrganizationInput struct {
+	OrgID         *string         `json:"org_id"`
+	Name          string          `json:"name"`
+	LogoURL       *string         `json:"logo_url"`
+	Industry      string          `json:"industry"`
+	Type          string          `json:"type"`
+	Subdomain     string          `json:"subdomain"`
+	EmployeeCount int             `json:"employee_count"`
+	Website       string          `json:"website"`
+	LinkedinURL   *string         `json:"linkedin_url"`
+	FacebookURL   *string         `json:"facebook_url"`
+	TwitterURL    *string         `json:"twitter_url"`
+	Status        string          `json:"status"`
+	Logo          *graphql.Upload `json:"logo"`
+}
+
+type OrganizationUnit struct {
+	OuID       *string `json:"ou_id"`
+	OrgID      string  `json:"org_id"`
+	EmpCount   int     `json:"emp_count"`
+	Address    string  `json:"address"`
+	City       string  `json:"city"`
+	State      string  `json:"state"`
+	Country    string  `json:"country"`
+	PostalCode string  `json:"postal_code"`
+	Status     string  `json:"status"`
+	CreatedAt  string  `json:"created_at"`
+	UpdatedAt  string  `json:"updated_at"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedBy  *string `json:"updated_by"`
+}
+
+type OrganizationUnitInput struct {
+	OuID       *string `json:"ou_id"`
+	OrgID      string  `json:"org_id"`
+	EmpCount   int     `json:"emp_count"`
+	Address    string  `json:"address"`
+	City       string  `json:"city"`
+	State      string  `json:"state"`
+	Country    string  `json:"country"`
+	PostalCode string  `json:"postal_code"`
+	Status     string  `json:"status"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedBy  *string `json:"updated_by"`
+}
+
 type PaginatedBookmarks struct {
 	Bookmarks  []*UserBookmark `json:"bookmarks"`
 	PageCursor *string         `json:"pageCursor"`

@@ -12,7 +12,7 @@ import (
 	"github.com/zicops/zicops-user-manager/helpers"
 )
 
-func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourseID string) ([]*model.UserCourseProgress, error) {
+func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourseIDs []string) ([]*model.UserCourseProgress, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -37,39 +37,40 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 		return nil, err
 	}
 	CassUserSession := session
-	
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and user_cm_id='%s'  ALLOW FILTERING`, emailCreatorID, userCourseID)
-	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
-		q := CassUserSession.Query(qryStr, nil)
-		defer q.Release()
-		iter := q.Iter()
-		return users, iter.Select(&users)
-	}
-	userCPs, err := getUsersCProgress()
-	if err != nil {
-		return nil, err
-	}
 	userCPsMap := make([]*model.UserCourseProgress, 0)
-	for _, copiedCP := range userCPs {
-		userCP := copiedCP
-		createdAt := strconv.FormatInt(userCP.CreatedAt, 10)
-		updatedAt := strconv.FormatInt(userCP.UpdatedAt, 10)
-		timeStamp := strconv.FormatInt(userCP.TimeStamp, 10)
-		currentUserCP := &model.UserCourseProgress{
-			UserCpID:      &userCP.ID,
-			UserID:        userCP.UserID,
-			UserCourseID:  userCP.UserCmID,
-			TopicID:       userCP.TopicID,
-			TopicType:     userCP.TopicType,
-			Status:        userCP.Status,
-			VideoProgress: userCP.VideoProgress,
-			TimeStamp:     timeStamp,
-			CreatedBy:     &userCP.CreatedBy,
-			UpdatedBy:     &userCP.UpdatedBy,
-			CreatedAt:     createdAt,
-			UpdatedAt:     updatedAt,
+	for _, userCourseID := range userCourseIDs {
+		qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and user_cm_id='%s'  ALLOW FILTERING`, emailCreatorID, userCourseID)
+		getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
+			q := CassUserSession.Query(qryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return users, iter.Select(&users)
 		}
-		userCPsMap = append(userCPsMap, currentUserCP)
+		userCPs, err := getUsersCProgress()
+		if err != nil {
+			return nil, err
+		}
+		for _, copiedCP := range userCPs {
+			userCP := copiedCP
+			createdAt := strconv.FormatInt(userCP.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(userCP.UpdatedAt, 10)
+			timeStamp := strconv.FormatInt(userCP.TimeStamp, 10)
+			currentUserCP := &model.UserCourseProgress{
+				UserCpID:      &userCP.ID,
+				UserID:        userCP.UserID,
+				UserCourseID:  userCP.UserCmID,
+				TopicID:       userCP.TopicID,
+				TopicType:     userCP.TopicType,
+				Status:        userCP.Status,
+				VideoProgress: userCP.VideoProgress,
+				TimeStamp:     timeStamp,
+				CreatedBy:     &userCP.CreatedBy,
+				UpdatedBy:     &userCP.UpdatedBy,
+				CreatedAt:     createdAt,
+				UpdatedAt:     updatedAt,
+			}
+			userCPsMap = append(userCPsMap, currentUserCP)
+		}
 	}
 	//redisBytes, err := json.Marshal(userCPsMap)
 	//if err == nil {
@@ -103,7 +104,7 @@ func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID 
 		return nil, err
 	}
 	CassUserSession := session
-	
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and topic_id='%s'  ALLOW FILTERING`, emailCreatorID, topicID)
 	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
 		q := CassUserSession.Query(qryStr, nil)

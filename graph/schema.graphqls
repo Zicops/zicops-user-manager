@@ -35,7 +35,7 @@ input UserInput {
   photo_url: String
 }
 
-input UserLspMapInput{
+input UserLspMapInput {
   user_lsp_id: ID
   user_id: String!
   lsp_id: String!
@@ -55,7 +55,7 @@ type UserLspMap {
   updated_at: String!
 }
 
-input UserOrganizationMapInput{
+input UserOrganizationMapInput {
   user_organization_id: ID
   user_id: String!
   user_lsp_id: String!
@@ -81,7 +81,7 @@ type UserOrganizationMap {
   updated_at: String!
 }
 
-input UserLanguageMapInput{
+input UserLanguageMapInput {
   user_id: String!
   user_lsp_id: String!
   language: String!
@@ -104,7 +104,7 @@ type UserLanguageMap {
   updated_at: String!
 }
 
-input UserPreferenceInput{
+input UserPreferenceInput {
   user_preference_id: ID
   user_id: String!
   user_lsp_id: String!
@@ -128,7 +128,7 @@ type UserPreference {
   updated_at: String!
 }
 
-input UserRoleInput{
+input UserRoleInput {
   user_role_id: ID
   user_id: String!
   user_lsp_id: String!
@@ -176,7 +176,7 @@ type UserCohort {
   updated_at: String!
 }
 
-input UserCourseInput{
+input UserCourseInput {
   user_course_id: ID
   user_id: String!
   user_lsp_id: String!
@@ -206,7 +206,7 @@ type UserCourse {
   updated_at: String!
 }
 
-input UserCourseProgressInput{
+input UserCourseProgressInput {
   user_cp_id: ID
   user_id: String!
   user_course_id: String!
@@ -234,13 +234,13 @@ type UserCourseProgress {
   updated_at: String!
 }
 
-input UserQuizAttemptInput{
+input UserQuizAttemptInput {
   user_qa_id: ID
   user_id: String!
   user_cp_id: String!
   user_course_id: String!
   quiz_id: String!
-  quiz_attempt:Int!
+  quiz_attempt: Int!
   topic_id: String!
   result: String!
   is_active: Boolean!
@@ -254,7 +254,7 @@ type UserQuizAttempt {
   user_cp_id: String!
   user_course_id: String!
   quiz_id: String!
-  quiz_attempt:Int!
+  quiz_attempt: Int!
   topic_id: String!
   result: String!
   is_active: Boolean!
@@ -296,7 +296,7 @@ type UserBookmark {
   updated_at: String!
 }
 
-input UserNotesInput{
+input UserNotesInput {
   user_notes_id: ID
   user_id: String!
   user_lsp_id: String!
@@ -328,7 +328,7 @@ type UserNotes {
   updated_at: String!
 }
 
-input UserExamAttemptsInput{
+input UserExamAttemptsInput {
   user_ea_id: ID
   user_id: String!
   user_lsp_id: String!
@@ -360,7 +360,7 @@ type UserExamAttempts {
   updated_at: String!
 }
 
-input UserExamProgressInput{
+input UserExamProgressInput {
   user_ep_id: ID
   user_id: String!
   user_ea_id: String!
@@ -398,7 +398,7 @@ type UserExamProgress {
   updated_at: String!
 }
 
-input UserExamResultInput{
+input UserExamResultInput {
   user_er_id: ID
   user_id: String!
   user_ea_id: String!
@@ -424,39 +424,39 @@ type UserExamResult {
   updated_at: String!
 }
 
-type PaginatedUsers{
-    users: [User]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+type PaginatedUsers {
+  users: [User]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
-type PaginatedCourseMaps{
-    user_courses: [UserCourse]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+type PaginatedCourseMaps {
+  user_courses: [UserCourse]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
-type PaginatedNotes{
-    notes: [UserNotes]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+type PaginatedNotes {
+  notes: [UserNotes]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
-type PaginatedBookmarks{
-    bookmarks: [UserBookmark]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+type PaginatedBookmarks {
+  bookmarks: [UserBookmark]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
 type PaginatedCohorts {
-    cohorts: [UserCohort]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+  cohorts: [UserCohort]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
 input CohortMainInput {
@@ -493,44 +493,213 @@ type CohortMain {
 }
 
 type PaginatedCohortsMain {
-    cohorts: [CohortMain]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+  cohorts: [CohortMain]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
 type PaginatedUserLspMaps {
-    user_lsp_maps: [UserLspMap]
-    pageCursor: String
-    direction: String
-    pageSize: Int
+  user_lsp_maps: [UserLspMap]
+  pageCursor: String
+  direction: String
+  pageSize: Int
+}
+
+input OrganizationInput {
+  org_id: ID
+  name: String!
+  logo_url: String
+  industry: String!
+  type: String!
+  subdomain: String!
+  employee_count: Int!
+  website: String!
+  linkedin_url: String
+  facebook_url: String
+  twitter_url: String
+  status: String!
+  logo: Upload
+}
+
+type Organization {
+  org_id: ID
+  name: String!
+  logo_url: String
+  industry: String!
+  type: String!
+  subdomain: String!
+  employee_count: Int!
+  website: String!
+  linkedin_url: String
+  facebook_url: String
+  twitter_url: String
+  status: String!
+  created_at: String!
+  updated_at: String!
+  created_by: String
+  updated_by: String
+}
+
+input OrganizationUnitInput {
+  ou_id: ID
+  org_id: String!
+  emp_count: Int!
+  address : String!
+  city: String!
+  state: String!
+  country: String!
+  postal_code: String!
+  status: String!
+  created_by: String
+  updated_by: String
+} 
+
+type OrganizationUnit {
+  ou_id: ID
+  org_id: String!
+  emp_count: Int!
+  address : String!
+  city: String!
+  state: String!
+  country: String!
+  postal_code: String!
+  status: String!
+  created_at: String!
+  updated_at: String!
+  created_by: String
+  updated_by: String
+}
+
+input LearningSpaceInput {
+  lsp_id: ID
+  org_id: String!
+  ou_id: String!
+  name : String!
+  logo_url: String
+  logo : Upload
+  profile_url: String
+  profile : Upload
+  no_users: Int!
+  owners : [String]
+  is_default: Boolean!
+  status: String!
+  created_by: String
+  updated_by: String
+}
+
+type LearningSpace {
+  lsp_id: ID
+  org_id: String!
+  ou_id: String!
+  name : String!
+  logo_url: String
+  profile_url: String
+  no_users: Int!
+  owners : [String]
+  is_default: Boolean!
+  status: String!
+  created_at: String!
+  updated_at: String!
+  created_by: String
+  updated_by: String
 }
 
 type Query {
   logout: Boolean
-  getUserLspMapsByLspId(lsp_id: String!, pageCursor: String, Direction: String, pageSize:Int): PaginatedUserLspMaps
-  getUsersForAdmin(publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedUsers
+  getUserLspMapsByLspId(
+    lsp_id: String!
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedUserLspMaps
+  getUsersForAdmin(
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedUsers
   getUserDetails(user_ids: [String]): [User]
   getUserOrganizations(user_id: String!): [UserOrganizationMap]
   getUserOrgDetails(user_id: String!, user_lsp_id: String!): UserOrganizationMap
   getUserPreferences(user_id: String!): [UserPreference]
-  getUserPreferenceForLsp(user_id: String!, user_lsp_id: String!): UserPreference
+  getUserPreferenceForLsp(
+    user_id: String!
+    user_lsp_id: String!
+  ): UserPreference
   getUserLsps(user_id: String!): [UserLspMap]
   getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
-  getUserCourseMaps(user_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCourseMaps
+  getUserCourseMaps(
+    user_id: String!
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedCourseMaps
   getUserCourseMapByCourseID(user_id: String!, course_id: String!): [UserCourse]
-  getUserCourseProgressByMapId(user_id: String!, user_course_id: ID!): [UserCourseProgress]
-  getUserCourseProgressByTopicId(user_id: String!, topic_id: ID!): [UserCourseProgress]
-  getUserNotes(user_id: String!, user_lsp_id: String, course_id: String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedNotes
-  getUserBookmarks(user_id: String!, user_lsp_id: String, course_id: String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedBookmarks
-  getUserExamAttempts(user_id: String!, user_lsp_id: String!) : [UserExamAttempts]
-  getUserExamResults(user_id: String!, user_ea_id: String!) : UserExamResult
-  getUserExamProgress(user_id: String!, user_ea_id: String!) : [UserExamProgress]
-  getLatestCohorts(user_id:String, user_lsp_id:String, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int): PaginatedCohorts
-  getCohortUsers(cohort_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int) : PaginatedCohorts
-  getUserQuizAttempts(user_id: String!, topic_id: String!) : [UserQuizAttempt]
+  getUserCourseProgressByMapId(
+    user_id: String!
+    user_course_id: [ID!]
+  ): [UserCourseProgress]
+  getUserCourseProgressByTopicId(
+    user_id: String!
+    topic_id: ID!
+  ): [UserCourseProgress]
+  getUserNotes(
+    user_id: String!
+    user_lsp_id: String
+    course_id: String
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedNotes
+  getUserBookmarks(
+    user_id: String!
+    user_lsp_id: String
+    course_id: String
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedBookmarks
+  getUserExamAttempts(
+    user_id: String!
+    user_lsp_id: String!
+  ): [UserExamAttempts]
+  getUserExamResults(user_id: String!, user_ea_id: String!): UserExamResult
+  getUserExamProgress(user_id: String!, user_ea_id: String!): [UserExamProgress]
+  getLatestCohorts(
+    user_id: String
+    user_lsp_id: String
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedCohorts
+  getCohortUsers(
+    cohort_id: String!
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedCohorts
+  getUserQuizAttempts(user_id: String!, topic_id: String!): [UserQuizAttempt]
   getCohortDetails(cohort_id: String!): CohortMain
-  getCohortMains(lsp_id: String!, publish_time: Int, pageCursor: String, Direction: String, pageSize:Int, searchText: String): PaginatedCohortsMain
+  getCohortMains(
+    lsp_id: String!
+    publish_time: Int
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+    searchText: String
+  ): PaginatedCohortsMain
+  getOrganizations(org_ids: [String]): [Organization]
+  getOrganizationUnits(ou_ids: [String]): [OrganizationUnit]
+  getUnitsByOrgId(org_id: String!): [OrganizationUnit]
+  getLearningSpacesByOrgId(org_id: String!): [LearningSpace]
+  getLearningSpacesByOuId(ou_id: String!, org_id: String!): [LearningSpace]
+  getLearningSpaceDetails(lsp_ids: [String]): [LearningSpace]
 }
 
 type Mutation {
@@ -540,11 +709,15 @@ type Mutation {
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
   updateUserLspMap(input: UserLspMapInput!): UserLspMap
-  addUserOrganizationMap(input: [UserOrganizationMapInput]!): [UserOrganizationMap]
-  updateUserOrganizationMap(input: UserOrganizationMapInput!): UserOrganizationMap
+  addUserOrganizationMap(
+    input: [UserOrganizationMapInput]!
+  ): [UserOrganizationMap]
+  updateUserOrganizationMap(
+    input: UserOrganizationMapInput!
+  ): UserOrganizationMap
   addUserLanguageMap(input: [UserLanguageMapInput]!): [UserLanguageMap]
   addUserPreference(input: [UserPreferenceInput]!): [UserPreference]
-  updateUserPreference(input: UserPreferenceInput!):UserPreference
+  updateUserPreference(input: UserPreferenceInput!): UserPreference
   addUserRoles(input: [UserRoleInput]!): [UserRole]
   updateUserRole(input: UserRoleInput!): UserRole
   addUserCohort(input: [UserCohortInput]!): [UserCohort]
@@ -567,4 +740,10 @@ type Mutation {
   updateUserExamResult(input: UserExamResultInput!): UserExamResult
   addCohortMain(input: CohortMainInput!): CohortMain
   updateCohortMain(input: CohortMainInput!): CohortMain
+  addOrganization(input: OrganizationInput!): Organization
+  updateOrganization(input: OrganizationInput!): Organization
+  addOrganizationUnit(input: OrganizationUnitInput!): OrganizationUnit
+  updateOrganizationUnit(input: OrganizationUnitInput!): OrganizationUnit
+  addLearningSpace(input: LearningSpaceInput!): LearningSpace
+  updateLearningSpace(input: LearningSpaceInput!): LearningSpace
 }
