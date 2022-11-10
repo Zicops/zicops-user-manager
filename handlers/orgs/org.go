@@ -97,7 +97,7 @@ func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model
 		Facebook:        facebook,
 		Twitter:         twitter,
 		Linkedin:        linkedin,
-		EmpCount:        string(input.EmployeeCount),
+		EmpCount:        fmt.Sprintf("%v", input.EmployeeCount),
 		CreatedAt:       time.Now().Unix(),
 		UpdatedAt:       time.Now().Unix(),
 		CreatedBy:       role,
@@ -221,8 +221,9 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 		orgCass.Linkedin = *input.LinkedinURL
 		updatedCols = append(updatedCols, "linkedin")
 	}
-	if string(input.EmployeeCount) != orgCass.EmpCount {
-		orgCass.EmpCount = string(input.EmployeeCount)
+	empCnt := fmt.Sprintf("%v", input.EmployeeCount)
+	if empCnt != orgCass.EmpCount {
+		orgCass.EmpCount = empCnt
 		updatedCols = append(updatedCols, "emp_count")
 	}
 	if len(updatedCols) > 0 {
