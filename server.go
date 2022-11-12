@@ -10,6 +10,7 @@ import (
 
 	"os"
 
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-cass-pool/redis"
@@ -51,6 +52,8 @@ func main() {
 	if err != nil {
 		port = 8094
 	}
+	gin.SetMode(gin.ReleaseMode)
+
 	// test cassandra connection
 	_, err1 := cassandra.GetCassSession("userz")
 	if err1 != nil {
