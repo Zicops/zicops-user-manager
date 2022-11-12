@@ -37,18 +37,15 @@ func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model
 	}
 	logoUrl := ""
 	logoBucket := ""
-	var storageC *bucket.Client
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
 	uniqueOrgId := input.Name + input.Website + input.Industry
 	orgId := base64.URLEncoding.EncodeToString([]byte(uniqueOrgId))
 	if input.Logo != nil {
-		if storageC == nil {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
-		}
 		bucketPath := fmt.Sprintf("orgs/%s/%s/%s", "logos", orgId, input.Logo.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
@@ -174,15 +171,12 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 		updatedCols = append(updatedCols, "industry")
 	}
 	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
 	if input.Logo != nil {
-		if storageC == nil {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
-		}
 		bucketPath := fmt.Sprintf("orgs/%s/%s/%s", "logos", orgCass.ID, input.Logo.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
@@ -305,16 +299,13 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 		updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
 		emptCnt, _ := strconv.Atoi(orgCass.EmpCount)
 		logoUrl := orgCass.LogoURL
+		storageC := bucket.NewStorageHandler()
+		gproject := googleprojectlib.GetGoogleProjectID()
+		err = storageC.InitializeStorageClient(ctx, gproject)
+		if err != nil {
+			return nil, err
+		}
 		if orgCass.LogoBucket != "" {
-			storageC := bucket.NewStorageHandler()
-			if storageC == nil {
-				storageC = bucket.NewStorageHandler()
-				gproject := googleprojectlib.GetGoogleProjectID()
-				err := storageC.InitializeStorageClient(ctx, gproject)
-				if err != nil {
-					return nil, err
-				}
-			}
 			logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
 		}
 
