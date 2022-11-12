@@ -42,20 +42,17 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 		}
 	}
 	var outputUsers []*model.User
-	var storageC *bucket.Client
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
 	var photoBucket string
 	var photoUrl string
 	for _, user := range input {
 		userID := base64.URLEncoding.EncodeToString([]byte(user.Email))
 		if user.Photo != nil && user.PhotoURL == nil {
-			if storageC == nil {
-				storageC = bucket.NewStorageHandler()
-				gproject := googleprojectlib.GetGoogleProjectID()
-				err := storageC.InitializeStorageClient(ctx, gproject)
-				if err != nil {
-					return nil, err
-				}
-			}
 			bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", userID, user.Photo.Filename)
 			writer, err := storageC.UploadToGCS(ctx, bucketPath)
 			if err != nil {
@@ -277,22 +274,19 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	phoneUpdate := ""
 	firstNameUpdate := ""
 	lastNameUpdate := ""
-	var storageC *bucket.Client
 	var photoBucket string
 	var photoUrl string
 	fireUser, err := global.IDP.GetUserByEmail(ctx, userCass.Email)
 	if err != nil {
 		return nil, err
 	}
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
 	if user.Photo != nil && user.PhotoURL == nil {
-		if storageC == nil {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
-		}
 		bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", *user.ID, user.Photo.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {

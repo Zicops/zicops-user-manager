@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
@@ -96,51 +97,56 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 		log.Infof("Users: %v", string(newCursor))
 
 	}
-	storageC := bucket.NewStorageHandler()
-	gproject := googleprojectlib.GetGoogleProjectID()
-	err = storageC.InitializeStorageClient(ctx, gproject)
-	if err != nil {
-		log.Errorf("Failed to upload image to course: %v", err.Error())
-		return nil, err
-	}
-	allUsers := make([]*model.User, 0)
-	for _, copiedUser := range users {
+	allUsers := make([]*model.User, len(users))
+	var wg sync.WaitGroup
+	for i, copiedUser := range users {
 		userCopy := copiedUser
-		createdAt := strconv.FormatInt(userCopy.CreatedAt, 10)
-		updatedAt := strconv.FormatInt(userCopy.UpdatedAt, 10)
-		photoUrl := ""
-		if userCopy.PhotoBucket != "" {
-			photoUrl = storageC.GetSignedURLForObject(userCopy.PhotoBucket)
-		} else {
-			photoUrl = userCopy.PhotoURL
-		}
-		fireBaseUser, err := global.IDP.GetUserByEmail(ctx, userCopy.Email)
-		if err != nil {
-			log.Errorf("Failed to get user from firebase: %v", err.Error())
-		}
-		phone := ""
-		if fireBaseUser != nil {
-			phone = fireBaseUser.PhoneNumber
-		}
-		currentUser := &model.User{
-			ID:         &userCopy.ID,
-			Email:      userCopy.Email,
-			FirstName:  userCopy.FirstName,
-			LastName:   userCopy.LastName,
-			Role:       userCopy.Role,
-			CreatedAt:  createdAt,
-			UpdatedAt:  updatedAt,
-			PhotoURL:   &photoUrl,
-			IsVerified: userCopy.IsVerified,
-			IsActive:   userCopy.IsActive,
-			CreatedBy:  &userCopy.CreatedBy,
-			UpdatedBy:  &userCopy.UpdatedBy,
-			Status:     userCopy.Status,
-			Gender:     userCopy.Gender,
-			Phone:      phone,
-		}
-		allUsers = append(allUsers, currentUser)
+		wg.Add(1)
+		go func(i int, userCopy userz.User) {
+			createdAt := strconv.FormatInt(userCopy.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(userCopy.UpdatedAt, 10)
+			photoUrl := ""
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				log.Errorf("Failed to upload image to course: %v", err.Error())
+			}
+			if userCopy.PhotoBucket != "" {
+				photoUrl = storageC.GetSignedURLForObject(userCopy.PhotoBucket)
+			} else {
+				photoUrl = userCopy.PhotoURL
+			}
+			fireBaseUser, err := global.IDP.GetUserByEmail(ctx, userCopy.Email)
+			if err != nil {
+				log.Errorf("Failed to get user from firebase: %v", err.Error())
+			}
+			phone := ""
+			if fireBaseUser != nil {
+				phone = fireBaseUser.PhoneNumber
+			}
+			currentUser := &model.User{
+				ID:         &userCopy.ID,
+				Email:      userCopy.Email,
+				FirstName:  userCopy.FirstName,
+				LastName:   userCopy.LastName,
+				Role:       userCopy.Role,
+				CreatedAt:  createdAt,
+				UpdatedAt:  updatedAt,
+				PhotoURL:   &photoUrl,
+				IsVerified: userCopy.IsVerified,
+				IsActive:   userCopy.IsActive,
+				CreatedBy:  &userCopy.CreatedBy,
+				UpdatedBy:  &userCopy.UpdatedBy,
+				Status:     userCopy.Status,
+				Gender:     userCopy.Gender,
+				Phone:      phone,
+			}
+			allUsers[i] = currentUser
+			wg.Done()
+		}(i, userCopy)
 	}
+	wg.Wait()
 	outputResponse.Users = allUsers
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt

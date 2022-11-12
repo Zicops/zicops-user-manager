@@ -43,16 +43,14 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	}
 	logoUrl := ""
 	logoBucket := ""
-	var storageC *bucket.Client
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
 	if input.Logo != nil && input.Logo == nil {
-		if storageC == nil {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
-		}
+
 		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "logos", input.Logo.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
@@ -79,14 +77,6 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	photoUrl := ""
 	photoBucket := ""
 	if input.Profile != nil && input.Profile == nil {
-		if storageC == nil {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
-		}
 		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "photos", input.Profile.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
@@ -229,16 +219,13 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 		orgCass.OrgUnitID = input.OuID
 		updatedCols = append(updatedCols, "org_unit_id")
 	}
-	var storageC *bucket.Client
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
 	if input.Logo != nil {
-		if storageC == nil {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
-		}
 		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "logos", input.Profile.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
@@ -261,14 +248,6 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 		updatedCols = append(updatedCols, "logo_url")
 	}
 	if input.Profile != nil {
-		if storageC == nil {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
-		}
 		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "profile", input.Profile.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
@@ -363,25 +342,16 @@ func GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.Le
 		}
 		logoUrl := orgCass.LogoURL
 		profileUrl := orgCass.ProfilePictureURL
-		var storageC *bucket.Client
+		storageC := bucket.NewStorageHandler()
+		gproject := googleprojectlib.GetGoogleProjectID()
+		err = storageC.InitializeStorageClient(ctx, gproject)
+		if err != nil {
+			return nil, err
+		}
 		if orgCass.LogoBucket != "" {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
 			logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
 		}
 		if orgCass.ProfilePictureBucket != "" {
-			if storageC == nil {
-				storageC = bucket.NewStorageHandler()
-				gproject := googleprojectlib.GetGoogleProjectID()
-				err := storageC.InitializeStorageClient(ctx, gproject)
-				if err != nil {
-					return nil, err
-				}
-			}
 			profileUrl = storageC.GetSignedURLForObject(orgCass.ProfilePictureBucket)
 		}
 
@@ -443,25 +413,17 @@ func GetLearningSpacesByOrgID(ctx context.Context, orgID string) ([]*model.Learn
 		}
 		logoUrl := orgCass.LogoURL
 		profileUrl := orgCass.ProfilePictureURL
-		var storageC *bucket.Client
+		storageC := bucket.NewStorageHandler()
+		gproject := googleprojectlib.GetGoogleProjectID()
+		err = storageC.InitializeStorageClient(ctx, gproject)
+		if err != nil {
+			return nil, err
+		}
 		if orgCass.LogoBucket != "" {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
+
 			logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
 		}
 		if orgCass.ProfilePictureBucket != "" {
-			if storageC == nil {
-				storageC = bucket.NewStorageHandler()
-				gproject := googleprojectlib.GetGoogleProjectID()
-				err := storageC.InitializeStorageClient(ctx, gproject)
-				if err != nil {
-					return nil, err
-				}
-			}
 			profileUrl = storageC.GetSignedURLForObject(orgCass.ProfilePictureBucket)
 		}
 
@@ -523,25 +485,16 @@ func GetLearningSpacesByOuID(ctx context.Context, ouID string, orgID string) ([]
 		}
 		logoUrl := orgCass.LogoURL
 		profileUrl := orgCass.ProfilePictureURL
-		var storageC *bucket.Client
+		storageC := bucket.NewStorageHandler()
+		gproject := googleprojectlib.GetGoogleProjectID()
+		err = storageC.InitializeStorageClient(ctx, gproject)
+		if err != nil {
+			return nil, err
+		}
 		if orgCass.LogoBucket != "" {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
 			logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
 		}
 		if orgCass.ProfilePictureBucket != "" {
-			if storageC == nil {
-				storageC = bucket.NewStorageHandler()
-				gproject := googleprojectlib.GetGoogleProjectID()
-				err := storageC.InitializeStorageClient(ctx, gproject)
-				if err != nil {
-					return nil, err
-				}
-			}
 			profileUrl = storageC.GetSignedURLForObject(orgCass.ProfilePictureBucket)
 		}
 
