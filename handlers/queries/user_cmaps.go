@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
@@ -79,29 +80,35 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 
 	}
 	var outputResponse model.PaginatedCourseMaps
-	allCourses := make([]*model.UserCourse, 0)
-	for _, copiedCourse := range userCourses {
+	allCourses := make([]*model.UserCourse, len(userCourses))
+	var wg sync.WaitGroup
+	for i, copiedCourse := range userCourses {
 		courseCopy := copiedCourse
-		endDate := strconv.FormatInt(courseCopy.EndDate, 10)
-		createdAt := strconv.FormatInt(courseCopy.CreatedAt, 10)
-		updatedAt := strconv.FormatInt(courseCopy.UpdatedAt, 10)
-		currentCourse := &model.UserCourse{
-			UserCourseID: &courseCopy.ID,
-			UserID:       courseCopy.UserID,
-			UserLspID:    courseCopy.UserLspID,
-			CourseID:     courseCopy.CourseID,
-			CourseType:   courseCopy.CourseType,
-			AddedBy:      courseCopy.AddedBy,
-			IsMandatory:  courseCopy.IsMandatory,
-			EndDate:      &endDate,
-			CourseStatus: courseCopy.CourseStatus,
-			CreatedAt:    createdAt,
-			UpdatedAt:    updatedAt,
-			CreatedBy:    &courseCopy.CreatedBy,
-			UpdatedBy:    &courseCopy.UpdatedBy,
-		}
-		allCourses = append(allCourses, currentCourse)
+		wg.Add(1)
+		go func(i int, courseCopy userz.UserCourse) {
+			endDate := strconv.FormatInt(courseCopy.EndDate, 10)
+			createdAt := strconv.FormatInt(courseCopy.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(courseCopy.UpdatedAt, 10)
+			currentCourse := &model.UserCourse{
+				UserCourseID: &courseCopy.ID,
+				UserID:       courseCopy.UserID,
+				UserLspID:    courseCopy.UserLspID,
+				CourseID:     courseCopy.CourseID,
+				CourseType:   courseCopy.CourseType,
+				AddedBy:      courseCopy.AddedBy,
+				IsMandatory:  courseCopy.IsMandatory,
+				EndDate:      &endDate,
+				CourseStatus: courseCopy.CourseStatus,
+				CreatedAt:    createdAt,
+				UpdatedAt:    updatedAt,
+				CreatedBy:    &courseCopy.CreatedBy,
+				UpdatedBy:    &courseCopy.UpdatedBy,
+			}
+			allCourses[i] = currentCourse
+			wg.Done()
+		}(i, courseCopy)
 	}
+	wg.Wait()
 	outputResponse.UserCourses = allCourses
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
@@ -138,7 +145,7 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 		return nil, err
 	}
 	CassUserSession := session
-	
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and course_id='%s'  ALLOW FILTERING`, emailCreatorID, courseID)
 	getUsers := func() (courses []userz.UserCourse, err error) {
 		q := CassUserSession.Query(qryStr, nil)
