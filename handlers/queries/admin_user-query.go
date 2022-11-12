@@ -164,87 +164,90 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	if err != nil {
 		return nil, err
 	}
-	var outputResponse []*model.User
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
 	CassUserSession := session
+	outputResponse := make([]*model.User, len(userIds))
+	var wg sync.WaitGroup
+	for i, userID := range userIds {
+		wg.Add(1)
+		go func(i int, userID *string) {
+			userCopy := userz.User{}
+			//key := "GetUserDetails" + *userID
+			//result, err := redis.GetRedisValue(key)
+			//if err == nil {
+			//	json.Unmarshal([]byte(result), &userCopy)
 
-	storageC := bucket.NewStorageHandler()
-	gproject := googleprojectlib.GetGoogleProjectID()
-	err = storageC.InitializeStorageClient(ctx, gproject)
-	if err != nil {
-		log.Errorf("Failed to upload image to course: %v", err.Error())
-		return nil, err
-	}
-	for _, userID := range userIds {
-		userCopy := userz.User{}
-		//key := "GetUserDetails" + *userID
-		//result, err := redis.GetRedisValue(key)
-		//if err == nil {
-		//	json.Unmarshal([]byte(result), &userCopy)
-
-		//}
-		if userCopy.ID == "" {
-			qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, *userID)
-			getUsers := func() (users []userz.User, err error) {
-				q := CassUserSession.Query(qryStr, nil)
-				defer q.Release()
-
-				iter := q.Iter()
-				return users, iter.Select(&users)
-			}
-			users, err := getUsers()
+			//}
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
 			if err != nil {
-				return nil, err
+				log.Errorf("Failed to upload image to course: %v", err.Error())
 			}
-			if len(users) == 0 {
-				return nil, fmt.Errorf("user not found")
-			}
+			if userCopy.ID == "" {
+				qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, *userID)
+				getUsers := func() (users []userz.User, err error) {
+					q := CassUserSession.Query(qryStr, nil)
+					defer q.Release()
 
-			userCopy = users[0]
-		}
-		createdAt := strconv.FormatInt(userCopy.CreatedAt, 10)
-		updatedAt := strconv.FormatInt(userCopy.UpdatedAt, 10)
-		photoUrl := ""
-		if userCopy.PhotoBucket != "" {
-			photoUrl = storageC.GetSignedURLForObject(userCopy.PhotoBucket)
-		} else {
-			photoUrl = userCopy.PhotoURL
-		}
-		fireBaseUser, err := global.IDP.GetUserByEmail(ctx, userCopy.Email)
-		if err != nil {
-			log.Errorf("Failed to get user from firebase: %v", err.Error())
-		}
-		phone := ""
-		if fireBaseUser != nil {
-			phone = fireBaseUser.PhoneNumber
-		}
-		outputUser := &model.User{
-			ID:         &userCopy.ID,
-			Email:      userCopy.Email,
-			FirstName:  userCopy.FirstName,
-			LastName:   userCopy.LastName,
-			Role:       userCopy.Role,
-			CreatedAt:  createdAt,
-			UpdatedAt:  updatedAt,
-			PhotoURL:   &photoUrl,
-			IsVerified: userCopy.IsVerified,
-			IsActive:   userCopy.IsActive,
-			CreatedBy:  &userCopy.CreatedBy,
-			UpdatedBy:  &userCopy.UpdatedBy,
-			Status:     userCopy.Status,
-			Gender:     userCopy.Gender,
-			Phone:      phone,
-		}
-		outputResponse = append(outputResponse, outputUser)
+					iter := q.Iter()
+					return users, iter.Select(&users)
+				}
+				users, err := getUsers()
+				if err != nil {
+					return
+				}
+				if len(users) == 0 {
+					return
+				}
+				userCopy = users[0]
+			}
+			createdAt := strconv.FormatInt(userCopy.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(userCopy.UpdatedAt, 10)
+			photoUrl := ""
+			if userCopy.PhotoBucket != "" {
+				photoUrl = storageC.GetSignedURLForObject(userCopy.PhotoBucket)
+			} else {
+				photoUrl = userCopy.PhotoURL
+			}
+			fireBaseUser, err := global.IDP.GetUserByEmail(ctx, userCopy.Email)
+			if err != nil {
+				log.Errorf("Failed to get user from firebase: %v", err.Error())
+			}
+			phone := ""
+			if fireBaseUser != nil {
+				phone = fireBaseUser.PhoneNumber
+			}
+			outputUser := &model.User{
+				ID:         &userCopy.ID,
+				Email:      userCopy.Email,
+				FirstName:  userCopy.FirstName,
+				LastName:   userCopy.LastName,
+				Role:       userCopy.Role,
+				CreatedAt:  createdAt,
+				UpdatedAt:  updatedAt,
+				PhotoURL:   &photoUrl,
+				IsVerified: userCopy.IsVerified,
+				IsActive:   userCopy.IsActive,
+				CreatedBy:  &userCopy.CreatedBy,
+				UpdatedBy:  &userCopy.UpdatedBy,
+				Status:     userCopy.Status,
+				Gender:     userCopy.Gender,
+				Phone:      phone,
+			}
+			outputResponse[i] = outputUser
+			wg.Done()
+		}(i, userID)
 		//redisBytes, err := json.Marshal(userCopy)
 		//if err == nil {
 		//	redis.SetTTL(key, 3600)
 		//	redis.SetRedisValue(key, string(redisBytes))
 		//}
 	}
+	wg.Wait()
 
 	return outputResponse, nil
 }
