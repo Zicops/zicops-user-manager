@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
@@ -200,29 +201,35 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID *string, cou
 		log.Infof("Users: %v", string(newCursor))
 
 	}
-	allCourses := make([]*model.UserBookmark, 0)
-	for _, copiedCourse := range userNotes {
+	allCourses := make([]*model.UserBookmark, len(userNotes))
+	var wg sync.WaitGroup
+	for i, copiedCourse := range userNotes {
 		courseCopy := copiedCourse
-		createdAt := strconv.FormatInt(courseCopy.CreatedAt, 10)
-		updatedAt := strconv.FormatInt(courseCopy.UpdatedAt, 10)
-		currentCourse := &model.UserBookmark{
-			UserBmID:     &courseCopy.ID,
-			UserCourseID: courseCopy.UserCPID,
-			UserID:       courseCopy.UserID,
-			UserLspID:    courseCopy.UserLspID,
-			CourseID:     courseCopy.CourseID,
-			ModuleID:     courseCopy.ModuleID,
-			TopicID:      courseCopy.TopicID,
-			IsActive:     courseCopy.IsActive,
-			Name:         courseCopy.Name,
-			TimeStamp:    courseCopy.TimeStamp,
-			CreatedAt:    createdAt,
-			UpdatedAt:    updatedAt,
-			CreatedBy:    &courseCopy.CreatedBy,
-			UpdatedBy:    &courseCopy.UpdatedBy,
-		}
-		allCourses = append(allCourses, currentCourse)
+		wg.Add(1)
+		go func(i int, courseCopy userz.UserBookmarks) {
+			createdAt := strconv.FormatInt(courseCopy.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(courseCopy.UpdatedAt, 10)
+			currentCourse := &model.UserBookmark{
+				UserBmID:     &courseCopy.ID,
+				UserCourseID: courseCopy.UserCPID,
+				UserID:       courseCopy.UserID,
+				UserLspID:    courseCopy.UserLspID,
+				CourseID:     courseCopy.CourseID,
+				ModuleID:     courseCopy.ModuleID,
+				TopicID:      courseCopy.TopicID,
+				IsActive:     courseCopy.IsActive,
+				Name:         courseCopy.Name,
+				TimeStamp:    courseCopy.TimeStamp,
+				CreatedAt:    createdAt,
+				UpdatedAt:    updatedAt,
+				CreatedBy:    &courseCopy.CreatedBy,
+				UpdatedBy:    &courseCopy.UpdatedBy,
+			}
+			allCourses[i] = currentCourse
+			wg.Done()
+		}(i, courseCopy)
 	}
+	wg.Wait()
 	outputResponse.Bookmarks = allCourses
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
@@ -254,7 +261,7 @@ func GetUserExamAttempts(ctx context.Context, userID string, userLspID string) (
 		return nil, err
 	}
 	CassUserSession := session
-	
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_attempts where user_id='%s' and user_lsp_id='%s'  ALLOW FILTERING`, userID, userLspID)
 	getUserEA := func() (users []userz.UserExamAttempts, err error) {
 		q := CassUserSession.Query(qryStr, nil)
@@ -321,7 +328,7 @@ func GetUserExamResults(ctx context.Context, userID string, userEaID string) (*m
 		return nil, err
 	}
 	CassUserSession := session
-	
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_results where user_id='%s' and user_ea_id='%s'  ALLOW FILTERING`, userID, userEaID)
 	getUserEA := func() (users []userz.UserExamResults, err error) {
 		q := CassUserSession.Query(qryStr, nil)
@@ -383,7 +390,7 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 		return nil, err
 	}
 	CassUserSession := session
-	
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_progress where user_id='%s' and user_ea_id='%s'  ALLOW FILTERING`, userID, userEaID)
 	getUserEA := func() (users []userz.UserExamProgress, err error) {
 		q := CassUserSession.Query(qryStr, nil)
@@ -398,33 +405,39 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 	if len(usersOrgs) == 0 {
 		return nil, fmt.Errorf("no user ep found")
 	}
-	userOrgs := make([]*model.UserExamProgress, 0)
-	for _, userOrg := range usersOrgs {
+	userOrgs := make([]*model.UserExamProgress, len(usersOrgs))
+	var wg sync.WaitGroup
+	for i, userOrg := range usersOrgs {
 		copiedOrg := userOrg
-		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
-		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
-		totalTimeSpent := strconv.FormatInt(userOrg.TotalTimeSpent, 10)
-		currentUserOrg := &model.UserExamProgress{
-			UserEpID:       &copiedOrg.ID,
-			UserID:         copiedOrg.UserID,
-			UserLspID:      copiedOrg.UserLspID,
-			UserCpID:       copiedOrg.UserCpID,
-			UserEaID:       copiedOrg.UserEaID,
-			SrNo:           int(copiedOrg.SrNo),
-			QuestionID:     copiedOrg.QuestionID,
-			QuestionType:   copiedOrg.QuestionType,
-			Answer:         copiedOrg.Answer,
-			QAttemptStatus: copiedOrg.QAttemptStatus,
-			TotalTimeSpent: totalTimeSpent,
-			CorrectAnswer:  copiedOrg.CorrectAnswer,
-			SectionID:      copiedOrg.SectionID,
-			CreatedBy:      &copiedOrg.CreatedBy,
-			UpdatedBy:      &copiedOrg.UpdatedBy,
-			CreatedAt:      createdAt,
-			UpdatedAt:      updatedAt,
-		}
-		userOrgs = append(userOrgs, currentUserOrg)
+		wg.Add(1)
+		go func(i int, userOrg userz.UserExamProgress) {
+			createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
+			totalTimeSpent := strconv.FormatInt(userOrg.TotalTimeSpent, 10)
+			currentUserOrg := &model.UserExamProgress{
+				UserEpID:       &copiedOrg.ID,
+				UserID:         copiedOrg.UserID,
+				UserLspID:      copiedOrg.UserLspID,
+				UserCpID:       copiedOrg.UserCpID,
+				UserEaID:       copiedOrg.UserEaID,
+				SrNo:           int(copiedOrg.SrNo),
+				QuestionID:     copiedOrg.QuestionID,
+				QuestionType:   copiedOrg.QuestionType,
+				Answer:         copiedOrg.Answer,
+				QAttemptStatus: copiedOrg.QAttemptStatus,
+				TotalTimeSpent: totalTimeSpent,
+				CorrectAnswer:  copiedOrg.CorrectAnswer,
+				SectionID:      copiedOrg.SectionID,
+				CreatedBy:      &copiedOrg.CreatedBy,
+				UpdatedBy:      &copiedOrg.UpdatedBy,
+				CreatedAt:      createdAt,
+				UpdatedAt:      updatedAt,
+			}
+			userOrgs[i] = currentUserOrg
+			wg.Done()
+		}(i, copiedOrg)
 	}
+	wg.Wait()
 	//redisBytes, err := json.Marshal(userOrgs)
 	//if err == nil {
 	//	redis.SetTTL(key, 60)
@@ -452,7 +465,7 @@ func GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]
 		return nil, err
 	}
 	CassUserSession := session
-	
+
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_quiz_attempts where user_id='%s' and topic_id='%s'  ALLOW FILTERING`, userID, topicID)
 	getUserQA := func() (users []userz.UserQuizAttempts, err error) {
 		q := CassUserSession.Query(qryStr, nil)

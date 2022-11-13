@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -178,46 +179,52 @@ func GetOrganizationUnits(ctx context.Context, ouIds []*string) ([]*model.Organi
 		return nil, err
 	}
 	CassUserSession := session
-	outputOrgs := []*model.OrganizationUnit{}
-	for _, orgID := range ouIds {
-		if orgID == nil {
-			continue
-		}
-		qryStr := fmt.Sprintf(`SELECT * from userz.organization_units where id='%s' ALLOW FILTERING `, *orgID)
-		getOrgs := func() (users []userz.OrganizationUnits, err error) {
-			q := CassUserSession.Query(qryStr, nil)
-			defer q.Release()
-			iter := q.Iter()
-			return users, iter.Select(&users)
-		}
-		orgs, err := getOrgs()
-		if err != nil {
-			return nil, err
-		}
-		if len(orgs) == 0 {
-			continue
-		}
-		orgCass := orgs[0]
-		created := strconv.FormatInt(orgCass.CreatedAt, 10)
-		updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
-		emptCnt, _ := strconv.Atoi(orgCass.EmpCount)
-		result := &model.OrganizationUnit{
-			OuID:       &orgCass.ID,
-			OrgID:      orgCass.OrgID,
-			EmpCount:   emptCnt,
-			State:      orgCass.State,
-			City:       orgCass.City,
-			Address:    orgCass.Address,
-			PostalCode: orgCass.PostalCode,
-			Country:    orgCass.Country,
-			Status:     orgCass.Status,
-			CreatedAt:  created,
-			CreatedBy:  &orgCass.CreatedBy,
-			UpdatedAt:  updated,
-			UpdatedBy:  &orgCass.UpdatedBy,
-		}
-		outputOrgs = append(outputOrgs, result)
+	outputOrgs := make([]*model.OrganizationUnit, len(ouIds))
+	var wg sync.WaitGroup
+	for i, orgID := range ouIds {
+		wg.Add(1)
+		go func(i int, orgID *string) {
+			if orgID == nil {
+				return
+			}
+			qryStr := fmt.Sprintf(`SELECT * from userz.organization_units where id='%s' ALLOW FILTERING `, *orgID)
+			getOrgs := func() (users []userz.OrganizationUnits, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return users, iter.Select(&users)
+			}
+			orgs, err := getOrgs()
+			if err != nil {
+				return
+			}
+			if len(orgs) == 0 {
+				return
+			}
+			orgCass := orgs[0]
+			created := strconv.FormatInt(orgCass.CreatedAt, 10)
+			updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
+			emptCnt, _ := strconv.Atoi(orgCass.EmpCount)
+			result := &model.OrganizationUnit{
+				OuID:       &orgCass.ID,
+				OrgID:      orgCass.OrgID,
+				EmpCount:   emptCnt,
+				State:      orgCass.State,
+				City:       orgCass.City,
+				Address:    orgCass.Address,
+				PostalCode: orgCass.PostalCode,
+				Country:    orgCass.Country,
+				Status:     orgCass.Status,
+				CreatedAt:  created,
+				CreatedBy:  &orgCass.CreatedBy,
+				UpdatedAt:  updated,
+				UpdatedBy:  &orgCass.UpdatedBy,
+			}
+			outputOrgs[i] = result
+			wg.Done()
+		}(i, orgID)
 	}
+	wg.Wait()
 	return outputOrgs, nil
 }
 
@@ -231,7 +238,6 @@ func GetUnitsByOrgID(ctx context.Context, orgID string) ([]*model.OrganizationUn
 		return nil, err
 	}
 	CassUserSession := session
-	outputOrgs := []*model.OrganizationUnit{}
 	qryStr := fmt.Sprintf(`SELECT * from userz.organization_units where org_id='%s' ALLOW FILTERING `, orgID)
 	getOrgs := func() (users []userz.OrganizationUnits, err error) {
 		q := CassUserSession.Query(qryStr, nil)
@@ -246,27 +252,35 @@ func GetUnitsByOrgID(ctx context.Context, orgID string) ([]*model.OrganizationUn
 	if len(orgs) == 0 {
 		return nil, fmt.Errorf("no org units found")
 	}
-	for _, orgCas := range orgs {
+	outputOrgs := make([]*model.OrganizationUnit, len(orgs))
+	var wg sync.WaitGroup
+	for i, orgCas := range orgs {
 		orgCass := orgCas
-		created := strconv.FormatInt(orgCass.CreatedAt, 10)
-		updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
-		emptCnt, _ := strconv.Atoi(orgCass.EmpCount)
-		result := &model.OrganizationUnit{
-			OuID:       &orgCass.ID,
-			OrgID:      orgCass.OrgID,
-			EmpCount:   emptCnt,
-			State:      orgCass.State,
-			City:       orgCass.City,
-			Address:    orgCass.Address,
-			PostalCode: orgCass.PostalCode,
-			Country:    orgCass.Country,
-			Status:     orgCass.Status,
-			CreatedAt:  created,
-			CreatedBy:  &orgCass.CreatedBy,
-			UpdatedAt:  updated,
-			UpdatedBy:  &orgCass.UpdatedBy,
-		}
-		outputOrgs = append(outputOrgs, result)
+		wg.Add(1)
+		go func(i int, orgCass userz.OrganizationUnits) {
+			created := strconv.FormatInt(orgCass.CreatedAt, 10)
+			updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
+			emptCnt, _ := strconv.Atoi(orgCass.EmpCount)
+			result := &model.OrganizationUnit{
+				OuID:       &orgCass.ID,
+				OrgID:      orgCass.OrgID,
+				EmpCount:   emptCnt,
+				State:      orgCass.State,
+				City:       orgCass.City,
+				Address:    orgCass.Address,
+				PostalCode: orgCass.PostalCode,
+				Country:    orgCass.Country,
+				Status:     orgCass.Status,
+				CreatedAt:  created,
+				CreatedBy:  &orgCass.CreatedBy,
+				UpdatedAt:  updated,
+				UpdatedBy:  &orgCass.UpdatedBy,
+			}
+			outputOrgs[i] = result
+			wg.Done()
+		}(i, orgCass)
+
 	}
+	wg.Wait()
 	return outputOrgs, nil
 }
