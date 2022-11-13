@@ -8,6 +8,7 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -275,59 +276,65 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 		return nil, err
 	}
 	CassUserSession := session
-	outputOrgs := []*model.Organization{}
-	for _, orgID := range orgIds {
-		if orgID == nil {
-			continue
-		}
-		qryStr := fmt.Sprintf(`SELECT * from userz.organization where id='%s' `, *orgID)
-		getOrgs := func() (users []userz.Organization, err error) {
-			q := CassUserSession.Query(qryStr, nil)
-			defer q.Release()
-			iter := q.Iter()
-			return users, iter.Select(&users)
-		}
-		orgs, err := getOrgs()
-		if err != nil {
-			return nil, err
-		}
-		if len(orgs) == 0 {
-			continue
-		}
-		orgCass := orgs[0]
-		created := strconv.FormatInt(orgCass.CreatedAt, 10)
-		updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
-		emptCnt, _ := strconv.Atoi(orgCass.EmpCount)
-		logoUrl := orgCass.LogoURL
-		storageC := bucket.NewStorageHandler()
-		gproject := googleprojectlib.GetGoogleProjectID()
-		err = storageC.InitializeStorageClient(ctx, gproject)
-		if err != nil {
-			return nil, err
-		}
-		if orgCass.LogoBucket != "" {
-			logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
-		}
+	outputOrgs := make([]*model.Organization, len(orgIds))
+	var wg sync.WaitGroup
+	for i, orgID := range orgIds {
+		wg.Add(1)
+		go func(i int, orgID *string) {
+			if orgID == nil {
+				return
+			}
+			qryStr := fmt.Sprintf(`SELECT * from userz.organization where id='%s' `, *orgID)
+			getOrgs := func() (users []userz.Organization, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return users, iter.Select(&users)
+			}
+			orgs, err := getOrgs()
+			if err != nil {
+				return
+			}
+			if len(orgs) == 0 {
+				return
+			}
+			orgCass := orgs[0]
+			created := strconv.FormatInt(orgCass.CreatedAt, 10)
+			updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
+			emptCnt, _ := strconv.Atoi(orgCass.EmpCount)
+			logoUrl := orgCass.LogoURL
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				return
+			}
+			if orgCass.LogoBucket != "" {
+				logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
+			}
 
-		result := &model.Organization{
-			OrgID:         &orgCass.ID,
-			Name:          orgCass.Name,
-			Website:       orgCass.Website,
-			Industry:      orgCass.Industry,
-			LogoURL:       &logoUrl,
-			Subdomain:     orgCass.ZicopsSubdomain,
-			Status:        orgCass.Status,
-			FacebookURL:   &orgCass.Facebook,
-			TwitterURL:    &orgCass.Twitter,
-			LinkedinURL:   &orgCass.Linkedin,
-			EmployeeCount: emptCnt,
-			CreatedAt:     created,
-			CreatedBy:     &orgCass.CreatedBy,
-			UpdatedAt:     updated,
-			UpdatedBy:     &orgCass.UpdatedBy,
-			Type:          orgCass.Type,
-		}
-		outputOrgs = append(outputOrgs, result)
+			result := &model.Organization{
+				OrgID:         &orgCass.ID,
+				Name:          orgCass.Name,
+				Website:       orgCass.Website,
+				Industry:      orgCass.Industry,
+				LogoURL:       &logoUrl,
+				Subdomain:     orgCass.ZicopsSubdomain,
+				Status:        orgCass.Status,
+				FacebookURL:   &orgCass.Facebook,
+				TwitterURL:    &orgCass.Twitter,
+				LinkedinURL:   &orgCass.Linkedin,
+				EmployeeCount: emptCnt,
+				CreatedAt:     created,
+				CreatedBy:     &orgCass.CreatedBy,
+				UpdatedAt:     updated,
+				UpdatedBy:     &orgCass.UpdatedBy,
+				Type:          orgCass.Type,
+			}
+			outputOrgs[i] = result
+			wg.Done()
+		}(i, orgID)
 	}
+	wg.Wait()
 	return outputOrgs, nil
 }

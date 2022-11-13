@@ -95,26 +95,32 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 		log.Infof("Users: %v", string(newCursor))
 
 	}
-	allUsers := make([]*model.UserCohort, 0)
-	for _, copiedUser := range usersCohort {
+	allUsers := make([]*model.UserCohort, len(usersCohort))
+	var wg sync.WaitGroup
+	for i, copiedUser := range usersCohort {
 		cohortCopy := copiedUser
-		createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
-		updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
-		userCohort := &model.UserCohort{
-			UserID:           cohortCopy.UserID,
-			UserLspID:        cohortCopy.UserLspID,
-			UserCohortID:     &cohortCopy.ID,
-			CohortID:         cohortCopy.CohortID,
-			CreatedAt:        createdAt,
-			UpdatedAt:        updatedAt,
-			CreatedBy:        &cohortCopy.CreatedBy,
-			UpdatedBy:        &cohortCopy.UpdatedBy,
-			AddedBy:          cohortCopy.AddedBy,
-			MembershipStatus: cohortCopy.MembershipStatus,
-			Role:             cohortCopy.Role,
-		}
-		allUsers = append(allUsers, userCohort)
+		wg.Add(1)
+		go func(i int, cohortCopy userz.UserCohort) {
+			createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
+			userCohort := &model.UserCohort{
+				UserID:           cohortCopy.UserID,
+				UserLspID:        cohortCopy.UserLspID,
+				UserCohortID:     &cohortCopy.ID,
+				CohortID:         cohortCopy.CohortID,
+				CreatedAt:        createdAt,
+				UpdatedAt:        updatedAt,
+				CreatedBy:        &cohortCopy.CreatedBy,
+				UpdatedBy:        &cohortCopy.UpdatedBy,
+				AddedBy:          cohortCopy.AddedBy,
+				MembershipStatus: cohortCopy.MembershipStatus,
+				Role:             cohortCopy.Role,
+			}
+			allUsers[i] = userCohort
+			wg.Done()
+		}(i, cohortCopy)
 	}
+	wg.Wait()
 	outputResponse.Cohorts = allUsers
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
@@ -188,26 +194,32 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 	if len(userCohorts) == 0 {
 		return nil, fmt.Errorf("no users found")
 	}
-	cohortUsers := make([]*model.UserCohort, 0)
-	for _, userOrg := range userCohorts {
+	cohortUsers := make([]*model.UserCohort, len(userCohorts))
+	var wg sync.WaitGroup
+	for i, userOrg := range userCohorts {
 		cohortCopy := userOrg
-		createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
-		updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
-		userCohort := &model.UserCohort{
-			UserID:           cohortCopy.UserID,
-			UserLspID:        cohortCopy.UserLspID,
-			UserCohortID:     &cohortCopy.ID,
-			CohortID:         cohortCopy.CohortID,
-			CreatedAt:        createdAt,
-			UpdatedAt:        updatedAt,
-			CreatedBy:        &cohortCopy.CreatedBy,
-			UpdatedBy:        &cohortCopy.UpdatedBy,
-			AddedBy:          cohortCopy.AddedBy,
-			MembershipStatus: cohortCopy.MembershipStatus,
-			Role:             cohortCopy.Role,
-		}
-		cohortUsers = append(cohortUsers, userCohort)
+		wg.Add(1)
+		go func(i int, cohortCopy userz.UserCohort) {
+			createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
+			userCohort := &model.UserCohort{
+				UserID:           cohortCopy.UserID,
+				UserLspID:        cohortCopy.UserLspID,
+				UserCohortID:     &cohortCopy.ID,
+				CohortID:         cohortCopy.CohortID,
+				CreatedAt:        createdAt,
+				UpdatedAt:        updatedAt,
+				CreatedBy:        &cohortCopy.CreatedBy,
+				UpdatedBy:        &cohortCopy.UpdatedBy,
+				AddedBy:          cohortCopy.AddedBy,
+				MembershipStatus: cohortCopy.MembershipStatus,
+				Role:             cohortCopy.Role,
+			}
+			cohortUsers[i] = userCohort
+			wg.Done()
+		}(i, cohortCopy)
 	}
+	wg.Wait()
 	var outputResponse model.PaginatedCohorts
 	outputResponse.Cohorts = cohortUsers
 	outputResponse.PageCursor = &newCursor

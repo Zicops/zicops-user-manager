@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
+	"sync"
 
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -50,27 +51,35 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 		if err != nil {
 			return nil, err
 		}
-		for _, copiedCP := range userCPs {
+		userCPsMapCurrent := make([]*model.UserCourseProgress, len(userCPs))
+		var wg sync.WaitGroup
+		for i, copiedCP := range userCPs {
 			userCP := copiedCP
-			createdAt := strconv.FormatInt(userCP.CreatedAt, 10)
-			updatedAt := strconv.FormatInt(userCP.UpdatedAt, 10)
-			timeStamp := strconv.FormatInt(userCP.TimeStamp, 10)
-			currentUserCP := &model.UserCourseProgress{
-				UserCpID:      &userCP.ID,
-				UserID:        userCP.UserID,
-				UserCourseID:  userCP.UserCmID,
-				TopicID:       userCP.TopicID,
-				TopicType:     userCP.TopicType,
-				Status:        userCP.Status,
-				VideoProgress: userCP.VideoProgress,
-				TimeStamp:     timeStamp,
-				CreatedBy:     &userCP.CreatedBy,
-				UpdatedBy:     &userCP.UpdatedBy,
-				CreatedAt:     createdAt,
-				UpdatedAt:     updatedAt,
-			}
-			userCPsMap = append(userCPsMap, currentUserCP)
+			wg.Add(1)
+			go func(i int, userCP userz.UserCourseProgress) {
+				createdAt := strconv.FormatInt(userCP.CreatedAt, 10)
+				updatedAt := strconv.FormatInt(userCP.UpdatedAt, 10)
+				timeStamp := strconv.FormatInt(userCP.TimeStamp, 10)
+				currentUserCP := &model.UserCourseProgress{
+					UserCpID:      &userCP.ID,
+					UserID:        userCP.UserID,
+					UserCourseID:  userCP.UserCmID,
+					TopicID:       userCP.TopicID,
+					TopicType:     userCP.TopicType,
+					Status:        userCP.Status,
+					VideoProgress: userCP.VideoProgress,
+					TimeStamp:     timeStamp,
+					CreatedBy:     &userCP.CreatedBy,
+					UpdatedBy:     &userCP.UpdatedBy,
+					CreatedAt:     createdAt,
+					UpdatedAt:     updatedAt,
+				}
+				userCPsMapCurrent[i] = currentUserCP
+				wg.Done()
+			}(i, userCP)
 		}
+		wg.Wait()
+		userCPsMap = append(userCPsMap, userCPsMapCurrent...)
 	}
 	//redisBytes, err := json.Marshal(userCPsMap)
 	//if err == nil {
@@ -116,28 +125,34 @@ func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID 
 	if err != nil {
 		return nil, err
 	}
-	userCPsMap := make([]*model.UserCourseProgress, 0)
-	for _, copiedCP := range userCPs {
+	userCPsMap := make([]*model.UserCourseProgress, len(userCPs))
+	var wg sync.WaitGroup
+	for i, copiedCP := range userCPs {
 		userCP := copiedCP
-		createdAt := strconv.FormatInt(userCP.CreatedAt, 10)
-		updatedAt := strconv.FormatInt(userCP.UpdatedAt, 10)
-		timeStamp := strconv.FormatInt(userCP.TimeStamp, 10)
-		currentUserCP := &model.UserCourseProgress{
-			UserCpID:      &userCP.ID,
-			UserID:        userCP.UserID,
-			UserCourseID:  userCP.UserCmID,
-			TopicID:       userCP.TopicID,
-			TopicType:     userCP.TopicType,
-			Status:        userCP.Status,
-			VideoProgress: userCP.VideoProgress,
-			TimeStamp:     timeStamp,
-			CreatedBy:     &userCP.CreatedBy,
-			UpdatedBy:     &userCP.UpdatedBy,
-			CreatedAt:     createdAt,
-			UpdatedAt:     updatedAt,
-		}
-		userCPsMap = append(userCPsMap, currentUserCP)
+		wg.Add(1)
+		go func(i int, userCP userz.UserCourseProgress) {
+			createdAt := strconv.FormatInt(userCP.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(userCP.UpdatedAt, 10)
+			timeStamp := strconv.FormatInt(userCP.TimeStamp, 10)
+			currentUserCP := &model.UserCourseProgress{
+				UserCpID:      &userCP.ID,
+				UserID:        userCP.UserID,
+				UserCourseID:  userCP.UserCmID,
+				TopicID:       userCP.TopicID,
+				TopicType:     userCP.TopicType,
+				Status:        userCP.Status,
+				VideoProgress: userCP.VideoProgress,
+				TimeStamp:     timeStamp,
+				CreatedBy:     &userCP.CreatedBy,
+				UpdatedBy:     &userCP.UpdatedBy,
+				CreatedAt:     createdAt,
+				UpdatedAt:     updatedAt,
+			}
+			userCPsMap[i] = currentUserCP
+			wg.Done()
+		}(i, userCP)
 	}
+	wg.Wait()
 	//redisBytes, err := json.Marshal(userCPsMap)
 	//if err == nil {
 	//	redis.SetTTL(key, 300)

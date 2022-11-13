@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -313,66 +314,73 @@ func GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.Le
 		return nil, err
 	}
 	CassUserSession := session
-	outputOrgs := []*model.LearningSpace{}
-	for _, orgID := range lspIds {
-		if orgID == nil {
-			continue
-		}
-		qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where id='%s' ALLOW FILTERING `, *orgID)
-		getOrgs := func() (users []userz.Lsp, err error) {
-			q := CassUserSession.Query(qryStr, nil)
-			defer q.Release()
-			iter := q.Iter()
-			return users, iter.Select(&users)
-		}
-		orgs, err := getOrgs()
-		if err != nil {
-			return nil, err
-		}
-		if len(orgs) == 0 {
-			continue
-		}
-		orgCass := orgs[0]
-		created := strconv.FormatInt(orgCass.CreatedAt, 10)
-		updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
-		emptCnt := int(orgCass.NoOfUsers)
-		owners := []*string{}
-		for _, owner := range orgCass.Owners {
-			owners = append(owners, &owner)
-		}
-		logoUrl := orgCass.LogoURL
-		profileUrl := orgCass.ProfilePictureURL
-		storageC := bucket.NewStorageHandler()
-		gproject := googleprojectlib.GetGoogleProjectID()
-		err = storageC.InitializeStorageClient(ctx, gproject)
-		if err != nil {
-			return nil, err
-		}
-		if orgCass.LogoBucket != "" {
-			logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
-		}
-		if orgCass.ProfilePictureBucket != "" {
-			profileUrl = storageC.GetSignedURLForObject(orgCass.ProfilePictureBucket)
-		}
+	outputOrgs := make([]*model.LearningSpace, len(lspIds))
+	var wg sync.WaitGroup
+	for i, orgID := range lspIds {
+		wg.Add(1)
+		go func(i int, orgID *string) {
+			if orgID == nil {
+				return
+			}
+			qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where id='%s' ALLOW FILTERING `, *orgID)
+			getOrgs := func() (users []userz.Lsp, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return users, iter.Select(&users)
+			}
+			orgs, err := getOrgs()
+			if err != nil {
+				log.Errorf("error getting orgs: %v", err)
+				return 
+			}
+			if len(orgs) == 0 {
+				return
+			}
+			orgCass := orgs[0]
+			created := strconv.FormatInt(orgCass.CreatedAt, 10)
+			updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
+			emptCnt := int(orgCass.NoOfUsers)
+			owners := []*string{}
+			for _, owner := range orgCass.Owners {
+				owners = append(owners, &owner)
+			}
+			logoUrl := orgCass.LogoURL
+			profileUrl := orgCass.ProfilePictureURL
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				return
+			}
+			if orgCass.LogoBucket != "" {
+				logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
+			}
+			if orgCass.ProfilePictureBucket != "" {
+				profileUrl = storageC.GetSignedURLForObject(orgCass.ProfilePictureBucket)
+			}
 
-		result := &model.LearningSpace{
-			LspID:      &orgCass.ID,
-			OrgID:      orgCass.OrgID,
-			OuID:       orgCass.OrgUnitID,
-			Name:       orgCass.Name,
-			NoUsers:    emptCnt,
-			Owners:     owners,
-			IsDefault:  orgCass.IsDefault,
-			Status:     orgCass.Status,
-			CreatedAt:  created,
-			UpdatedAt:  updated,
-			CreatedBy:  &orgCass.CreatedBy,
-			UpdatedBy:  &orgCass.UpdatedBy,
-			LogoURL:    &logoUrl,
-			ProfileURL: &profileUrl,
-		}
-		outputOrgs = append(outputOrgs, result)
+			result := &model.LearningSpace{
+				LspID:      &orgCass.ID,
+				OrgID:      orgCass.OrgID,
+				OuID:       orgCass.OrgUnitID,
+				Name:       orgCass.Name,
+				NoUsers:    emptCnt,
+				Owners:     owners,
+				IsDefault:  orgCass.IsDefault,
+				Status:     orgCass.Status,
+				CreatedAt:  created,
+				UpdatedAt:  updated,
+				CreatedBy:  &orgCass.CreatedBy,
+				UpdatedBy:  &orgCass.UpdatedBy,
+				LogoURL:    &logoUrl,
+				ProfileURL: &profileUrl,
+			}
+			outputOrgs[i] = result
+			wg.Done()
+		}(i, orgID)
 	}
+	wg.Wait()
 	return outputOrgs, nil
 }
 
@@ -386,65 +394,73 @@ func GetLearningSpacesByOrgID(ctx context.Context, orgID string) ([]*model.Learn
 		return nil, err
 	}
 	CassUserSession := session
-	outputOrgs := []*model.LearningSpace{}
+	outputOrgs := make([]*model.LearningSpace, len(orgID))
 	lspIDs := []string{orgID}
-	for _, orgID := range lspIDs {
-		qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where org_id='%s' ALLOW FILTERING `, orgID)
-		getOrgs := func() (users []userz.Lsp, err error) {
-			q := CassUserSession.Query(qryStr, nil)
-			defer q.Release()
-			iter := q.Iter()
-			return users, iter.Select(&users)
-		}
-		orgs, err := getOrgs()
-		if err != nil {
-			return nil, err
-		}
-		if len(orgs) == 0 {
-			continue
-		}
-		orgCass := orgs[0]
-		created := strconv.FormatInt(orgCass.CreatedAt, 10)
-		updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
-		emptCnt := int(orgCass.NoOfUsers)
-		owners := []*string{}
-		for _, owner := range orgCass.Owners {
-			owners = append(owners, &owner)
-		}
-		logoUrl := orgCass.LogoURL
-		profileUrl := orgCass.ProfilePictureURL
-		storageC := bucket.NewStorageHandler()
-		gproject := googleprojectlib.GetGoogleProjectID()
-		err = storageC.InitializeStorageClient(ctx, gproject)
-		if err != nil {
-			return nil, err
-		}
-		if orgCass.LogoBucket != "" {
+	var wg sync.WaitGroup
+	for i, orgID := range lspIDs {
+		wg.Add(1)
+		go func(i int, orgID string) {
+			qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where org_id='%s' ALLOW FILTERING `, orgID)
+			getOrgs := func() (users []userz.Lsp, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return users, iter.Select(&users)
+			}
+			orgs, err := getOrgs()
+			if err != nil {
+				log.Errorf("error getting orgs: %v", err)
+				return
+			}
+			if len(orgs) == 0 {
+				return
+			}
+			orgCass := orgs[0]
+			created := strconv.FormatInt(orgCass.CreatedAt, 10)
+			updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
+			emptCnt := int(orgCass.NoOfUsers)
+			owners := []*string{}
+			for _, owner := range orgCass.Owners {
+				owners = append(owners, &owner)
+			}
+			logoUrl := orgCass.LogoURL
+			profileUrl := orgCass.ProfilePictureURL
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				log.Println("Error in initializing storage client", err)
+				return
+			}
+			if orgCass.LogoBucket != "" {
 
-			logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
-		}
-		if orgCass.ProfilePictureBucket != "" {
-			profileUrl = storageC.GetSignedURLForObject(orgCass.ProfilePictureBucket)
-		}
+				logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
+			}
+			if orgCass.ProfilePictureBucket != "" {
+				profileUrl = storageC.GetSignedURLForObject(orgCass.ProfilePictureBucket)
+			}
 
-		result := &model.LearningSpace{
-			LspID:      &orgCass.ID,
-			OrgID:      orgCass.OrgID,
-			OuID:       orgCass.OrgUnitID,
-			Name:       orgCass.Name,
-			NoUsers:    emptCnt,
-			Owners:     owners,
-			IsDefault:  orgCass.IsDefault,
-			Status:     orgCass.Status,
-			CreatedAt:  created,
-			UpdatedAt:  updated,
-			CreatedBy:  &orgCass.CreatedBy,
-			UpdatedBy:  &orgCass.UpdatedBy,
-			LogoURL:    &logoUrl,
-			ProfileURL: &profileUrl,
-		}
-		outputOrgs = append(outputOrgs, result)
+			result := &model.LearningSpace{
+				LspID:      &orgCass.ID,
+				OrgID:      orgCass.OrgID,
+				OuID:       orgCass.OrgUnitID,
+				Name:       orgCass.Name,
+				NoUsers:    emptCnt,
+				Owners:     owners,
+				IsDefault:  orgCass.IsDefault,
+				Status:     orgCass.Status,
+				CreatedAt:  created,
+				UpdatedAt:  updated,
+				CreatedBy:  &orgCass.CreatedBy,
+				UpdatedBy:  &orgCass.UpdatedBy,
+				LogoURL:    &logoUrl,
+				ProfileURL: &profileUrl,
+			}
+			outputOrgs[i] = result
+			wg.Done()
+		}(i, orgID)
 	}
+	wg.Wait()
 	return outputOrgs, nil
 }
 
@@ -458,63 +474,71 @@ func GetLearningSpacesByOuID(ctx context.Context, ouID string, orgID string) ([]
 		return nil, err
 	}
 	CassUserSession := session
-	outputOrgs := []*model.LearningSpace{}
+	outputOrgs := make([]*model.LearningSpace, len(ouID))
 	lspIDs := []string{orgID}
-	for _, orgID := range lspIDs {
-		qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where org_unit_id='%s' AND org_id='%s' ALLOW FILTERING `, ouID, orgID)
-		getOrgs := func() (users []userz.Lsp, err error) {
-			q := CassUserSession.Query(qryStr, nil)
-			defer q.Release()
-			iter := q.Iter()
-			return users, iter.Select(&users)
-		}
-		orgs, err := getOrgs()
-		if err != nil {
-			return nil, err
-		}
-		if len(orgs) == 0 {
-			continue
-		}
-		orgCass := orgs[0]
-		created := strconv.FormatInt(orgCass.CreatedAt, 10)
-		updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
-		emptCnt := int(orgCass.NoOfUsers)
-		owners := []*string{}
-		for _, owner := range orgCass.Owners {
-			owners = append(owners, &owner)
-		}
-		logoUrl := orgCass.LogoURL
-		profileUrl := orgCass.ProfilePictureURL
-		storageC := bucket.NewStorageHandler()
-		gproject := googleprojectlib.GetGoogleProjectID()
-		err = storageC.InitializeStorageClient(ctx, gproject)
-		if err != nil {
-			return nil, err
-		}
-		if orgCass.LogoBucket != "" {
-			logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
-		}
-		if orgCass.ProfilePictureBucket != "" {
-			profileUrl = storageC.GetSignedURLForObject(orgCass.ProfilePictureBucket)
-		}
+	var wg sync.WaitGroup
+	for i, orgID := range lspIDs {
+		wg.Add(1)
+		go func(i int, orgID string) {
+			qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where org_unit_id='%s' AND org_id='%s' ALLOW FILTERING `, ouID, orgID)
+			getOrgs := func() (users []userz.Lsp, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return users, iter.Select(&users)
+			}
+			orgs, err := getOrgs()
+			if err != nil {
+				log.Errorf("error getting orgs: %v", err)
+				return
+			}
+			if len(orgs) == 0 {
+				return
+			}
+			orgCass := orgs[0]
+			created := strconv.FormatInt(orgCass.CreatedAt, 10)
+			updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
+			emptCnt := int(orgCass.NoOfUsers)
+			owners := []*string{}
+			for _, owner := range orgCass.Owners {
+				owners = append(owners, &owner)
+			}
+			logoUrl := orgCass.LogoURL
+			profileUrl := orgCass.ProfilePictureURL
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				log.Println("Error in initializing storage client", err)
+				return
+			}
+			if orgCass.LogoBucket != "" {
+				logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
+			}
+			if orgCass.ProfilePictureBucket != "" {
+				profileUrl = storageC.GetSignedURLForObject(orgCass.ProfilePictureBucket)
+			}
 
-		result := &model.LearningSpace{
-			LspID:      &orgCass.ID,
-			OrgID:      orgCass.OrgID,
-			OuID:       orgCass.OrgUnitID,
-			Name:       orgCass.Name,
-			NoUsers:    emptCnt,
-			Owners:     owners,
-			IsDefault:  orgCass.IsDefault,
-			Status:     orgCass.Status,
-			CreatedAt:  created,
-			UpdatedAt:  updated,
-			CreatedBy:  &orgCass.CreatedBy,
-			UpdatedBy:  &orgCass.UpdatedBy,
-			LogoURL:    &logoUrl,
-			ProfileURL: &profileUrl,
-		}
-		outputOrgs = append(outputOrgs, result)
+			result := &model.LearningSpace{
+				LspID:      &orgCass.ID,
+				OrgID:      orgCass.OrgID,
+				OuID:       orgCass.OrgUnitID,
+				Name:       orgCass.Name,
+				NoUsers:    emptCnt,
+				Owners:     owners,
+				IsDefault:  orgCass.IsDefault,
+				Status:     orgCass.Status,
+				CreatedAt:  created,
+				UpdatedAt:  updated,
+				CreatedBy:  &orgCass.CreatedBy,
+				UpdatedBy:  &orgCass.UpdatedBy,
+				LogoURL:    &logoUrl,
+				ProfileURL: &profileUrl,
+			}
+			outputOrgs[i] = result
+			wg.Done()
+		}(i, orgID)
 	}
+	wg.Wait()
 	return outputOrgs, nil
 }
