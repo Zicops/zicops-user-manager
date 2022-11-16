@@ -515,8 +515,8 @@ func (r *queryResolver) GetUserBookmarks(ctx context.Context, userID string, use
 	return result, nil
 }
 
-func (r *queryResolver) GetUserExamAttempts(ctx context.Context, userID string, userLspID string) ([]*model.UserExamAttempts, error) {
-	result, err := queries.GetUserExamAttempts(ctx, userID, userLspID)
+func (r *queryResolver) GetUserExamAttempts(ctx context.Context, userID *string, examID string) ([]*model.UserExamAttempts, error) {
+	result, err := queries.GetUserExamAttempts(ctx, userID, examID)
 	if err != nil {
 		log.Errorf("Error getting exam attempts of a user : %v", err)
 		return nil, err
@@ -524,8 +524,8 @@ func (r *queryResolver) GetUserExamAttempts(ctx context.Context, userID string, 
 	return result, nil
 }
 
-func (r *queryResolver) GetUserExamResults(ctx context.Context, userID string, userEaID string) (*model.UserExamResult, error) {
-	result, err := queries.GetUserExamResults(ctx, userID, userEaID)
+func (r *queryResolver) GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResultDetails) ([]*model.UserExamResultInfo, error) {
+	result, err := queries.GetUserExamResults(ctx, userEaDetails)
 	if err != nil {
 		log.Errorf("Error getting exam results of a user : %v", err)
 		return nil, err
