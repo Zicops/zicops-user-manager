@@ -15,13 +15,13 @@ import (
 // Client ....
 type Client struct {
 	projectID string
-	client    *storage.Client
-	bucket    *storage.BucketHandle
+	client    storage.Client
+	bucket    storage.BucketHandle
 }
 
 // NewStorageHandler return new database action
-func NewStorageHandler() *Client {
-	return &Client{projectID: "", client: nil}
+func NewStorageHandler() Client {
+	return Client{projectID: "", client: storage.Client{}, bucket: storage.BucketHandle{}}
 }
 
 // InitializeStorageClient ...........
@@ -42,9 +42,10 @@ func (sc *Client) InitializeStorageClient(ctx context.Context, projectID string)
 	if err != nil {
 		return err
 	}
-	sc.client = client
+	sc.client = *client
 	sc.projectID = projectID
-	sc.bucket, _ = sc.CreateBucket(ctx, constants.USERS_BUCKET)
+	uBucketClient, _ := sc.CreateBucket(ctx, constants.USERS_BUCKET)
+	sc.bucket = *uBucketClient
 	return nil
 }
 

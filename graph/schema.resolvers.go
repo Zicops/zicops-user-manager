@@ -10,11 +10,12 @@ import (
 	"github.com/zicops/zicops-user-manager/graph/generated"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/handlers"
+	"github.com/zicops/zicops-user-manager/handlers/orgs"
 	"github.com/zicops/zicops-user-manager/handlers/queries"
 )
 
 func (r *mutationResolver) RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error) {
-	result, err := handlers.RegisterUsers(ctx, input, true)
+	result, err := handlers.RegisterUsers(ctx, input, true, false)
 	if err != nil {
 		log.Errorf("Error registering users: %v", err)
 		return nil, err
@@ -22,8 +23,13 @@ func (r *mutationResolver) RegisterUsers(ctx context.Context, input []*model.Use
 	return result, nil
 }
 
-func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, error) {
-	result, err := handlers.InviteUsers(ctx, emails, lspID)
+func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string, lspID *string) (*bool, error) {
+	lspIDStr := ""
+	if lspID != nil {
+		lspIDStr = *lspID
+	}
+
+	result, err := handlers.InviteUsers(ctx, emails, lspIDStr)
 	if err != nil {
 		log.Errorf("Error inviting users: %v", err)
 		return nil, err
@@ -311,6 +317,60 @@ func (r *mutationResolver) UpdateCohortMain(ctx context.Context, input model.Coh
 	return result, nil
 }
 
+func (r *mutationResolver) AddOrganization(ctx context.Context, input model.OrganizationInput) (*model.Organization, error) {
+	result, err := orgs.AddOrganization(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding organization: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *mutationResolver) UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*model.Organization, error) {
+	result, err := orgs.UpdateOrganization(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating organization: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *mutationResolver) AddOrganizationUnit(ctx context.Context, input model.OrganizationUnitInput) (*model.OrganizationUnit, error) {
+	result, err := orgs.AddOrganizationUnit(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding organization unit: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *mutationResolver) UpdateOrganizationUnit(ctx context.Context, input model.OrganizationUnitInput) (*model.OrganizationUnit, error) {
+	result, err := orgs.UpdateOrganizationUnit(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating organization unit: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *mutationResolver) AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*model.LearningSpace, error) {
+	result, err := orgs.AddLearningSpace(ctx, input)
+	if err != nil {
+		log.Errorf("Error adding learning space: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *mutationResolver) UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*model.LearningSpace, error) {
+	result, err := orgs.UpdateLearningSpace(ctx, input)
+	if err != nil {
+		log.Errorf("Error updating learning space: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
 	if err != nil {
@@ -419,7 +479,7 @@ func (r *queryResolver) GetUserCourseMapByCourseID(ctx context.Context, userID s
 	return result, nil
 }
 
-func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userID string, userCourseID string) ([]*model.UserCourseProgress, error) {
+func (r *queryResolver) GetUserCourseProgressByMapID(ctx context.Context, userID string, userCourseID []string) ([]*model.UserCourseProgress, error) {
 	result, err := queries.GetUserCourseProgressByMapID(ctx, userID, userCourseID)
 	if err != nil {
 		log.Errorf("Error getting course progress of a user: %v", err)
@@ -455,8 +515,8 @@ func (r *queryResolver) GetUserBookmarks(ctx context.Context, userID string, use
 	return result, nil
 }
 
-func (r *queryResolver) GetUserExamAttempts(ctx context.Context, userID string, userLspID string) ([]*model.UserExamAttempts, error) {
-	result, err := queries.GetUserExamAttempts(ctx, userID, userLspID)
+func (r *queryResolver) GetUserExamAttempts(ctx context.Context, userID *string, examID string) ([]*model.UserExamAttempts, error) {
+	result, err := queries.GetUserExamAttempts(ctx, userID, examID)
 	if err != nil {
 		log.Errorf("Error getting exam attempts of a user : %v", err)
 		return nil, err
@@ -464,8 +524,8 @@ func (r *queryResolver) GetUserExamAttempts(ctx context.Context, userID string, 
 	return result, nil
 }
 
-func (r *queryResolver) GetUserExamResults(ctx context.Context, userID string, userEaID string) (*model.UserExamResult, error) {
-	result, err := queries.GetUserExamResults(ctx, userID, userEaID)
+func (r *queryResolver) GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResultDetails) ([]*model.UserExamResultInfo, error) {
+	result, err := queries.GetUserExamResults(ctx, userEaDetails)
 	if err != nil {
 		log.Errorf("Error getting exam results of a user : %v", err)
 		return nil, err
@@ -522,6 +582,60 @@ func (r *queryResolver) GetCohortMains(ctx context.Context, lspID string, publis
 	result, err := queries.GetCohortMains(ctx, lspID, publishTime, pageCursor, direction, pageSize, searchText)
 	if err != nil {
 		log.Errorf("Error getting cohorts: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organization, error) {
+	result, err := orgs.GetOrganizations(ctx, orgIds)
+	if err != nil {
+		log.Errorf("Error getting organizations: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetOrganizationUnits(ctx context.Context, ouIds []*string) ([]*model.OrganizationUnit, error) {
+	result, err := orgs.GetOrganizationUnits(ctx, ouIds)
+	if err != nil {
+		log.Errorf("Error getting organization units: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetUnitsByOrgID(ctx context.Context, orgID string) ([]*model.OrganizationUnit, error) {
+	result, err := orgs.GetUnitsByOrgID(ctx, orgID)
+	if err != nil {
+		log.Errorf("Error getting organization units: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetLearningSpacesByOrgID(ctx context.Context, orgID string) ([]*model.LearningSpace, error) {
+	result, err := orgs.GetLearningSpacesByOrgID(ctx, orgID)
+	if err != nil {
+		log.Errorf("Error getting learning spaces: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetLearningSpacesByOuID(ctx context.Context, ouID string, orgID string) ([]*model.LearningSpace, error) {
+	result, err := orgs.GetLearningSpacesByOuID(ctx, ouID, orgID)
+	if err != nil {
+		log.Errorf("Error getting learning spaces: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.LearningSpace, error) {
+	result, err := orgs.GetLearningSpaceDetails(ctx, lspIds)
+	if err != nil {
+		log.Errorf("Error getting learning spaces: %v", err)
 		return nil, err
 	}
 	return result, nil

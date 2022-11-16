@@ -8,6 +8,7 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/rs/xid"
@@ -94,26 +95,32 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 		log.Infof("Users: %v", string(newCursor))
 
 	}
-	allUsers := make([]*model.UserCohort, 0)
-	for _, copiedUser := range usersCohort {
+	allUsers := make([]*model.UserCohort, len(usersCohort))
+	var wg sync.WaitGroup
+	for i, copiedUser := range usersCohort {
 		cohortCopy := copiedUser
-		createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
-		updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
-		userCohort := &model.UserCohort{
-			UserID:           cohortCopy.UserID,
-			UserLspID:        cohortCopy.UserLspID,
-			UserCohortID:     &cohortCopy.ID,
-			CohortID:         cohortCopy.CohortID,
-			CreatedAt:        createdAt,
-			UpdatedAt:        updatedAt,
-			CreatedBy:        &cohortCopy.CreatedBy,
-			UpdatedBy:        &cohortCopy.UpdatedBy,
-			AddedBy:          cohortCopy.AddedBy,
-			MembershipStatus: cohortCopy.MembershipStatus,
-			Role:             cohortCopy.Role,
-		}
-		allUsers = append(allUsers, userCohort)
+		wg.Add(1)
+		go func(i int, cohortCopy userz.UserCohort) {
+			createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
+			userCohort := &model.UserCohort{
+				UserID:           cohortCopy.UserID,
+				UserLspID:        cohortCopy.UserLspID,
+				UserCohortID:     &cohortCopy.ID,
+				CohortID:         cohortCopy.CohortID,
+				CreatedAt:        createdAt,
+				UpdatedAt:        updatedAt,
+				CreatedBy:        &cohortCopy.CreatedBy,
+				UpdatedBy:        &cohortCopy.UpdatedBy,
+				AddedBy:          cohortCopy.AddedBy,
+				MembershipStatus: cohortCopy.MembershipStatus,
+				Role:             cohortCopy.Role,
+			}
+			allUsers[i] = userCohort
+			wg.Done()
+		}(i, cohortCopy)
 	}
+	wg.Wait()
 	outputResponse.Cohorts = allUsers
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
@@ -187,26 +194,32 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 	if len(userCohorts) == 0 {
 		return nil, fmt.Errorf("no users found")
 	}
-	cohortUsers := make([]*model.UserCohort, 0)
-	for _, userOrg := range userCohorts {
+	cohortUsers := make([]*model.UserCohort, len(userCohorts))
+	var wg sync.WaitGroup
+	for i, userOrg := range userCohorts {
 		cohortCopy := userOrg
-		createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
-		updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
-		userCohort := &model.UserCohort{
-			UserID:           cohortCopy.UserID,
-			UserLspID:        cohortCopy.UserLspID,
-			UserCohortID:     &cohortCopy.ID,
-			CohortID:         cohortCopy.CohortID,
-			CreatedAt:        createdAt,
-			UpdatedAt:        updatedAt,
-			CreatedBy:        &cohortCopy.CreatedBy,
-			UpdatedBy:        &cohortCopy.UpdatedBy,
-			AddedBy:          cohortCopy.AddedBy,
-			MembershipStatus: cohortCopy.MembershipStatus,
-			Role:             cohortCopy.Role,
-		}
-		cohortUsers = append(cohortUsers, userCohort)
+		wg.Add(1)
+		go func(i int, cohortCopy userz.UserCohort) {
+			createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
+			userCohort := &model.UserCohort{
+				UserID:           cohortCopy.UserID,
+				UserLspID:        cohortCopy.UserLspID,
+				UserCohortID:     &cohortCopy.ID,
+				CohortID:         cohortCopy.CohortID,
+				CreatedAt:        createdAt,
+				UpdatedAt:        updatedAt,
+				CreatedBy:        &cohortCopy.CreatedBy,
+				UpdatedBy:        &cohortCopy.UpdatedBy,
+				AddedBy:          cohortCopy.AddedBy,
+				MembershipStatus: cohortCopy.MembershipStatus,
+				Role:             cohortCopy.Role,
+			}
+			cohortUsers[i] = userCohort
+			wg.Done()
+		}(i, cohortCopy)
 	}
+	wg.Wait()
 	var outputResponse model.PaginatedCohorts
 	outputResponse.Cohorts = cohortUsers
 	outputResponse.PageCursor = &newCursor
@@ -226,7 +239,6 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 		return nil, err
 	}
 
-	var storageC *bucket.Client
 	var photoBucket string
 	var photoUrl string
 	guid := xid.New()
@@ -237,16 +249,13 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 		return nil, err
 	}
 	CassUserSession := session
-
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
 	if input.Image != nil && input.ImageURL == nil {
-		if storageC == nil {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
-		}
 		bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, input.Image.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
@@ -328,7 +337,6 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		return nil, err
 	}
 	lspID := claims["lsp_id"].(string)
-	var storageC *bucket.Client
 	var photoBucket string
 	var photoUrl string
 	guid := xid.New()
@@ -354,16 +362,13 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	if len(cohorts) == 0 {
 		return nil, fmt.Errorf("cohorts not found")
 	}
-
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
 	if input.Image != nil {
-		if storageC == nil {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
-		}
 		bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, input.Image.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
@@ -475,7 +480,6 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 	//if err == nil {
 	//	json.Unmarshal([]byte(result), &cohort)
 	//}
-	var storageC *bucket.Client
 	var photoBucket string
 	var photoUrl string
 	if cohort.ID == "" {
@@ -497,15 +501,13 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 		cohort = cohorts[0]
 	}
 	photoBucket = cohort.ImageBucket
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
 	if photoBucket != "" {
-		if storageC == nil {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
-		}
 		photoUrl = storageC.GetSignedURLForObject(photoBucket)
 	}
 	created := strconv.FormatInt(cohort.CreatedAt, 10)
@@ -618,40 +620,46 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	if len(cohorts) == 0 {
 		return nil, fmt.Errorf("no cohorts found")
 	}
-	cohortUsers := make([]*model.CohortMain, 0)
-	for _, userOrg := range cohorts {
+	cohortUsers := make([]*model.CohortMain, len(cohorts))
+	var wg sync.WaitGroup
+	for i, userOrg := range cohorts {
 		cohortCopy := userOrg
-		createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
-		updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
-		imageBucket := cohortCopy.ImageBucket
-		var photoUrl string
-		if imageBucket != "" {
-			storageC := bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
+		wg.Add(1)
+		go func(i int, cohort userz.Cohort) {
+			createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
+			imageBucket := cohortCopy.ImageBucket
+			var photoUrl string
+			if imageBucket != "" {
+				storageC := bucket.NewStorageHandler()
+				gproject := googleprojectlib.GetGoogleProjectID()
+				err := storageC.InitializeStorageClient(ctx, gproject)
+				if err != nil {
+					log.Errorf("error initializing storage client: %v", err)
+				}
+				photoUrl = storageC.GetSignedURLForObject(imageBucket)
 			}
-			photoUrl = storageC.GetSignedURLForObject(imageBucket)
-		}
-		userCohort := &model.CohortMain{
-			LspID:       cohortCopy.LspId,
-			CohortID:    &cohortCopy.ID,
-			Name:        cohortCopy.Name,
-			Description: cohortCopy.Description,
-			ImageURL:    &photoUrl,
-			Code:        cohortCopy.Code,
-			Type:        cohortCopy.Type,
-			IsActive:    cohortCopy.IsActive,
-			Status:      cohortCopy.Status,
-			Size:        cohortCopy.Size,
-			CreatedAt:   createdAt,
-			UpdatedAt:   updatedAt,
-			CreatedBy:   &cohortCopy.CreatedBy,
-			UpdatedBy:   &cohortCopy.UpdatedBy,
-		}
-		cohortUsers = append(cohortUsers, userCohort)
+			userCohort := &model.CohortMain{
+				LspID:       cohortCopy.LspId,
+				CohortID:    &cohortCopy.ID,
+				Name:        cohortCopy.Name,
+				Description: cohortCopy.Description,
+				ImageURL:    &photoUrl,
+				Code:        cohortCopy.Code,
+				Type:        cohortCopy.Type,
+				IsActive:    cohortCopy.IsActive,
+				Status:      cohortCopy.Status,
+				Size:        cohortCopy.Size,
+				CreatedAt:   createdAt,
+				UpdatedAt:   updatedAt,
+				CreatedBy:   &cohortCopy.CreatedBy,
+				UpdatedBy:   &cohortCopy.UpdatedBy,
+			}
+			cohortUsers[i] = userCohort
+			wg.Done()
+		}(i, cohortCopy)
 	}
+	wg.Wait()
 	var outputResponse model.PaginatedCohortsMain
 	outputResponse.Cohorts = cohortUsers
 	outputResponse.PageCursor = &newCursor

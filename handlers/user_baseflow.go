@@ -23,7 +23,7 @@ import (
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
 )
 
-func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool) ([]*model.User, error) {
+func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool, userExists bool) ([]*model.User, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -42,20 +42,17 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 		}
 	}
 	var outputUsers []*model.User
-	var storageC *bucket.Client
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
 	var photoBucket string
 	var photoUrl string
 	for _, user := range input {
 		userID := base64.URLEncoding.EncodeToString([]byte(user.Email))
 		if user.Photo != nil && user.PhotoURL == nil {
-			if storageC == nil {
-				storageC = bucket.NewStorageHandler()
-				gproject := googleprojectlib.GetGoogleProjectID()
-				err := storageC.InitializeStorageClient(ctx, gproject)
-				if err != nil {
-					return nil, err
-				}
-			}
 			bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", userID, user.Photo.Filename)
 			writer, err := storageC.UploadToGCS(ctx, bucketPath)
 			if err != nil {
@@ -106,9 +103,11 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool)
 			PhotoURL:    photoUrl,
 			Email:       user.Email,
 		}
-		insertQuery := CassUserSession.Query(userz.UserTable.Insert()).BindStruct(userCass)
-		if err := insertQuery.ExecRelease(); err != nil {
-			return nil, err
+		if !userExists {
+			insertQuery := CassUserSession.Query(userz.UserTable.Insert()).BindStruct(userCass)
+			if err := insertQuery.ExecRelease(); err != nil {
+				return nil, err
+			}
 		}
 		created := strconv.FormatInt(userCass.CreatedAt, 10)
 		updated := strconv.FormatInt(userCass.UpdatedAt, 10)
@@ -191,7 +190,13 @@ func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, err
 			log.Errorf("user %v is trying to invite himself", email_creator)
 			continue
 		}
+		users := []userz.User{}
 		userID := base64.URLEncoding.EncodeToString([]byte(email))
+		getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, userID)
+		getQuery := CassUserSession.Query(getQueryStr, nil)
+		if err := getQuery.SelectRelease(&users); err != nil {
+			return nil, err
+		}
 		userInput := model.UserInput{
 			ID:         &userID,
 			FirstName:  "",
@@ -208,7 +213,7 @@ func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, err
 			Gender:     "",
 			Phone:      "",
 		}
-		_, err = RegisterUsers(ctx, []*model.UserInput{&userInput}, true)
+		_, err = RegisterUsers(ctx, []*model.UserInput{&userInput}, true, len(users) > 0)
 		if err != nil {
 			return &registered, err
 		}
@@ -269,22 +274,19 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	phoneUpdate := ""
 	firstNameUpdate := ""
 	lastNameUpdate := ""
-	var storageC *bucket.Client
 	var photoBucket string
 	var photoUrl string
 	fireUser, err := global.IDP.GetUserByEmail(ctx, userCass.Email)
 	if err != nil {
 		return nil, err
 	}
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
 	if user.Photo != nil && user.PhotoURL == nil {
-		if storageC == nil {
-			storageC = bucket.NewStorageHandler()
-			gproject := googleprojectlib.GetGoogleProjectID()
-			err := storageC.InitializeStorageClient(ctx, gproject)
-			if err != nil {
-				return nil, err
-			}
-		}
 		bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", *user.ID, user.Photo.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {

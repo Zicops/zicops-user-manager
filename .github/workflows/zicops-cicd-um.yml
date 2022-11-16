@@ -1,15 +1,13 @@
 name: ZICOPS UM-CICD
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
   GKE_CLUSTER: zicops-production-cost-one
   GKE_ZONE: asia-south1-a
-  NAMESPACE: staging
+  NAMESPACE: production
   SERVICE_NAME: zicops-user-manager
 
 jobs:
