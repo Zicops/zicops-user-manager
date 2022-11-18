@@ -106,6 +106,6 @@ func checkAndInitCassandraSession() error {
 				panic(err)
 			}
 		}
-		time.Sleep(5 * time.Minute)
+		time.Sleep(10 * time.Minute)
 	}
 }
