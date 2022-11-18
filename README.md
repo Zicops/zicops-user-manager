@@ -2,6 +2,5 @@
 
 User manager for zicops
 
-TODO
 
    
