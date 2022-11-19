@@ -15,6 +15,7 @@ import (
 
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/notification"
 	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
@@ -472,6 +473,18 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		IsActive:   userCass.IsActive,
 		PhotoURL:   &photoURL,
 		Phone:      currentUserIT.PhoneNumber,
+	}
+
+	/// send notification
+	if userCass.Email == "anshjoshi0607@gmail.com" || userCass.Email == "puneet.saraswat10074@gmail.com" {
+		token := "ejxusdff "
+		title := `User Manager Says ⚙️`
+		body := "Get started by adding courses to your learning folder."
+		response, err := notification.SendNotification(token, title, body)
+		if err != nil || response.Statuscode != "200" {
+			log.Errorf("error sending notification: %v", err)
+			return nil, err
+		}
 	}
 	userBytes, err := json.Marshal(userCass)
 	if err == nil {
