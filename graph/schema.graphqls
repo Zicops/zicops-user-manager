@@ -545,7 +545,7 @@ input OrganizationUnitInput {
   ou_id: ID
   org_id: String!
   emp_count: Int!
-  address : String!
+  address: String!
   city: String!
   state: String!
   country: String!
@@ -553,13 +553,13 @@ input OrganizationUnitInput {
   status: String!
   created_by: String
   updated_by: String
-} 
+}
 
 type OrganizationUnit {
   ou_id: ID
   org_id: String!
   emp_count: Int!
-  address : String!
+  address: String!
   city: String!
   state: String!
   country: String!
@@ -575,13 +575,13 @@ input LearningSpaceInput {
   lsp_id: ID
   org_id: String!
   ou_id: String!
-  name : String!
+  name: String!
   logo_url: String
-  logo : Upload
+  logo: Upload
   profile_url: String
-  profile : Upload
+  profile: Upload
   no_users: Int!
-  owners : [String]
+  owners: [String]
   is_default: Boolean!
   status: String!
   created_by: String
@@ -592,17 +592,35 @@ type LearningSpace {
   lsp_id: ID
   org_id: String!
   ou_id: String!
-  name : String!
+  name: String!
   logo_url: String
   profile_url: String
   no_users: Int!
-  owners : [String]
+  owners: [String]
   is_default: Boolean!
   status: String!
   created_at: String!
   updated_at: String!
   created_by: String
   updated_by: String
+}
+
+input UserExamResultDetails {
+  user_id: String!
+  user_ea_id: String!
+}
+
+type UserExamResultInfo {
+  user_id: String!
+  user_ea_id: String!
+  results: [UserExamResult]
+}
+
+input UserFilters {
+  email: String
+  nameSearch: String
+  role: String
+  status: String
 }
 
 type Query {
@@ -618,6 +636,7 @@ type Query {
     pageCursor: String
     Direction: String
     pageSize: Int
+    filters: UserFilters
   ): PaginatedUsers
   getUserDetails(user_ids: [String]): [User]
   getUserOrganizations(user_id: String!): [UserOrganizationMap]
@@ -663,11 +682,10 @@ type Query {
     Direction: String
     pageSize: Int
   ): PaginatedBookmarks
-  getUserExamAttempts(
-    user_id: String!
-    user_lsp_id: String!
-  ): [UserExamAttempts]
-  getUserExamResults(user_id: String!, user_ea_id: String!): UserExamResult
+  getUserExamAttempts(user_id: String, exam_id: String!): [UserExamAttempts]
+  getUserExamResults(
+    user_ea_details: [UserExamResultDetails!]!
+  ): [UserExamResultInfo]
   getUserExamProgress(user_id: String!, user_ea_id: String!): [UserExamProgress]
   getLatestCohorts(
     user_id: String

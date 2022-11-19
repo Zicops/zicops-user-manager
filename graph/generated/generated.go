@@ -219,9 +219,9 @@ type ComplexityRoot struct {
 		GetUserCourseProgressByMapID   func(childComplexity int, userID string, userCourseID []string) int
 		GetUserCourseProgressByTopicID func(childComplexity int, userID string, topicID string) int
 		GetUserDetails                 func(childComplexity int, userIds []*string) int
-		GetUserExamAttempts            func(childComplexity int, userID string, userLspID string) int
+		GetUserExamAttempts            func(childComplexity int, userID *string, examID string) int
 		GetUserExamProgress            func(childComplexity int, userID string, userEaID string) int
-		GetUserExamResults             func(childComplexity int, userID string, userEaID string) int
+		GetUserExamResults             func(childComplexity int, userEaDetails []*model.UserExamResultDetails) int
 		GetUserLspByLspID              func(childComplexity int, userID string, lspID string) int
 		GetUserLspMapsByLspID          func(childComplexity int, lspID string, pageCursor *string, direction *string, pageSize *int) int
 		GetUserLsps                    func(childComplexity int, userID string) int
@@ -231,7 +231,7 @@ type ComplexityRoot struct {
 		GetUserPreferenceForLsp        func(childComplexity int, userID string, userLspID string) int
 		GetUserPreferences             func(childComplexity int, userID string) int
 		GetUserQuizAttempts            func(childComplexity int, userID string, topicID string) int
-		GetUsersForAdmin               func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
+		GetUsersForAdmin               func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int, filters *model.UserFilters) int
 		Logout                         func(childComplexity int) int
 	}
 
@@ -364,6 +364,12 @@ type ComplexityRoot struct {
 		UserID         func(childComplexity int) int
 		UserScore      func(childComplexity int) int
 		WrongAnswers   func(childComplexity int) int
+	}
+
+	UserExamResultInfo struct {
+		Results  func(childComplexity int) int
+		UserEaID func(childComplexity int) int
+		UserID   func(childComplexity int) int
 	}
 
 	UserLanguageMap struct {
@@ -507,7 +513,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
 	GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserLspMaps, error)
-	GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUsers, error)
+	GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int, filters *model.UserFilters) (*model.PaginatedUsers, error)
 	GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, error)
 	GetUserOrganizations(ctx context.Context, userID string) ([]*model.UserOrganizationMap, error)
 	GetUserOrgDetails(ctx context.Context, userID string, userLspID string) (*model.UserOrganizationMap, error)
@@ -521,8 +527,8 @@ type QueryResolver interface {
 	GetUserCourseProgressByTopicID(ctx context.Context, userID string, topicID string) ([]*model.UserCourseProgress, error)
 	GetUserNotes(ctx context.Context, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error)
 	GetUserBookmarks(ctx context.Context, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error)
-	GetUserExamAttempts(ctx context.Context, userID string, userLspID string) ([]*model.UserExamAttempts, error)
-	GetUserExamResults(ctx context.Context, userID string, userEaID string) (*model.UserExamResult, error)
+	GetUserExamAttempts(ctx context.Context, userID *string, examID string) ([]*model.UserExamAttempts, error)
+	GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResultDetails) ([]*model.UserExamResultInfo, error)
 	GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([]*model.UserExamProgress, error)
 	GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error)
 	GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error)
@@ -1812,7 +1818,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserExamAttempts(childComplexity, args["user_id"].(string), args["user_lsp_id"].(string)), true
+		return e.complexity.Query.GetUserExamAttempts(childComplexity, args["user_id"].(*string), args["exam_id"].(string)), true
 
 	case "Query.getUserExamProgress":
 		if e.complexity.Query.GetUserExamProgress == nil {
@@ -1836,7 +1842,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserExamResults(childComplexity, args["user_id"].(string), args["user_ea_id"].(string)), true
+		return e.complexity.Query.GetUserExamResults(childComplexity, args["user_ea_details"].([]*model.UserExamResultDetails)), true
 
 	case "Query.getUserLspByLspId":
 		if e.complexity.Query.GetUserLspByLspID == nil {
@@ -1956,7 +1962,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUsersForAdmin(childComplexity, args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+		return e.complexity.Query.GetUsersForAdmin(childComplexity, args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int), args["filters"].(*model.UserFilters)), true
 
 	case "Query.logout":
 		if e.complexity.Query.Logout == nil {
@@ -2713,6 +2719,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserExamResult.WrongAnswers(childComplexity), true
+
+	case "UserExamResultInfo.results":
+		if e.complexity.UserExamResultInfo.Results == nil {
+			break
+		}
+
+		return e.complexity.UserExamResultInfo.Results(childComplexity), true
+
+	case "UserExamResultInfo.user_ea_id":
+		if e.complexity.UserExamResultInfo.UserEaID == nil {
+			break
+		}
+
+		return e.complexity.UserExamResultInfo.UserEaID(childComplexity), true
+
+	case "UserExamResultInfo.user_id":
+		if e.complexity.UserExamResultInfo.UserID == nil {
+			break
+		}
+
+		return e.complexity.UserExamResultInfo.UserID(childComplexity), true
 
 	case "UserLanguageMap.created_at":
 		if e.complexity.UserLanguageMap.CreatedAt == nil {
@@ -3850,7 +3877,7 @@ input OrganizationUnitInput {
   ou_id: ID
   org_id: String!
   emp_count: Int!
-  address : String!
+  address: String!
   city: String!
   state: String!
   country: String!
@@ -3858,13 +3885,13 @@ input OrganizationUnitInput {
   status: String!
   created_by: String
   updated_by: String
-} 
+}
 
 type OrganizationUnit {
   ou_id: ID
   org_id: String!
   emp_count: Int!
-  address : String!
+  address: String!
   city: String!
   state: String!
   country: String!
@@ -3880,13 +3907,13 @@ input LearningSpaceInput {
   lsp_id: ID
   org_id: String!
   ou_id: String!
-  name : String!
+  name: String!
   logo_url: String
-  logo : Upload
+  logo: Upload
   profile_url: String
-  profile : Upload
+  profile: Upload
   no_users: Int!
-  owners : [String]
+  owners: [String]
   is_default: Boolean!
   status: String!
   created_by: String
@@ -3897,17 +3924,35 @@ type LearningSpace {
   lsp_id: ID
   org_id: String!
   ou_id: String!
-  name : String!
+  name: String!
   logo_url: String
   profile_url: String
   no_users: Int!
-  owners : [String]
+  owners: [String]
   is_default: Boolean!
   status: String!
   created_at: String!
   updated_at: String!
   created_by: String
   updated_by: String
+}
+
+input UserExamResultDetails {
+  user_id: String!
+  user_ea_id: String!
+}
+
+type UserExamResultInfo {
+  user_id: String!
+  user_ea_id: String!
+  results: [UserExamResult]
+}
+
+input UserFilters {
+  email: String
+  nameSearch: String
+  role: String
+  status: String
 }
 
 type Query {
@@ -3923,6 +3968,7 @@ type Query {
     pageCursor: String
     Direction: String
     pageSize: Int
+    filters: UserFilters
   ): PaginatedUsers
   getUserDetails(user_ids: [String]): [User]
   getUserOrganizations(user_id: String!): [UserOrganizationMap]
@@ -3968,11 +4014,10 @@ type Query {
     Direction: String
     pageSize: Int
   ): PaginatedBookmarks
-  getUserExamAttempts(
-    user_id: String!
-    user_lsp_id: String!
-  ): [UserExamAttempts]
-  getUserExamResults(user_id: String!, user_ea_id: String!): UserExamResult
+  getUserExamAttempts(user_id: String, exam_id: String!): [UserExamAttempts]
+  getUserExamResults(
+    user_ea_details: [UserExamResultDetails!]!
+  ): [UserExamResultInfo]
   getUserExamProgress(user_id: String!, user_ea_id: String!): [UserExamProgress]
   getLatestCohorts(
     user_id: String
@@ -5149,24 +5194,24 @@ func (ec *executionContext) field_Query_getUserDetails_args(ctx context.Context,
 func (ec *executionContext) field_Query_getUserExamAttempts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *string
 	if tmp, ok := rawArgs["user_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["user_id"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["user_lsp_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_lsp_id"))
+	if tmp, ok := rawArgs["exam_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exam_id"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["user_lsp_id"] = arg1
+	args["exam_id"] = arg1
 	return args, nil
 }
 
@@ -5197,24 +5242,15 @@ func (ec *executionContext) field_Query_getUserExamProgress_args(ctx context.Con
 func (ec *executionContext) field_Query_getUserExamResults_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["user_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg0 []*model.UserExamResultDetails
+	if tmp, ok := rawArgs["user_ea_details"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_ea_details"))
+		arg0, err = ec.unmarshalNUserExamResultDetails2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResultDetailsᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["user_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["user_ea_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_ea_id"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["user_ea_id"] = arg1
+	args["user_ea_details"] = arg0
 	return args, nil
 }
 
@@ -5509,6 +5545,15 @@ func (ec *executionContext) field_Query_getUsersForAdmin_args(ctx context.Contex
 		}
 	}
 	args["pageSize"] = arg3
+	var arg4 *model.UserFilters
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg4, err = ec.unmarshalOUserFilters2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserFilters(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg4
 	return args, nil
 }
 
@@ -9991,7 +10036,7 @@ func (ec *executionContext) _Query_getUsersForAdmin(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUsersForAdmin(rctx, args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
+		return ec.resolvers.Query().GetUsersForAdmin(rctx, args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int), args["filters"].(*model.UserFilters))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10537,7 +10582,7 @@ func (ec *executionContext) _Query_getUserExamAttempts(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserExamAttempts(rctx, args["user_id"].(string), args["user_lsp_id"].(string))
+		return ec.resolvers.Query().GetUserExamAttempts(rctx, args["user_id"].(*string), args["exam_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10576,7 +10621,7 @@ func (ec *executionContext) _Query_getUserExamResults(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserExamResults(rctx, args["user_id"].(string), args["user_ea_id"].(string))
+		return ec.resolvers.Query().GetUserExamResults(rctx, args["user_ea_details"].([]*model.UserExamResultDetails))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10585,9 +10630,9 @@ func (ec *executionContext) _Query_getUserExamResults(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.UserExamResult)
+	res := resTmp.([]*model.UserExamResultInfo)
 	fc.Result = res
-	return ec.marshalOUserExamResult2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResult(ctx, field.Selections, res)
+	return ec.marshalOUserExamResultInfo2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResultInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_getUserExamProgress(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14794,6 +14839,108 @@ func (ec *executionContext) _UserExamResult_updated_at(ctx context.Context, fiel
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserExamResultInfo_user_id(ctx context.Context, field graphql.CollectedField, obj *model.UserExamResultInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserExamResultInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserExamResultInfo_user_ea_id(ctx context.Context, field graphql.CollectedField, obj *model.UserExamResultInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserExamResultInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserEaID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserExamResultInfo_results(ctx context.Context, field graphql.CollectedField, obj *model.UserExamResultInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserExamResultInfo",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Results, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.UserExamResult)
+	fc.Result = res
+	return ec.marshalOUserExamResult2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResult(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserLanguageMap_user_language_id(ctx context.Context, field graphql.CollectedField, obj *model.UserLanguageMap) (ret graphql.Marshaler) {
@@ -19654,6 +19801,37 @@ func (ec *executionContext) unmarshalInputUserExamProgressInput(ctx context.Cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUserExamResultDetails(ctx context.Context, obj interface{}) (model.UserExamResultDetails, error) {
+	var it model.UserExamResultDetails
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "user_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+			it.UserID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "user_ea_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_ea_id"))
+			it.UserEaID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUserExamResultInput(ctx context.Context, obj interface{}) (model.UserExamResultInput, error) {
 	var it model.UserExamResultInput
 	asMap := map[string]interface{}{}
@@ -19732,6 +19910,53 @@ func (ec *executionContext) unmarshalInputUserExamResultInput(ctx context.Contex
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("updated_by"))
 			it.UpdatedBy, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUserFilters(ctx context.Context, obj interface{}) (model.UserFilters, error) {
+	var it model.UserFilters
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "nameSearch":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameSearch"))
+			it.NameSearch, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "role":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+			it.Role, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -23505,6 +23730,54 @@ func (ec *executionContext) _UserExamResult(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var userExamResultInfoImplementors = []string{"UserExamResultInfo"}
+
+func (ec *executionContext) _UserExamResultInfo(ctx context.Context, sel ast.SelectionSet, obj *model.UserExamResultInfo) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userExamResultInfoImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserExamResultInfo")
+		case "user_id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._UserExamResultInfo_user_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "user_ea_id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._UserExamResultInfo_user_ea_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "results":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._UserExamResultInfo_results(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var userLanguageMapImplementors = []string{"UserLanguageMap"}
 
 func (ec *executionContext) _UserLanguageMap(ctx context.Context, sel ast.SelectionSet, obj *model.UserLanguageMap) graphql.Marshaler {
@@ -25006,6 +25279,28 @@ func (ec *executionContext) unmarshalNUserExamProgressInput2ᚕᚖgithubᚗcom�
 	return res, nil
 }
 
+func (ec *executionContext) unmarshalNUserExamResultDetails2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResultDetailsᚄ(ctx context.Context, v interface{}) ([]*model.UserExamResultDetails, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*model.UserExamResultDetails, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNUserExamResultDetails2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResultDetails(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNUserExamResultDetails2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResultDetails(ctx context.Context, v interface{}) (*model.UserExamResultDetails, error) {
+	res, err := ec.unmarshalInputUserExamResultDetails(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNUserExamResultInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResultInput(ctx context.Context, v interface{}) (model.UserExamResultInput, error) {
 	res, err := ec.unmarshalInputUserExamResultInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -26285,11 +26580,67 @@ func (ec *executionContext) marshalOUserExamResult2ᚖgithubᚗcomᚋzicopsᚋzi
 	return ec._UserExamResult(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOUserExamResultInfo2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResultInfo(ctx context.Context, sel ast.SelectionSet, v []*model.UserExamResultInfo) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUserExamResultInfo2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResultInfo(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOUserExamResultInfo2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResultInfo(ctx context.Context, sel ast.SelectionSet, v *model.UserExamResultInfo) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UserExamResultInfo(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOUserExamResultInput2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamResultInput(ctx context.Context, v interface{}) (*model.UserExamResultInput, error) {
 	if v == nil {
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputUserExamResultInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOUserFilters2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserFilters(ctx context.Context, v interface{}) (*model.UserFilters, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputUserFilters(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

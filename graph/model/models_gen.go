@@ -405,6 +405,17 @@ type UserExamResult struct {
 	UpdatedAt      string  `json:"updated_at"`
 }
 
+type UserExamResultDetails struct {
+	UserID   string `json:"user_id"`
+	UserEaID string `json:"user_ea_id"`
+}
+
+type UserExamResultInfo struct {
+	UserID   string            `json:"user_id"`
+	UserEaID string            `json:"user_ea_id"`
+	Results  []*UserExamResult `json:"results"`
+}
+
 type UserExamResultInput struct {
 	UserErID       *string `json:"user_er_id"`
 	UserID         string  `json:"user_id"`
@@ -415,6 +426,13 @@ type UserExamResultInput struct {
 	ResultStatus   string  `json:"result_status"`
 	CreatedBy      *string `json:"created_by"`
 	UpdatedBy      *string `json:"updated_by"`
+}
+
+type UserFilters struct {
+	Email      *string `json:"email"`
+	NameSearch *string `json:"nameSearch"`
+	Role       *string `json:"role"`
+	Status     *string `json:"status"`
 }
 
 type UserInput struct {

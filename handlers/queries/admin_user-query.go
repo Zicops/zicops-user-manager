@@ -18,7 +18,7 @@ import (
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
 )
 
-func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUsers, error) {
+func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int, filters *model.UserFilters) (*model.PaginatedUsers, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -73,8 +73,22 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 		} else {
 			pageSizeInt = *pageSize
 		}
-
-		qryStr := fmt.Sprintf(`SELECT * from userz.users where created_by='%s' and created_at <= %d  ALLOW FILTERING`, email_creator, *publishTime)
+		whereClause := fmt.Sprintf("WHERE created_by = '%s' AND created_at <= %d ", emailCreatorID, *publishTime)
+		if filters != nil {
+			if filters.Email != nil {
+				whereClause += fmt.Sprintf("AND email = '%s' ", *filters.Email)
+			}
+			if filters.NameSearch != nil {
+				whereClause += fmt.Sprintf("AND first_name = '%s' ", *filters.NameSearch)
+			}
+			if filters.Role != nil {
+				whereClause += fmt.Sprintf("AND role = '%s' ", *filters.Role)
+			}
+			if filters.Status != nil {
+				whereClause += fmt.Sprintf("AND status = '%s' ", *filters.Status)
+			}
+		}
+		qryStr := fmt.Sprintf(`SELECT * from userz.users %s ALLOW FILTERING`, whereClause)
 		getUsers := func(page []byte) (users []userz.User, nextPage []byte, err error) {
 			q := CassUserSession.Query(qryStr, nil)
 			defer q.Release()
