@@ -58,7 +58,7 @@ func main() {
 	// log CASSANDRA_PORT
 	log.Infof("CASSANDRA_PORT: %s", os.Getenv("CASSANDRA_PORT"))
 	// log CASSANDRA_USER
-	log.Infof("CASSANDRA_USER: %s", os.Getenv("CASSANDRA_USER"))
+	log.Infof("CASSANDRA_USERNAME: %s", os.Getenv("CASSANDRA_USER"))
 	// log CASSANDRA_PASS
 	log.Infof("CASSANDRA_PASSWORD: %s", os.Getenv("CASSANDRA_PASSWORD"))
 	// log CASSANDRA_KEY
@@ -67,7 +67,7 @@ func main() {
 	log.Infof("CASSANDRA_CERT: %s", os.Getenv("CASSANDRA_CERT"))
 	// log CASSANDRA_CA
 	log.Infof("CASSANDRA_CA: %s", os.Getenv("CASSANDRA_CA"))
-	
+
 	// test cassandra connection
 	_, err1 := cassandra.GetCassSession("userz")
 	if err1 != nil {
