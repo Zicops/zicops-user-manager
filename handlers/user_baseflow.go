@@ -481,10 +481,11 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		title := `User Manager Says ⚙️`
 		body := "Get started by adding courses to your learning folder."
 		response, err := notification.SendNotification(token, title, body)
-		if err != nil || response.Statuscode != "200" {
+		if err != nil {
 			log.Errorf("error sending notification: %v", err)
 			return nil, err
 		}
+		log.Infof("notification response: %v", response)
 	}
 	userBytes, err := json.Marshal(userCass)
 	if err == nil {
