@@ -28,7 +28,6 @@ func main() {
 	log.Infof("Starting zicops user manager service")
 	ctx, cancel := context.WithCancel(context.Background())
 	crySession := cry.New("09afa9f9544a7ff1ae9988f73ba42134")
-
 	idp, err := identity.NewIDPEP(ctx, "zicops-one")
 	if err != nil {
 		log.Errorf("Error connecting to identity: %s", err)
