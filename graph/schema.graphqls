@@ -611,9 +611,16 @@ input UserExamResultDetails {
 }
 
 type UserExamResultInfo {
-  user_id : String!
-  user_ea_id : String!
-  results : [UserExamResult]
+  user_id: String!
+  user_ea_id: String!
+  results: [UserExamResult]
+}
+
+input UserFilters {
+  email: String
+  nameSearch: String
+  role: String
+  status: String
 }
 
 type Query {
@@ -629,6 +636,7 @@ type Query {
     pageCursor: String
     Direction: String
     pageSize: Int
+    filters: UserFilters
   ): PaginatedUsers
   getUserDetails(user_ids: [String]): [User]
   getUserOrganizations(user_id: String!): [UserOrganizationMap]
@@ -675,7 +683,9 @@ type Query {
     pageSize: Int
   ): PaginatedBookmarks
   getUserExamAttempts(user_id: String, exam_id: String!): [UserExamAttempts]
-  getUserExamResults(user_ea_details: [UserExamResultDetails!]!): [UserExamResultInfo]
+  getUserExamResults(
+    user_ea_details: [UserExamResultDetails!]!
+  ): [UserExamResultInfo]
   getUserExamProgress(user_id: String!, user_ea_id: String!): [UserExamProgress]
   getLatestCohorts(
     user_id: String

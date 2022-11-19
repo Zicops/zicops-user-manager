@@ -428,6 +428,13 @@ type UserExamResultInput struct {
 	UpdatedBy      *string `json:"updated_by"`
 }
 
+type UserFilters struct {
+	Email      *string `json:"email"`
+	NameSearch *string `json:"nameSearch"`
+	Role       *string `json:"role"`
+	Status     *string `json:"status"`
+}
+
 type UserInput struct {
 	ID         *string         `json:"id"`
 	FirstName  string          `json:"first_name"`
