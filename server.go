@@ -52,21 +52,6 @@ func main() {
 		port = 8094
 	}
 	gin.SetMode(gin.ReleaseMode)
-
-	// test cassandra connection
-	_, err1 := cassandra.GetCassSession("userz")
-	if err1 != nil {
-		log.Fatalf("Error connecting to cassandra: %v ", err1)
-	} else {
-		log.Infof("Cassandra connection successful")
-	}
-	// test redis connection
-	_, err = redis.Initialize()
-	if err != nil {
-		log.Fatalf("Error connecting to redis: %v ", err)
-	} else {
-		log.Infof("Redis connection successful")
-	}
 	bootUPErrors := make(chan error, 1)
 	go monitorSystem(cancel, bootUPErrors)
 	go checkAndInitCassandraSession()
@@ -93,6 +78,21 @@ func monitorSystem(cancel context.CancelFunc, errorChannel chan error) {
 func checkAndInitCassandraSession() error {
 	// get user session every 1 minute
 	// if session is nil then create new session
+
+	// test cassandra connection
+	_, err1 := cassandra.GetCassSession("userz")
+	if err1 != nil {
+		log.Errorf("Error connecting to cassandra: %v ", err1)
+	} else {
+		log.Infof("Cassandra connection successful")
+	}
+	// test redis connection
+	_, err := redis.Initialize()
+	if err != nil {
+		log.Errorf("Error connecting to redis: %v ", err)
+	} else {
+		log.Infof("Redis connection successful")
+	}
 	for {
 
 		_, err := cassandra.GetCassSession("userz")
