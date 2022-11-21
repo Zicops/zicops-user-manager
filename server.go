@@ -28,7 +28,6 @@ func main() {
 	log.Infof("Starting zicops user manager service")
 	ctx, cancel := context.WithCancel(context.Background())
 	crySession := cry.New("09afa9f9544a7ff1ae9988f73ba42134")
-
 	idp, err := identity.NewIDPEP(ctx, "zicops-one")
 	if err != nil {
 		log.Errorf("Error connecting to identity: %s", err)
@@ -53,24 +52,9 @@ func main() {
 		port = 8094
 	}
 	gin.SetMode(gin.ReleaseMode)
-
-	// test cassandra connection
-	_, err1 := cassandra.GetCassSession("userz")
-	if err1 != nil {
-		log.Fatalf("Error connecting to cassandra: %v ", err1)
-	} else {
-		log.Infof("Cassandra connection successful")
-	}
-	// test redis connection
-	_, err = redis.Initialize()
-	if err != nil {
-		log.Fatalf("Error connecting to redis: %v ", err)
-	} else {
-		log.Infof("Redis connection successful")
-	}
 	bootUPErrors := make(chan error, 1)
 	go monitorSystem(cancel, bootUPErrors)
-	//go checkAndInitCassandraSession()
+	go checkAndInitCassandraSession()
 	controller.CCBackendController(ctx, port, bootUPErrors)
 	err = <-bootUPErrors
 	if err != nil {
@@ -94,18 +78,31 @@ func monitorSystem(cancel context.CancelFunc, errorChannel chan error) {
 func checkAndInitCassandraSession() error {
 	// get user session every 1 minute
 	// if session is nil then create new session
+
+	// test cassandra connection
+	_, err1 := cassandra.GetCassSession("userz")
+	if err1 != nil {
+		log.Errorf("Error connecting to cassandra: %v ", err1)
+	} else {
+		log.Infof("Cassandra connection successful")
+	}
+	// test redis connection
+	_, err := redis.Initialize()
+	if err != nil {
+		log.Errorf("Error connecting to redis: %v ", err)
+	} else {
+		log.Infof("Redis connection successful")
+	}
 	for {
 
 		_, err := cassandra.GetCassSession("userz")
 		if err != nil {
 			//delete session
-			delete(cassandra.GlobalSession, "userz")
-			_, err := cassandra.GetCassSession("userz")
+			cassandra.GlobalSession["userz"] = nil
 			if err != nil {
-				log.Fatal("Error connecting to cassandra: %v ", err)
-				panic(err)
+				cassandra.GetCassSession("userz")
 			}
 		}
-		time.Sleep(5 * time.Minute)
+		time.Sleep(10 * time.Minute)
 	}
 }

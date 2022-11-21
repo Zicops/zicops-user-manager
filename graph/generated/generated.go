@@ -231,7 +231,7 @@ type ComplexityRoot struct {
 		GetUserPreferenceForLsp        func(childComplexity int, userID string, userLspID string) int
 		GetUserPreferences             func(childComplexity int, userID string) int
 		GetUserQuizAttempts            func(childComplexity int, userID string, topicID string) int
-		GetUsersForAdmin               func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
+		GetUsersForAdmin               func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int, filters *model.UserFilters) int
 		Logout                         func(childComplexity int) int
 	}
 
@@ -513,7 +513,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
 	GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserLspMaps, error)
-	GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUsers, error)
+	GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int, filters *model.UserFilters) (*model.PaginatedUsers, error)
 	GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, error)
 	GetUserOrganizations(ctx context.Context, userID string) ([]*model.UserOrganizationMap, error)
 	GetUserOrgDetails(ctx context.Context, userID string, userLspID string) (*model.UserOrganizationMap, error)
@@ -1962,7 +1962,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUsersForAdmin(childComplexity, args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+		return e.complexity.Query.GetUsersForAdmin(childComplexity, args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int), args["filters"].(*model.UserFilters)), true
 
 	case "Query.logout":
 		if e.complexity.Query.Logout == nil {
@@ -3943,9 +3943,16 @@ input UserExamResultDetails {
 }
 
 type UserExamResultInfo {
-  user_id : String!
-  user_ea_id : String!
-  results : [UserExamResult]
+  user_id: String!
+  user_ea_id: String!
+  results: [UserExamResult]
+}
+
+input UserFilters {
+  email: String
+  nameSearch: String
+  role: String
+  status: String
 }
 
 type Query {
@@ -3961,6 +3968,7 @@ type Query {
     pageCursor: String
     Direction: String
     pageSize: Int
+    filters: UserFilters
   ): PaginatedUsers
   getUserDetails(user_ids: [String]): [User]
   getUserOrganizations(user_id: String!): [UserOrganizationMap]
@@ -4007,7 +4015,9 @@ type Query {
     pageSize: Int
   ): PaginatedBookmarks
   getUserExamAttempts(user_id: String, exam_id: String!): [UserExamAttempts]
-  getUserExamResults(user_ea_details: [UserExamResultDetails!]!): [UserExamResultInfo]
+  getUserExamResults(
+    user_ea_details: [UserExamResultDetails!]!
+  ): [UserExamResultInfo]
   getUserExamProgress(user_id: String!, user_ea_id: String!): [UserExamProgress]
   getLatestCohorts(
     user_id: String
@@ -5535,6 +5545,15 @@ func (ec *executionContext) field_Query_getUsersForAdmin_args(ctx context.Contex
 		}
 	}
 	args["pageSize"] = arg3
+	var arg4 *model.UserFilters
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg4, err = ec.unmarshalOUserFilters2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserFilters(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg4
 	return args, nil
 }
 
@@ -10017,7 +10036,7 @@ func (ec *executionContext) _Query_getUsersForAdmin(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUsersForAdmin(rctx, args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
+		return ec.resolvers.Query().GetUsersForAdmin(rctx, args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int), args["filters"].(*model.UserFilters))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19900,6 +19919,53 @@ func (ec *executionContext) unmarshalInputUserExamResultInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUserFilters(ctx context.Context, obj interface{}) (model.UserFilters, error) {
+	var it model.UserFilters
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "email":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "nameSearch":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameSearch"))
+			it.NameSearch, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "role":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+			it.Role, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUserInput(ctx context.Context, obj interface{}) (model.UserInput, error) {
 	var it model.UserInput
 	asMap := map[string]interface{}{}
@@ -26567,6 +26633,14 @@ func (ec *executionContext) unmarshalOUserExamResultInput2ᚖgithubᚗcomᚋzico
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputUserExamResultInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOUserFilters2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserFilters(ctx context.Context, v interface{}) (*model.UserFilters, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputUserFilters(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

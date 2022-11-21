@@ -616,6 +616,13 @@ type UserExamResultInfo {
   results : [UserExamResult]
 }
 
+input UserFilters {
+  email : String
+  nameSearch : String
+  role : String
+  status : String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -629,6 +636,7 @@ type Query {
     pageCursor: String
     Direction: String
     pageSize: Int
+    filters : UserFilters
   ): PaginatedUsers
   getUserDetails(user_ids: [String]): [User]
   getUserOrganizations(user_id: String!): [UserOrganizationMap]
