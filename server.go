@@ -98,11 +98,9 @@ func checkAndInitCassandraSession() error {
 		_, err := cassandra.GetCassSession("userz")
 		if err != nil {
 			//delete session
-			delete(cassandra.GlobalSession, "userz")
-			_, err := cassandra.GetCassSession("userz")
+			cassandra.GlobalSession["userz"] = nil
 			if err != nil {
-				log.Fatal("Error connecting to cassandra: %v ", err)
-				panic(err)
+				cassandra.GetCassSession("userz")
 			}
 		}
 		time.Sleep(10 * time.Minute)

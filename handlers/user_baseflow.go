@@ -473,6 +473,7 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		PhotoURL:   &photoURL,
 		Phone:      currentUserIT.PhoneNumber,
 	}
+
 	userBytes, err := json.Marshal(userCass)
 	if err == nil {
 		redis.SetRedisValue(userCass.ID, string(userBytes))
