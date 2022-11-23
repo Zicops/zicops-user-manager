@@ -593,7 +593,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 		}
 		whereClause := ""
 		if searchText != nil && *searchText != "" {
-			whereClause = fmt.Sprintf(" AND name LIKE '%%%s%%'", *searchText)
+			whereClause = fmt.Sprintf(" AND name CONTAINS '%s'", *searchText)
 		}
 		qryStr = fmt.Sprintf(`SELECT * from userz.cohort_main where lsp_id='%s' and created_at<=%d %s ALLOW FILTERING`, lspID, *publishTime, whereClause)
 		getCohorts := func(page []byte) (users []userz.Cohort, nextPage []byte, err error) {
