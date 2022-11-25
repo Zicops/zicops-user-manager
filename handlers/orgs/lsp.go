@@ -332,7 +332,7 @@ func GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.Le
 			orgs, err := getOrgs()
 			if err != nil {
 				log.Errorf("error getting orgs: %v", err)
-				return 
+				return
 			}
 			if len(orgs) == 0 {
 				return
@@ -394,37 +394,36 @@ func GetLearningSpacesByOrgID(ctx context.Context, orgID string) ([]*model.Learn
 		return nil, err
 	}
 	CassUserSession := session
-	outputOrgs := make([]*model.LearningSpace, len(orgID))
-	lspIDs := []string{orgID}
+	var outputOrgs []*model.LearningSpace
+	qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where org_id='%s' ALLOW FILTERING `, orgID)
+	getOrgs := func() (users []userz.Lsp, err error) {
+		q := CassUserSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	orgs, err := getOrgs()
+	if err != nil {
+		log.Errorf("error getting orgs: %v", err)
+		return nil, err
+	}
+	if len(orgs) == 0 {
+		return nil, fmt.Errorf("no lsps found")
+	}
+	outputOrgs = make([]*model.LearningSpace, len(orgs))
 	var wg sync.WaitGroup
-	for i, orgID := range lspIDs {
+	for i, orgCass := range orgs {
 		wg.Add(1)
-		go func(i int, orgID string) {
-			qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where org_id='%s' ALLOW FILTERING `, orgID)
-			getOrgs := func() (users []userz.Lsp, err error) {
-				q := CassUserSession.Query(qryStr, nil)
-				defer q.Release()
-				iter := q.Iter()
-				return users, iter.Select(&users)
-			}
-			orgs, err := getOrgs()
-			if err != nil {
-				log.Errorf("error getting orgs: %v", err)
-				return
-			}
-			if len(orgs) == 0 {
-				return
-			}
-			orgCass := orgs[0]
-			created := strconv.FormatInt(orgCass.CreatedAt, 10)
-			updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
-			emptCnt := int(orgCass.NoOfUsers)
+		go func(i int, orgLsp userz.Lsp) {
+			created := strconv.FormatInt(orgLsp.CreatedAt, 10)
+			updated := strconv.FormatInt(orgLsp.UpdatedAt, 10)
+			emptCnt := int(orgLsp.NoOfUsers)
 			owners := []*string{}
-			for _, owner := range orgCass.Owners {
+			for _, owner := range orgLsp.Owners {
 				owners = append(owners, &owner)
 			}
-			logoUrl := orgCass.LogoURL
-			profileUrl := orgCass.ProfilePictureURL
+			logoUrl := orgLsp.LogoURL
+			profileUrl := orgLsp.ProfilePictureURL
 			storageC := bucket.NewStorageHandler()
 			gproject := googleprojectlib.GetGoogleProjectID()
 			err = storageC.InitializeStorageClient(ctx, gproject)
@@ -432,33 +431,32 @@ func GetLearningSpacesByOrgID(ctx context.Context, orgID string) ([]*model.Learn
 				log.Println("Error in initializing storage client", err)
 				return
 			}
-			if orgCass.LogoBucket != "" {
+			if orgLsp.LogoBucket != "" {
 
-				logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
+				logoUrl = storageC.GetSignedURLForObject(orgLsp.LogoBucket)
 			}
-			if orgCass.ProfilePictureBucket != "" {
-				profileUrl = storageC.GetSignedURLForObject(orgCass.ProfilePictureBucket)
+			if orgLsp.ProfilePictureBucket != "" {
+				profileUrl = storageC.GetSignedURLForObject(orgLsp.ProfilePictureBucket)
 			}
-
 			result := &model.LearningSpace{
-				LspID:      &orgCass.ID,
-				OrgID:      orgCass.OrgID,
-				OuID:       orgCass.OrgUnitID,
-				Name:       orgCass.Name,
+				LspID:      &orgLsp.ID,
+				OrgID:      orgLsp.OrgID,
+				OuID:       orgLsp.OrgUnitID,
+				Name:       orgLsp.Name,
 				NoUsers:    emptCnt,
 				Owners:     owners,
-				IsDefault:  orgCass.IsDefault,
-				Status:     orgCass.Status,
+				IsDefault:  orgLsp.IsDefault,
+				Status:     orgLsp.Status,
 				CreatedAt:  created,
 				UpdatedAt:  updated,
-				CreatedBy:  &orgCass.CreatedBy,
-				UpdatedBy:  &orgCass.UpdatedBy,
+				CreatedBy:  &orgLsp.CreatedBy,
+				UpdatedBy:  &orgLsp.UpdatedBy,
 				LogoURL:    &logoUrl,
 				ProfileURL: &profileUrl,
 			}
 			outputOrgs[i] = result
 			wg.Done()
-		}(i, orgID)
+		}(i, orgCass)
 	}
 	wg.Wait()
 	return outputOrgs, nil
