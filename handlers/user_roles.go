@@ -159,3 +159,44 @@ func UpdateUserRole(ctx context.Context, input model.UserRoleInput) (*model.User
 	}
 	return userLspOutput, nil
 }
+
+func GetUserLspRoles(ctx context.Context, userID string, userLspIds []string) ([]*model.UserRole, error) {
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+	userLspMaps := make([]*model.UserRole, 0)
+	for _, input := range userLspIds {
+		userLspMap := userz.UserRole{
+			UserID:    userID,
+			UserLspID: input,
+		}
+		userLsps := []userz.UserRole{}
+		getQueryStr := fmt.Sprintf("SELECT * FROM userz.user_role WHERE user_id='%s' AND user_lsp_id='%s'  ALLOW FILTERING", userLspMap.UserID, userLspMap.UserLspID)
+		getQuery := CassUserSession.Query(getQueryStr, nil)
+		if err := getQuery.SelectRelease(&userLsps); err != nil {
+			return nil, err
+		}
+		if len(userLsps) == 0 {
+			continue
+		}
+		for _, userLspMap := range userLsps {
+			created := strconv.FormatInt(userLspMap.CreatedAt, 10)
+			updated := strconv.FormatInt(userLspMap.UpdatedAt, 10)
+			userLspOutput := &model.UserRole{
+				UserRoleID: &userLspMap.ID,
+				UserLspID:  userLspMap.UserLspID,
+				UserID:     userLspMap.UserID,
+				Role:       userLspMap.Role,
+				IsActive:   userLspMap.IsActive,
+				CreatedAt:  created,
+				UpdatedAt:  updated,
+				CreatedBy:  &userLspMap.CreatedBy,
+				UpdatedBy:  &userLspMap.UpdatedBy,
+			}
+			userLspMaps = append(userLspMaps, userLspOutput)
+		}
+	}
+	return userLspMaps, nil
+}

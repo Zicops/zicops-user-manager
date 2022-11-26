@@ -641,6 +641,15 @@ func (r *queryResolver) GetLearningSpaceDetails(ctx context.Context, lspIds []*s
 	return result, nil
 }
 
+func (r *queryResolver) GetUserLspRoles(ctx context.Context, userID string, userLspIds []string) ([]*model.UserRole, error) {
+	result, err := handlers.GetUserLspRoles(ctx, userID, userLspIds)
+	if err != nil {
+		log.Errorf("Error getting learning spaces roles for user: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
