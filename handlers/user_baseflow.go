@@ -23,14 +23,14 @@ import (
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
 )
 
-func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool, userExists bool) ([]*model.User, error) {
+func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool, userExists bool) ([]*model.User, []*model.UserLspMap, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	CassUserSession := session
 
@@ -38,15 +38,16 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 	lspId := claims["lsp_id"].(string)
 	if !isZAdmin {
 		if strings.ToLower(roleValue.(string)) != "puneet@zicops.com" {
-			return nil, fmt.Errorf("user is a not an admin: Unauthorized")
+			return nil, nil, fmt.Errorf("user is a not an admin: Unauthorized")
 		}
 	}
 	var outputUsers []*model.User
+	var usrLspMaps []*model.UserLspMap
 	storageC := bucket.NewStorageHandler()
 	gproject := googleprojectlib.GetGoogleProjectID()
 	err = storageC.InitializeStorageClient(ctx, gproject)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	var photoBucket string
 	var photoUrl string
@@ -56,17 +57,17 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 			bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", userID, user.Photo.Filename)
 			writer, err := storageC.UploadToGCS(ctx, bucketPath)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			defer writer.Close()
 			fileBuffer := bytes.NewBuffer(nil)
 			if _, err := io.Copy(fileBuffer, user.Photo.File); err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			currentBytes := fileBuffer.Bytes()
 			_, err = io.Copy(writer, bytes.NewReader(currentBytes))
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			photoBucket = bucketPath
 			photoUrl = storageC.GetSignedURLForObject(bucketPath)
@@ -106,7 +107,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 		if !userExists {
 			insertQuery := CassUserSession.Query(userz.UserTable.Insert()).BindStruct(userCass)
 			if err := insertQuery.ExecRelease(); err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 		}
 		created := strconv.FormatInt(userCass.CreatedAt, 10)
@@ -140,7 +141,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 		isAdminCall := true
 		usrLspMap, err := AddUserLspMap(ctx, []*model.UserLspMapInput{userLspMap}, &isAdminCall)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		shouldSendEmail := false
 		for _, usrLsp := range usrLspMap {
@@ -148,18 +149,19 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 				shouldSendEmail = true
 			}
 		}
+		usrLspMaps = append(usrLspMaps, usrLspMap...)
 		if shouldSendEmail {
 			if isZAdmin {
 				passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email)
 				if err != nil {
-					return nil, err
+					return nil, nil, err
 				}
 				global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
 			}
 		}
 
 	}
-	return outputUsers, nil
+	return outputUsers, usrLspMaps, nil
 }
 
 func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, error) {
@@ -213,16 +215,22 @@ func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, err
 			Gender:     "",
 			Phone:      "",
 		}
-		_, err = RegisterUsers(ctx, []*model.UserInput{&userInput}, true, len(users) > 0)
+		_, lspMaps, err := RegisterUsers(ctx, []*model.UserInput{&userInput}, true, len(users) > 0)
 		if err != nil {
 			return &registered, err
 		}
-		// passwordReset, err := global.IDP.GetResetPasswordURL(ctx, email)
-		// if err != nil {
-		// 	return &registered, err
-		// }
-		// // send email with password reset link
-		// global.SGClient.SendJoinEmail(email, passwordReset, userCass.FirstName+" "+userCass.LastName)
+		userRoleMap := &model.UserRoleInput{
+			UserID:    userID,
+			Role:      "learner",
+			UserLspID: *lspMaps[0].UserLspID,
+			IsActive:  true,
+			CreatedBy: &email_creator,
+			UpdatedBy: &email_creator,
+		}
+		_, err = AddUserRoles(ctx, []*model.UserRoleInput{userRoleMap})
+		if err != nil {
+			return &registered, err
+		}
 	}
 	registered = true
 	return &registered, nil

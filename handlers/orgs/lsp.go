@@ -14,6 +14,7 @@ import (
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/handlers"
 	"github.com/zicops/zicops-user-manager/helpers"
 	"github.com/zicops/zicops-user-manager/lib/db/bucket"
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
@@ -32,6 +33,7 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 
 	roleValue := claims["email"]
 	role := roleValue.(string)
+	userId := base64.StdEncoding.EncodeToString([]byte(role))
 	uniqueOrgId := input.OrgID + input.OuID
 	lspID := base64.URLEncoding.EncodeToString([]byte(uniqueOrgId))
 	owners := []string{}
@@ -122,6 +124,30 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	}
 	insertQuery := CassUserSession.Query(userz.LspTable.Insert()).BindStruct(lspYay)
 	if err := insertQuery.ExecRelease(); err != nil {
+		return nil, err
+	}
+	userLspMap := &model.UserLspMapInput{
+		UserID:    userId,
+		LspID:     lspID,
+		Status:    "active",
+		CreatedBy: &role,
+		UpdatedBy: &role,
+	}
+	isAdminCall := true
+	lspMaps, err := handlers.AddUserLspMap(ctx, []*model.UserLspMapInput{userLspMap}, &isAdminCall)
+	if err != nil {
+		return nil, err
+	}
+	userRoleMap := &model.UserRoleInput{
+		UserID:    userId,
+		Role:      "admin",
+		UserLspID: *lspMaps[0].UserLspID,
+		IsActive:  true,
+		CreatedBy: &role,
+		UpdatedBy: &role,
+	}
+	_, err = handlers.AddUserRoles(ctx, []*model.UserRoleInput{userRoleMap})
+	if err != nil {
 		return nil, err
 	}
 	created := strconv.FormatInt(lspYay.CreatedAt, 10)

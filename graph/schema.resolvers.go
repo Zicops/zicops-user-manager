@@ -15,7 +15,7 @@ import (
 )
 
 func (r *mutationResolver) RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error) {
-	result, err := handlers.RegisterUsers(ctx, input, true, false)
+	result, _, err := handlers.RegisterUsers(ctx, input, true, false)
 	if err != nil {
 		log.Errorf("Error registering users: %v", err)
 		return nil, err
@@ -636,6 +636,15 @@ func (r *queryResolver) GetLearningSpaceDetails(ctx context.Context, lspIds []*s
 	result, err := orgs.GetLearningSpaceDetails(ctx, lspIds)
 	if err != nil {
 		log.Errorf("Error getting learning spaces: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetUserLspRoles(ctx context.Context, userID string, userLspIds []string) ([]*model.UserRole, error) {
+	result, err := handlers.GetUserLspRoles(ctx, userID, userLspIds)
+	if err != nil {
+		log.Errorf("Error getting learning spaces roles for user: %v", err)
 		return nil, err
 	}
 	return result, nil
