@@ -718,6 +718,7 @@ type Query {
   getLearningSpacesByOrgId(org_id: String!): [LearningSpace]
   getLearningSpacesByOuId(ou_id: String!, org_id: String!): [LearningSpace]
   getLearningSpaceDetails(lsp_ids: [String]): [LearningSpace]
+  getUserLspRoles(user_id: String!, user_lsp_ids:[String!]!): [UserRole]
 }
 
 type Mutation {
