@@ -112,6 +112,9 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 
 	}
 	allUsers := make([]*model.User, len(users))
+	if len(users) <= 0 {
+		return &outputResponse, nil
+	}
 	var wg sync.WaitGroup
 	for i, copiedUser := range users {
 		userCopy := copiedUser

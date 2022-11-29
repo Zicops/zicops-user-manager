@@ -253,6 +253,9 @@ func GetUnitsByOrgID(ctx context.Context, orgID string) ([]*model.OrganizationUn
 		return nil, fmt.Errorf("no org units found")
 	}
 	outputOrgs := make([]*model.OrganizationUnit, len(orgs))
+	if len(orgs) == 0 {
+		return outputOrgs, nil
+	}
 	var wg sync.WaitGroup
 	for i, orgCas := range orgs {
 		orgCass := orgCas
