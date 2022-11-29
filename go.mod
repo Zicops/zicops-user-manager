@@ -11,6 +11,7 @@ require (
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.1
 	github.com/rs/xid v1.4.0
+	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.1
 	github.com/zicops/contracts v0.0.0-20221124163851-9ae3fa6f2741
