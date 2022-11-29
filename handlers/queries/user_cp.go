@@ -52,6 +52,9 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 			return nil, err
 		}
 		userCPsMapCurrent := make([]*model.UserCourseProgress, len(userCPs))
+		if len(userCPs) == 0 {
+			continue
+		}
 		var wg sync.WaitGroup
 		for i, copiedCP := range userCPs {
 			userCP := copiedCP
@@ -126,6 +129,9 @@ func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID 
 		return nil, err
 	}
 	userCPsMap := make([]*model.UserCourseProgress, len(userCPs))
+	if len(userCPs) == 0 {
+		return userCPsMap, nil
+	}
 	var wg sync.WaitGroup
 	for i, copiedCP := range userCPs {
 		userCP := copiedCP

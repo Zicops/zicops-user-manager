@@ -96,6 +96,9 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 
 	}
 	allUsers := make([]*model.UserCohort, len(usersCohort))
+	if len(usersCohort) <= 0 {
+		return &outputResponse, nil
+	}
 	var wg sync.WaitGroup
 	for i, copiedUser := range usersCohort {
 		cohortCopy := copiedUser
@@ -195,6 +198,10 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 		return nil, fmt.Errorf("no users found")
 	}
 	cohortUsers := make([]*model.UserCohort, len(userCohorts))
+	var outputResponse model.PaginatedCohorts
+	if len(userCohorts) <= 0 {
+		return &outputResponse, nil
+	}
 	var wg sync.WaitGroup
 	for i, userOrg := range userCohorts {
 		cohortCopy := userOrg
@@ -220,7 +227,6 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 		}(i, cohortCopy)
 	}
 	wg.Wait()
-	var outputResponse model.PaginatedCohorts
 	outputResponse.Cohorts = cohortUsers
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
@@ -621,6 +627,10 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 		return nil, fmt.Errorf("no cohorts found")
 	}
 	cohortUsers := make([]*model.CohortMain, len(cohorts))
+	var outputResponse model.PaginatedCohortsMain
+	if len(cohorts) <= 0 {
+		return &outputResponse, nil
+	}
 	var wg sync.WaitGroup
 	for i, userOrg := range cohorts {
 		cohortCopy := userOrg
@@ -660,7 +670,6 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 		}(i, cohortCopy)
 	}
 	wg.Wait()
-	var outputResponse model.PaginatedCohortsMain
 	outputResponse.Cohorts = cohortUsers
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
