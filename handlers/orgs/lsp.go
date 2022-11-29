@@ -437,6 +437,9 @@ func GetLearningSpacesByOrgID(ctx context.Context, orgID string) ([]*model.Learn
 		return nil, fmt.Errorf("no lsps found")
 	}
 	outputOrgs = make([]*model.LearningSpace, len(orgs))
+	if len(orgs) == 0 {
+		return outputOrgs, nil
+	}
 	var wg sync.WaitGroup
 	for i, orgCass := range orgs {
 		wg.Add(1)

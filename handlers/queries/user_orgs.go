@@ -238,6 +238,11 @@ func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string
 		return nil, err
 	}
 	userOrgs := make([]*model.UserLspMap, len(usersOrgs))
+	var outputResponse model.PaginatedUserLspMaps
+
+	if len(usersOrgs) <= 0 {
+		return &outputResponse, nil
+	}
 	var wg sync.WaitGroup
 	for i, userOrg := range usersOrgs {
 		copiedOrg := userOrg
@@ -260,7 +265,6 @@ func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string
 		}(i, copiedOrg)
 	}
 	wg.Wait()
-	var outputResponse model.PaginatedUserLspMaps
 	var newCursor string
 	if len(newPage) != 0 {
 		newCursor, err = global.CryptSession.EncryptAsString(newPage, nil)

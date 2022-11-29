@@ -202,6 +202,9 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID *string, cou
 
 	}
 	allCourses := make([]*model.UserBookmark, len(userNotes))
+	if len(userNotes) == 0 {
+		return &outputResponse, nil
+	}
 	var wg sync.WaitGroup
 	for i, copiedCourse := range userNotes {
 		courseCopy := copiedCourse
@@ -280,6 +283,9 @@ func GetUserExamAttempts(ctx context.Context, userID *string, examID string) ([]
 		return nil, fmt.Errorf("no user ea found")
 	}
 	userOrgs := make([]*model.UserExamAttempts, len(usersOrgs))
+	if len(userOrgs) == 0 {
+		return userOrgs, nil
+	}
 	var wg sync.WaitGroup
 	for i, userOrg := range usersOrgs {
 		copiedOrg := userOrg
@@ -356,6 +362,9 @@ func GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResu
 			return nil, fmt.Errorf("no user exam results found")
 		}
 		tmpUserOrgs := make([]*model.UserExamResult, len(usersOrgs))
+		if len(userOrgs) == 0 {
+			continue
+		}
 		var wg sync.WaitGroup
 		for i, userOrg := range usersOrgs {
 			copiedOrg := userOrg
@@ -430,6 +439,9 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 		return nil, fmt.Errorf("no user ep found")
 	}
 	userOrgs := make([]*model.UserExamProgress, len(usersOrgs))
+	if len(userOrgs) == 0 {
+		return userOrgs, nil
+	}
 	var wg sync.WaitGroup
 	for i, userOrg := range usersOrgs {
 		copiedOrg := userOrg
