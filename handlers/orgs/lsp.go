@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -35,7 +36,7 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	role := roleValue.(string)
 	userId := base64.StdEncoding.EncodeToString([]byte(role))
 	uniqueOrgId := input.OrgID + input.OuID
-	lspID := base64.URLEncoding.EncodeToString([]byte(uniqueOrgId))
+	lspID := uuid.NewV5(uuid.NamespaceURL, uniqueOrgId).String()
 	owners := []string{}
 	if input.Owners != nil {
 		for _, owner := range input.Owners {
