@@ -109,10 +109,10 @@ func graphqlHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ctxValue := c.Value("zclaims").(map[string]interface{})
 		// set ctxValue to request context
-		lspIdInt := ctxValue["tenant"]
+		lspIdInt := c.Request.Header.Get("tenant")
 		lspID := "d8685567-cdae-4ee0-a80e-c187848a760e"
-		if lspIdInt != nil && lspIdInt.(string) != "" {
-			lspID = lspIdInt.(string)
+		if lspIdInt != "" {
+			lspID = lspIdInt
 		}
 		ctxValue["lsp_id"] = lspID
 		request := c.Request
