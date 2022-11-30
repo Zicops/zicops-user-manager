@@ -16,6 +16,7 @@ import (
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-cass-pool/redis"
+	"github.com/zicops/zicops-user-manager/constants"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -158,7 +159,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 				}
 				global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
 			} else if isZAdmin && userExists {
-				global.SGClient.SendInviteToLspEmail(responseUser.Email, "https://zicops.com/login", responseUser.FirstName+" "+responseUser.LastName)
+				global.SGClient.SendInviteToLspEmail(responseUser.Email, constants.CONTINUE_URL+"/login", responseUser.FirstName+" "+responseUser.LastName)
 			}
 		}
 
