@@ -151,12 +151,14 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 		}
 		usrLspMaps = append(usrLspMaps, usrLspMap...)
 		if shouldSendEmail {
-			if isZAdmin {
+			if isZAdmin && !userExists {
 				passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email)
 				if err != nil {
 					return nil, nil, err
 				}
 				global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
+			} else if isZAdmin && userExists {
+				global.SGClient.SendInviteToLspEmail(responseUser.Email, "https://zicops.com/login", responseUser.FirstName+" "+responseUser.LastName)
 			}
 		}
 
