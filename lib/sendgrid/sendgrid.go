@@ -59,3 +59,20 @@ func (sgc *ClientSendGrid) SendPasswordResetEmail(
 	}
 	return nil
 }
+
+
+// SendInviteToLspEmail ......
+func (sgc *ClientSendGrid) SendInviteToLspEmail(
+	email string,
+	verifyURL string, username string) error {
+	from := mail.NewEmail("Zicops Admin", "noreply@zicops.com")
+	subject := "You have been invited to a learning space"
+	to := mail.NewEmail(username, email)
+	plainTextContent := "Follow the link to view all your learning spaces: " + verifyURL
+	message := mail.NewSingleEmail(from, subject, to, plainTextContent, "")
+	_, err := sgc.client.Send(message)
+	if err != nil {
+		return err
+	}
+	return nil
+}
