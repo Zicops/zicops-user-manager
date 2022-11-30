@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -47,7 +47,7 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput, isAdmin 
 		}
 		userLspMap := userz.UserLsp{}
 		if len(userLsps) == 0 {
-			guid := xid.New()
+
 			createdBy := ""
 			updatedBy := ""
 			if input.CreatedBy != nil {
@@ -61,7 +61,7 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput, isAdmin 
 				updatedBy = userCass.Email
 			}
 			userLspMap = userz.UserLsp{
-				ID:        guid.String(),
+				ID:        uuid.New().String(),
 				UserID:    input.UserID,
 				LspId:     input.LspID,
 				CreatedAt: time.Now().Unix(),

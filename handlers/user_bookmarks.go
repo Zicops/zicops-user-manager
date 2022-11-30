@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -35,7 +35,7 @@ func AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*
 	}
 	userLspMaps := make([]*model.UserBookmark, 0)
 	for _, input := range input {
-		guid := xid.New()
+
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
@@ -45,7 +45,7 @@ func AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*
 			updatedBy = *input.UpdatedBy
 		}
 		userLspMap := userz.UserBookmarks{
-			ID:        guid.String(),
+			ID:        uuid.New().String(),
 			UserID:    input.UserID,
 			UserLspID: input.UserLspID,
 			CourseID:  input.CourseID,
