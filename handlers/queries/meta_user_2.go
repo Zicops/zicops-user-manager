@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -249,8 +249,8 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 
 	var photoBucket string
 	var photoUrl string
-	guid := xid.New()
-	cohortID := guid.String()
+
+	cohortID := uuid.New().String()
 	email_creator := claims["email"].(string)
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
@@ -347,8 +347,8 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	lspID := claims["lsp_id"].(string)
 	var photoBucket string
 	var photoUrl string
-	guid := xid.New()
-	cohortID := guid.String()
+
+	cohortID := uuid.New().String()
 	if input.CohortID == nil {
 		return nil, fmt.Errorf("cohort id is required")
 	}

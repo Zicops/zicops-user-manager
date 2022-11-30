@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -35,7 +35,7 @@ func AddUserExamAttempts(ctx context.Context, input []*model.UserExamAttemptsInp
 
 	userLspMaps := make([]*model.UserExamAttempts, 0)
 	for _, input := range input {
-		guid := xid.New()
+
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
@@ -47,7 +47,7 @@ func AddUserExamAttempts(ctx context.Context, input []*model.UserExamAttemptsInp
 		// convert input.QuizAttempt to int64
 		examAttemptStart, _ := strconv.ParseInt(input.AttemptStartTime, 10, 64)
 		userLspMap := userz.UserExamAttempts{
-			ID:               guid.String(),
+			ID:               uuid.New().String(),
 			UserID:           input.UserID,
 			UserLspID:        input.UserLspID,
 			UserCpID:         input.UserCpID,
