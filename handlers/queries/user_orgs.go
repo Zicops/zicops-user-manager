@@ -241,6 +241,7 @@ func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string
 	var outputResponse model.PaginatedUserLspMaps
 
 	if len(usersOrgs) <= 0 {
+		outputResponse.UserLspMaps = userOrgs
 		return &outputResponse, nil
 	}
 	var wg sync.WaitGroup

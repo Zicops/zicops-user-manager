@@ -82,6 +82,7 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 	var outputResponse model.PaginatedCourseMaps
 	allCourses := make([]*model.UserCourse, len(userCourses))
 	if len(userCourses) == 0 {
+		outputResponse.UserCourses = allCourses
 		return &outputResponse, nil
 	}
 	var wg sync.WaitGroup

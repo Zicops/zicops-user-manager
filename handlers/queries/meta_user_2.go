@@ -97,6 +97,7 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 	}
 	allUsers := make([]*model.UserCohort, len(usersCohort))
 	if len(usersCohort) <= 0 {
+		outputResponse.Cohorts = allUsers
 		return &outputResponse, nil
 	}
 	var wg sync.WaitGroup
@@ -200,6 +201,7 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 	cohortUsers := make([]*model.UserCohort, len(userCohorts))
 	var outputResponse model.PaginatedCohorts
 	if len(userCohorts) <= 0 {
+		outputResponse.Cohorts = cohortUsers
 		return &outputResponse, nil
 	}
 	var wg sync.WaitGroup
@@ -629,6 +631,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	cohortUsers := make([]*model.CohortMain, len(cohorts))
 	var outputResponse model.PaginatedCohortsMain
 	if len(cohorts) <= 0 {
+		outputResponse.Cohorts = cohortUsers
 		return &outputResponse, nil
 	}
 	var wg sync.WaitGroup
