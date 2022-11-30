@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/xid"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -35,7 +35,7 @@ func AddUserOrganizationMap(ctx context.Context, input []*model.UserOrganization
 
 	userLspMaps := make([]*model.UserOrganizationMap, 0)
 	for _, input := range input {
-		guid := xid.New()
+
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
@@ -45,7 +45,7 @@ func AddUserOrganizationMap(ctx context.Context, input []*model.UserOrganization
 			updatedBy = *input.UpdatedBy
 		}
 		userLspMap := userz.UserOrg{
-			ID:        guid.String(),
+			ID:        uuid.New().String(),
 			UserID:    input.UserID,
 			UserLspID: input.UserLspID,
 			OrgID:     input.OrganizationID,
