@@ -56,8 +56,9 @@ func ResetPasswordHandler(c *gin.Context) {
 		return
 	}
 	email := resetPasswordRequest.Email
+	origin := c.Request.Header.Get("Origin")
 	ctx := c.Request.Context()
-	passwordReset, err := global.IDP.GetResetPasswordURL(ctx, email)
+	passwordReset, err := global.IDP.GetResetPasswordURL(ctx, email, origin)
 	if err != nil {
 		return
 	}
@@ -115,6 +116,9 @@ func graphqlHandler() gin.HandlerFunc {
 			lspID = lspIdInt
 		}
 		ctxValue["lsp_id"] = lspID
+		// get current origin in https format
+		origin := c.Request.Header.Get("Origin")
+		ctxValue["origin"] = origin
 		request := c.Request
 		requestWithValue := request.WithContext(context.WithValue(request.Context(), "zclaims", ctxValue))
 		h.ServeHTTP(c.Writer, requestWithValue)
