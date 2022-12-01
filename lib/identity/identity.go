@@ -10,7 +10,6 @@ import (
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
-	"github.com/zicops/zicops-user-manager/constants"
 	"github.com/zicops/zicops-user-manager/helpers"
 	"google.golang.org/api/option"
 )
@@ -122,8 +121,7 @@ func (id *IDP) DeleteAnonymousUser(ctx context.Context, userID string) error {
 }
 
 // GetVerificationURL ...
-func (id *IDP) GetVerificationURL(ctx context.Context, email string) (string, error) {
-	contURL := constants.CONTINUE_URL
+func (id *IDP) GetVerificationURL(ctx context.Context, email, contURL string) (string, error) {
 	actionCode := auth.ActionCodeSettings{
 		URL: contURL,
 	}
@@ -165,8 +163,7 @@ func (id *IDP) VerifyInFirebase(ctx context.Context, email string, uid string) e
 }
 
 // GetResetPasswordURL ...
-func (id *IDP) GetResetPasswordURL(ctx context.Context, email string) (string, error) {
-	contURL := constants.CONTINUE_URL
+func (id *IDP) GetResetPasswordURL(ctx context.Context, email, contURL string) (string, error) {
 	actionCode := auth.ActionCodeSettings{
 		URL: contURL,
 	}

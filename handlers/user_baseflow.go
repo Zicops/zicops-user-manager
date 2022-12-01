@@ -16,7 +16,6 @@ import (
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-cass-pool/redis"
-	"github.com/zicops/zicops-user-manager/constants"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -37,6 +36,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 
 	roleValue := claims["email"]
 	lspId := claims["lsp_id"].(string)
+	origin := claims["origin"].(string)
 	if !isZAdmin {
 		if strings.ToLower(roleValue.(string)) != "puneet@zicops.com" {
 			return nil, nil, fmt.Errorf("user is a not an admin: Unauthorized")
@@ -153,13 +153,13 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 		usrLspMaps = append(usrLspMaps, usrLspMap...)
 		if shouldSendEmail {
 			if isZAdmin && !userExists {
-				passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email)
+				passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email, origin)
 				if err != nil {
 					return nil, nil, err
 				}
 				global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
 			} else if isZAdmin && userExists {
-				global.SGClient.SendInviteToLspEmail(responseUser.Email, constants.CONTINUE_URL+"/login", responseUser.FirstName+" "+responseUser.LastName)
+				global.SGClient.SendInviteToLspEmail(responseUser.Email, origin+"/login", responseUser.FirstName+" "+responseUser.LastName)
 			}
 		}
 
