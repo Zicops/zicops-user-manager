@@ -55,6 +55,16 @@ func NewIDPEP(ctx context.Context, projectID string) (*IDP, error) {
 	return &IDP{projectID: projectID, client: currentClient, fireApp: app, tClient: tenantClient}, nil
 }
 
+// GetUserIDTokenBYEmail ...
+func (idp *IDP) GetUserIDTokenBYEmail(ctx context.Context, email string) (string, error) {
+	user, err := idp.client.GetUserByEmail(ctx, email)
+	if err != nil {
+		return "", err
+	}
+	customToken, err := idp.client.CustomToken(ctx, user.UID)
+	return customToken, err
+}
+
 // ResetUserPassword ...
 func (id *IDP) ResetUserPassword(ctx context.Context, email string) error {
 	currentResetLink := ""
