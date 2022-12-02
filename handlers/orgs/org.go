@@ -350,7 +350,7 @@ func GetOrganizationsByDomain(ctx context.Context, domain string) ([]*model.Orga
 	}
 	CassUserSession := session
 	outputOrgs := make([]*model.Organization, 1)
-
+	log.Errorf("domain: %v", domain)
 	qryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain='%s' ALLOW FILTERING`, domain)
 	getOrgs := func() (users []userz.Organization, err error) {
 		q := CassUserSession.Query(qryStr, nil)
