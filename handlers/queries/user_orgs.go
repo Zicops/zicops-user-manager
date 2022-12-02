@@ -177,7 +177,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 	// replace /
 	origin = strings.Replace(origin, "/", "", 1)
 	returnAll := false
-	if origin == "zicops.com" {
+	if origin == "zicops.com" || origin == "demo.zicops.com" {
 		returnAll = true
 	}
 	userOrgs := make([]*model.UserLspMap, 0)
