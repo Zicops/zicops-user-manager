@@ -101,7 +101,7 @@ func checkAndInitCassandraSession() error {
 			//delete session
 			cassandra.GlobalSession["userz"] = nil
 			if err != nil {
-				cassandra.GetCassSession("userz")
+				cassandra.GlobalSession["userz"], _ = cassandra.GetCassSession("userz")
 			}
 		}
 		time.Sleep(5 * time.Minute)
