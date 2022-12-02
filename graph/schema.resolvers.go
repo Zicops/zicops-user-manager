@@ -381,12 +381,7 @@ func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 }
 
 func (r *queryResolver) GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserLspMaps, error) {
-	result, err := queries.GetUserLspMapsByLspID(ctx, lspID, pageCursor, direction, pageSize)
-	if err != nil {
-		log.Errorf("Error getting lsps of users: %v", err)
-		return nil, err
-	}
-	return result, nil
+	return nil, nil
 }
 
 func (r *queryResolver) GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int, filters *model.UserFilters) (*model.PaginatedUsers, error) {
