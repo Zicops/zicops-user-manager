@@ -187,7 +187,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 		if err != nil {
 			return nil, err
 		}
-		log.Errorf("orgsFromDomain: %v", orgsFromDomain[0].OrgID)
+		log.Errorf("orgsFromDomain: %v", *(orgsFromDomain[0].OrgID))
 		currentOrgID := orgsFromDomain[0].OrgID
 		lspMaps, err := orgs.GetLearningSpacesByOrgID(ctx, *currentOrgID)
 		if err != nil {
