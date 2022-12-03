@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/handlers/orgs"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -297,6 +298,81 @@ func GetUserLspMapsByLspIDOne(ctx context.Context, lspID string) (model.UserLspM
 
 	return userLspMap, nil
 }
+
+func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserLspMaps, error) {
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+	_, err = helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var newPage []byte
+	//var pageDirection string
+	var pageSizeInt int
+	var newCursor string
+	if pageCursor != nil && *pageCursor != "" {
+		page, err := global.CryptSession.DecryptString(*pageCursor, nil)
+		if err != nil {
+			return nil, fmt.Errorf("invalid page cursor: %v", err)
+		}
+		newPage = page
+	}
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where lsp_id='%s'  ALLOW FILTERING`, lspID)
+	getUsers := func(page []byte) (users []userz.UserLsp, nextPage []byte, err error) {
+		q := CassUserSession.Query(qryStr, nil)
+		defer q.Release()
+		q.PageState(page)
+		q.PageSize(pageSizeInt)
+
+		iter := q.Iter()
+		return users, iter.PageState(), iter.Select(&users)
+	}
+	usersOrgs, newPage, err := getUsers(newPage)
+	if err != nil {
+		return nil, err
+	}
+	if len(newPage) != 0 {
+		newCursor, err = global.CryptSession.EncryptAsString(newPage, nil)
+		if err != nil {
+			return nil, fmt.Errorf("error encrypting cursor: %v", err)
+		}
+		log.Infof("Users: %v", string(newCursor))
+
+	}
+	userOrgs := make([]*model.UserLspMap, len(usersOrgs))
+	var outputResponse model.PaginatedUserLspMaps
+
+	if len(usersOrgs) <= 0 {
+		outputResponse.UserLspMaps = userOrgs
+		return nil, nil
+	}
+
+	for _, userOrg := range usersOrgs {
+		copiedOrg := userOrg
+		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
+		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
+		currentUserOrg := &model.UserLspMap{
+			UserLspID: &copiedOrg.ID,
+			UserID:    copiedOrg.UserID,
+			LspID:     copiedOrg.LspId,
+			Status:    copiedOrg.Status,
+			CreatedBy: &copiedOrg.CreatedBy,
+			UpdatedBy: &copiedOrg.UpdatedBy,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+		}
+		userOrgs = append(userOrgs, currentUserOrg)
+	}
+	outputResponse.UserLspMaps = userOrgs
+	outputResponse.PageCursor = &newCursor
+	outputResponse.PageSize = &pageSizeInt
+	outputResponse.Direction = direction
+	return &outputResponse, nil
+}
+
 func GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model.UserOrganizationMap, error) {
 	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
