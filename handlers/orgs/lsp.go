@@ -130,7 +130,7 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	userLspMap := &model.UserLspMapInput{
 		UserID:    userId,
 		LspID:     lspID,
-		Status:    "active",
+		Status:    "",
 		CreatedBy: &role,
 		UpdatedBy: &role,
 	}
