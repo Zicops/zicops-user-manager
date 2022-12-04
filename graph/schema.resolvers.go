@@ -383,7 +383,7 @@ func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 func (r *queryResolver) GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserLspMaps, error) {
 	result, err := queries.GetUserLspMapsByLspID(ctx, lspID, pageCursor, direction, pageSize)
 	if err != nil {
-		log.Errorf("Error getting lsps of users: %v", err)
+		log.Errorf("Error logging out user: %v", err)
 		return nil, err
 	}
 	return result, nil

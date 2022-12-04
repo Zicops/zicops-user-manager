@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -12,6 +13,7 @@ import (
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/handlers/orgs"
 	"github.com/zicops/zicops-user-manager/helpers"
 )
 
@@ -168,19 +170,186 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 		return nil, err
 	}
 	CassUserSession := session
+	origin := claims["origin"].(string)
+	// remove https://
+	origin = strings.Replace(origin, "https://", "", 1)
+	// replace www. with empty string
+	origin = strings.Replace(origin, "www.", "", 1)
+	// replace /
+	origin = strings.Replace(origin, "/", "", 1)
+	returnAll := false
+	if origin == "zicops.com" || origin == "demo.zicops.com" {
+		returnAll = true
+	}
+	userOrgs := make([]*model.UserLspMap, 0)
+	var orgsFromDomain []*model.Organization
+	if !returnAll {
+		orgsFromDomain, err = orgs.GetOrganizationsByDomain(ctx, origin)
+		if err != nil {
+			return nil, err
+		}
+		log.Errorf("orgsFromDomain: %v", *(orgsFromDomain[0].OrgID))
+		currentOrgID := orgsFromDomain[0].OrgID
+		lspMaps, err := orgs.GetLearningSpacesByOrgID(ctx, *currentOrgID)
+		if err != nil {
+			return nil, err
+		}
+		usrLspMapLocal := make([]*model.UserLspMap, len(lspMaps))
+		var wg sync.WaitGroup
+		for i, lspMap := range lspMaps {
+			lspCopy := lspMap
+			wg.Add(1)
+			go func(i int, lspCopy *model.LearningSpace) {
+				lspIdCurrent := lspCopy.LspID
+				usrLspMap, err := GetUserLspMapsByLspIDOne(ctx, *lspIdCurrent)
+				if err != nil {
+					log.Errorf("Error in GetUserLsps: %v", err)
+				}
+				if usrLspMap.LspID != "" {
+					usrLspMapLocal[i] = &usrLspMap
+				}
+				wg.Done()
+			}(i, lspCopy)
+		}
+		wg.Wait()
+		for _, usrLspMap := range usrLspMapLocal {
+			if usrLspMap != nil {
+				userOrgs = append(userOrgs, usrLspMap)
+			}
+		}
+	} else {
+		qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id='%s'  ALLOW FILTERING`, emailCreatorID)
+		getUsersOrgs := func() (users []userz.UserLsp, err error) {
+			q := CassUserSession.Query(qryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return users, iter.Select(&users)
+		}
+		usersOrgs, err := getUsersOrgs()
+		if err != nil {
+			return nil, err
+		}
+		for _, userOrg := range usersOrgs {
+			copiedOrg := userOrg
+			createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
+			currentUserOrg := &model.UserLspMap{
+				UserLspID: &copiedOrg.ID,
+				UserID:    copiedOrg.UserID,
+				LspID:     copiedOrg.LspId,
+				Status:    copiedOrg.Status,
+				CreatedBy: &copiedOrg.CreatedBy,
+				UpdatedBy: &copiedOrg.UpdatedBy,
+				CreatedAt: createdAt,
+				UpdatedAt: updatedAt,
+			}
+			userOrgs = append(userOrgs, currentUserOrg)
+		}
+		//redisBytes, err := json.Marshal(userOrgs)
+		//if err == nil {
+		//	redis.SetTTL(key, 3600)
+		//	redis.SetRedisValue(key, string(redisBytes))
+		//}
+	}
+	return userOrgs, nil
+}
 
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id='%s'  ALLOW FILTERING`, emailCreatorID)
-	getUsersOrgs := func() (users []userz.UserLsp, err error) {
+func GetUserLspMapsByLspIDOne(ctx context.Context, lspID string) (model.UserLspMap, error) {
+	session, err := cassandra.GetCassSession("userz")
+	var userLspMap model.UserLspMap
+	if err != nil {
+		return userLspMap, err
+	}
+	CassUserSession := session
+
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where lsp_id='%s'  ALLOW FILTERING`, lspID)
+	getUsers := func() (users []userz.UserLsp, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return users, iter.Select(&users)
 	}
-	usersOrgs, err := getUsersOrgs()
+	usersOrgs, err := getUsers()
+	if err != nil {
+		return userLspMap, err
+	}
+	userOrgs := make([]*model.UserLspMap, len(usersOrgs))
+	var outputResponse model.PaginatedUserLspMaps
+
+	if len(usersOrgs) <= 0 {
+		outputResponse.UserLspMaps = userOrgs
+		return userLspMap, nil
+	}
+
+	copiedOrg := usersOrgs[0]
+
+	createdAt := strconv.FormatInt(copiedOrg.CreatedAt, 10)
+	updatedAt := strconv.FormatInt(copiedOrg.UpdatedAt, 10)
+	userLspMap = model.UserLspMap{
+		UserLspID: &copiedOrg.ID,
+		UserID:    copiedOrg.UserID,
+		LspID:     copiedOrg.LspId,
+		Status:    copiedOrg.Status,
+		CreatedBy: &copiedOrg.CreatedBy,
+		UpdatedBy: &copiedOrg.UpdatedBy,
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
+	}
+
+	return userLspMap, nil
+}
+
+func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserLspMaps, error) {
+	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
 	}
-	userOrgs := make([]*model.UserLspMap, 0)
+	CassUserSession := session
+	_, err = helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var newPage []byte
+	//var pageDirection string
+	var pageSizeInt int
+	var newCursor string
+	if pageCursor != nil && *pageCursor != "" {
+		page, err := global.CryptSession.DecryptString(*pageCursor, nil)
+		if err != nil {
+			return nil, fmt.Errorf("invalid page cursor: %v", err)
+		}
+		newPage = page
+	}
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where lsp_id='%s'  ALLOW FILTERING`, lspID)
+	getUsers := func(page []byte) (users []userz.UserLsp, nextPage []byte, err error) {
+		q := CassUserSession.Query(qryStr, nil)
+		defer q.Release()
+		q.PageState(page)
+		q.PageSize(pageSizeInt)
+
+		iter := q.Iter()
+		return users, iter.PageState(), iter.Select(&users)
+	}
+	usersOrgs, newPage, err := getUsers(newPage)
+	if err != nil {
+		return nil, err
+	}
+	if len(newPage) != 0 {
+		newCursor, err = global.CryptSession.EncryptAsString(newPage, nil)
+		if err != nil {
+			return nil, fmt.Errorf("error encrypting cursor: %v", err)
+		}
+		log.Infof("Users: %v", string(newCursor))
+
+	}
+	userOrgs := make([]*model.UserLspMap, len(usersOrgs))
+	var outputResponse model.PaginatedUserLspMaps
+
+	if len(usersOrgs) <= 0 {
+		outputResponse.UserLspMaps = userOrgs
+		return nil, nil
+	}
+
 	for _, userOrg := range usersOrgs {
 		copiedOrg := userOrg
 		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
@@ -197,89 +366,10 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
-	//redisBytes, err := json.Marshal(userOrgs)
-	//if err == nil {
-	//	redis.SetTTL(key, 3600)
-	//	redis.SetRedisValue(key, string(redisBytes))
-	//}
-
-	return userOrgs, nil
-}
-
-func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserLspMaps, error) {
-	var newPage []byte
-	//var pageDirection string
-	var pageSizeInt int
-	if pageCursor != nil && *pageCursor != "" {
-		page, err := global.CryptSession.DecryptString(*pageCursor, nil)
-		if err != nil {
-			return nil, fmt.Errorf("invalid page cursor: %v", err)
-		}
-		newPage = page
-	}
-	session, err := cassandra.GetCassSession("userz")
-	if err != nil {
-		return nil, err
-	}
-	CassUserSession := session
-
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where lsp_id='%s'  ALLOW FILTERING`, lspID)
-	getUsers := func(page []byte) (users []userz.UserLsp, nextPage []byte, err error) {
-		q := CassUserSession.Query(qryStr, nil)
-		defer q.Release()
-		q.PageState(page)
-		q.PageSize(pageSizeInt)
-
-		iter := q.Iter()
-		return users, iter.PageState(), iter.Select(&users)
-	}
-	usersOrgs, newPage, err := getUsers(newPage)
-	if err != nil {
-		return nil, err
-	}
-	userOrgs := make([]*model.UserLspMap, len(usersOrgs))
-	var outputResponse model.PaginatedUserLspMaps
-
-	if len(usersOrgs) <= 0 {
-		outputResponse.UserLspMaps = userOrgs
-		return &outputResponse, nil
-	}
-	var wg sync.WaitGroup
-	for i, userOrg := range usersOrgs {
-		copiedOrg := userOrg
-		wg.Add(1)
-		go func(i int, userOrg userz.UserLsp) {
-			createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
-			updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
-			currentUserOrg := &model.UserLspMap{
-				UserLspID: &copiedOrg.ID,
-				UserID:    copiedOrg.UserID,
-				LspID:     copiedOrg.LspId,
-				Status:    copiedOrg.Status,
-				CreatedBy: &copiedOrg.CreatedBy,
-				UpdatedBy: &copiedOrg.UpdatedBy,
-				CreatedAt: createdAt,
-				UpdatedAt: updatedAt,
-			}
-			userOrgs[i] = currentUserOrg
-			wg.Done()
-		}(i, copiedOrg)
-	}
-	wg.Wait()
-	var newCursor string
-	if len(newPage) != 0 {
-		newCursor, err = global.CryptSession.EncryptAsString(newPage, nil)
-		if err != nil {
-			return nil, fmt.Errorf("error encrypting cursor: %v", err)
-		}
-		log.Infof("Users: %v", string(newCursor))
-
-	}
 	outputResponse.UserLspMaps = userOrgs
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
-
 	return &outputResponse, nil
 }
 

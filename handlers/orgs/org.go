@@ -338,3 +338,66 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 	wg.Wait()
 	return outputOrgs, nil
 }
+
+func GetOrganizationsByDomain(ctx context.Context, domain string) ([]*model.Organization, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+	outputOrgs := make([]*model.Organization, 1)
+	log.Errorf("domain: %v", domain)
+	qryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain='%s' ALLOW FILTERING`, domain)
+	getOrgs := func() (users []userz.Organization, err error) {
+		q := CassUserSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	orgs, err := getOrgs()
+	if err != nil {
+		return nil, err
+	}
+	if len(orgs) == 0 {
+		return nil, fmt.Errorf("no organization found")
+	}
+	orgCass := orgs[0]
+	created := strconv.FormatInt(orgCass.CreatedAt, 10)
+	updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
+	emptCnt, _ := strconv.Atoi(orgCass.EmpCount)
+	logoUrl := orgCass.LogoURL
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
+	if orgCass.LogoBucket != "" {
+		logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
+	}
+
+	result := &model.Organization{
+		OrgID:         &orgCass.ID,
+		Name:          orgCass.Name,
+		Website:       orgCass.Website,
+		Industry:      orgCass.Industry,
+		LogoURL:       &logoUrl,
+		Subdomain:     orgCass.ZicopsSubdomain,
+		Status:        orgCass.Status,
+		FacebookURL:   &orgCass.Facebook,
+		TwitterURL:    &orgCass.Twitter,
+		LinkedinURL:   &orgCass.Linkedin,
+		EmployeeCount: emptCnt,
+		CreatedAt:     created,
+		CreatedBy:     &orgCass.CreatedBy,
+		UpdatedAt:     updated,
+		UpdatedBy:     &orgCass.UpdatedBy,
+		Type:          orgCass.Type,
+	}
+	outputOrgs[0] = result
+	return outputOrgs, nil
+}

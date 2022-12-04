@@ -78,29 +78,43 @@ func monitorSystem(cancel context.CancelFunc, errorChannel chan error) {
 func checkAndInitCassandraSession() error {
 	// get user session every 1 minute
 	// if session is nil then create new session
-
-	// test cassandra connection
-	_, err1 := cassandra.GetCassSession("userz")
-	if err1 != nil {
-		log.Errorf("Error connecting to cassandra: %v ", err1)
+	//test cassandra connection
+	_, err1 := cassandra.GetCassSession("coursez")
+	_, err2 := cassandra.GetCassSession("qbankz")
+	_, err3 := cassandra.GetCassSession("userz")
+	if err1 != nil || err2 != nil || err3 != nil {
+		log.Errorf("Error connecting to cassandra: %v and %v ", err1, err2, err3)
 	} else {
 		log.Infof("Cassandra connection successful")
 	}
-	// test redis connection
 	_, err := redis.Initialize()
 	if err != nil {
-		log.Errorf("Error connecting to redis: %v ", err)
+		log.Errorf("Error connecting to redis: %v", err)
 	} else {
 		log.Infof("Redis connection successful")
 	}
 	for {
+		for key := range cassandra.GlobalSession {
+			session, err := cassandra.GetCassSession(key)
+			restart := false
+			if session != nil {
+				qX := session.Query("select now() from system.local", nil)
+				if qX != nil {
+					err = qX.Exec()
+					if err != nil {
+						restart = true
+					}
+				}
+			} else {
+				restart = true
+			}
 
-		_, err := cassandra.GetCassSession("userz")
-		if err != nil {
-			//delete session
-			cassandra.GlobalSession["userz"] = nil
-			if err != nil {
-				cassandra.GetCassSession("userz")
+			if err != nil || restart {
+				cassandra.GlobalSession[key] = nil
+				session, err := cassandra.GetCassSession(key)
+				if err == nil && session != nil {
+					cassandra.GlobalSession[key] = nil
+				}
 			}
 		}
 		time.Sleep(10 * time.Minute)
