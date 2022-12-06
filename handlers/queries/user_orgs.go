@@ -201,7 +201,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 			wg.Add(1)
 			go func(i int, lspCopy *model.LearningSpace) {
 				lspIdCurrent := lspCopy.LspID
-				usrLspMap, err := GetUserLspMapsByLspIDOne(ctx, *lspIdCurrent)
+				usrLspMap, err := GetUserLspMapsByLspIDOne(ctx, *lspIdCurrent, userId)
 				if err != nil {
 					log.Errorf("Error in GetUserLsps: %v", err)
 				}
@@ -254,7 +254,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 	return userOrgs, nil
 }
 
-func GetUserLspMapsByLspIDOne(ctx context.Context, lspID string) (model.UserLspMap, error) {
+func GetUserLspMapsByLspIDOne(ctx context.Context, lspID string, userID string) (model.UserLspMap, error) {
 	session, err := cassandra.GetCassSession("userz")
 	var userLspMap model.UserLspMap
 	if err != nil {
@@ -262,7 +262,7 @@ func GetUserLspMapsByLspIDOne(ctx context.Context, lspID string) (model.UserLspM
 	}
 	CassUserSession := session
 
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where lsp_id='%s'  ALLOW FILTERING`, lspID)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_lsp_map where lsp_id='%s' AND user_id='%s'  ALLOW FILTERING`, lspID, userID)
 	getUsers := func() (users []userz.UserLsp, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
