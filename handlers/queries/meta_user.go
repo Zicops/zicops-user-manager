@@ -367,7 +367,7 @@ func GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResu
 		}
 		var wg sync.WaitGroup
 		for i, userOrg := range usersOrgs {
-			copiedOrg := userOrg
+			cUserOrg := userOrg
 			wg.Add(1)
 			go func(i int, copiedOrg userz.UserExamResults) {
 				createdAt := strconv.FormatInt(copiedOrg.CreatedAt, 10)
@@ -387,7 +387,7 @@ func GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResu
 				}
 				tmpUserOrgs[i] = currentUserOrg
 				wg.Done()
-			}(i, copiedOrg)
+			}(i, cUserOrg)
 		}
 		wg.Wait()
 		var result model.UserExamResultInfo
