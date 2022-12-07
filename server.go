@@ -28,20 +28,6 @@ func main() {
 	log.Infof("Starting zicops user manager service")
 	ctx, cancel := context.WithCancel(context.Background())
 	crySession := cry.New("09afa9f9544a7ff1ae9988f73ba42134")
-
-	idp, err := identity.NewIDPEP(ctx, "zicops-one")
-	if err != nil {
-		log.Errorf("Error connecting to identity: %s", err)
-		log.Infof("zicops user manager initialization failed")
-	}
-	global.IDP = idp
-	sgClient := sendgrid.NewSendGridClient()
-	err = sgClient.InitializeSendGridClient()
-	if err != nil {
-		log.Errorf("Error connecting to sendgrid: %s", err)
-		log.Infof("zicops user manager initialization failed")
-	}
-	global.SGClient = sgClient
 	global.CTX = ctx
 	global.Cancel = cancel
 	global.CryptSession = &crySession
@@ -80,6 +66,20 @@ func checkAndInitCassandraSession() error {
 	// get user session every 1 minute
 	// if session is nil then create new session
 	//test cassandra connection
+	ctx := context.Background()
+	idp, err := identity.NewIDPEP(ctx, "zicops-one")
+	if err != nil {
+		log.Errorf("Error connecting to identity: %s", err)
+		log.Infof("zicops user manager initialization failed")
+	}
+	global.IDP = idp
+	sgClient := sendgrid.NewSendGridClient()
+	err = sgClient.InitializeSendGridClient()
+	if err != nil {
+		log.Errorf("Error connecting to sendgrid: %s", err)
+		log.Infof("zicops user manager initialization failed")
+	}
+	global.SGClient = sgClient
 	_, err1 := cassandra.GetCassSession("coursez")
 	_, err2 := cassandra.GetCassSession("qbankz")
 	_, err3 := cassandra.GetCassSession("userz")
@@ -88,7 +88,7 @@ func checkAndInitCassandraSession() error {
 	} else {
 		log.Infof("Cassandra connection successful")
 	}
-	_, err := redis.Initialize()
+	_, err = redis.Initialize()
 	if err != nil {
 		log.Errorf("Error connecting to redis: %v", err)
 	} else {
