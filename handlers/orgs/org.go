@@ -3,7 +3,6 @@ package orgs
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -45,7 +45,7 @@ func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model
 		return nil, err
 	}
 	uniqueOrgId := input.Name + input.Website + input.Industry
-	orgId := base64.URLEncoding.EncodeToString([]byte(uniqueOrgId))
+	orgId := uuid.NewSHA1(uuid.NameSpaceURL, []byte(uniqueOrgId)).String()
 	if input.Logo != nil {
 		bucketPath := fmt.Sprintf("orgs/%s/%s/%s", "logos", orgId, input.Logo.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
