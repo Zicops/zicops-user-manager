@@ -39,7 +39,6 @@ func CCRouter() (*gin.Engine, error) {
 	// create group for restRouter
 	version1 := restRouter.Group("/api/v1")
 	version1.POST("/query", graphqlHandler())
-	version1.GET("/playql", playgroundHandler())
 	return restRouter, nil
 }
 
