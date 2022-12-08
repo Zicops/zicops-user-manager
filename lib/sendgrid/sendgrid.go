@@ -56,7 +56,7 @@ func (sgc *ClientSendGrid) SendJoinEmail(
 func (sgc *ClientSendGrid) SendInviteToLspEmail(
 	email string,
 	verifyURL string, username string) error {
-	from := mail.NewEmail("Zicops Admin", "noreply@zicops.com")
+	from := mail.NewEmail("Zicops Admin", "lspadmin@zicops.com")
 	subject := "You have been invited to a learning space"
 	to := mail.NewEmail(username, email)
 	plainTextContent := "Follow the link to view all your learning spaces: " + verifyURL
