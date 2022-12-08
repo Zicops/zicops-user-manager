@@ -21,7 +21,6 @@ import (
 	"github.com/zicops/zicops-user-manager/lib/sendgrid"
 )
 
-
 func main() {
 	//os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "zicops-cc.json")
 	log.Infof("Starting zicops user manager service")
@@ -38,6 +37,12 @@ func main() {
 	if err != nil {
 		log.Errorf("Error connecting to sendgrid: %s", err)
 		log.Infof("zicops user manager initialization failed")
+	}
+	_, err = redis.Initialize()
+	if err != nil {
+		log.Errorf("Error connecting to redis: %v", err)
+	} else {
+		log.Infof("Redis connection successful")
 	}
 	global.SGClient = sgClient
 	global.CTX = ctx
@@ -86,12 +91,7 @@ func checkAndInitCassandraSession() error {
 	} else {
 		log.Infof("Cassandra connection successful")
 	}
-	_, err := redis.Initialize()
-	if err != nil {
-		log.Errorf("Error connecting to redis: %v", err)
-	} else {
-		log.Infof("Redis connection successful")
-	}
+
 	for {
 		for key := range cassandra.GlobalSession {
 			session, err := cassandra.GetCassSession(key)
