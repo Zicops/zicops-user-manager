@@ -19,11 +19,7 @@ func AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.U
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	isAllowed := false
-	role := strings.ToLower(userCass.Role)
-	if userCass.ID == input[0].UserID || role == "admin" || strings.Contains(role, "manager") {
-		isAllowed = true
-	}
+	isAllowed := true
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
