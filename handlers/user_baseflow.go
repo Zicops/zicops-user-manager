@@ -230,9 +230,11 @@ func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, err
 			CreatedBy: &email_creator,
 			UpdatedBy: &email_creator,
 		}
-		_, err = AddUserRoles(ctx, []*model.UserRoleInput{userRoleMap})
-		if err != nil {
-			return &registered, err
+		if lspMaps[0].Status == "" {
+			_, err = AddUserRoles(ctx, []*model.UserRoleInput{userRoleMap})
+			if err != nil {
+				return &registered, err
+			}
 		}
 	}
 	registered = true
