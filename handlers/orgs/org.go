@@ -278,7 +278,8 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 	CassUserSession := session
 	outputOrgs := make([]*model.Organization, len(orgIds))
 	var wg sync.WaitGroup
-	for i, orgID := range orgIds {
+	for i, orgid := range orgIds {
+		orgIDInput := orgid
 		wg.Add(1)
 		go func(i int, orgID *string) {
 			if orgID == nil {
@@ -333,7 +334,7 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 			}
 			outputOrgs[i] = result
 			wg.Done()
-		}(i, orgID)
+		}(i, orgIDInput)
 	}
 	wg.Wait()
 	return outputOrgs, nil
