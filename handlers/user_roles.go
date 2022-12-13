@@ -177,7 +177,8 @@ func GetUserLspRoles(ctx context.Context, userID string, userLspIds []string) ([
 		if len(userLsps) == 0 {
 			continue
 		}
-		for _, userLspMap := range userLsps {
+		for _, usrLspRoleCopy := range userLsps {
+			userLspMap := usrLspRoleCopy
 			created := strconv.FormatInt(userLspMap.CreatedAt, 10)
 			updated := strconv.FormatInt(userLspMap.UpdatedAt, 10)
 			userLspOutput := &model.UserRole{
