@@ -363,9 +363,6 @@ func GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResu
 			return nil, fmt.Errorf("no user exam results found")
 		}
 		tmpUserOrgs := make([]*model.UserExamResult, len(usersOrgs))
-		if len(userOrgs) == 0 {
-			continue
-		}
 		var wg sync.WaitGroup
 		for i, userOrg := range usersOrgs {
 			cUserOrg := userOrg
