@@ -344,7 +344,8 @@ func GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResu
 	}
 	CassUserSession := session
 	userOrgs := make([]*model.UserExamResultInfo, 0)
-	for _, userEaDetail := range userEaDetails {
+	for _, userEacopiedEADetail := range userEaDetails {
+		userEaDetail := userEacopiedEADetail
 		userID := userEaDetail.UserID
 		userEaID := userEaDetail.UserEaID
 		qryStr := fmt.Sprintf(`SELECT * from userz.user_exam_results where user_id='%s' and user_ea_id='%s'  ALLOW FILTERING`, userID, userEaID)
