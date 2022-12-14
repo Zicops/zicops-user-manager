@@ -440,7 +440,6 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 	if userEmail == "puneet@zicops.com" {
 		return nil, fmt.Errorf("user is not allowed to proceed with zicops apis")
 	}
-	origin := claims["origin"].(string)
 	currentUserIT, err := global.IDP.GetUserByEmail(ctx, userEmail)
 	if err != nil {
 		return nil, err
