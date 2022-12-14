@@ -116,6 +116,6 @@ func checkAndInitCassandraSession() error {
 				}
 			}
 		}
-		time.Sleep(10 * time.Minute)
+		time.Sleep(20 * time.Minute)
 	}
 }
