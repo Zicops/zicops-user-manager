@@ -15,7 +15,6 @@ import (
 
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
-	"github.com/zicops/zicops-cass-pool/notification"
 	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
@@ -441,7 +440,6 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 	if userEmail == "puneet@zicops.com" {
 		return nil, fmt.Errorf("user is not allowed to proceed with zicops apis")
 	}
-	origin := claims["origin"].(string)
 	currentUserIT, err := global.IDP.GetUserByEmail(ctx, userEmail)
 	if err != nil {
 		return nil, err
@@ -494,9 +492,6 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		redis.SetRedisValue(userCass.ID, string(userBytes))
 		redis.SetTTL(userCass.ID, 7200)
 		log.Infof("user logged in: %v", userCass.ID)
-	}
-	if !currentUser.IsVerified && !currentUser.IsActive {
-		notification.SendNotification("Get started", "Get started by adding courses to your learning folder.", "", origin)
 	}
 	return &currentUser, nil
 }
