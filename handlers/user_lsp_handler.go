@@ -99,14 +99,6 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	isAllowed := false
-	role := strings.ToLower(userCass.Role)
-	if userCass.ID == input.UserID || role == "admin" || strings.Contains(role, "manager") {
-		isAllowed = true
-	}
-	if !isAllowed {
-		return nil, fmt.Errorf("user not allowed to create lsp mapping")
-	}
 	if input.UserLspID == nil {
 		return nil, fmt.Errorf("user lsp id is required")
 	}
