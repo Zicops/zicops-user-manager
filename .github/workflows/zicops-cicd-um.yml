@@ -1,6 +1,7 @@
 name: ZICOPS UM-CICD
 
 on:
+  workflow_dispatch:
   push:
     branches: [ staging ]
   pull_request:
