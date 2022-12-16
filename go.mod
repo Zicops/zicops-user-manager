@@ -3,7 +3,7 @@ module github.com/zicops/zicops-user-manager
 go 1.18
 
 require (
-	cloud.google.com/go/compute/metadata v0.2.2
+	cloud.google.com/go/compute/metadata v0.2.3
 	cloud.google.com/go/storage v1.28.1
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.17.22
@@ -15,16 +15,16 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.1
 	github.com/zicops/contracts v0.0.0-20221124163851-9ae3fa6f2741
-	github.com/zicops/zicops-cass-pool v0.0.0-20221214165348-71567426e65d
+	github.com/zicops/zicops-cass-pool v0.0.0-20221216001309-0cbe9d1900ea
 	golang.org/x/oauth2 v0.3.0
-	google.golang.org/api v0.104.0
+	google.golang.org/api v0.105.0
 	gopkg.in/tylerb/graceful.v1 v1.2.15
 )
 
 require (
 	cloud.google.com/go v0.107.0 // indirect
 	cloud.google.com/go/firestore v1.9.0 // indirect
-	cloud.google.com/go/iam v0.8.0 // indirect
+	cloud.google.com/go/iam v0.9.0 // indirect
 	cloud.google.com/go/longrunning v0.3.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
