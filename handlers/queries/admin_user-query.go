@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strconv"
-	"strings"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -65,9 +64,10 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 			return nil, fmt.Errorf("user not found")
 		}
 		userAdmin = users[0]
-		if strings.ToLower(userAdmin.Role) != "admin" {
-			return nil, fmt.Errorf("user is not an admin")
-		}
+		//TODO revisit this
+		// if strings.ToLower(userAdmin.Role) != "admin" {
+		// 	return nil, fmt.Errorf("user is not an admin")
+		// }
 		if pageSize == nil {
 			pageSizeInt = 10
 		} else {

@@ -545,12 +545,10 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 }
 
 func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) (*model.PaginatedCohortsMain, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	email_creator := claims["email"].(string)
-	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
 	var newPage []byte
 	//var pageDirection string
 	var pageSizeInt int
@@ -570,29 +568,14 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	var newCursor string
 
 	if len(cohorts) <= 0 {
-		userAdmin := userz.User{
-			ID: emailCreatorID,
-		}
 		session, err := cassandra.GetCassSession("userz")
 		if err != nil {
 			return nil, err
 		}
 		CassUserSession := session
-
-		users := []userz.User{}
-
-		qryStr := fmt.Sprintf("SELECT * FROM userz.users WHERE id = '%s' ", emailCreatorID)
-		getQuery := CassUserSession.Query(qryStr, nil)
-		if err := getQuery.SelectRelease(&users); err != nil {
-			return nil, err
-		}
-		if len(users) == 0 {
-			return nil, fmt.Errorf("user not found")
-		}
-		userAdmin = users[0]
-		if strings.ToLower(userAdmin.Role) != "admin" {
-			return nil, fmt.Errorf("user is not an admin")
-		}
+		// if strings.ToLower(userAdmin.Role) != "admin" {
+		// 	return nil, fmt.Errorf("user is not an admin")
+		// }
 
 		if pageSize == nil {
 			pageSizeInt = 10
@@ -603,7 +586,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 		if searchText != nil && *searchText != "" {
 			whereClause = fmt.Sprintf(" AND name CONTAINS '%s'", *searchText)
 		}
-		qryStr = fmt.Sprintf(`SELECT * from userz.cohort_main where lsp_id='%s' and created_at<=%d %s ALLOW FILTERING`, lspID, *publishTime, whereClause)
+		qryStr := fmt.Sprintf(`SELECT * from userz.cohort_main where lsp_id='%s' and created_at<=%d %s ALLOW FILTERING`, lspID, *publishTime, whereClause)
 		getCohorts := func(page []byte) (users []userz.Cohort, nextPage []byte, err error) {
 			q := CassUserSession.Query(qryStr, nil)
 			defer q.Release()
