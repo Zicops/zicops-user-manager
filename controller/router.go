@@ -49,7 +49,15 @@ func CCRouter() (*gin.Engine, error) {
 
 func org(c *gin.Context) {
 	d := c.Request.Host
-	res := sendOriginInfo(d)
+	var s string
+	if d[:8] == "https://" {
+		s = d[8:]
+	} else if d[:7] == "http://" {
+		s = d[7:]
+	} else {
+		s = d
+	}
+	res := sendOriginInfo(s)
 	c.JSON(http.StatusOK, gin.H{
 		"data": res,
 	})
