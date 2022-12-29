@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -12,9 +13,12 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph"
 	"github.com/zicops/zicops-user-manager/graph/generated"
+	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/lib/jwt"
 )
 
@@ -36,10 +40,59 @@ func CCRouter() (*gin.Engine, error) {
 	})
 	restRouter.GET("/healthz", HealthCheckHandler)
 	restRouter.POST("/reset-password", ResetPasswordHandler)
+	restRouter.GET("/org", org)
 	// create group for restRouter
 	version1 := restRouter.Group("/api/v1")
 	version1.POST("/query", graphqlHandler())
 	return restRouter, nil
+}
+
+func org(c *gin.Context) {
+	d := c.Request.Host
+	res := sendOriginInfo(d)
+	c.JSON(http.StatusOK, gin.H{
+		"data": res,
+	})
+}
+
+func sendOriginInfo(domain string) *model.Organization {
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		log.Println("Got error while creating session ", err)
+	}
+	CassUserSession := session
+	queryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain='%s' ALLOW FILTERING`, domain)
+	getOrgs := func() (orgDomain userz.Organization, err error) {
+		q := CassUserSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return orgDomain, iter.Select(&orgDomain)
+	}
+	orgDetails, err := getOrgs()
+	if err != nil {
+		return nil
+	}
+	eCount, _ := strconv.Atoi(orgDetails.EmpCount)
+
+	res := &model.Organization{
+		OrgID:         &orgDetails.ID,
+		Name:          orgDetails.Name,
+		LogoURL:       &orgDetails.LogoURL,
+		Industry:      orgDetails.Industry,
+		Type:          orgDetails.Type,
+		Subdomain:     orgDetails.ZicopsSubdomain,
+		EmployeeCount: eCount,
+		Website:       orgDetails.Website,
+		LinkedinURL:   &orgDetails.Linkedin,
+		FacebookURL:   &orgDetails.Facebook,
+		TwitterURL:    &orgDetails.Twitter,
+		Status:        orgDetails.Status,
+		CreatedAt:     orgDetails.CreatedBy,
+		UpdatedAt:     orgDetails.UpdatedBy,
+		CreatedBy:     &orgDetails.CreatedBy,
+		UpdatedBy:     &orgDetails.UpdatedBy,
+	}
+	return res
 }
 
 type ResetPasswordRequest struct {

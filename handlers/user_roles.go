@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -78,11 +77,7 @@ func UpdateUserRole(ctx context.Context, input model.UserRoleInput) (*model.User
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	isAllowed := false
-	role := strings.ToLower(userCass.Role)
-	if userCass.ID == input.UserID || role == "admin" || strings.Contains(role, "manager") {
-		isAllowed = true
-	}
+	isAllowed := true
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
