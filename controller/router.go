@@ -59,6 +59,9 @@ func org(c *gin.Context) {
 }
 
 func sendOriginInfo(domain string) *model.Organization {
+	if domain == "demo.zicops.com" {
+		return nil
+	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		log.Println("Got error while creating session ", err)
