@@ -65,11 +65,24 @@ func sendOriginInfo(domain string) *model.Organization {
 		log.Println("Got error while creating session ", err)
 	}
 	CassUserSession := session
-	var orgDetails userz.Organization
-	queryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain=%s`, domain)
-	getQuery := CassUserSession.Query(queryStr, nil)
-	if err := getQuery.SelectRelease(&orgDetails); err != nil {
-		log.Println(err)
+	queryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain='%s' ALLOW FILTERING`, domain)
+
+	/*
+		getQuery := CassUserSession.Query(queryStr, nil)
+		if err := getQuery.SelectRelease(&orgDetails); err != nil {
+			log.Println(err)
+		}
+
+	*/
+	getOrgs := func() (orgDomain userz.Organization, err error) {
+		q := CassUserSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return orgDomain, iter.Select(&orgDomain)
+	}
+	orgDetails, err := getOrgs()
+	if err != nil {
+		return nil
 	}
 	eCount, _ := strconv.Atoi(orgDetails.EmpCount)
 
