@@ -65,13 +65,14 @@ func sendOriginInfo(domain string) *model.Organization {
 	}
 	CassUserSession := session
 	queryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain='%s' ALLOW FILTERING`, domain)
-	getOrgs := func() (orgDomain userz.Organization, err error) {
+	getOrgs := func() (orgDomain []userz.Organization, err error) {
 		q := CassUserSession.Query(queryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return orgDomain, iter.Select(&orgDomain)
 	}
-	orgDetails, err := getOrgs()
+	details, err := getOrgs()
+	orgDetails := details[0]
 	if err != nil {
 		return nil
 	}
