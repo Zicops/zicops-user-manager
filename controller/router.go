@@ -49,6 +49,9 @@ func CCRouter() (*gin.Engine, error) {
 
 func org(c *gin.Context) {
 	d := c.Request.Host
+	if d[:8] == "https://" {
+		d = d[8:]
+	}
 	res := sendOriginInfo(d)
 	c.JSON(http.StatusOK, gin.H{
 		"data": res,
