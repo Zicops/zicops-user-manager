@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -12,9 +13,12 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph"
 	"github.com/zicops/zicops-user-manager/graph/generated"
+	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/lib/jwt"
 )
 
@@ -36,6 +40,7 @@ func CCRouter() (*gin.Engine, error) {
 	})
 	restRouter.GET("/healthz", HealthCheckHandler)
 	restRouter.POST("/reset-password", ResetPasswordHandler)
+	restRouter.GET("/org", org)
 	// create group for restRouter
 	version1 := restRouter.Group("/api/v1")
 	version1.POST("/query", graphqlHandler())
@@ -44,6 +49,49 @@ func CCRouter() (*gin.Engine, error) {
 
 type ResetPasswordRequest struct {
 	Email string `json:"email"`
+}
+
+func org(c *gin.Context) {
+	d := c.Request.Host
+	res := sendOriginInfo(d)
+	c.JSON(http.StatusOK, gin.H{
+		"data": res,
+	})
+}
+
+func sendOriginInfo(domain string) *model.Organization {
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		log.Println("Got error while creating session ", err)
+	}
+	CassUserSession := session
+	var orgDetails userz.Organization
+	queryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain=%s`, domain)
+	getQuery := CassUserSession.Query(queryStr, nil)
+	if err := getQuery.SelectRelease(&orgDetails); err != nil {
+		log.Println(err)
+	}
+	eCount, _ := strconv.Atoi(orgDetails.EmpCount)
+
+	res := &model.Organization{
+		OrgID:         &orgDetails.ID,
+		Name:          orgDetails.Name,
+		LogoURL:       &orgDetails.LogoURL,
+		Industry:      orgDetails.Industry,
+		Type:          orgDetails.Type,
+		Subdomain:     orgDetails.ZicopsSubdomain,
+		EmployeeCount: eCount,
+		Website:       orgDetails.Website,
+		LinkedinURL:   &orgDetails.Linkedin,
+		FacebookURL:   &orgDetails.Facebook,
+		TwitterURL:    &orgDetails.Twitter,
+		Status:        orgDetails.Status,
+		CreatedAt:     orgDetails.CreatedBy,
+		UpdatedAt:     orgDetails.UpdatedBy,
+		CreatedBy:     &orgDetails.CreatedBy,
+		UpdatedBy:     &orgDetails.UpdatedBy,
+	}
+	return res
 }
 
 func ResetPasswordHandler(c *gin.Context) {
@@ -76,7 +124,7 @@ func HealthCheckHandler(c *gin.Context) {
 	}
 }
 
-//GetHealthStatus ...
+// GetHealthStatus ...
 func GetHealthStatus(w http.ResponseWriter) {
 	healthStatus := "Zicops user manager service is healthy"
 	response, _ := json.Marshal(healthStatus)
