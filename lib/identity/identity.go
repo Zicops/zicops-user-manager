@@ -163,7 +163,7 @@ func (id *IDP) VerifyInFirebase(ctx context.Context, email string, uid string) e
 }
 
 // GetResetPasswordURL ...
-func (id *IDP) GetResetPasswordURL(ctx context.Context, email, contURL string) (string, error) {
+func (id *IDP) GetResetPasswordURL(ctx context.Context, email, contURL string, origin string) (string, error) {
 	actionCode := auth.ActionCodeSettings{
 		URL: contURL,
 	}
@@ -180,7 +180,7 @@ func (id *IDP) GetResetPasswordURL(ctx context.Context, email, contURL string) (
 			return "", err
 		}
 	}
-	zicopReplace := strings.Replace(verifyLink, "https://zicops-one.firebaseapp.com/__/auth/action?", "https://staging.zicops.com/reset-password?", 1)
+	zicopReplace := strings.Replace(verifyLink, "https://zicops-one.firebaseapp.com/__/auth/action?", "https://"+origin+"/reset-password?", 1)
 	return zicopReplace, nil
 }
 

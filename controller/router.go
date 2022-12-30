@@ -126,7 +126,7 @@ func ResetPasswordHandler(c *gin.Context) {
 	email := resetPasswordRequest.Email
 	origin := c.Request.Header.Get("Origin")
 	ctx := c.Request.Context()
-	passwordReset, err := global.IDP.GetResetPasswordURL(ctx, email, origin)
+	passwordReset, err := global.IDP.GetResetPasswordURL(ctx, email, origin, origin)
 	if err != nil {
 		return
 	}
