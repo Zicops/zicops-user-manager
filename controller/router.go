@@ -58,6 +58,9 @@ func org(c *gin.Context) {
 }
 
 func sendOriginInfo(ctx context.Context, domain string) *model.Organization {
+	if domain == "demo.zicops.com" || domain == "https://demo.zicops.com"{
+		return nil
+	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		log.Println("Got error while creating session ", err)
@@ -83,7 +86,7 @@ func sendOriginInfo(ctx context.Context, domain string) *model.Organization {
 		log.Error(err)
 	}
 	// get the logo url
-	logoUrl := ""
+	logoUrl := orgDetails.LogoURL
 	if orgDetails.LogoBucket != "" {
 		logoUrl = storageC.GetSignedURLForObject(orgDetails.LogoBucket)
 	}
