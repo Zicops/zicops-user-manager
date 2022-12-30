@@ -170,7 +170,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 		usrLspMaps = append(usrLspMaps, usrLspMap...)
 		if shouldSendEmail {
 			if isZAdmin && !userExists {
-				passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email, origin)
+				passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email, origin, origin)
 				if err != nil {
 					return nil, nil, err
 				}
