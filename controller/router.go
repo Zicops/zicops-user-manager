@@ -130,7 +130,7 @@ func ResetPasswordHandler(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	global.SGClient.SendJoinEmail(email, passwordReset, "")
+	global.SGClient.SendPasswordResetEmail(email, passwordReset, "")
 }
 
 func HealthCheckHandler(c *gin.Context) {

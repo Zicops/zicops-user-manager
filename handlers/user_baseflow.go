@@ -35,6 +35,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 	CassUserSession := session
 
 	roleValue := claims["email"]
+	name := claims["name"].(string)
 	lspId := claims["lsp_id"].(string)
 	origin := claims["origin"].(string)
 	if !isZAdmin {
@@ -52,6 +53,22 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 	}
 	var photoBucket string
 	var photoUrl string
+	qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where id='%s' ALLOW FILTERING `, lspId)
+	getOrgs := func() (users []userz.Lsp, err error) {
+		q := CassUserSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	orgs, err := getOrgs()
+	if err != nil {
+		log.Errorf("error getting lsp: %v", err)
+		return nil, nil, err
+	}
+	if len(orgs) == 0 {
+		return nil, nil, fmt.Errorf("lsp not found")
+	}
+	lspToAdd := orgs[0]
 	for _, user := range input {
 		userID := base64.URLEncoding.EncodeToString([]byte(user.Email))
 		if user.Photo != nil && user.PhotoURL == nil {
@@ -159,7 +176,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 				}
 				global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
 			} else if isZAdmin && userExists {
-				global.SGClient.SendInviteToLspEmail(responseUser.Email, origin+"/login", responseUser.FirstName+" "+responseUser.LastName)
+				global.SGClient.SendInviteToLspEmail(responseUser.Email, origin+"/login", name, lspToAdd.Name)
 			}
 		}
 
