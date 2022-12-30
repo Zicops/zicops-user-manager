@@ -80,13 +80,24 @@ func (sgc *ClientSendGrid) SendPasswordResetEmail(
 // SendInviteToLspEmail ......
 func (sgc *ClientSendGrid) SendInviteToLspEmail(
 	email string,
-	verifyURL string, username string) error {
-	from := mail.NewEmail("Zicops Admin", "lspadmin@zicops.com")
-	subject := "You have been invited to a learning space"
-	to := mail.NewEmail(username, email)
-	plainTextContent := "Follow the link to view all your learning spaces: " + verifyURL
-	message := mail.NewSingleEmail(from, subject, to, plainTextContent, "")
-	_, err := sgc.client.Send(message)
+	verifyURL string,
+	orgName string, lspName string) error {
+	mailSetup := mail.NewV3Mail()
+	from := mail.NewEmail("Zicops Admin", "no_reply@zicops.com")
+	to := mail.NewEmail(email, email)
+	mailSetup.SetFrom(from)
+	mailSetup.SetTemplateID("d-7aa878e4e4e346d3bfd58561e6a59ef8")
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+	p.SetDynamicTemplateData("organization_name", orgName)
+	p.SetDynamicTemplateData("lsp_name", lspName)
+	p.SetDynamicTemplateData("login_url", verifyURL)
+	mailSetup.AddPersonalizations(p)
+	request := sendgrid.GetRequest("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", "/v3/mail/send", "https://api.sendgrid.com")
+	request.Method = "POST"
+	var Body = mail.GetRequestBody(mailSetup)
+	request.Body = Body
+	_, err := sendgrid.API(request)
 	if err != nil {
 		return err
 	}
