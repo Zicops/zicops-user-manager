@@ -56,12 +56,21 @@ func (sgc *ClientSendGrid) SendJoinEmail(
 func (sgc *ClientSendGrid) SendPasswordResetEmail(
 	email string,
 	verifyURL string, username string) error {
-	from := mail.NewEmail("Zicops Admin", "noreply@zicops.com")
-	subject := "Link to reset your password"
+	mailSetup := mail.NewV3Mail()
+	from := mail.NewEmail("Zicops Admin", "no_reply@zicops.com")
 	to := mail.NewEmail(username, email)
-	plainTextContent := "Follow the link to reset your password: " + verifyURL
-	message := mail.NewSingleEmail(from, subject, to, plainTextContent, "")
-	_, err := sgc.client.Send(message)
+	mailSetup.SetFrom(from)
+	mailSetup.SetTemplateID("d-1d5dbc9466574b148cc9add368a37b26")
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+	p.SetDynamicTemplateData("reset_pwd_url", verifyURL)
+	p.SetDynamicTemplateData("username", email)
+	mailSetup.AddPersonalizations(p)
+	request := sendgrid.GetRequest("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", "/v3/mail/send", "https://api.sendgrid.com")
+	request.Method = "POST"
+	var Body = mail.GetRequestBody(mailSetup)
+	request.Body = Body
+	_, err := sendgrid.API(request)
 	if err != nil {
 		return err
 	}
