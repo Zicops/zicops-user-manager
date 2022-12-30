@@ -19,6 +19,8 @@ import (
 	"github.com/zicops/zicops-user-manager/graph"
 	"github.com/zicops/zicops-user-manager/graph/generated"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/lib/db/bucket"
+	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
 	"github.com/zicops/zicops-user-manager/lib/jwt"
 )
 
@@ -49,35 +51,46 @@ func CCRouter() (*gin.Engine, error) {
 
 func org(c *gin.Context) {
 	d := c.Request.Host
-	res := sendOriginInfo(d)
+	res := sendOriginInfo(c.Request.Context(), d)
 	c.JSON(http.StatusOK, gin.H{
 		"data": res,
 	})
 }
 
-func sendOriginInfo(domain string) *model.Organization {
+func sendOriginInfo(ctx context.Context, domain string) *model.Organization {
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		log.Println("Got error while creating session ", err)
 	}
 	CassUserSession := session
 	queryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain='%s' ALLOW FILTERING`, domain)
-	getOrgs := func() (orgDomain userz.Organization, err error) {
+	getOrgs := func() (orgDomain []userz.Organization, err error) {
 		q := CassUserSession.Query(queryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
 		return orgDomain, iter.Select(&orgDomain)
 	}
-	orgDetails, err := getOrgs()
+	details, err := getOrgs()
+	orgDetails := details[0]
 	if err != nil {
 		return nil
 	}
 	eCount, _ := strconv.Atoi(orgDetails.EmpCount)
-
+	storageC := bucket.NewStorageHandler()
+	projectID := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, projectID)
+	if err != nil {
+		log.Error(err)
+	}
+	// get the logo url
+	logoUrl := ""
+	if orgDetails.LogoBucket != "" {
+		logoUrl = storageC.GetSignedURLForObject(orgDetails.LogoBucket)
+	}
 	res := &model.Organization{
 		OrgID:         &orgDetails.ID,
 		Name:          orgDetails.Name,
-		LogoURL:       &orgDetails.LogoURL,
+		LogoURL:       &logoUrl,
 		Industry:      orgDetails.Industry,
 		Type:          orgDetails.Type,
 		Subdomain:     orgDetails.ZicopsSubdomain,
