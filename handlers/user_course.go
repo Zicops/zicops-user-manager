@@ -25,14 +25,16 @@ func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*mode
 	}
 	CassUserSession := session
 
-	isAllowed := false
-	role := strings.ToLower(userCass.Role)
-	if userCass.ID == input[0].UserID || role == "admin" || strings.Contains(role, "manager") {
-		isAllowed = true
-	}
-	if !isAllowed {
-		return nil, fmt.Errorf("user not allowed to create org mapping")
-	}
+	/*
+		isAllowed := false
+		role := strings.ToLower(userCass.Role)
+		if userCass.ID == input[0].UserID || role == "admin" || strings.Contains(role, "manager") {
+			isAllowed = true
+		}
+		if !isAllowed {
+			return nil, fmt.Errorf("user not allowed to create org mapping")
+		}
+	*/
 	userLspMaps := make([]*model.UserCourse, 0)
 	for _, input := range input {
 
