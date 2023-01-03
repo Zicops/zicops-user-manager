@@ -25,7 +25,7 @@ func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*mode
 	}
 	CassUserSession := session
 
-	isAllowed := false
+	isAllowed := true
 	role := strings.ToLower(userCass.Role)
 	if userCass.ID == input[0].UserID || role == "admin" || strings.Contains(role, "manager") {
 		isAllowed = true
