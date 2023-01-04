@@ -176,7 +176,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 				}
 				global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
 			} else if isZAdmin && userExists {
-				global.SGClient.SendInviteToLspEmail(responseUser.Email, origin+"/login", responseUser.FirstName, lspToAdd.Name)
+				global.SGClient.SendInviteToLspEmail(responseUser.Email, origin+"/login", lspToAdd.Name, lspToAdd.Name)
 			}
 		}
 
