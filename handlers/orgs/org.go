@@ -44,7 +44,7 @@ func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model
 	if err != nil {
 		return nil, err
 	}
-	uniqueOrgId := input.Name + input.Website + input.Industry
+	uniqueOrgId := input.Name + input.Website + input.Industry + input.Subdomain
 	orgId := uuid.NewSHA1(uuid.NameSpaceURL, []byte(uniqueOrgId)).String()
 	if input.Logo != nil {
 		bucketPath := fmt.Sprintf("orgs/%s/%s/%s", "logos", orgId, input.Logo.Filename)
