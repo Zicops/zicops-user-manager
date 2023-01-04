@@ -35,7 +35,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 	CassUserSession := session
 
 	roleValue := claims["email"]
-	name := claims["name"].(string)
+	//name := claims["name"].(string)
 	lspId := claims["lsp_id"].(string)
 	origin := claims["origin"].(string)
 	if !isZAdmin {
@@ -176,7 +176,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 				}
 				global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName)
 			} else if isZAdmin && userExists {
-				global.SGClient.SendInviteToLspEmail(responseUser.Email, origin+"/login", name, lspToAdd.Name)
+				global.SGClient.SendInviteToLspEmail(responseUser.Email, origin+"/login", responseUser.FirstName, lspToAdd.Name)
 			}
 		}
 
