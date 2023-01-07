@@ -354,6 +354,7 @@ func GetOrganizationsByName(ctx context.Context, name *string, prevPageSnapShot 
 	if err != nil {
 		return nil, err
 	}
+
 	CassUserSession := session
 
 	var qryStr string
