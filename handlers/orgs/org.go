@@ -360,7 +360,8 @@ func GetOrganizationsByName(ctx context.Context, name *string, prevPageSnapShot 
 	if name == nil || *name == "" {
 		qryStr = fmt.Sprint(`SELECT * from userz.organization`)
 	} else {
-		qryStr = fmt.Sprintf(`SELECT * from userz.organization where name='%s' `, *name)
+		n := strings.ToLower(*name)
+		qryStr = fmt.Sprintf(`SELECT * from userz.organization where name='%s' `, n)
 	}
 
 	getOrgs := func() (users []userz.Organization, err error) {
