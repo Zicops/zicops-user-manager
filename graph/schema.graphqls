@@ -713,6 +713,7 @@ type Query {
     searchText: String
   ): PaginatedCohortsMain
   getOrganizations(org_ids: [String]): [Organization]
+  getOrganizationsByName(name: String, prevPageSnapShot: String!, pageSize: Int!): [Organization]
   getOrganizationUnits(ou_ids: [String]): [OrganizationUnit]
   getUnitsByOrgId(org_id: String!): [OrganizationUnit]
   getLearningSpacesByOrgId(org_id: String!): [LearningSpace]

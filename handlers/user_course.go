@@ -70,6 +70,7 @@ func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*mode
 		if err := insertQuery.ExecRelease(); err != nil {
 			return nil, err
 		}
+		//getcoursetopic - topics
 		created := strconv.FormatInt(userLspMap.CreatedAt, 10)
 		updated := strconv.FormatInt(userLspMap.UpdatedAt, 10)
 		userLspOutput := &model.UserCourse{

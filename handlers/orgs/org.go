@@ -340,6 +340,91 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 	return outputOrgs, nil
 }
 
+func GetOrganizationsByName(ctx context.Context, name *string, prevPageSnapShot string, pageSize int) ([]*model.Organization, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	email := claims["email"].(string)
+	if strings.ToLower(email) != "puneet@zicops.com" {
+		return nil, fmt.Errorf("user is a not zicops admin: Unauthorized")
+	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+
+	CassUserSession := session
+
+	var qryStr string
+	if name == nil || *name == "" {
+		qryStr = fmt.Sprint(`SELECT * from userz.organization`)
+	} else {
+		n := strings.ToLower(*name)
+		qryStr = fmt.Sprintf(`SELECT * from userz.organization where name='%s' `, n)
+	}
+
+	getOrgs := func() (users []userz.Organization, err error) {
+		q := CassUserSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	orgs, err := getOrgs()
+	if err != nil {
+		return nil, err
+	}
+	if len(orgs) == 0 {
+		return nil, nil
+	}
+	//here will map data from backend to models interface and return it
+	var result []*model.Organization
+	for _, v := range orgs {
+
+		id := &v.ID
+		empCount, _ := strconv.Atoi(v.EmpCount)
+		lnkdIn := &v.Linkedin
+		fb := &v.Facebook
+		twtr := &v.Twitter
+		createdAt := strconv.Itoa(int(v.CreatedAt))
+		updatedAt := strconv.Itoa(int(v.UpdatedAt))
+		cb := &v.CreatedBy
+		ub := &v.UpdatedBy
+
+		logoUrl := v.LogoURL
+		storageC := bucket.NewStorageHandler()
+		gproject := googleprojectlib.GetGoogleProjectID()
+		err = storageC.InitializeStorageClient(ctx, gproject)
+		if err != nil {
+			return nil, nil
+		}
+		if v.LogoBucket != "" {
+			logoUrl = storageC.GetSignedURLForObject(v.LogoBucket)
+		}
+
+		temp := &model.Organization{
+			OrgID:         id,
+			Name:          v.Name,
+			LogoURL:       &logoUrl,
+			Industry:      v.Industry,
+			Type:          v.Type,
+			Subdomain:     v.ZicopsSubdomain,
+			EmployeeCount: empCount,
+			Website:       v.Website,
+			LinkedinURL:   lnkdIn,
+			FacebookURL:   fb,
+			TwitterURL:    twtr,
+			Status:        v.Status,
+			CreatedAt:     createdAt,
+			UpdatedAt:     updatedAt,
+			CreatedBy:     cb,
+			UpdatedBy:     ub,
+		}
+		result = append(result, temp)
+	}
+	return result, nil
+}
+
 func GetOrganizationsByDomain(ctx context.Context, domain string) ([]*model.Organization, error) {
 	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
