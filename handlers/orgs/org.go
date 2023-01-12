@@ -346,7 +346,7 @@ func GetOrganizationsByName(ctx context.Context, name *string, prevPageSnapShot 
 		return nil, err
 	}
 	email := claims["email"].(string)
-	if strings.ToLower(email) != "puneet@zicops.com" {
+	if strings.ToLower(email) != "anshjoshi0607@gmail.com" {
 		return nil, fmt.Errorf("user is a not zicops admin: Unauthorized")
 	}
 	session, err := cassandra.GetCassSession("userz")
