@@ -179,6 +179,7 @@ type UserCohort {
 input UserCourseInput {
   user_course_id: ID
   user_id: String!
+  lsp_id: String!
   user_lsp_id: String!
   course_id: String!
   course_type: String!
@@ -193,6 +194,7 @@ input UserCourseInput {
 type UserCourse {
   user_course_id: ID
   user_id: String!
+  lsp_id: String!
   user_lsp_id: String!
   course_id: String!
   course_type: String!
@@ -648,19 +650,20 @@ type Query {
   ): UserPreference
   getUserLsps(user_id: String!): [UserLspMap]
   getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
-  getUserCourseMaps(
+  getUserCourseMaps( 
+    lsp_id: String
     user_id: String!
     publish_time: Int
     pageCursor: String
     Direction: String
     pageSize: Int
   ): PaginatedCourseMaps
-  getUserCourseMapByCourseID(user_id: String!, course_id: String!): [UserCourse]
+  getUserCourseMapByCourseID(user_id: String!, course_id: String!, lsp_id:String): [UserCourse]   #2
   getUserCourseProgressByMapId(
     user_id: String!
     user_course_id: [ID!]
   ): [UserCourseProgress]
-  getUserCourseProgressByTopicId(
+  getUserCourseProgressByTopicId(    
     user_id: String!
     topic_id: ID!
   ): [UserCourseProgress]

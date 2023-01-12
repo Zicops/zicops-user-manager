@@ -54,6 +54,7 @@ func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*mode
 		userLspMap := userz.UserCourse{
 			ID:           uuid.New().String(),
 			UserID:       input.UserID,
+			LspID:        input.LspID,
 			UserLspID:    input.UserLspID,
 			CourseID:     input.CourseID,
 			CourseType:   input.CourseType,
@@ -165,6 +166,10 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 	if input.UserLspID != "" {
 		userLspMap.UserLspID = input.UserLspID
 		updatedCols = append(updatedCols, "user_lsp_id")
+	}
+	if input.LspID != "" {
+		userLspMap.LspID = input.LspID
+		updatedCols = append(updatedCols, "lsp_id")
 	}
 
 	if len(updatedCols) > 0 {

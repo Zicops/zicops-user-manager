@@ -511,8 +511,8 @@ func (r *queryResolver) GetUserLspByLspID(ctx context.Context, userID string, ls
 }
 
 // GetUserCourseMaps is the resolver for the getUserCourseMaps field.
-func (r *queryResolver) GetUserCourseMaps(ctx context.Context, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error) {
-	result, err := queries.GetUserCourseMaps(ctx, userID, publishTime, pageCursor, direction, pageSize)
+func (r *queryResolver) GetUserCourseMaps(ctx context.Context, lspID *string, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error) {
+	result, err := queries.GetUserCourseMaps(ctx, lspID, userID, publishTime, pageCursor, direction, pageSize)
 	if err != nil {
 		log.Errorf("Error getting courses of a user: %v", err)
 		return nil, err
@@ -521,7 +521,7 @@ func (r *queryResolver) GetUserCourseMaps(ctx context.Context, userID string, pu
 }
 
 // GetUserCourseMapByCourseID is the resolver for the getUserCourseMapByCourseID field.
-func (r *queryResolver) GetUserCourseMapByCourseID(ctx context.Context, userID string, courseID string) ([]*model.UserCourse, error) {
+func (r *queryResolver) GetUserCourseMapByCourseID(ctx context.Context, userID string, courseID string, lspID *string) ([]*model.UserCourse, error) {
 	result, err := queries.GetUserCourseMapByCourseID(ctx, userID, courseID)
 	if err != nil {
 		log.Errorf("Error getting course of a user: %v", err)
