@@ -216,8 +216,8 @@ type ComplexityRoot struct {
 		GetOrganizationsByName         func(childComplexity int, name *string, prevPageSnapShot string, pageSize int) int
 		GetUnitsByOrgID                func(childComplexity int, orgID string) int
 		GetUserBookmarks               func(childComplexity int, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
-		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string) int
-		GetUserCourseMaps              func(childComplexity int, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
+		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string, lspID *string) int
+		GetUserCourseMaps              func(childComplexity int, lspID *string, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseProgressByMapID   func(childComplexity int, userID string, userCourseID []string) int
 		GetUserCourseProgressByTopicID func(childComplexity int, userID string, topicID string) int
 		GetUserDetails                 func(childComplexity int, userIds []*string) int
@@ -296,6 +296,7 @@ type ComplexityRoot struct {
 		CreatedBy    func(childComplexity int) int
 		EndDate      func(childComplexity int) int
 		IsMandatory  func(childComplexity int) int
+		LspID        func(childComplexity int) int
 		UpdatedAt    func(childComplexity int) int
 		UpdatedBy    func(childComplexity int) int
 		UserCourseID func(childComplexity int) int
@@ -524,8 +525,8 @@ type QueryResolver interface {
 	GetUserPreferenceForLsp(ctx context.Context, userID string, userLspID string) (*model.UserPreference, error)
 	GetUserLsps(ctx context.Context, userID string) ([]*model.UserLspMap, error)
 	GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model.UserLspMap, error)
-	GetUserCourseMaps(ctx context.Context, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error)
-	GetUserCourseMapByCourseID(ctx context.Context, userID string, courseID string) ([]*model.UserCourse, error)
+	GetUserCourseMaps(ctx context.Context, lspID *string, userID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error)
+	GetUserCourseMapByCourseID(ctx context.Context, userID string, courseID string, lspID *string) ([]*model.UserCourse, error)
 	GetUserCourseProgressByMapID(ctx context.Context, userID string, userCourseID []string) ([]*model.UserCourseProgress, error)
 	GetUserCourseProgressByTopicID(ctx context.Context, userID string, topicID string) ([]*model.UserCourseProgress, error)
 	GetUserNotes(ctx context.Context, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error)
@@ -1775,7 +1776,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserCourseMapByCourseID(childComplexity, args["user_id"].(string), args["course_id"].(string)), true
+		return e.complexity.Query.GetUserCourseMapByCourseID(childComplexity, args["user_id"].(string), args["course_id"].(string), args["lsp_id"].(*string)), true
 
 	case "Query.getUserCourseMaps":
 		if e.complexity.Query.GetUserCourseMaps == nil {
@@ -1787,7 +1788,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetUserCourseMaps(childComplexity, args["user_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+		return e.complexity.Query.GetUserCourseMaps(childComplexity, args["lsp_id"].(*string), args["user_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
 	case "Query.getUserCourseProgressByMapId":
 		if e.complexity.Query.GetUserCourseProgressByMapID == nil {
@@ -2335,6 +2336,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserCourse.IsMandatory(childComplexity), true
+
+	case "UserCourse.lsp_id":
+		if e.complexity.UserCourse.LspID == nil {
+			break
+		}
+
+		return e.complexity.UserCourse.LspID(childComplexity), true
 
 	case "UserCourse.updated_at":
 		if e.complexity.UserCourse.UpdatedAt == nil {
@@ -3565,6 +3573,7 @@ type UserCohort {
 input UserCourseInput {
   user_course_id: ID
   user_id: String!
+  lsp_id: String!
   user_lsp_id: String!
   course_id: String!
   course_type: String!
@@ -3579,6 +3588,7 @@ input UserCourseInput {
 type UserCourse {
   user_course_id: ID
   user_id: String!
+  lsp_id: String!
   user_lsp_id: String!
   course_id: String!
   course_type: String!
@@ -4034,19 +4044,20 @@ type Query {
   ): UserPreference
   getUserLsps(user_id: String!): [UserLspMap]
   getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
-  getUserCourseMaps(
+  getUserCourseMaps( 
+    lsp_id: String   #1
     user_id: String!
     publish_time: Int
     pageCursor: String
     Direction: String
     pageSize: Int
   ): PaginatedCourseMaps
-  getUserCourseMapByCourseID(user_id: String!, course_id: String!): [UserCourse]
+  getUserCourseMapByCourseID(user_id: String!, course_id: String!, lsp_id:String): [UserCourse]   #2
   getUserCourseProgressByMapId(
     user_id: String!
     user_course_id: [ID!]
   ): [UserCourseProgress]
-  getUserCourseProgressByTopicId(
+  getUserCourseProgressByTopicId(    
     user_id: String!
     topic_id: ID!
   ): [UserCourseProgress]
@@ -4128,8 +4139,8 @@ type Mutation {
   updateUserRole(input: UserRoleInput!): UserRole
   addUserCohort(input: [UserCohortInput]!): [UserCohort]
   updateUserCohort(input: UserCohortInput!): UserCohort
-  addUserCourse(input: [UserCourseInput]!): [UserCourse]
-  updateUserCourse(input: UserCourseInput!): UserCourse
+  addUserCourse(input: [UserCourseInput]!): [UserCourse]    #5
+  updateUserCourse(input: UserCourseInput!): UserCourse     #6
   addUserCourseProgress(input: [UserCourseProgressInput]!): [UserCourseProgress]
   updateUserCourseProgress(input: UserCourseProgressInput!): UserCourseProgress
   addUserQuizAttempt(input: [UserQuizAttemptInput]!): [UserQuizAttempt]
@@ -5163,57 +5174,75 @@ func (ec *executionContext) field_Query_getUserCourseMapByCourseID_args(ctx cont
 		}
 	}
 	args["course_id"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lsp_id"] = arg2
 	return args, nil
 }
 
 func (ec *executionContext) field_Query_getUserCourseMaps_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *string
+	if tmp, ok := rawArgs["lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lsp_id"] = arg0
+	var arg1 string
 	if tmp, ok := rawArgs["user_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["user_id"] = arg0
-	var arg1 *int
+	args["user_id"] = arg1
+	var arg2 *int
 	if tmp, ok := rawArgs["publish_time"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("publish_time"))
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["publish_time"] = arg1
-	var arg2 *string
+	args["publish_time"] = arg2
+	var arg3 *string
 	if tmp, ok := rawArgs["pageCursor"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageCursor"))
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["pageCursor"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["Direction"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
 		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["Direction"] = arg3
-	var arg4 *int
-	if tmp, ok := rawArgs["pageSize"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
-		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	args["pageCursor"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["Direction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["pageSize"] = arg4
+	args["Direction"] = arg4
+	var arg5 *int
+	if tmp, ok := rawArgs["pageSize"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
+		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageSize"] = arg5
 	return args, nil
 }
 
@@ -8053,6 +8082,8 @@ func (ec *executionContext) fieldContext_Mutation_addUserCourse(ctx context.Cont
 				return ec.fieldContext_UserCourse_user_course_id(ctx, field)
 			case "user_id":
 				return ec.fieldContext_UserCourse_user_id(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_UserCourse_lsp_id(ctx, field)
 			case "user_lsp_id":
 				return ec.fieldContext_UserCourse_user_lsp_id(ctx, field)
 			case "course_id":
@@ -8133,6 +8164,8 @@ func (ec *executionContext) fieldContext_Mutation_updateUserCourse(ctx context.C
 				return ec.fieldContext_UserCourse_user_course_id(ctx, field)
 			case "user_id":
 				return ec.fieldContext_UserCourse_user_id(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_UserCourse_lsp_id(ctx, field)
 			case "user_lsp_id":
 				return ec.fieldContext_UserCourse_user_lsp_id(ctx, field)
 			case "course_id":
@@ -11831,6 +11864,8 @@ func (ec *executionContext) fieldContext_PaginatedCourseMaps_user_courses(ctx co
 				return ec.fieldContext_UserCourse_user_course_id(ctx, field)
 			case "user_id":
 				return ec.fieldContext_UserCourse_user_id(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_UserCourse_lsp_id(ctx, field)
 			case "user_lsp_id":
 				return ec.fieldContext_UserCourse_user_lsp_id(ctx, field)
 			case "course_id":
@@ -13258,7 +13293,7 @@ func (ec *executionContext) _Query_getUserCourseMaps(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserCourseMaps(rctx, fc.Args["user_id"].(string), fc.Args["publish_time"].(*int), fc.Args["pageCursor"].(*string), fc.Args["Direction"].(*string), fc.Args["pageSize"].(*int))
+		return ec.resolvers.Query().GetUserCourseMaps(rctx, fc.Args["lsp_id"].(*string), fc.Args["user_id"].(string), fc.Args["publish_time"].(*int), fc.Args["pageCursor"].(*string), fc.Args["Direction"].(*string), fc.Args["pageSize"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13320,7 +13355,7 @@ func (ec *executionContext) _Query_getUserCourseMapByCourseID(ctx context.Contex
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetUserCourseMapByCourseID(rctx, fc.Args["user_id"].(string), fc.Args["course_id"].(string))
+		return ec.resolvers.Query().GetUserCourseMapByCourseID(rctx, fc.Args["user_id"].(string), fc.Args["course_id"].(string), fc.Args["lsp_id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13346,6 +13381,8 @@ func (ec *executionContext) fieldContext_Query_getUserCourseMapByCourseID(ctx co
 				return ec.fieldContext_UserCourse_user_course_id(ctx, field)
 			case "user_id":
 				return ec.fieldContext_UserCourse_user_id(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_UserCourse_lsp_id(ctx, field)
 			case "user_lsp_id":
 				return ec.fieldContext_UserCourse_user_lsp_id(ctx, field)
 			case "course_id":
@@ -16826,6 +16863,50 @@ func (ec *executionContext) _UserCourse_user_id(ctx context.Context, field graph
 }
 
 func (ec *executionContext) fieldContext_UserCourse_user_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserCourse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserCourse_lsp_id(ctx context.Context, field graphql.CollectedField, obj *model.UserCourse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserCourse_lsp_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LspID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserCourse_lsp_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UserCourse",
 		Field:      field,
@@ -25519,7 +25600,7 @@ func (ec *executionContext) unmarshalInputUserCourseInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"user_course_id", "user_id", "user_lsp_id", "course_id", "course_type", "added_by", "is_mandatory", "end_date", "course_status", "created_by", "updated_by"}
+	fieldsInOrder := [...]string{"user_course_id", "user_id", "lsp_id", "user_lsp_id", "course_id", "course_type", "added_by", "is_mandatory", "end_date", "course_status", "created_by", "updated_by"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -25539,6 +25620,14 @@ func (ec *executionContext) unmarshalInputUserCourseInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
 			it.UserID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "lsp_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+			it.LspID, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -28874,6 +28963,13 @@ func (ec *executionContext) _UserCourse(ctx context.Context, sel ast.SelectionSe
 		case "user_id":
 
 			out.Values[i] = ec._UserCourse_user_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "lsp_id":
+
+			out.Values[i] = ec._UserCourse_lsp_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

@@ -15,7 +15,7 @@ import (
 	"github.com/zicops/zicops-user-manager/helpers"
 )
 
-func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error) {
+func GetUserCourseMaps(ctx context.Context, lspId *string, userId string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,11 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 	}
 	var newCursor string
 
-	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and created_at <= %d  ALLOW FILTERING`, emailCreatorID, *publishTime)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and created_at <= %d  `, emailCreatorID, *publishTime)
+	if lspId != nil {
+		qryStr = qryStr + fmt.Sprintf(`and lsp_id = '%s' `, *lspId)
+	}
+	qryStr = qryStr + fmt.Sprint(`ALLOW FILTERING`)
 	getUsers := func(page []byte) (courses []userz.UserCourse, nextPage []byte, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -96,6 +100,7 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 			currentCourse := &model.UserCourse{
 				UserCourseID: &courseCopy.ID,
 				UserID:       courseCopy.UserID,
+				LspID:        courseCopy.LspID,
 				UserLspID:    courseCopy.UserLspID,
 				CourseID:     courseCopy.CourseID,
 				CourseType:   courseCopy.CourseType,
