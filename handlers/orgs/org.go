@@ -379,8 +379,9 @@ func GetOrganizationsByName(ctx context.Context, name *string, prevPageSnapShot 
 	}
 	//here will map data from backend to models interface and return it
 	var result []*model.Organization
-	for _, v := range orgs {
+	for _, vv := range orgs {
 
+		v := vv
 		id := &v.ID
 		empCount, _ := strconv.Atoi(v.EmpCount)
 		lnkdIn := &v.Linkedin
