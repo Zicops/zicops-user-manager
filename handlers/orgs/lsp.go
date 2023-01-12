@@ -33,8 +33,8 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	CassUserSession := session
 
 	roleValue := claims["email"]
-	role := roleValue.(string)
-	userId := base64.StdEncoding.EncodeToString([]byte(role))
+	email := roleValue.(string)
+	userId := base64.StdEncoding.EncodeToString([]byte(email))
 	uniqueOrgId := input.OrgID + input.OuID
 	lspID := uuid.NewV5(uuid.NamespaceURL, uniqueOrgId).String()
 	owners := []string{}
@@ -43,7 +43,7 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 			owners = append(owners, *owner)
 		}
 	} else {
-		owners = append(owners, role)
+		owners = append(owners, email)
 	}
 	logoUrl := ""
 	logoBucket := ""
@@ -116,8 +116,8 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 		Status:               input.Status,
 		CreatedAt:            time.Now().Unix(),
 		UpdatedAt:            time.Now().Unix(),
-		CreatedBy:            role,
-		UpdatedBy:            role,
+		CreatedBy:            email,
+		UpdatedBy:            email,
 		LogoBucket:           logoBucket,
 		LogoURL:              logoUrl,
 		ProfilePictureBucket: photoBucket,
@@ -131,25 +131,27 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 		UserID:    userId,
 		LspID:     lspID,
 		Status:    "",
-		CreatedBy: &role,
-		UpdatedBy: &role,
+		CreatedBy: &email,
+		UpdatedBy: &email,
 	}
 	isAdminCall := true
-	lspMaps, err := handlers.AddUserLspMap(ctx, []*model.UserLspMapInput{userLspMap}, &isAdminCall)
-	if err != nil {
-		return nil, err
-	}
-	userRoleMap := &model.UserRoleInput{
-		UserID:    userId,
-		Role:      "admin",
-		UserLspID: *lspMaps[0].UserLspID,
-		IsActive:  true,
-		CreatedBy: &role,
-		UpdatedBy: &role,
-	}
-	_, err = handlers.AddUserRoles(ctx, []*model.UserRoleInput{userRoleMap})
-	if err != nil {
-		return nil, err
+	if !input.IsDefault && email != "puneet@zicops.com" {
+		lspMaps, err := handlers.AddUserLspMap(ctx, []*model.UserLspMapInput{userLspMap}, &isAdminCall)
+		if err != nil {
+			return nil, err
+		}
+		userRoleMap := &model.UserRoleInput{
+			UserID:    userId,
+			Role:      "admin",
+			UserLspID: *lspMaps[0].UserLspID,
+			IsActive:  true,
+			CreatedBy: &email,
+			UpdatedBy: &email,
+		}
+		_, err = handlers.AddUserRoles(ctx, []*model.UserRoleInput{userRoleMap})
+		if err != nil {
+			return nil, err
+		}
 	}
 	created := strconv.FormatInt(lspYay.CreatedAt, 10)
 	updated := strconv.FormatInt(lspYay.UpdatedAt, 10)
