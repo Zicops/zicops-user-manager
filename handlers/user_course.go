@@ -189,6 +189,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 		UserCourseID: &userLspMap.ID,
 		UserLspID:    userLspMap.UserLspID,
 		UserID:       userLspMap.UserID,
+		LspID:        &userLspMap.LspID,
 		CourseID:     userLspMap.CourseID,
 		CourseType:   userLspMap.CourseType,
 		CourseStatus: userLspMap.CourseStatus,
