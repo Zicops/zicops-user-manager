@@ -3573,7 +3573,7 @@ type UserCohort {
 input UserCourseInput {
   user_course_id: ID
   user_id: String!
-  lsp_id: String!
+  lsp_id: String
   user_lsp_id: String!
   course_id: String!
   course_type: String!
@@ -3588,7 +3588,7 @@ input UserCourseInput {
 type UserCourse {
   user_course_id: ID
   user_id: String!
-  lsp_id: String!
+  lsp_id: String
   user_lsp_id: String!
   course_id: String!
   course_type: String!
@@ -4045,14 +4045,14 @@ type Query {
   getUserLsps(user_id: String!): [UserLspMap]
   getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
   getUserCourseMaps( 
-    lsp_id: String   #1
+    lsp_id: String
     user_id: String!
     publish_time: Int
     pageCursor: String
     Direction: String
     pageSize: Int
   ): PaginatedCourseMaps
-  getUserCourseMapByCourseID(user_id: String!, course_id: String!, lsp_id:String): [UserCourse]   #2
+  getUserCourseMapByCourseID(user_id: String!, course_id: String!, lsp_id:String): [UserCourse]
   getUserCourseProgressByMapId(
     user_id: String!
     user_course_id: [ID!]
@@ -4139,8 +4139,8 @@ type Mutation {
   updateUserRole(input: UserRoleInput!): UserRole
   addUserCohort(input: [UserCohortInput]!): [UserCohort]
   updateUserCohort(input: UserCohortInput!): UserCohort
-  addUserCourse(input: [UserCourseInput]!): [UserCourse]    #5
-  updateUserCourse(input: UserCourseInput!): UserCourse     #6
+  addUserCourse(input: [UserCourseInput]!): [UserCourse]
+  updateUserCourse(input: UserCourseInput!): UserCourse
   addUserCourseProgress(input: [UserCourseProgressInput]!): [UserCourseProgress]
   updateUserCourseProgress(input: UserCourseProgressInput!): UserCourseProgress
   addUserQuizAttempt(input: [UserQuizAttemptInput]!): [UserQuizAttempt]
@@ -16896,14 +16896,11 @@ func (ec *executionContext) _UserCourse_lsp_id(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UserCourse_lsp_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -25627,7 +25624,7 @@ func (ec *executionContext) unmarshalInputUserCourseInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
-			it.LspID, err = ec.unmarshalNString2string(ctx, v)
+			it.LspID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -28971,9 +28968,6 @@ func (ec *executionContext) _UserCourse(ctx context.Context, sel ast.SelectionSe
 
 			out.Values[i] = ec._UserCourse_lsp_id(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "user_lsp_id":
 
 			out.Values[i] = ec._UserCourse_user_lsp_id(ctx, field, obj)

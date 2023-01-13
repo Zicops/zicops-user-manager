@@ -179,7 +179,7 @@ type UserCohort {
 input UserCourseInput {
   user_course_id: ID
   user_id: String!
-  lsp_id: String!
+  lsp_id: String
   user_lsp_id: String!
   course_id: String!
   course_type: String!
@@ -194,7 +194,7 @@ input UserCourseInput {
 type UserCourse {
   user_course_id: ID
   user_id: String!
-  lsp_id: String!
+  lsp_id: String
   user_lsp_id: String!
   course_id: String!
   course_type: String!
@@ -658,7 +658,7 @@ type Query {
     Direction: String
     pageSize: Int
   ): PaginatedCourseMaps
-  getUserCourseMapByCourseID(user_id: String!, course_id: String!, lsp_id:String): [UserCourse]   #2
+  getUserCourseMapByCourseID(user_id: String!, course_id: String!, lsp_id:String): [UserCourse]
   getUserCourseProgressByMapId(
     user_id: String!
     user_course_id: [ID!]

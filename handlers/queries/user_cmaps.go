@@ -100,7 +100,7 @@ func GetUserCourseMaps(ctx context.Context, lspId *string, userId string, publis
 			currentCourse := &model.UserCourse{
 				UserCourseID: &courseCopy.ID,
 				UserID:       courseCopy.UserID,
-				LspID:        courseCopy.LspID,
+				LspID:        &courseCopy.LspID,
 				UserLspID:    courseCopy.UserLspID,
 				CourseID:     courseCopy.CourseID,
 				CourseType:   courseCopy.CourseType,

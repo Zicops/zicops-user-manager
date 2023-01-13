@@ -179,6 +179,7 @@ type UserCohort {
 input UserCourseInput {
   user_course_id: ID
   user_id: String!
+  lsp_id: String
   user_lsp_id: String!
   course_id: String!
   course_type: String!
@@ -193,6 +194,7 @@ input UserCourseInput {
 type UserCourse {
   user_course_id: ID
   user_id: String!
+  lsp_id: String
   user_lsp_id: String!
   course_id: String!
   course_type: String!
@@ -648,19 +650,20 @@ type Query {
   ): UserPreference
   getUserLsps(user_id: String!): [UserLspMap]
   getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
-  getUserCourseMaps(
+  getUserCourseMaps( 
+    lsp_id: String
     user_id: String!
     publish_time: Int
     pageCursor: String
     Direction: String
     pageSize: Int
   ): PaginatedCourseMaps
-  getUserCourseMapByCourseID(user_id: String!, course_id: String!): [UserCourse]
+  getUserCourseMapByCourseID(user_id: String!, course_id: String!, lsp_id:String): [UserCourse]
   getUserCourseProgressByMapId(
     user_id: String!
     user_course_id: [ID!]
   ): [UserCourseProgress]
-  getUserCourseProgressByTopicId(
+  getUserCourseProgressByTopicId(    
     user_id: String!
     topic_id: ID!
   ): [UserCourseProgress]
@@ -713,12 +716,13 @@ type Query {
     searchText: String
   ): PaginatedCohortsMain
   getOrganizations(org_ids: [String]): [Organization]
+  getOrganizationsByName(name: String, prevPageSnapShot: String!, pageSize: Int!): [Organization]
   getOrganizationUnits(ou_ids: [String]): [OrganizationUnit]
   getUnitsByOrgId(org_id: String!): [OrganizationUnit]
   getLearningSpacesByOrgId(org_id: String!): [LearningSpace]
   getLearningSpacesByOuId(ou_id: String!, org_id: String!): [LearningSpace]
   getLearningSpaceDetails(lsp_ids: [String]): [LearningSpace]
-  getUserLspRoles(user_id: String!, user_lsp_ids: [String!]!): [UserRole]
+  getUserLspRoles(user_id: String!, user_lsp_ids:[String!]!): [UserRole]
 }
 
 type Mutation {
