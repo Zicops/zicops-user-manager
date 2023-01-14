@@ -167,10 +167,10 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 		userLspMap.UserLspID = input.UserLspID
 		updatedCols = append(updatedCols, "user_lsp_id")
 	}
-	// if input.LspID != nil {
-	// 	userLspMap.LspID = *input.LspID
-	// 	updatedCols = append(updatedCols, "lsp_id")
-	// }
+	if input.LspID != nil {
+		userLspMap.LspID = *input.LspID
+		updatedCols = append(updatedCols, "lsp_id")
+	}
 
 	if len(updatedCols) > 0 {
 		updatedAt := time.Now().Unix()
