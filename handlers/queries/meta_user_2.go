@@ -399,7 +399,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		photoBucket = ""
 		if input.ImageURL != nil && *input.ImageURL == "noimage" {
 			//we want to remove the photo, so check if value is something like noimage or nil then delete
-			bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, cohort.ImageUrl)
+			bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, cohort.ImageBucket)
 			res := storageC.DeleteObjectsFromBucket(ctx, bucketPath)
 			if res == "success" {
 				photoUrl = ""
