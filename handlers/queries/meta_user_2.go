@@ -370,6 +370,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	if len(cohorts) == 0 {
 		return nil, fmt.Errorf("cohorts not found")
 	}
+	cohort := cohorts[0]
 	storageC := bucket.NewStorageHandler()
 	gproject := googleprojectlib.GetGoogleProjectID()
 	err = storageC.InitializeStorageClient(ctx, gproject)
@@ -398,14 +399,13 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		photoBucket = ""
 		if input.ImageURL != nil && *input.ImageURL == "noimage" {
 			//we want to remove the photo, so check if value is something like noimage or nil then delete
-			bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, input.Image.Filename)
+			bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, cohort.ImageUrl)
 			res := storageC.DeleteObjectsFromBucket(ctx, bucketPath)
 			if res == "success" {
 				photoUrl = ""
 			}
 		}
 	}
-	cohort := cohorts[0]
 	updatedCols := []string{}
 	if input.Name != "" {
 		cohort.Name = input.Name
