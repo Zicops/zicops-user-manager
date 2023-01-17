@@ -403,8 +403,6 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 			if res == "success" {
 				photoUrl = ""
 			}
-			photoUrl = *input.ImageURL
-
 		}
 	}
 	cohort := cohorts[0]
