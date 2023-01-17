@@ -396,8 +396,15 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		photoUrl = storageC.GetSignedURLForObject(bucketPath)
 	} else {
 		photoBucket = ""
-		if input.ImageURL != nil {
+		if input.ImageURL != nil && *input.ImageURL == "noimage" {
+			//we want to remove the photo, so check if value is something like noimage or nil then delete
+			bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, input.Image.Filename)
+			res := storageC.DeleteObjectsFromBucket(ctx, bucketPath)
+			if res == "success" {
+				photoUrl = ""
+			}
 			photoUrl = *input.ImageURL
+
 		}
 	}
 	cohort := cohorts[0]
