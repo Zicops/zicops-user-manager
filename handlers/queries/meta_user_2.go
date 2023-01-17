@@ -403,6 +403,8 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 			res := storageC.DeleteObjectsFromBucket(ctx, bucketPath)
 			if res == "success" {
 				photoUrl = ""
+			} else {
+				return nil, fmt.Errorf("%v", res)
 			}
 		}
 	}
