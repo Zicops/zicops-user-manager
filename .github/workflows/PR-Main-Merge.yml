@@ -1,7 +1,7 @@
 name: PR-Main-Merge
 run-name: ${{ github.actor }} is issuing a pull request for main merge
 on:
- pull_request:
+ push:
   branches:    
    - main
 jobs:
@@ -9,7 +9,7 @@ jobs:
    runs-on: ubuntu-latest
    steps:
       - name: Build
-        run: echo building1
+        run: echo building2
   deploy:
     name: deploy
     runs-on: ubuntu-latest
