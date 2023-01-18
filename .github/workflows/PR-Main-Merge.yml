@@ -3,7 +3,7 @@ run-name: ${{ github.actor }} is issuing a pull request for main merge
 on:
  pull_request:
   branches:    
-   - main
+   - CICD_Testing
 jobs:
   build:
    runs-on: ubuntu-latest
