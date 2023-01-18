@@ -9,7 +9,7 @@ jobs:
    runs-on: ubuntu-latest
    steps:
       - name: Build
-        run: echo building
+        run: echo building1
   deploy:
     name: deploy
     runs-on: ubuntu-latest
