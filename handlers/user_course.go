@@ -153,7 +153,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 	if input.CourseStatus != "" && input.CourseStatus != userLspMap.CourseStatus {
 		userLspMap.CourseStatus = input.CourseStatus
 
-		if input.CourseStatus == "started" && userLspMap.CourseStatus == "open" {
+		if input.CourseStatus == "in-progress" && userLspMap.CourseStatus == "open" {
 			userLspMap.CourseStatus = "started"
 		}
 		if input.CourseStatus == "completed" && userLspMap.CourseStatus != "completed" {
