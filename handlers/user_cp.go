@@ -139,6 +139,10 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 	}
 	if input.Status != "" && input.Status != userLspMap.Status {
 		userLspMap.Status = input.Status
+
+		if input.Status == "in-progress" && userLspMap.Status == "open" {
+			userLspMap.Status = "started"
+		}
 		updatedCols = append(updatedCols, "status")
 	}
 	if input.TopicID != "" && input.TopicID != userLspMap.TopicID {
