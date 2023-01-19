@@ -2,6 +2,8 @@ name: PR-Main-Merge
 run-name: ${{ github.actor }} is issuing a pull request for main merge
 on:
  pull_request:
+  branches: 
+   - CICD_Testing
  
 jobs:
   build:
