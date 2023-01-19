@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -12,6 +14,7 @@ import (
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/helpers"
 )
 
 func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*model.UserCourse, error) {
@@ -149,6 +152,17 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 	}
 	if input.CourseStatus != "" && input.CourseStatus != userLspMap.CourseStatus {
 		userLspMap.CourseStatus = input.CourseStatus
+
+		if input.CourseStatus == "started" && userLspMap.CourseStatus == "open" {
+			userLspMap.CourseStatus = "started"
+		}
+		if input.CourseStatus == "completed" && userLspMap.CourseStatus != "completed" {
+			res := checkStatusOfEachTopic(ctx, input.UserID, userLspMap.ID)
+			if res {
+				userLspMap.CourseStatus = "completed"
+			}
+		}
+
 		updatedCols = append(updatedCols, "course_status")
 	}
 	if input.AddedBy != "" && input.AddedBy != userLspMap.AddedBy {
@@ -202,4 +216,81 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 		UpdatedBy:    &userLspMap.UpdatedBy,
 	}
 	return userLspOutput, nil
+}
+
+func checkStatusOfEachTopic(ctx context.Context, userId string, userCourseId string) bool {
+
+	userCP, err := getUserCourseProgressByUserCourseID(ctx, userId, userCourseId)
+	if err != nil {
+		log.Errorf("Got error while checking course progress: %v", err)
+	}
+
+	for _, v := range userCP {
+		if v.Status != "completed" {
+			return false
+		}
+	}
+	return true
+}
+
+func getUserCourseProgressByUserCourseID(ctx context.Context, userId string, userCourseID string) ([]*model.UserCourseProgress, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	email_creator := claims["email"].(string)
+	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
+	if userId != "" {
+		emailCreatorID = userId
+	}
+
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+	userCPsMap := make([]*model.UserCourseProgress, 0)
+	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_progress where user_id='%s' and user_cm_id='%s'  ALLOW FILTERING`, emailCreatorID, userCourseID)
+	getUsersCProgress := func() (users []userz.UserCourseProgress, err error) {
+		q := CassUserSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	userCPs, err := getUsersCProgress()
+	if err != nil {
+		return nil, err
+	}
+	userCPsMapCurrent := make([]*model.UserCourseProgress, len(userCPs))
+	if len(userCPs) == 0 {
+		return nil, nil
+	}
+	var wg sync.WaitGroup
+	for i, copiedCP := range userCPs {
+		userCP := copiedCP
+		wg.Add(1)
+		go func(i int, userCP userz.UserCourseProgress) {
+			createdAt := strconv.FormatInt(userCP.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(userCP.UpdatedAt, 10)
+			timeStamp := strconv.FormatInt(userCP.TimeStamp, 10)
+			currentUserCP := &model.UserCourseProgress{
+				UserCpID:      &userCP.ID,
+				UserID:        userCP.UserID,
+				UserCourseID:  userCP.UserCmID,
+				TopicID:       userCP.TopicID,
+				TopicType:     userCP.TopicType,
+				Status:        userCP.Status,
+				VideoProgress: userCP.VideoProgress,
+				TimeStamp:     timeStamp,
+				CreatedBy:     &userCP.CreatedBy,
+				UpdatedBy:     &userCP.UpdatedBy,
+				CreatedAt:     createdAt,
+				UpdatedAt:     updatedAt,
+			}
+			userCPsMapCurrent[i] = currentUserCP
+			wg.Done()
+		}(i, userCP)
+	}
+	userCPsMap = append(userCPsMap, userCPsMapCurrent...)
+	return userCPsMap, nil
 }
