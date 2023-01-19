@@ -15,7 +15,7 @@ import (
 	"github.com/zicops/zicops-user-manager/helpers"
 )
 
-func GetUserCourseMaps(ctx context.Context, lspId *string, userId string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCourseMaps, error) {
+func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pageCursor *string, direction *string, pageSize *int, filters *model.CourseMapFilters) (*model.PaginatedCourseMaps, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -58,10 +58,28 @@ func GetUserCourseMaps(ctx context.Context, lspId *string, userId string, publis
 	var newCursor string
 
 	qryStr := fmt.Sprintf(`SELECT * from userz.user_course_map where user_id='%s' and created_at <= %d  `, emailCreatorID, *publishTime)
-	if lspId != nil {
-		qryStr = qryStr + fmt.Sprintf(`and lsp_id = '%s' `, *lspId)
+	if filters != nil {
+		if len(filters.LspID) > 0 {
+			// cassandra contains clauses using lspIds
+			lspIds := filters.LspID
+			for _, lspId := range lspIds {
+				if lspId == nil || *lspId == "" {
+					continue
+				}
+				qryStr = qryStr + fmt.Sprintf(` and lsp_id CONTAINS '%s'`, *lspId)
+			}
+		}
+		if filters.IsMandatory != nil {
+			qryStr = qryStr + fmt.Sprintf(` and is_mandatory = %t`, *filters.IsMandatory)
+		}
+		if filters.Status != nil {
+			qryStr = qryStr + fmt.Sprintf(` and course_status = '%s'`, *filters.Status)
+		}
+		if filters.Type != nil {
+			qryStr = qryStr + fmt.Sprintf(` and course_type = '%s'`, *filters.Type)
+		}
 	}
-	qryStr = qryStr + fmt.Sprint(`ALLOW FILTERING`)
+	qryStr = qryStr + `ALLOW FILTERING`
 	getUsers := func(page []byte) (courses []userz.UserCourse, nextPage []byte, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()

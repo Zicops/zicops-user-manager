@@ -39,6 +39,13 @@ type CohortMainInput struct {
 	ImageURL    *string         `json:"imageUrl"`
 }
 
+type CourseMapFilters struct {
+	LspID       []*string `json:"lsp_id"`
+	IsMandatory *bool     `json:"is_mandatory"`
+	Status      *string   `json:"status"`
+	Type        *string   `json:"type"`
+}
+
 type LearningSpace struct {
 	LspID      *string   `json:"lsp_id"`
 	OrgID      string    `json:"org_id"`
