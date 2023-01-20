@@ -224,8 +224,10 @@ func checkStatusOfEachTopic(ctx context.Context, userId string, userCourseId str
 		log.Errorf("Got error while checking course progress: %v", err)
 	}
 
-	for _, v := range userCP {
-		if v.Status != "completed" {
+	for _, vv := range userCP {
+		v := vv
+		res := *v
+		if res.Status != "completed" {
 			return false
 		}
 	}
