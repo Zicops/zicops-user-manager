@@ -138,10 +138,11 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 		updatedCols = append(updatedCols, "video_progress")
 	}
 	if input.Status != "" && input.Status != userLspMap.Status {
-		userLspMap.Status = input.Status
 
 		if input.Status == "in-progress" && userLspMap.Status == "open" {
 			userLspMap.Status = "started"
+		} else {
+			userLspMap.Status = input.Status
 		}
 		updatedCols = append(updatedCols, "status")
 	}
