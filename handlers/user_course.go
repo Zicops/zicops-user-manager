@@ -290,6 +290,7 @@ func getUserCourseProgressByUserCourseID(ctx context.Context, userId string, use
 			wg.Done()
 		}(i, userCP)
 	}
+	wg.Wait()
 	userCPsMap = append(userCPsMap, userCPsMapCurrent...)
 	return userCPsMap, nil
 }
