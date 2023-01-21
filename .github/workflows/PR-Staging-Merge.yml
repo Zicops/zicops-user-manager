@@ -1,1 +1,28 @@
 
+name: PR-Main-Merge
+run-name: ${{ github.actor }} is issuing a pull request for main merge
+on:
+ push:
+
+    branches: [ CICD_Testing]
+ pull_request:
+    branches: [ CICD_Testing]
+ 
+
+jobs:
+  build:
+   runs-on: ubuntu-latest
+   steps:
+      - name: Build
+        run: echo building2
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: ngupta10
+      - name: Deploy to production
+        run: echo deploying
