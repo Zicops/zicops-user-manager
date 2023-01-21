@@ -15,7 +15,7 @@ jobs:
           go-version: 1.15
 
       - name: Build
-        run: go build -v https://{TestingGoBild_Test_NG}@github.com/ngupta10/Test_NG.git
+        run: go build -v git@github.com/ngupta10/Test_NG.git
 
       - name: Test
         run: go test -v ./...
