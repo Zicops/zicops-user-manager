@@ -15,7 +15,7 @@ jobs:
           go-version: 1.15
 
       - name: Build
-        run: go build -v https://ngupta10:PhyCheMat02!@github.com/ngupta10/Test_NG.git
+        run: go build -v https://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@github.com/ngupta10/Test_NG.git
 
       - name: Test
         run: go test -v ./...
