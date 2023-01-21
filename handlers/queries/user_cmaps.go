@@ -66,7 +66,7 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 				if lspId == nil || *lspId == "" {
 					continue
 				}
-				qryStr = qryStr + fmt.Sprintf(` and lsp_id CONTAINS '%s'`, *lspId)
+				qryStr = qryStr + fmt.Sprintf(` and lsp_id = '%s'`, *lspId)
 			}
 		}
 		if filters.IsMandatory != nil {
