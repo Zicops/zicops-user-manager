@@ -102,7 +102,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	isAllowed := false
+	isAllowed := true
 	role := strings.ToLower(userCass.Role)
 	if userCass.ID == input.UserID || role == "admin" || strings.Contains(role, "manager") {
 		isAllowed = true
