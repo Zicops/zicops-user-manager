@@ -2,8 +2,7 @@ name: Go package
 
 on: [push,pull_request]
 
-env:
-  GO_MODULES_TOKEN=$GO_MODULES_TOKEN
+
 
 jobs:
   build:
@@ -23,7 +22,7 @@ jobs:
         git config user.email "<>"
         git status
         git tag
-        git config --global url."https://${GO_MODULES_TOKEN}:x-oauth-basic@github.com/zicops/".insteadOf "https://github.com/zicops/"
+        git config --global url."https://${{ secrets.GO_MODULES_TOKEN }}:x-oauth-basic@github.com/zicops/".insteadOf "https://github.com/zicops/"
     - name: Set up Go ${{ matrix.go-version }}
       uses: actions/setup-go@v3
       with:
