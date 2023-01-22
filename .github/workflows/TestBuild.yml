@@ -3,7 +3,7 @@ name: Go package
 on: [push,pull_request]
 
 env:
-ENV GO_MODULES_TOKEN=$GO_MODULES_TOKEN
+  GO_MODULES_TOKEN=$GO_MODULES_TOKEN
 
 jobs:
   build:
