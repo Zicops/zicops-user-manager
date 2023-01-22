@@ -1,9 +1,6 @@
 name: Go package
 
 on: [push]
-
-
-
 jobs:
   test:
     strategy:
