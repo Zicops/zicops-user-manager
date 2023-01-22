@@ -15,8 +15,6 @@ jobs:
     steps:
     - name: Git checkout
       uses: actions/checkout@v2
-      with:
-        fetch-depth: '0'
     - name: git
       run: |
         # setup the username and email. I tend to use 'GitHub Actions Bot' with no email by default
@@ -26,19 +24,16 @@ jobs:
         git status
         git tag
         git config --global url."https://${GO_MODULES_TOKEN}:x-oauth-basic@github.com/zicops/".insteadOf "https://github.com/zicops/"
-        
-      - uses: actions/checkout@v3
-
-      - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v3
-        with:
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v3
+      with:
           go-version: ${{ matrix.go-version }}
         # You can test your matrix by printing the current Go version
-      - name: Display Go version
-        run: go version
+    - name: Display Go version
+      run: go version
 
-      - name: Build
-        run: go build -v https://@github.com/zicops/zicops-user-manager.git
+    - name: Build
+      run: go build -v https://@github.com/zicops/zicops-user-manager.git
 
-      - name: Test
-        run: go test -v https://@github.com/ngupta10/zicops-user-manager.git
+    - name: Test
+      run: go test -v https://@github.com/zicops/zicops-user-manager.git
