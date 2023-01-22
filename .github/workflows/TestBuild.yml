@@ -29,7 +29,7 @@ jobs:
       run: go version
 
     - name: Build
-      run: go build -v https://@github.com/zicops/zicops-user-manager.git
+      run: go build -v https://@github.com/zicops/zicops-user-manager
 
     - name: Test
-      run: go test -v https://@github.com/zicops/zicops-user-manager.git
+      run: go test -v https://@github.com/zicops/zicops-user-manager
