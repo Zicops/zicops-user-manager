@@ -33,6 +33,7 @@ jobs:
         go get -u golang.org/x/lint/golint
 
     - name: Build
+      go-version-file: go.mod
       run: go build -v https://@github.com/zicops/zicops-user-manager
 
     - name: Test
