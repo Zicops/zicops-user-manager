@@ -8,9 +8,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: [ '1.16.x*']
     steps:
     - name: Git checkout
       uses: actions/checkout@v2
@@ -23,10 +20,10 @@ jobs:
         git status
         git tag
         git config --global url."https://${{ secrets.GO_MODULES_TOKEN }}:x-oauth-basic@github.com/zicops/".insteadOf "https://github.com/zicops/"
-    - name: Set up Go ${{ matrix.go-version }}
+    - name: Set up Go
       uses: actions/setup-go@v3
       with:
-          go-version: ${{ matrix.go-version }}
+          go-version: 1.15
         # You can test your matrix by printing the current Go version
     - name: Display Go version
       run: go version
