@@ -9,31 +9,31 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-go@v3
-      with:
-        go-version-file: 'go.mod'
-    - run: go version
-    - name: Configure git for private modules
-      env:
-        TOKEN: ${{ secrets.GO_MODULES_TOKEN }}
-      run: git config --global url."https://${TOKEN}:x-oauth-basic@github.com/zicops/".insteadOf "https://github.com"
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version-file: 'go.mod'
+      - run: go version
+      - name: Configure git for private modules
+        env:
+          TOKEN: ${{ secrets.GO_MODULES_TOKEN }}
+        run: git config --global url."https://${TOKEN}:x-oauth-basic@github.com/zicops/".insteadOf "https://github.com"
     
-    - name: Set up Go
-      with:
-          go-version: ${{ matrix.go-version }}
+      - name: Set up Go
+        with:
+            go-version: ${{ matrix.go-version }}
         # You can test your matrix by printing the current Go version
-    - name: Display Go version
-      run: go version
+      - name: Display Go version
+        run: go version
        # Install all the dependencies
-    - name: Install dependencies
-      run: |
-        go env -w GO111MODULE=auto
-        go version
-        go get -u golang.org/x/lint/golint
+      - name: Install dependencies
+        run: |
+          go env -w GO111MODULE=auto
+          go version
+          go get -u golang.org/x/lint/golint
 
-    - name: Build
-      run: go build -v https://@github.com/zicops/zicops-user-manager
+      - name: Build
+        run: go build -v https://@github.com/zicops/zicops-user-manager
 
     - name: Test
       run: |
