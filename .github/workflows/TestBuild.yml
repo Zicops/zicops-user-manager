@@ -2,6 +2,9 @@ name: Go package
 
 on: [push,pull_request]
 
+env:
+ENV GO_MODULES_TOKEN=$GO_MODULES_TOKEN
+
 jobs:
   build:
 
@@ -10,6 +13,20 @@ jobs:
       matrix:
         go-version: [ '1.1*']
     steps:
+    - name: Git checkout
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: '0'
+    - name: git
+      run: |
+        # setup the username and email. I tend to use 'GitHub Actions Bot' with no email by default
+        git --version
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        git status
+        git tag
+        git config --global url."https://${GO_MODULES_TOKEN}:x-oauth-basic@github.com/zicops/".insteadOf "https://github.com/zicops/"
+        
       - uses: actions/checkout@v3
 
       - name: Set up Go ${{ matrix.go-version }}
@@ -21,7 +38,7 @@ jobs:
         run: go version
 
       - name: Build
-        run: go build -v https://ngupta10:PhyCheMat02!@github.com/ngupta10/zicops-user-manager.git
+        run: go build -v https://@github.com/zicops/zicops-user-manager.git
 
       - name: Test
-        run: go test -v ./...
+        run: go test -v https://@github.com/ngupta10/zicops-user-manager.git
