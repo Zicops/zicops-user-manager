@@ -16,17 +16,6 @@ jobs:
       env:
         TOKEN: ${{ secrets.GO_MODULES_TOKEN }}
       run: git config --global url."https://${TOKEN}:x-oauth-basic@github.com/zicops/".insteadOf "https://github.com"
-    #- name: Git checkout
-     # uses: actions/checkout@v2
-    # - name: git
-      # run: |
-        # setup the username and email. I tend to use 'GitHub Actions Bot' with no email by default
-        # git --version
-        # git config user.name "GitHub Actions Bot"
-        # git config user.email "<>"
-        # git status
-        # git tag
-        # git config --global url."https://${{ secrets.GO_MODULES_TOKEN }}:x-oauth-basic@github.com/zicops/".insteadOf "https://github.com/zicops/"
     
     - name: Set up Go
       uses: actions/setup-go@v3
@@ -38,6 +27,7 @@ jobs:
        # Install all the dependencies
     - name: Install dependencies
       run: |
+        go env -w GO111MODULE=off
         go version
         go get -u golang.org/x/lint/golint
 
