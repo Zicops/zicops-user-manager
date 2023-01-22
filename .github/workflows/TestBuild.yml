@@ -1,7 +1,7 @@
 name: Go package
 
 on: 
-workflow_dispatch
+  [push]:
 
 
 
@@ -13,13 +13,17 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+      with:
+        go-version-file: 'go.mod'
+    - run: go version
     - name: Configure git for private modules
       env:
         TOKEN: ${{ secrets.GO_MODULES_TOKEN }}
       run: git config --global url."https://${TOKEN}:x-oauth-basic@github.com/zicops/".insteadOf "https://github.com"
     
     - name: Set up Go
-      uses: actions/setup-go@v3
       with:
           go-version: ${{ matrix.go-version }}
         # You can test your matrix by printing the current Go version
@@ -33,7 +37,6 @@ jobs:
         go get -u golang.org/x/lint/golint
 
     - name: Build
-      go-version-file: go.mod
       run: go build -v https://@github.com/zicops/zicops-user-manager
 
     - name: Test
