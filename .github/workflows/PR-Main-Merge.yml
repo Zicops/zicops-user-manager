@@ -1,11 +1,11 @@
 name: PR-Main-Merge
 run-name: ${{ github.actor }} is issuing a pull request for main merge
 on:
- push:
+ workflow_dispatch:
 
-    branches: [ CICD_Testing]
- pull_request:
-    branches: [ CICD_Testing]
+    #branches: [ CICD_Testing]
+ #pull_request:
+    #branches: [ CICD_Testing]
  
 
 jobs:
