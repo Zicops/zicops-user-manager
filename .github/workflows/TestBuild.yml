@@ -1,6 +1,7 @@
 name: Go package
 
-on: [push,pull_request]
+on: 
+workflow_dispatch
 
 
 
@@ -32,7 +33,7 @@ jobs:
         go get -u golang.org/x/lint/golint
 
     - name: Build
-      run: go build go build -a -installsuffix cgo -o https://@github.com/zicops/zicops-user-manager
+      run: go build -v https://@github.com/zicops/zicops-user-manager
 
     - name: Test
       run: |
