@@ -32,7 +32,7 @@ jobs:
         go get -u golang.org/x/lint/golint
 
     - name: Build
-      run: go build go build -a -installsuffix cgo -o zicops-user-manager
+      run: go build go build -a -installsuffix cgo -o https://@github.com/zicops/zicops-user-manager
 
     - name: Test
       run: |
