@@ -35,6 +35,11 @@ jobs:
         # You can test your matrix by printing the current Go version
     - name: Display Go version
       run: go version
+       # Install all the dependencies
+    - name: Install dependencies
+      run: |
+        go version
+        go get -u golang.org/x/lint/golint
 
     # - name: Build
      # run: go build -v https://@github.com/zicops/zicops-user-manager
