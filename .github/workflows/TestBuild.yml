@@ -31,8 +31,8 @@ jobs:
         go version
         go get -u golang.org/x/lint/golint
 
-    # - name: Build
-     # run: go build -v https://@github.com/zicops/zicops-user-manager
+    - name: Build
+      run: go build go build -a -installsuffix cgo -o zicops-user-manager
 
     - name: Test
       run: |
