@@ -36,6 +36,6 @@ jobs:
 
     - name: Test
       run: |
-        go env -w GO111MODULE=off
+        go env -w GO111MODULE=on
         #go mod download
-        go get test -v https://@github.com/zicops/zicops-user-manager
+        go get test -v https://@github.com/zicops/zicops-user-manager@latest
