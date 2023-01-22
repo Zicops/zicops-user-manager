@@ -27,7 +27,7 @@ jobs:
        # Install all the dependencies
     - name: Install dependencies
       run: |
-        go env -w GO111MODULE=off
+        go env -w GO111MODULE=auto
         go version
         go get -u golang.org/x/lint/golint
 
