@@ -179,7 +179,7 @@ type UserCohort {
 input UserCourseInput {
   user_course_id: ID
   user_id: String!
-  lsp_id: String!
+  lsp_id: String
   user_lsp_id: String!
   course_id: String!
   course_type: String!
@@ -194,7 +194,7 @@ input UserCourseInput {
 type UserCourse {
   user_course_id: ID
   user_id: String!
-  lsp_id: String!
+  lsp_id: String
   user_lsp_id: String!
   course_id: String!
   course_type: String!
@@ -625,6 +625,13 @@ input UserFilters {
   status: String
 }
 
+input CourseMapFilters {
+  lsp_id :[String]
+  is_mandatory: Boolean
+  status: String
+  type: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -651,14 +658,14 @@ type Query {
   getUserLsps(user_id: String!): [UserLspMap]
   getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
   getUserCourseMaps( 
-    lsp_id: String
     user_id: String!
     publish_time: Int
     pageCursor: String
     Direction: String
     pageSize: Int
+    filters: CourseMapFilters
   ): PaginatedCourseMaps
-  getUserCourseMapByCourseID(user_id: String!, course_id: String!, lsp_id:String): [UserCourse]   #2
+  getUserCourseMapByCourseID(user_id: String!, course_id: String!, lsp_id:String): [UserCourse]
   getUserCourseProgressByMapId(
     user_id: String!
     user_course_id: [ID!]

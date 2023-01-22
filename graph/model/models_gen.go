@@ -39,6 +39,13 @@ type CohortMainInput struct {
 	ImageURL    *string         `json:"imageUrl"`
 }
 
+type CourseMapFilters struct {
+	LspID       []*string `json:"lsp_id"`
+	IsMandatory *bool     `json:"is_mandatory"`
+	Status      *string   `json:"status"`
+	Type        *string   `json:"type"`
+}
+
 type LearningSpace struct {
 	LspID      *string   `json:"lsp_id"`
 	OrgID      string    `json:"org_id"`
@@ -266,7 +273,7 @@ type UserCohortInput struct {
 type UserCourse struct {
 	UserCourseID *string `json:"user_course_id"`
 	UserID       string  `json:"user_id"`
-	LspID        string  `json:"lsp_id"`
+	LspID        *string `json:"lsp_id"`
 	UserLspID    string  `json:"user_lsp_id"`
 	CourseID     string  `json:"course_id"`
 	CourseType   string  `json:"course_type"`
@@ -283,7 +290,7 @@ type UserCourse struct {
 type UserCourseInput struct {
 	UserCourseID *string `json:"user_course_id"`
 	UserID       string  `json:"user_id"`
-	LspID        string  `json:"lsp_id"`
+	LspID        *string `json:"lsp_id"`
 	UserLspID    string  `json:"user_lsp_id"`
 	CourseID     string  `json:"course_id"`
 	CourseType   string  `json:"course_type"`
