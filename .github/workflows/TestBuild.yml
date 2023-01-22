@@ -38,4 +38,4 @@ jobs:
       run: |
         go env -w GO111MODULE=on
         #go mod download
-        go test -v https://@github.com/zicops/zicops-user-manager.git@latest
+        go test -v https://@github.com/zicops/zicops-user-manager@latest
