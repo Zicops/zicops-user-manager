@@ -330,10 +330,10 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 		}
 		statsType = append(statsType, currentType)
 	}
-	var currentOutput *model.UserCourseMapStats
+	var currentOutput model.UserCourseMapStats
 	currentOutput.LspID = input.LspID
 	currentOutput.UserID = input.UserID
 	currentOutput.StatusStats = statsStatus
 	currentOutput.TypeStats = statsType
-	return currentOutput, nil
+	return &currentOutput, nil
 }
