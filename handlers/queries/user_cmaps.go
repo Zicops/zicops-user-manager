@@ -263,15 +263,15 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 				whereClause = whereClause + fmt.Sprintf(` AND course_status='%s'`, status)
 			}
 			qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, whereClause)
-			getCSCount := func() (count int, err error) {
+			getCSCount := func() (count int, success bool) {
 				q := CassUserSession.Query(qryStr, nil)
 				defer q.Release()
 				iter := q.Iter()
-				return count, iter.Select(&count)
+				return count, iter.Scan(&count)
 			}
-			count, err := getCSCount()
-			if err != nil {
-				return nil, err
+			count, success := getCSCount()
+			if !success {
+				return nil, fmt.Errorf("error getting count for course status %s", status)
 			}
 			currentStatus := &model.Count{
 				Name:  &status,
@@ -290,15 +290,15 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 				whereClause = whereClause + fmt.Sprintf(` AND course_type='%s'`, status)
 			}
 			qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, whereClause)
-			getCSCount := func() (count int, err error) {
+			getCSCount := func() (count int, success bool) {
 				q := CassUserSession.Query(qryStr, nil)
 				defer q.Release()
 				iter := q.Iter()
-				return count, iter.Select(&count)
+				return count, iter.Scan(&count)
 			}
-			count, err := getCSCount()
-			if err != nil {
-				return nil, err
+			count, success := getCSCount()
+			if !success {
+				return nil, fmt.Errorf("error while getting count for course type %s", status)
 			}
 			currentStatus := &model.Count{
 				Name:  &status,
@@ -309,15 +309,15 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 	}
 	if filteringRequired {
 		qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, whereClause)
-		getCSCount := func() (count int, err error) {
+		getCSCount := func() (count int, success bool) {
 			q := CassUserSession.Query(qryStr, nil)
 			defer q.Release()
 			iter := q.Iter()
-			return count, iter.Select(&count)
+			return count, iter.Scan(&count)
 		}
-		count, err := getCSCount()
-		if err != nil {
-			return nil, err
+		count, success := getCSCount()
+		if !success {
+			return nil, fmt.Errorf("error while getting count for course type %s", *input.CourseType[0])
 		}
 		currentStatus := &model.Count{
 			Name:  input.CourseStatus[0],
