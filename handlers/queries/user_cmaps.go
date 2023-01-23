@@ -217,3 +217,123 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 	//}
 	return allCourses, nil
 }
+
+func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsInput) (*model.UserCourseMapStats, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+	whereClause := ""
+	if input.LspID != nil {
+		whereClause = fmt.Sprintf(`where lsp_id='%s'`, *input.LspID)
+		if input.UserID != nil {
+			whereClause = fmt.Sprintf(`where lsp_id='%s' and user_id='%s'`, *input.LspID, *input.UserID)
+		}
+	} else if input.UserID != nil {
+		whereClause = fmt.Sprintf(`where user_id='%s'`, *input.UserID)
+	}
+	if input.IsMandatory != nil {
+		if whereClause == "" {
+			whereClause = fmt.Sprintf(`where is_mandatory=%t`, *input.IsMandatory)
+		} else {
+			whereClause = fmt.Sprintf(`%s and is_mandatory=%t`, whereClause, *input.IsMandatory)
+		}
+	}
+	filteringRequired := false
+	if input.CourseStatus != nil && input.CourseType != nil {
+		if len(input.CourseStatus) > 1 && len(input.CourseType) > 1 {
+			return nil, fmt.Errorf("course status and course type can only be used if one only one of each is provided")
+		} else {
+			filteringRequired = true
+			whereClause = fmt.Sprintf(`where course_status='%s' and course_type='%s'`, *input.CourseStatus[0], *input.CourseType[0])
+		}
+	}
+	statsStatus := make([]*model.Count, 0)
+	if !filteringRequired && input.CourseStatus != nil && len(input.CourseStatus) > 0 {
+		for i, s := range input.CourseStatus {
+			status := *s
+			if i == 0 && whereClause == "" {
+				whereClause = fmt.Sprintf(`where course_status='%s'`, status)
+			} else {
+				whereClause = whereClause + fmt.Sprintf(` AND course_status='%s'`, status)
+			}
+			qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, whereClause)
+			getCSCount := func() (count int, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return count, iter.Select(&count)
+			}
+			count, err := getCSCount()
+			if err != nil {
+				return nil, err
+			}
+			currentStatus := &model.Count{
+				Name:  &status,
+				Count: &count,
+			}
+			statsStatus = append(statsStatus, currentStatus)
+		}
+	}
+	statsType := make([]*model.Count, 0)
+	if !filteringRequired && input.CourseType != nil && len(input.CourseType) > 0 {
+		for i, s := range input.CourseType {
+			status := *s
+			if i == 0 && whereClause == "" {
+				whereClause = fmt.Sprintf(`where course_type='%s'`, status)
+			} else {
+				whereClause = whereClause + fmt.Sprintf(` AND course_type='%s'`, status)
+			}
+			qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, whereClause)
+			getCSCount := func() (count int, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return count, iter.Select(&count)
+			}
+			count, err := getCSCount()
+			if err != nil {
+				return nil, err
+			}
+			currentStatus := &model.Count{
+				Name:  &status,
+				Count: &count,
+			}
+			statsType = append(statsType, currentStatus)
+		}
+	}
+	if filteringRequired {
+		qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, whereClause)
+		getCSCount := func() (count int, err error) {
+			q := CassUserSession.Query(qryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return count, iter.Select(&count)
+		}
+		count, err := getCSCount()
+		if err != nil {
+			return nil, err
+		}
+		currentStatus := &model.Count{
+			Name:  input.CourseStatus[0],
+			Count: &count,
+		}
+		statsStatus = append(statsStatus, currentStatus)
+		currentType := &model.Count{
+			Name:  input.CourseType[0],
+			Count: &count,
+		}
+		statsType = append(statsType, currentType)
+	}
+	var currentOutput *model.UserCourseMapStats
+	currentOutput.LspID = input.LspID
+	currentOutput.UserID = input.UserID
+	currentOutput.StatusStats = statsStatus
+	currentOutput.TypeStats = statsType
+	return currentOutput, nil
+}

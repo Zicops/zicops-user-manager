@@ -39,6 +39,11 @@ type CohortMainInput struct {
 	ImageURL    *string         `json:"imageUrl"`
 }
 
+type Count struct {
+	Name  *string `json:"name"`
+	Count *int    `json:"count"`
+}
+
 type CourseMapFilters struct {
 	LspID       []*string `json:"lsp_id"`
 	IsMandatory *bool     `json:"is_mandatory"`
@@ -300,6 +305,21 @@ type UserCourseInput struct {
 	CourseStatus string  `json:"course_status"`
 	CreatedBy    *string `json:"created_by"`
 	UpdatedBy    *string `json:"updated_by"`
+}
+
+type UserCourseMapStats struct {
+	LspID       *string  `json:"lsp_id"`
+	UserID      *string  `json:"user_id"`
+	TypeStats   []*Count `json:"type_stats"`
+	StatusStats []*Count `json:"status_stats"`
+}
+
+type UserCourseMapStatsInput struct {
+	LspID        *string   `json:"lsp_id"`
+	UserID       *string   `json:"user_id"`
+	CourseType   []*string `json:"course_type"`
+	CourseStatus []*string `json:"course_status"`
+	IsMandatory  *bool     `json:"is_mandatory"`
 }
 
 type UserCourseProgress struct {
