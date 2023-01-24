@@ -21,7 +21,7 @@ jobs:
           go-version: 1.18
 
       - name: Build
-        run: go build -v https://@github.com/zicops/zicops-user-manager
+        run: go build -v https://github.com/zicops/zicops-user-manager
 
       - name: Test
         run: go test -v ./...
