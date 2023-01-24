@@ -3,15 +3,12 @@ name: Deployment
 concurrency: Production
 
 on: workflow_dispatch
-  #push:
-   # branches:
-    #  - main
 
 jobs:
   deployment:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: deploy
-      - run: echo "The workflow is now ready to test your code on the runner"
+     - name: deploy
+     - run: echo "The workflow is now ready to test your code on the runner"
         # ...deployment-specific steps
