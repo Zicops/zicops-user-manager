@@ -1,0 +1,25 @@
+# Deploy to Staging
+
+name: Staging-Concurrent-Deployment
+run-name: Staging-Deployment-Test
+
+# setting concurrency at workflow level
+concurrency: Staging 
+
+# need to add more trigger events?
+on: 
+ workflow_dispatch:
+
+# Deploy to staging jobs
+
+jobs:
+  Staging_deployment:
+    runs-on: ubuntu-latest
+    environment: Staging
+    steps:
+     - uses: trstringer/manual-approval@v1
+       with:
+          secret: ${{ github.TOKEN }}
+          approvers: ngupta10
+     - name: Deploy to staging
+       run: echo deploying
