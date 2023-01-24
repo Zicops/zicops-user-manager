@@ -1,4 +1,4 @@
-name: ZICOPS UM-CICD
+name: ZICOPS UM-CICD (Staging_reusable workflow)
 
 on:
   workflow_call:
