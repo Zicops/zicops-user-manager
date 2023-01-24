@@ -9,10 +9,10 @@ concurrency: Staging
 # need to add more trigger events?
 on: 
  workflow_dispatch:
- push:
-  branches: [ staging ]
- pull_request:
-  branches: [ staging ]
+ #push:
+  #branches: [ staging ]
+ #pull_request:
+  #branches: [ staging ]
 
 # Deploy to staging jobs
 
