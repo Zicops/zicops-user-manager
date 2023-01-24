@@ -2,7 +2,8 @@ name: Deployment
 
 concurrency: Production
 
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
 
 jobs:
   deployment:
