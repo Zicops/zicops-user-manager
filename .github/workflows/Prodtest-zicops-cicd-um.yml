@@ -1,4 +1,4 @@
-name: ZICOPS UM-CICD
+name: ZICOPS UM-CICD(reusable flow)
 
 on:
   workflow_call:
