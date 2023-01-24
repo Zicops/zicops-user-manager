@@ -27,6 +27,6 @@ jobs:
           approvers: ngupta10
      - name: Deploy to staging
        run: echo deploying
-  call-workflow-1-in-local-repo:
-   uses: zicops-user-manager/github/workflows/test_zicops-cicd-um.yml@staging
+  call-staging-deployment-workflow:
+   uses: Zicops/zicops-user-manager/.github/workflows/test_zicops-cicd-um.yml@staging
 
