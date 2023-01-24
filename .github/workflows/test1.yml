@@ -1,6 +1,6 @@
 name: Concurrency
 on:
-  workflow_dispatch
+ workflow_dispatch:
 
 jobs:
   print-tag:
