@@ -1,6 +1,4 @@
 name: ConcurrencyTest
-#run-name: ${{ github.actor }} is testing out GitHub Actions 
-#concurrency: Production
 on: 
  workflow_dispatch:
 jobs:
