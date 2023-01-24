@@ -626,10 +626,30 @@ input UserFilters {
 }
 
 input CourseMapFilters {
-  lsp_id :[String]
+  lsp_id: [String]
   is_mandatory: Boolean
   status: String
   type: String
+}
+
+type Count {
+  name: String
+  count: Int
+}
+
+input UserCourseMapStatsInput {
+  lsp_id: String
+  user_id: String
+  course_type: [String]
+  course_status: [String]
+  is_mandatory: Boolean
+}
+
+type UserCourseMapStats {
+  lsp_id: String
+  user_id: String
+  type_stats: [Count]
+  status_stats: [Count]
 }
 
 type Query {
@@ -657,7 +677,7 @@ type Query {
   ): UserPreference
   getUserLsps(user_id: String!): [UserLspMap]
   getUserLspByLspId(user_id: String!, lsp_id: String!): UserLspMap
-  getUserCourseMaps( 
+  getUserCourseMaps(
     user_id: String!
     publish_time: Int
     pageCursor: String
@@ -665,12 +685,19 @@ type Query {
     pageSize: Int
     filters: CourseMapFilters
   ): PaginatedCourseMaps
-  getUserCourseMapByCourseID(user_id: String!, course_id: String!, lsp_id:String): [UserCourse]
+  getUserCourseMapStats(
+    input: UserCourseMapStatsInput!
+  ): UserCourseMapStats
+  getUserCourseMapByCourseID(
+    user_id: String!
+    course_id: String!
+    lsp_id: String
+  ): [UserCourse]
   getUserCourseProgressByMapId(
     user_id: String!
     user_course_id: [ID!]
   ): [UserCourseProgress]
-  getUserCourseProgressByTopicId(    
+  getUserCourseProgressByTopicId(
     user_id: String!
     topic_id: ID!
   ): [UserCourseProgress]
@@ -723,13 +750,17 @@ type Query {
     searchText: String
   ): PaginatedCohortsMain
   getOrganizations(org_ids: [String]): [Organization]
-  getOrganizationsByName(name: String, prevPageSnapShot: String!, pageSize: Int!): [Organization]
+  getOrganizationsByName(
+    name: String
+    prevPageSnapShot: String!
+    pageSize: Int!
+  ): [Organization]
   getOrganizationUnits(ou_ids: [String]): [OrganizationUnit]
   getUnitsByOrgId(org_id: String!): [OrganizationUnit]
   getLearningSpacesByOrgId(org_id: String!): [LearningSpace]
   getLearningSpacesByOuId(ou_id: String!, org_id: String!): [LearningSpace]
   getLearningSpaceDetails(lsp_ids: [String]): [LearningSpace]
-  getUserLspRoles(user_id: String!, user_lsp_ids:[String!]!): [UserRole]
+  getUserLspRoles(user_id: String!, user_lsp_ids: [String!]!): [UserRole]
 }
 
 type Mutation {
