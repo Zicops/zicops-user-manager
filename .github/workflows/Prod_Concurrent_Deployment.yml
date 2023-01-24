@@ -1,0 +1,29 @@
+# Deploy to Staging
+
+name: Production-Concurrent-Deployment
+run-name: Production-Deployment-Test
+
+# setting concurrency at workflow level
+concurrency: Production
+
+# need to add more trigger events?
+on: 
+ workflow_dispatch:
+
+
+# Deploy to production jobs
+
+jobs:
+  Production_deployment:
+    runs-on: ubuntu-latest
+    environment: Production
+    steps:
+     - uses: trstringer/manual-approval@v1
+       with:
+          secret: ${{ github.TOKEN }}
+          approvers: ngupta10
+     - name: Deploy to production
+       run: echo deploying
+  call-production-deployment-workflow:
+   uses: Zicops/zicops-user-manager/.github/workflows/Prodtest-zicops-cicd-um.yml@main
+
