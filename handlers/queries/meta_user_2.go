@@ -667,3 +667,48 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	//}
 	return &outputResponse, nil
 }
+
+func DeleteCohortImage(ctx context.Context, cohortID string) (*string, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error while getting the claims: %v", err)
+		return nil, err
+	}
+	lspID := claims["lsp_id"].(string)
+
+	var photoBucket string
+	var photoUrl string
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+
+	cohorts := []userz.Cohort{}
+	getQueryStr := fmt.Sprintf("SELECT * FROM userz.cohort_main WHERE id='%s' AND lsp_id='%s'  ", cohortID, lspID)
+	getQuery := CassUserSession.Query(getQueryStr, nil)
+	if err := getQuery.SelectRelease(&cohorts); err != nil {
+		return nil, err
+	}
+	if len(cohorts) == 0 {
+		return nil, fmt.Errorf("no cohort found")
+	}
+	cohort := cohorts[0]
+
+	photoBucket = cohort.ImageBucket
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
+	if photoBucket != "" {
+		photoUrl = storageC.GetSignedURLForObject(photoBucket)
+	}
+	res := storageC.DeleteObjectsFromBucket(ctx, photoUrl)
+	if res != "success" {
+		return nil, fmt.Errorf(res)
+	}
+	return &photoUrl, nil
+
+}

@@ -807,4 +807,5 @@ type Mutation {
   updateOrganizationUnit(input: OrganizationUnitInput!): OrganizationUnit
   addLearningSpace(input: LearningSpaceInput!): LearningSpace
   updateLearningSpace(input: LearningSpaceInput!): LearningSpace
+  deleteCohortImage(cohort_id: String!):String
 }
