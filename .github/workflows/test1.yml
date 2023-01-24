@@ -5,7 +5,8 @@ run-name: Production Deployment_Test
 concurrency: Production
 
 
-on: [workflow_dispatch]
+on: 
+ workflow_dispatch:
 
 jobs:
   deployment:
