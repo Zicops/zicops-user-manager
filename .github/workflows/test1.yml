@@ -1,10 +1,11 @@
-name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
+name: ConcurrencyTest
+#run-name: ${{ github.actor }} is testing out GitHub Actions 
 concurrency: Production
-on: [push]
+on: [workflow_dispatch]
 jobs:
-  Explore-GitHub-Actions:
+  Concurrency:
     runs-on: ubuntu-latest
+    environment: Production
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
