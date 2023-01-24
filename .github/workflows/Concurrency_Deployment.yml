@@ -13,5 +13,5 @@ jobs:
     environment: production
     steps:
       - name: deploy
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "The workflow is now ready to test your code on the runner"
         # ...deployment-specific steps
