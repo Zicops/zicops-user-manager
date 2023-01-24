@@ -1,6 +1,5 @@
-name: ConcurrencyTest
-on: 
- workflow_dispatch:
+name: Concurrency
+on: [push]
 jobs:
   Explore-GitHub-Actions:
     runs-on: ubuntu-latest
