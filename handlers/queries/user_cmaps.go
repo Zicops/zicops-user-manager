@@ -253,60 +253,74 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 			whereClause = fmt.Sprintf(`where course_status='%s' and course_type='%s'`, *input.CourseStatus[0], *input.CourseType[0])
 		}
 	}
+	var wg sync.WaitGroup
 	statsStatus := make([]*model.Count, 0)
 	if !filteringRequired && input.CourseStatus != nil && len(input.CourseStatus) > 0 {
+		statsStatus = make([]*model.Count, len(input.CourseStatus))
 		for i, s := range input.CourseStatus {
+			wg.Add(1)
 			status := *s
-			if i == 0 && whereClause == "" {
-				whereClause = fmt.Sprintf(`where course_status='%s'`, status)
-			} else {
-				whereClause = whereClause + fmt.Sprintf(` AND course_status='%s'`, status)
-			}
-			qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, whereClause)
-			getCSCount := func() (count int, success bool) {
-				q := CassUserSession.Query(qryStr, nil)
-				defer q.Release()
-				iter := q.Iter()
-				return count, iter.Scan(&count)
-			}
-			count, success := getCSCount()
-			if !success {
-				return nil, fmt.Errorf("error getting count for course status %s", status)
-			}
-			currentStatus := &model.Count{
-				Name:  &status,
-				Count: &count,
-			}
-			statsStatus = append(statsStatus, currentStatus)
+			tempClause := whereClause
+			go func(i int, status string, tempClause string) {
+				if i == 0 && tempClause == "" {
+					tempClause = fmt.Sprintf(`where course_status='%s'`, status)
+				} else {
+					tempClause = whereClause + fmt.Sprintf(` AND course_status='%s'`, status)
+				}
+				qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, tempClause)
+				getCSCount := func() (count int, success bool) {
+					q := CassUserSession.Query(qryStr, nil)
+					defer q.Release()
+					iter := q.Iter()
+					return count, iter.Scan(&count)
+				}
+				count, success := getCSCount()
+				if !success {
+					return
+				}
+				currentStatus := &model.Count{
+					Name:  status,
+					Count: count,
+				}
+				statsStatus[i] = currentStatus
+				wg.Done()
+			}(i, status, tempClause)
 		}
 	}
 	statsType := make([]*model.Count, 0)
 	if !filteringRequired && input.CourseType != nil && len(input.CourseType) > 0 {
+		statsType = make([]*model.Count, len(input.CourseType))
 		for i, s := range input.CourseType {
+			wg.Add(1)
+			tempClause := whereClause
 			status := *s
-			if i == 0 && whereClause == "" {
-				whereClause = fmt.Sprintf(`where course_type='%s'`, status)
-			} else {
-				whereClause = whereClause + fmt.Sprintf(` AND course_type='%s'`, status)
-			}
-			qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, whereClause)
-			getCSCount := func() (count int, success bool) {
-				q := CassUserSession.Query(qryStr, nil)
-				defer q.Release()
-				iter := q.Iter()
-				return count, iter.Scan(&count)
-			}
-			count, success := getCSCount()
-			if !success {
-				return nil, fmt.Errorf("error while getting count for course type %s", status)
-			}
-			currentStatus := &model.Count{
-				Name:  &status,
-				Count: &count,
-			}
-			statsType = append(statsType, currentStatus)
+			go func(i int, status string, tempClause string) {
+				if i == 0 && tempClause == "" {
+					tempClause = fmt.Sprintf(`where course_type='%s'`, status)
+				} else {
+					tempClause = whereClause + fmt.Sprintf(` AND course_type='%s'`, status)
+				}
+				qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, tempClause)
+				getCSCount := func() (count int, success bool) {
+					q := CassUserSession.Query(qryStr, nil)
+					defer q.Release()
+					iter := q.Iter()
+					return count, iter.Scan(&count)
+				}
+				count, success := getCSCount()
+				if !success {
+					return
+				}
+				currentStatus := &model.Count{
+					Name:  status,
+					Count: count,
+				}
+				statsType[i] = currentStatus
+				wg.Done()
+			}(i, status, tempClause)
 		}
 	}
+	wg.Wait()
 	if filteringRequired {
 		qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, whereClause)
 		getCSCount := func() (count int, success bool) {
@@ -320,13 +334,13 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 			return nil, fmt.Errorf("error while getting count for course type %s", *input.CourseType[0])
 		}
 		currentStatus := &model.Count{
-			Name:  input.CourseStatus[0],
-			Count: &count,
+			Name:  *input.CourseStatus[0],
+			Count: count,
 		}
 		statsStatus = append(statsStatus, currentStatus)
 		currentType := &model.Count{
-			Name:  input.CourseType[0],
-			Count: &count,
+			Name:  *input.CourseType[0],
+			Count: count,
 		}
 		statsType = append(statsType, currentType)
 	}

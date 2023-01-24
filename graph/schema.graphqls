@@ -633,8 +633,8 @@ input CourseMapFilters {
 }
 
 type Count {
-  name: String
-  count: Int
+  name: String!
+  count: Int!
 }
 
 input UserCourseMapStatsInput {
@@ -685,9 +685,7 @@ type Query {
     pageSize: Int
     filters: CourseMapFilters
   ): PaginatedCourseMaps
-  getUserCourseMapStats(
-    input: UserCourseMapStatsInput!
-  ): UserCourseMapStats
+  getUserCourseMapStats(input: UserCourseMapStatsInput!): UserCourseMapStats
   getUserCourseMapByCourseID(
     user_id: String!
     course_id: String!
