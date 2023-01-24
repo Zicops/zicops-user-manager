@@ -706,10 +706,10 @@ func DeleteCohortImage(ctx context.Context, cohortID string) (*string, error) {
 	if photoBucket != "" {
 		photoUrl = storageC.GetSignedURLForObject(photoBucket)
 	}
-	// res := storageC.DeleteObjectsFromBucket(ctx, photoUrl)
-	// if res != "success" {
-	// 	return nil, fmt.Errorf(res)
-	// }
-	return &photoUrl, nil
+	res := storageC.DeleteObjectsFromBucket(ctx, photoUrl)
+	if res != "success" {
+		return nil, fmt.Errorf(res)
+	}
+	return &res, nil
 
 }
