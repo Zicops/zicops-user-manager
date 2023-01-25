@@ -88,22 +88,30 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
 		spliVPorgress := strings.Split(input.TimeStamp, "-")
-		half1 := spliVPorgress[0]
-		half2 := spliVPorgress[1]
-		//convert half1 to int from floating point string
-		half1Int, err := strconv.ParseFloat(half1, 64)
-		if err != nil {
-			log.Errorf("error while converting half1 to int: %v", err)
+		needTime := true
+		if len(spliVPorgress) < 2 {
+			needTime = false
 		}
-		//convert half2 to int from floating point string
-		half2Int, err := strconv.ParseFloat(half2, 64)
-		if err != nil {
-			log.Errorf("error while converting half2 to int: %v", err)
+		half1Int := 0.0
+		half2Int := 0.0
+		if needTime {
+			half1 := spliVPorgress[0]
+			half2 := spliVPorgress[1]
+			//convert half1 to int from floating point string
+			half1Int, err = strconv.ParseFloat(half1, 64)
+			if err != nil {
+				log.Errorf("error while converting half1 to int: %v", err)
+			}
+			//convert half2 to int from floating point string
+			half2Int, err = strconv.ParseFloat(half2, 64)
+			if err != nil {
+				log.Errorf("error while converting half2 to int: %v", err)
+			}
+			// convert half1 to int
+			half1Int = math.Floor(half1Int)
+			// convert half2 to int
+			half2Int = math.Floor(half2Int)
 		}
-		// convert half1 to int
-		half1Int = math.Floor(half1Int)
-		// convert half2 to int
-		half2Int = math.Floor(half2Int)
 		totalTimeDiff := int64(half2Int - half1Int)
 		if totalTimeDiff > 0 {
 			go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, totalTimeDiff)
