@@ -96,6 +96,10 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 			ccStats.AverageComplianceScore = compliance_score
 		}
 		ccStats.TotalLearners = ccStats.CompletedLearners + ccStats.ActiveLearners
+		deleteQry := session.Query(userz.CCTable.Delete()).BindStruct(ccStats)
+		if err := deleteQry.ExecRelease(); err != nil {
+			return
+		}
 		insertQuery := session.Query(userz.CCTable.Insert()).BindStruct(ccStats)
 		if err := insertQuery.ExecRelease(); err != nil {
 			return
