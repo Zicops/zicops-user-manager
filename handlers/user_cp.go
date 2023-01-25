@@ -244,7 +244,13 @@ func GetCourseViews(ctx context.Context, lspIds []string, startTime *string, end
 			log.Errorf("error getting course views: %v", err)
 			return nil, err
 		}
-		output = append(output, &courseViews[0])
+		if len(courseViews) == 0 {
+			continue
+		}
+		currentView := courseViews[0]
+		hours := *currentView.Hours / 3600
+		currentView.Hours = &hours
+		output = append(output, &currentView)
 	}
 	return output, nil
 }

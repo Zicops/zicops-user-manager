@@ -109,7 +109,7 @@ func AddUpdateCourseViews(ctx context.Context, lspId string, courseId string, us
 		return
 	}
 	currentDateString := time.Now().Format("2006-01-02")
-	qryStrGet := fmt.Sprintf("SELECT * from coursez.course_views WHERE lsp_id='%s' date_value='%s' ", courseId, currentDateString)
+	qryStrGet := fmt.Sprintf("SELECT * from coursez.course_views WHERE lsp_id='%s' date_value='%s' ALLOW FILTERING", courseId, currentDateString)
 	qryGet := cSessionLocal.Query(qryStrGet, nil)
 	courseViews := []coursez.CourseView{}
 	if err := qryGet.SelectRelease(&courseViews); err != nil {
