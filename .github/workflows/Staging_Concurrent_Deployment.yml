@@ -4,11 +4,15 @@ name: Staging-Concurrent-Deployment
 run-name: Staging-Deployment-Test
 
 # setting concurrency at workflow level
-concurrency: Staging 
+concurrency: ${{ github.event.inputs.environment }}
 
 # need to add more trigger events?
 on: 
  workflow_dispatch:
+  inputs:
+      environment:
+        type: environment
+      
  #push:
   #branches: [ staging ]
  #pull_request:
@@ -27,7 +31,7 @@ jobs:
           approvers: ngupta10
      - name: Deploy to staging
        run: echo deploying
-  call-staging-deployment-workflow:
-   needs: [Staging_deployment]
-   uses: Zicops/zicops-user-manager/.github/workflows/Staging_zicops-cicd-um.yml@staging
+ # call-staging-deployment-workflow:
+ #  needs: [Staging_deployment]
+ #  uses: Zicops/zicops-user-manager/.github/workflows/Staging_zicops-cicd-um.yml@staging
 
