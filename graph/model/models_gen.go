@@ -44,6 +44,26 @@ type Count struct {
 	Count int    `json:"count"`
 }
 
+type CourseConsumptionStats struct {
+	ID                     *string `json:"ID"`
+	LspID                  *string `json:"LspId"`
+	CourseID               *string `json:"CourseId"`
+	Category               *string `json:"Category"`
+	SubCategory            *string `json:"SubCategory"`
+	Owner                  *string `json:"Owner"`
+	Duration               *int    `json:"Duration"`
+	TotalLearners          *int    `json:"TotalLearners"`
+	ActiveLearners         *int    `json:"ActiveLearners"`
+	CompletedLearners      *int    `json:"CompletedLearners"`
+	ExpectedCompletionTime *int    `json:"ExpectedCompletionTime"`
+	AverageCompletionTime  *int    `json:"AverageCompletionTime"`
+	AverageComplianceScore *int    `json:"AverageComplianceScore"`
+	CreatedAt              *int    `json:"CreatedAt"`
+	UpdatedAt              *int    `json:"UpdatedAt"`
+	CreatedBy              *string `json:"CreatedBy"`
+	UpdatedBy              *string `json:"UpdatedBy"`
+}
+
 type CourseMapFilters struct {
 	LspID       []*string `json:"lsp_id"`
 	IsMandatory *bool     `json:"is_mandatory"`

@@ -351,3 +351,63 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 	currentOutput.TypeStats = statsType
 	return &currentOutput, nil
 }
+
+func GetCourseConsumptionStats(ctx context.Context, lspIds []string) ([]*model.CourseConsumptionStats, error) {
+	var wg sync.WaitGroup
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+	outputResponse := make([]*model.CourseConsumptionStats, 0)
+	for _, lspID := range lspIds {
+		wg.Add(1)
+		go func(lspID string) {
+			defer wg.Done()
+			qryStr := fmt.Sprintf(`SELECT * from userz.course_consumption_stats where lsp_id='%s' ALLOW FILTERING`, lspID)
+			getCourseConsumptionStats := func() (courseConsumptionStats []userz.CCStats, success bool) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return courseConsumptionStats, iter.Scan(&courseConsumptionStats)
+			}
+			courseConsumptionStats, success := getCourseConsumptionStats()
+			if !success {
+				return
+			}
+			for _, courseConsumptionStat := range courseConsumptionStats {
+				expectCompletiontime := int(courseConsumptionStat.ExpectedCompletionTime)
+				avgCompletiontime := int(courseConsumptionStat.AverageCompletionTime)
+				totalLearners := int(courseConsumptionStat.TotalLearners)
+				activeLearners := int(courseConsumptionStat.ActiveLearners)
+				completedLearners := int(courseConsumptionStat.CompletedLearners)
+				avgScore := int(courseConsumptionStat.AverageComplianceScore)
+				createdAt := int(courseConsumptionStat.CreatedAt)
+				updatedAt := int(courseConsumptionStat.UpdatedAt)
+				duration := int(courseConsumptionStat.Duration)
+				currentCourseConsumptionStat := model.CourseConsumptionStats{
+					ID:                     &courseConsumptionStat.ID,
+					LspID:                  &courseConsumptionStat.LspId,
+					CourseID:               &courseConsumptionStat.CourseId,
+					ExpectedCompletionTime: &expectCompletiontime,
+					AverageCompletionTime:  &avgCompletiontime,
+					AverageComplianceScore: &avgScore,
+					Category:               &courseConsumptionStat.Category,
+					SubCategory:            &courseConsumptionStat.SubCategory,
+					Owner:                  &courseConsumptionStat.Owner,
+					Duration:               &duration,
+					TotalLearners:          &totalLearners,
+					ActiveLearners:         &activeLearners,
+					CompletedLearners:      &completedLearners,
+					CreatedAt:              &createdAt,
+					UpdatedAt:              &updatedAt,
+					CreatedBy:              &courseConsumptionStat.CreatedBy,
+					UpdatedBy:              &courseConsumptionStat.UpdatedBy,
+				}
+				outputResponse = append(outputResponse, &currentCourseConsumptionStat)
+			}
+		}(lspID)
+	}
+	wg.Wait()
+	return outputResponse, nil
+}

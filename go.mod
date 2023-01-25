@@ -12,6 +12,7 @@ require (
 	github.com/gin-gonic/gin v1.8.2
 	github.com/google/uuid v1.3.0
 	github.com/satori/go.uuid v1.2.0
+	github.com/scylladb/gocqlx/v2 v2.8.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.1
 	github.com/zicops/contracts v0.0.0-20230125040656-87699debaf37
@@ -48,7 +49,6 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/scylladb/go-reflectx v1.0.1 // indirect
 	github.com/scylladb/gocqlx v1.5.0 // indirect
-	github.com/scylladb/gocqlx/v2 v2.8.0 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/ugorji/go/codec v1.2.8 // indirect
 	go.opencensus.io v0.24.0 // indirect
