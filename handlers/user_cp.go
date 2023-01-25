@@ -160,27 +160,19 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 	if input.TimeStamp != "" && input.TimeStamp != strconv.FormatInt(userLspMap.TimeStamp, 10) {
 		spliVPorgress := strings.Split(input.TimeStamp, "-")
 		half1 := spliVPorgress[0]
-		half2 := spliVPorgress[1]
 		//convert half1 to int from floating point string
 		half1Int, err := strconv.ParseFloat(half1, 64)
 		if err != nil {
 			log.Errorf("error while converting half1 to int: %v", err)
 		}
-		//convert half2 to int from floating point string
-		half2Int, err := strconv.ParseFloat(half2, 64)
-		if err != nil {
-			log.Errorf("error while converting half2 to int: %v", err)
-		}
 		// convert half1 to int
 		half1Int = math.Floor(half1Int)
-		// convert half2 to int
-		half2Int = math.Floor(half2Int)
-		totalTimeDiff := int64(half2Int - half1Int)
-		oldTimeDiff := userLspMap.TimeStamp
-		userLspMap.TimeStamp = totalTimeDiff
+		oldTimeStamp := userLspMap.TimeStamp
+		userLspMap.TimeStamp = int64(half1Int)
 		updatedCols = append(updatedCols, "time_stamp")
-		if totalTimeDiff > 0 {
-			go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, totalTimeDiff, oldTimeDiff)
+		diff := userLspMap.TimeStamp - oldTimeStamp
+		if diff > 0 {
+			go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, diff, 0)
 		}
 	}
 	if input.UpdatedBy != nil {
