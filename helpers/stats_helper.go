@@ -107,7 +107,7 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 	}
 }
 
-func AddUpdateCourseViews(lspId string, userId string, secs int64) {
+func AddUpdateCourseViews(lspId string, userId string, secs int64, oldSecs int64) {
 	cSessionLocal, err := cassandra.GetCassSession("coursez")
 	if err != nil {
 		logrus.Error("error getting cass session", err)
@@ -147,7 +147,7 @@ func AddUpdateCourseViews(lspId string, userId string, secs int64) {
 		if !foundUser {
 			courseViews.Users = append(courseViews.Users, userId)
 		}
-		courseViews.Hours = courseViews.Hours + secs
+		courseViews.Hours = courseViews.Hours + secs - oldSecs
 		insertQuery := cSessionLocal.Query(coursez.CVTable.Insert()).BindStruct(courseViews)
 		if err := insertQuery.ExecRelease(); err != nil {
 			return

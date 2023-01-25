@@ -38,6 +38,32 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 	userLspMaps := make([]*model.UserCourseProgress, 0)
 	for _, v := range input {
 		input := *v
+		spliVPorgress := strings.Split(input.TimeStamp, "-")
+		needTime := true
+		if len(spliVPorgress) < 2 {
+			needTime = false
+		}
+		half1Int := 0.0
+		half2Int := 0.0
+		if needTime {
+			half1 := spliVPorgress[0]
+			half2 := spliVPorgress[1]
+			//convert half1 to int from floating point string
+			half1Int, err = strconv.ParseFloat(half1, 64)
+			if err != nil {
+				log.Errorf("error while converting half1 to int: %v", err)
+			}
+			//convert half2 to int from floating point string
+			half2Int, err = strconv.ParseFloat(half2, 64)
+			if err != nil {
+				log.Errorf("error while converting half2 to int: %v", err)
+			}
+			// convert half1 to int
+			half1Int = math.Floor(half1Int)
+			// convert half2 to int
+			half2Int = math.Floor(half2Int)
+		}
+		totalTimeDiff := int64(half2Int - half1Int)
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
@@ -46,7 +72,6 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 		if input.UpdatedBy != nil {
 			updatedBy = *input.UpdatedBy
 		}
-		timeStamp, _ := strconv.ParseInt(input.TimeStamp, 10, 64)
 		videoProgress := ""
 		if input.VideoProgress != "" {
 			videoProgress = input.VideoProgress
@@ -58,7 +83,7 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 			TopicID:       input.TopicID,
 			TopicType:     input.TopicType,
 			Status:        input.Status,
-			TimeStamp:     timeStamp,
+			TimeStamp:     totalTimeDiff,
 			VideoProgress: videoProgress,
 			CreatedAt:     time.Now().Unix(),
 			UpdatedAt:     time.Now().Unix(),
@@ -87,34 +112,8 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 			UpdatedBy:     &userLspMap.UpdatedBy,
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
-		spliVPorgress := strings.Split(input.TimeStamp, "-")
-		needTime := true
-		if len(spliVPorgress) < 2 {
-			needTime = false
-		}
-		half1Int := 0.0
-		half2Int := 0.0
-		if needTime {
-			half1 := spliVPorgress[0]
-			half2 := spliVPorgress[1]
-			//convert half1 to int from floating point string
-			half1Int, err = strconv.ParseFloat(half1, 64)
-			if err != nil {
-				log.Errorf("error while converting half1 to int: %v", err)
-			}
-			//convert half2 to int from floating point string
-			half2Int, err = strconv.ParseFloat(half2, 64)
-			if err != nil {
-				log.Errorf("error while converting half2 to int: %v", err)
-			}
-			// convert half1 to int
-			half1Int = math.Floor(half1Int)
-			// convert half2 to int
-			half2Int = math.Floor(half2Int)
-		}
-		totalTimeDiff := int64(half2Int - half1Int)
 		if totalTimeDiff > 0 {
-			go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, totalTimeDiff)
+			go helpers.AddUpdateCourseViews(*lspID, userLspOutput.UserID, totalTimeDiff, 0)
 		}
 	}
 	return userLspMaps, nil
@@ -186,9 +185,6 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 		updatedCols = append(updatedCols, "topic_type")
 	}
 	if input.TimeStamp != "" && input.TimeStamp != strconv.FormatInt(userLspMap.TimeStamp, 10) {
-		timeStamp, _ := strconv.ParseInt(input.TimeStamp, 10, 64)
-		userLspMap.TimeStamp = timeStamp
-		updatedCols = append(updatedCols, "time_stamp")
 		spliVPorgress := strings.Split(input.TimeStamp, "-")
 		half1 := spliVPorgress[0]
 		half2 := spliVPorgress[1]
@@ -207,8 +203,12 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 		// convert half2 to int
 		half2Int = math.Floor(half2Int)
 		totalTimeDiff := int64(half2Int - half1Int)
+		oldTimeDiff := userLspMap.TimeStamp
+		totalTimeDiff = totalTimeDiff
+		userLspMap.TimeStamp = totalTimeDiff
+		updatedCols = append(updatedCols, "time_stamp")
 		if totalTimeDiff > 0 {
-			go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, totalTimeDiff)
+			go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, totalTimeDiff, oldTimeDiff)
 		}
 	}
 	if input.UpdatedBy != nil {
