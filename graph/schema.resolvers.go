@@ -412,8 +412,8 @@ func (r *mutationResolver) UpdateLearningSpace(ctx context.Context, input model.
 }
 
 // DeleteCohortImage is the resolver for the deleteCohortImage field.
-func (r *mutationResolver) DeleteCohortImage(ctx context.Context, cohortID string) (*string, error) {
-	result, err := queries.DeleteCohortImage(ctx, cohortID)
+func (r *mutationResolver) DeleteCohortImage(ctx context.Context, cohortID string, filename string) (*string, error) {
+	result, err := queries.DeleteCohortImage(ctx, cohortID, filename)
 	if err != nil {
 		log.Errorf("Error while deleting the image of cohort: %v", err)
 		return nil, err

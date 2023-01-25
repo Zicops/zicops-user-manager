@@ -129,7 +129,7 @@ type ComplexityRoot struct {
 		AddUserPreference         func(childComplexity int, input []*model.UserPreferenceInput) int
 		AddUserQuizAttempt        func(childComplexity int, input []*model.UserQuizAttemptInput) int
 		AddUserRoles              func(childComplexity int, input []*model.UserRoleInput) int
-		DeleteCohortImage         func(childComplexity int, cohortID string) int
+		DeleteCohortImage         func(childComplexity int, cohortID string, filename string) int
 		InviteUsers               func(childComplexity int, emails []string, lspID *string) int
 		Login                     func(childComplexity int) int
 		RegisterUsers             func(childComplexity int, input []*model.UserInput) int
@@ -564,7 +564,7 @@ type MutationResolver interface {
 	UpdateOrganizationUnit(ctx context.Context, input model.OrganizationUnitInput) (*model.OrganizationUnit, error)
 	AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*model.LearningSpace, error)
 	UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*model.LearningSpace, error)
-	DeleteCohortImage(ctx context.Context, cohortID string) (*string, error)
+	DeleteCohortImage(ctx context.Context, cohortID string, filename string) (*string, error)
 }
 type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
@@ -1209,7 +1209,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteCohortImage(childComplexity, args["cohort_id"].(string)), true
+		return e.complexity.Mutation.DeleteCohortImage(childComplexity, args["cohort_id"].(string), args["filename"].(string)), true
 
 	case "Mutation.inviteUsers":
 		if e.complexity.Mutation.InviteUsers == nil {
@@ -4574,7 +4574,7 @@ type Mutation {
   updateOrganizationUnit(input: OrganizationUnitInput!): OrganizationUnit
   addLearningSpace(input: LearningSpaceInput!): LearningSpace
   updateLearningSpace(input: LearningSpaceInput!): LearningSpace
-  deleteCohortImage(cohort_id: String!): String
+  deleteCohortImage(cohort_id: String!, filename: String!): String
 }
 `, BuiltIn: false},
 }
@@ -4866,6 +4866,15 @@ func (ec *executionContext) field_Mutation_deleteCohortImage_args(ctx context.Co
 		}
 	}
 	args["cohort_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["filename"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filename"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filename"] = arg1
 	return args, nil
 }
 
@@ -11523,7 +11532,7 @@ func (ec *executionContext) _Mutation_deleteCohortImage(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteCohortImage(rctx, fc.Args["cohort_id"].(string))
+		return ec.resolvers.Mutation().DeleteCohortImage(rctx, fc.Args["cohort_id"].(string), fc.Args["filename"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
