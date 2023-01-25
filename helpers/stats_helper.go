@@ -113,9 +113,6 @@ func AddUpdateCourseViews(lspId string, userId string, secs int64) {
 	qryStrGet := fmt.Sprintf("SELECT * from coursez.course_views WHERE lsp_id='%s' AND date_value='%s' ALLOW FILTERING", lspId, currentDateString)
 	qryGet := cSessionLocal.Query(qryStrGet, nil)
 	courseViews := []coursez.CourseView{}
-	logrus.Info("query string", qryStrGet)
-	logrus.Info("query", qryGet)
-	logrus.Info("currentDateString", currentDateString)
 	if err := qryGet.SelectRelease(&courseViews); err != nil {
 		logrus.Error("error getting course views", err)
 		return
