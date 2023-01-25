@@ -38,32 +38,6 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 	userLspMaps := make([]*model.UserCourseProgress, 0)
 	for _, v := range input {
 		input := *v
-		spliVPorgress := strings.Split(input.TimeStamp, "-")
-		needTime := true
-		if len(spliVPorgress) < 2 {
-			needTime = false
-		}
-		half1Int := 0.0
-		half2Int := 0.0
-		if needTime {
-			half1 := spliVPorgress[0]
-			half2 := spliVPorgress[1]
-			//convert half1 to int from floating point string
-			half1Int, err = strconv.ParseFloat(half1, 64)
-			if err != nil {
-				log.Errorf("error while converting half1 to int: %v", err)
-			}
-			//convert half2 to int from floating point string
-			half2Int, err = strconv.ParseFloat(half2, 64)
-			if err != nil {
-				log.Errorf("error while converting half2 to int: %v", err)
-			}
-			// convert half1 to int
-			half1Int = math.Floor(half1Int)
-			// convert half2 to int
-			half2Int = math.Floor(half2Int)
-		}
-		totalTimeDiff := int64(half2Int - half1Int)
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
@@ -83,7 +57,7 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 			TopicID:       input.TopicID,
 			TopicType:     input.TopicType,
 			Status:        input.Status,
-			TimeStamp:     totalTimeDiff,
+			TimeStamp:     0,
 			VideoProgress: videoProgress,
 			CreatedAt:     time.Now().Unix(),
 			UpdatedAt:     time.Now().Unix(),
@@ -112,9 +86,8 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 			UpdatedBy:     &userLspMap.UpdatedBy,
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
-		if totalTimeDiff > 0 {
-			go helpers.AddUpdateCourseViews(*lspID, userLspOutput.UserID, totalTimeDiff, 0)
-		}
+		go helpers.AddUpdateCourseViews(*lspID, userLspOutput.UserID, 0, 0)
+
 	}
 	return userLspMaps, nil
 }
