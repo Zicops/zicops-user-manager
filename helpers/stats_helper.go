@@ -89,6 +89,9 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 			ccStats.AverageCompletionTime = (ccStats.AverageCompletionTime + completionTime) / ccStats.CompletedLearners
 			expectedCompletitionDuration := ccStats.ExpectedCompletionTime - ccStats.CreatedAt
 			compliance_score := 100 - ((completionTime - expectedCompletitionDuration) / expectedCompletitionDuration)
+			if compliance_score > 100 {
+				compliance_score = 100
+			}
 			ccStats.AverageComplianceScore = compliance_score
 		}
 		ccStats.TotalLearners = ccStats.CompletedLearners + ccStats.ActiveLearners
