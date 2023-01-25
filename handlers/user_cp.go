@@ -12,10 +12,11 @@ import (
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/helpers"
 )
 
 func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgressInput) ([]*model.UserCourseProgress, error) {
-	userCass, err := GetUserFromCass(ctx)
+	userCass, lspID, err := GetUserFromCassWithLsp(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
@@ -85,12 +86,19 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 			UpdatedBy:     &userLspMap.UpdatedBy,
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
+		spliVPorgress := strings.Split(input.VideoProgress, "-")
+		if len(spliVPorgress) > 0 {
+			vProgressSeconds, err := strconv.ParseInt(spliVPorgress[0], 10, 64)
+			if err == nil {
+				go helpers.AddUpdateCourseViews(ctx, *lspID, userLspMap.UserID, vProgressSeconds)
+			}
+		}
 	}
 	return userLspMaps, nil
 }
 
 func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgressInput) (*model.UserCourseProgress, error) {
-	userCass, err := GetUserFromCass(ctx)
+	userCass, lspID, err := GetUserFromCassWithLsp(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
@@ -136,6 +144,13 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 	if input.VideoProgress != "" && input.VideoProgress != userLspMap.VideoProgress {
 		userLspMap.VideoProgress = input.VideoProgress
 		updatedCols = append(updatedCols, "video_progress")
+		spliVPorgress := strings.Split(input.VideoProgress, "-")
+		if len(spliVPorgress) > 0 {
+			vProgressSeconds, err := strconv.ParseInt(spliVPorgress[0], 10, 64)
+			if err == nil {
+				go helpers.AddUpdateCourseViews(ctx, *lspID, userLspMap.UserID, vProgressSeconds)
+			}
+		}
 	}
 	if input.Status != "" && input.Status != userLspMap.Status {
 
@@ -192,4 +207,50 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 		UpdatedBy:     &userLspMap.UpdatedBy,
 	}
 	return userLspOutput, nil
+}
+
+func GetCourseViews(ctx context.Context, lspIds []string, startTime *string, endTime *string) ([]*model.CourseViews, error) {
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+	_, _, err = GetUserFromCassWithLsp(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("user not found")
+	}
+	startT, err := strconv.ParseInt(*startTime, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("start time is required")
+	}
+	endT, err := strconv.ParseInt(*endTime, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("end time is required")
+	}
+
+	startDate := time.Unix(startT, 0)
+	endDate := time.Unix(endT, 0)
+	startDateString := startDate.Format("2006-01-02")
+	endDateString := endDate.Format("2006-01-02")
+	output := []*model.CourseViews{}
+	for _, lspID := range lspIds {
+		if lspID == "" {
+			return nil, fmt.Errorf("lsp id is required")
+		}
+		getQueryStr := fmt.Sprintf("SELECT * FROM coursez.course_views WHERE lsp_id='%s' AND date_value >= '%s' AND date_value <= '%s' ALLOW FILTERING", lspID, startDateString, endDateString)
+		getQuery := CassUserSession.Query(getQueryStr, nil)
+		var courseViews []model.CourseViews
+		if err := getQuery.SelectRelease(&courseViews); err != nil {
+			log.Errorf("error getting course views: %v", err)
+			return nil, err
+		}
+		if len(courseViews) == 0 {
+			continue
+		}
+		currentView := courseViews[0]
+		hours := *currentView.Hours / 3600
+		currentView.Hours = &hours
+		output = append(output, &currentView)
+	}
+	return output, nil
 }

@@ -351,3 +351,93 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 	currentOutput.TypeStats = statsType
 	return &currentOutput, nil
 }
+
+func GetCourseConsumptionStats(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCCStats, error) {
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+	var newPage []byte
+	//var pageDirection string
+	var pageSizeInt int
+	if pageCursor != nil && *pageCursor != "" {
+		page, err := global.CryptSession.DecryptString(*pageCursor, nil)
+		if err != nil {
+			return nil, fmt.Errorf("invalid page cursor: %v", err)
+		}
+		newPage = page
+	}
+	if pageSize == nil {
+		pageSizeInt = 10
+	} else {
+		pageSizeInt = *pageSize
+	}
+	var newCursor string
+	qryStr := fmt.Sprintf(`SELECT * from userz.course_consumption_stats where lsp_id='%s' ALLOW FILTERING`, lspID)
+	getCourseConsumptionStats := func(page []byte) (courseConsumptionStats []userz.CCStats, nextPage []byte, err error) {
+		q := CassUserSession.Query(qryStr, nil)
+		defer q.Release()
+		q.PageState(page)
+		q.PageSize(pageSizeInt)
+		iter := q.Iter()
+		return courseConsumptionStats, nextPage, iter.Select(&courseConsumptionStats)
+	}
+	courseConsumptionStats, newPage, err := getCourseConsumptionStats(newPage)
+	if err != nil {
+		return nil, err
+	}
+	var wg sync.WaitGroup
+	outputResponse := make([]*model.CourseConsumptionStats, len(courseConsumptionStats))
+	for i, courseConsumptionStat := range courseConsumptionStats {
+		wg.Add(1)
+		go func(i int, courseConsumptionStat userz.CCStats) {
+			expectCompletiontime := int(courseConsumptionStat.ExpectedCompletionTime)
+			avgCompletiontime := int(courseConsumptionStat.AverageCompletionTime)
+			totalLearners := int(courseConsumptionStat.TotalLearners)
+			activeLearners := int(courseConsumptionStat.ActiveLearners)
+			completedLearners := int(courseConsumptionStat.CompletedLearners)
+			avgScore := int(courseConsumptionStat.AverageComplianceScore)
+			createdAt := int(courseConsumptionStat.CreatedAt)
+			updatedAt := int(courseConsumptionStat.UpdatedAt)
+			duration := int(courseConsumptionStat.Duration)
+			currentCourseConsumptionStat := model.CourseConsumptionStats{
+				ID:                     &courseConsumptionStat.ID,
+				LspID:                  &courseConsumptionStat.LspId,
+				CourseID:               &courseConsumptionStat.CourseId,
+				ExpectedCompletionTime: &expectCompletiontime,
+				AverageCompletionTime:  &avgCompletiontime,
+				AverageComplianceScore: &avgScore,
+				Category:               &courseConsumptionStat.Category,
+				SubCategory:            &courseConsumptionStat.SubCategory,
+				Owner:                  &courseConsumptionStat.Owner,
+				Duration:               &duration,
+				TotalLearners:          &totalLearners,
+				ActiveLearners:         &activeLearners,
+				CompletedLearners:      &completedLearners,
+				CreatedAt:              &createdAt,
+				UpdatedAt:              &updatedAt,
+				CreatedBy:              &courseConsumptionStat.CreatedBy,
+				UpdatedBy:              &courseConsumptionStat.UpdatedBy,
+			}
+			outputResponse[i] = &currentCourseConsumptionStat
+			wg.Done()
+		}(i, courseConsumptionStat)
+
+	}
+	wg.Wait()
+	if len(newPage) != 0 {
+		newCursor, err = global.CryptSession.EncryptAsString(newPage, nil)
+		if err != nil {
+			return nil, fmt.Errorf("error encrypting cursor: %v", err)
+		}
+		log.Infof("Users: %v", string(newCursor))
+
+	}
+	var resp model.PaginatedCCStats
+	resp.PageCursor = &newCursor
+	resp.Direction = direction
+	resp.PageSize = pageSize
+	resp.Stats = outputResponse
+	return &resp, nil
+}

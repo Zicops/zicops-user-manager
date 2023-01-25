@@ -652,6 +652,41 @@ type UserCourseMapStats {
   status_stats: [Count]
 }
 
+type CourseConsumptionStats {
+  ID: String
+  LspId: String
+  CourseId: String
+  Category: String
+  SubCategory: String
+  Owner: String
+  Duration: Int
+  TotalLearners: Int
+  ActiveLearners: Int
+  CompletedLearners: Int
+  ExpectedCompletionTime: Int
+  AverageCompletionTime: Int
+  AverageComplianceScore: Int
+  CreatedAt: Int
+  UpdatedAt: Int
+  CreatedBy: String
+  UpdatedBy: String
+}
+
+type PaginatedCCStats {
+  stats: [CourseConsumptionStats]
+  pageCursor: String
+  direction: String
+  pageSize: Int
+}
+
+type CourseViews {
+  hours: Int
+  created_at: String
+  lsp_id: String
+  user_ids: [String]
+  date_string: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -759,6 +794,17 @@ type Query {
   getLearningSpacesByOuId(ou_id: String!, org_id: String!): [LearningSpace]
   getLearningSpaceDetails(lsp_ids: [String]): [LearningSpace]
   getUserLspRoles(user_id: String!, user_lsp_ids: [String!]!): [UserRole]
+  getCourseConsumptionStats(
+    lsp_id: String!
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedCCStats
+  getCourseViews(
+    lsp_ids: [String!]!
+    start_time: String
+    end_time: String
+  ): [CourseViews]
 }
 
 type Mutation {
@@ -805,4 +851,5 @@ type Mutation {
   updateOrganizationUnit(input: OrganizationUnitInput!): OrganizationUnit
   addLearningSpace(input: LearningSpaceInput!): LearningSpace
   updateLearningSpace(input: LearningSpaceInput!): LearningSpace
+  deleteCohortImage(cohort_id: String!): String
 }
