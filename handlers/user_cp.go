@@ -204,7 +204,6 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 		half2Int = math.Floor(half2Int)
 		totalTimeDiff := int64(half2Int - half1Int)
 		oldTimeDiff := userLspMap.TimeStamp
-		totalTimeDiff = totalTimeDiff
 		userLspMap.TimeStamp = totalTimeDiff
 		updatedCols = append(updatedCols, "time_stamp")
 		if totalTimeDiff > 0 {
