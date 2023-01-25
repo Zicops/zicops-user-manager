@@ -28,5 +28,6 @@ jobs:
      - name: Deploy to staging
        run: echo deploying
   call-staging-deployment-workflow:
+   needs: [Staging_deployment]
    uses: Zicops/zicops-user-manager/.github/workflows/Staging_zicops-cicd-um.yml@staging
 
