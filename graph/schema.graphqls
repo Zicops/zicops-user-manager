@@ -672,6 +672,13 @@ type CourseConsumptionStats {
   UpdatedBy: String
 }
 
+type PaginatedCCStats {
+  stats: [CourseConsumptionStats]
+  pageCursor: String
+  direction: String
+  pageSize: Int
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -779,7 +786,12 @@ type Query {
   getLearningSpacesByOuId(ou_id: String!, org_id: String!): [LearningSpace]
   getLearningSpaceDetails(lsp_ids: [String]): [LearningSpace]
   getUserLspRoles(user_id: String!, user_lsp_ids: [String!]!): [UserRole]
-  getCourseConsumptionStats(lsp_ids: [String!]!): [CourseConsumptionStats]
+  getCourseConsumptionStats(
+    lsp_id: String!
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedCCStats
 }
 
 type Mutation {

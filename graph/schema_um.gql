@@ -653,23 +653,30 @@ type UserCourseMapStats {
 }
 
 type CourseConsumptionStats {
-  ID: string
-  LspId: string
-  CourseId: string
-  Category: string
-  SubCategory: string
-  Owner: string
-  Duration: int64
-  TotalLearners: int64
-  ActiveLearners: int64
-  CompletedLearners: int64
-  ExpectedCompletionTime: int64
-  AverageCompletionTime: int64
-  AverageComplianceScore: int64
-  CreatedAt: int64
-  UpdatedAt: int64
-  CreatedBy: string
-  UpdatedBy: string
+  ID: String
+  LspId: String
+  CourseId: String
+  Category: String
+  SubCategory: String
+  Owner: String
+  Duration: Int
+  TotalLearners: Int
+  ActiveLearners: Int
+  CompletedLearners: Int
+  ExpectedCompletionTime: Int
+  AverageCompletionTime: Int
+  AverageComplianceScore: Int
+  CreatedAt: Int
+  UpdatedAt: Int
+  CreatedBy: String
+  UpdatedBy: String
+}
+
+type PaginatedCCStats {
+  stats: [CourseConsumptionStats]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
 type Query {
@@ -779,7 +786,12 @@ type Query {
   getLearningSpacesByOuId(ou_id: String!, org_id: String!): [LearningSpace]
   getLearningSpaceDetails(lsp_ids: [String]): [LearningSpace]
   getUserLspRoles(user_id: String!, user_lsp_ids: [String!]!): [UserRole]
-  getCourseConsumptionStats(lsp_ids: [String!]!): [CourseConsumptionStats]
+  getCourseConsumptionStats(
+    lsp_id: String!
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedCCStats
 }
 
 type Mutation {

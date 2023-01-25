@@ -177,6 +177,13 @@ type PaginatedBookmarks struct {
 	PageSize   *int            `json:"pageSize"`
 }
 
+type PaginatedCCStats struct {
+	Stats      []*CourseConsumptionStats `json:"stats"`
+	PageCursor *string                   `json:"pageCursor"`
+	Direction  *string                   `json:"direction"`
+	PageSize   *int                      `json:"pageSize"`
+}
+
 type PaginatedCohorts struct {
 	Cohorts    []*UserCohort `json:"cohorts"`
 	PageCursor *string       `json:"pageCursor"`

@@ -186,6 +186,13 @@ type ComplexityRoot struct {
 		PageSize   func(childComplexity int) int
 	}
 
+	PaginatedCCStats struct {
+		Direction  func(childComplexity int) int
+		PageCursor func(childComplexity int) int
+		PageSize   func(childComplexity int) int
+		Stats      func(childComplexity int) int
+	}
+
 	PaginatedCohorts struct {
 		Cohorts    func(childComplexity int) int
 		Direction  func(childComplexity int) int
@@ -232,7 +239,7 @@ type ComplexityRoot struct {
 		GetCohortDetails               func(childComplexity int, cohortID string) int
 		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) int
 		GetCohortUsers                 func(childComplexity int, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
-		GetCourseConsumptionStats      func(childComplexity int, lspIds []string) int
+		GetCourseConsumptionStats      func(childComplexity int, lspID string, pageCursor *string, direction *string, pageSize *int) int
 		GetLatestCohorts               func(childComplexity int, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetLearningSpaceDetails        func(childComplexity int, lspIds []*string) int
 		GetLearningSpacesByOrgID       func(childComplexity int, orgID string) int
@@ -583,7 +590,7 @@ type QueryResolver interface {
 	GetLearningSpacesByOuID(ctx context.Context, ouID string, orgID string) ([]*model.LearningSpace, error)
 	GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.LearningSpace, error)
 	GetUserLspRoles(ctx context.Context, userID string, userLspIds []string) ([]*model.UserRole, error)
-	GetCourseConsumptionStats(ctx context.Context, lspIds []string) ([]*model.CourseConsumptionStats, error)
+	GetCourseConsumptionStats(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCCStats, error)
 }
 
 type executableSchema struct {
@@ -1636,6 +1643,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PaginatedBookmarks.PageSize(childComplexity), true
 
+	case "PaginatedCCStats.direction":
+		if e.complexity.PaginatedCCStats.Direction == nil {
+			break
+		}
+
+		return e.complexity.PaginatedCCStats.Direction(childComplexity), true
+
+	case "PaginatedCCStats.pageCursor":
+		if e.complexity.PaginatedCCStats.PageCursor == nil {
+			break
+		}
+
+		return e.complexity.PaginatedCCStats.PageCursor(childComplexity), true
+
+	case "PaginatedCCStats.pageSize":
+		if e.complexity.PaginatedCCStats.PageSize == nil {
+			break
+		}
+
+		return e.complexity.PaginatedCCStats.PageSize(childComplexity), true
+
+	case "PaginatedCCStats.stats":
+		if e.complexity.PaginatedCCStats.Stats == nil {
+			break
+		}
+
+		return e.complexity.PaginatedCCStats.Stats(childComplexity), true
+
 	case "PaginatedCohorts.cohorts":
 		if e.complexity.PaginatedCohorts.Cohorts == nil {
 			break
@@ -1850,7 +1885,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetCourseConsumptionStats(childComplexity, args["lsp_ids"].([]string)), true
+		return e.complexity.Query.GetCourseConsumptionStats(childComplexity, args["lsp_id"].(string), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
 	case "Query.getLatestCohorts":
 		if e.complexity.Query.GetLatestCohorts == nil {
@@ -4275,6 +4310,13 @@ type CourseConsumptionStats {
   UpdatedBy: String
 }
 
+type PaginatedCCStats {
+  stats: [CourseConsumptionStats]
+  pageCursor: String
+  direction: String
+  pageSize: Int
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -4382,7 +4424,12 @@ type Query {
   getLearningSpacesByOuId(ou_id: String!, org_id: String!): [LearningSpace]
   getLearningSpaceDetails(lsp_ids: [String]): [LearningSpace]
   getUserLspRoles(user_id: String!, user_lsp_ids: [String!]!): [UserRole]
-  getCourseConsumptionStats(lsp_ids: [String!]!): [CourseConsumptionStats]
+  getCourseConsumptionStats(
+    lsp_id: String!
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedCCStats
 }
 
 type Mutation {
@@ -5177,15 +5224,42 @@ func (ec *executionContext) field_Query_getCohortUsers_args(ctx context.Context,
 func (ec *executionContext) field_Query_getCourseConsumptionStats_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 []string
-	if tmp, ok := rawArgs["lsp_ids"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_ids"))
-		arg0, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["lsp_ids"] = arg0
+	args["lsp_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["pageCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageCursor"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["Direction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Direction"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["pageSize"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageSize"] = arg3
 	return args, nil
 }
 
@@ -10279,6 +10353,134 @@ func (ec *executionContext) _PaginatedBookmarks_pageSize(ctx context.Context, fi
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PaginatedCCStats_stats(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCCStats) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedCCStats",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Stats, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.CourseConsumptionStats)
+	fc.Result = res
+	return ec.marshalOCourseConsumptionStats2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseConsumptionStats(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedCCStats_pageCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCCStats) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedCCStats",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedCCStats_direction(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCCStats) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedCCStats",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Direction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PaginatedCCStats_pageSize(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCCStats) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PaginatedCCStats",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PaginatedCohorts_cohorts(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedCohorts) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12352,7 +12554,7 @@ func (ec *executionContext) _Query_getCourseConsumptionStats(ctx context.Context
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetCourseConsumptionStats(rctx, args["lsp_ids"].([]string))
+		return ec.resolvers.Query().GetCourseConsumptionStats(rctx, args["lsp_id"].(string), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12361,9 +12563,9 @@ func (ec *executionContext) _Query_getCourseConsumptionStats(ctx context.Context
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.CourseConsumptionStats)
+	res := resTmp.(*model.PaginatedCCStats)
 	fc.Result = res
-	return ec.marshalOCourseConsumptionStats2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseConsumptionStats(ctx, field.Selections, res)
+	return ec.marshalOPaginatedCCStats2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedCCStats(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -23353,6 +23555,55 @@ func (ec *executionContext) _PaginatedBookmarks(ctx context.Context, sel ast.Sel
 	return out
 }
 
+var paginatedCCStatsImplementors = []string{"PaginatedCCStats"}
+
+func (ec *executionContext) _PaginatedCCStats(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedCCStats) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedCCStatsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaginatedCCStats")
+		case "stats":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedCCStats_stats(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageCursor":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedCCStats_pageCursor(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "direction":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedCCStats_direction(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "pageSize":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._PaginatedCCStats_pageSize(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var paginatedCohortsImplementors = []string{"PaginatedCohorts"}
 
 func (ec *executionContext) _PaginatedCohorts(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedCohorts) graphql.Marshaler {
@@ -28006,6 +28257,13 @@ func (ec *executionContext) marshalOPaginatedBookmarks2ᚖgithubᚗcomᚋzicops�
 		return graphql.Null
 	}
 	return ec._PaginatedBookmarks(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPaginatedCCStats2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedCCStats(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedCCStats) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PaginatedCCStats(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPaginatedCohorts2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedCohorts(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedCohorts) graphql.Marshaler {

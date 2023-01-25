@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -678,8 +677,13 @@ func (r *queryResolver) GetUserLspRoles(ctx context.Context, userID string, user
 	return result, nil
 }
 
-func (r *queryResolver) GetCourseConsumptionStats(ctx context.Context, lspIds []string) ([]*model.CourseConsumptionStats, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) GetCourseConsumptionStats(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCCStats, error) {
+	result, err := queries.GetCourseConsumptionStats(ctx, lspID, pageCursor, direction, pageSize)
+	if err != nil {
+		log.Errorf("Error getting learning spaces roles for user: %v", err)
+		return nil, err
+	}
+	return result, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
