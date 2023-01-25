@@ -24,6 +24,6 @@ jobs:
           approvers: ngupta10
      - name: Deploy to production
        run: echo deploying
-  call-production-deployment-workflow:
-   uses: Zicops/zicops-user-manager/.github/workflows/Prodtest-zicops-cicd-um.yml@main
+  # call-production-deployment-workflow:
+   # uses: Zicops/zicops-user-manager/.github/workflows/Prodtest-zicops-cicd-um.yml@main
 
