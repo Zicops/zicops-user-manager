@@ -34,5 +34,5 @@ jobs:
        run: echo running on branch ${GITHUB_REF##*/}
  # call-staging-deployment-workflow:
  #  needs: [Deployment]
- #  uses: Zicops/zicops-user-manager/.github/workflows/Staging_zicops-cicd-um.yml@${GITHUB_REF##*/}
+ #  uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@${GITHUB_REF##*/}
 
