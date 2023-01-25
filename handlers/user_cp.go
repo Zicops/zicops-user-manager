@@ -90,7 +90,7 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 		if len(spliVPorgress) > 0 {
 			vProgressSeconds, err := strconv.ParseInt(spliVPorgress[0], 10, 64)
 			if err == nil {
-				go helpers.AddUpdateCourseViews(ctx, *lspID, userLspMap.TopicID, userLspMap.UserID, vProgressSeconds)
+				go helpers.AddUpdateCourseViews(ctx, *lspID, userLspMap.UserID, vProgressSeconds)
 			}
 		}
 	}
@@ -144,6 +144,13 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 	if input.VideoProgress != "" && input.VideoProgress != userLspMap.VideoProgress {
 		userLspMap.VideoProgress = input.VideoProgress
 		updatedCols = append(updatedCols, "video_progress")
+		spliVPorgress := strings.Split(input.VideoProgress, "-")
+		if len(spliVPorgress) > 0 {
+			vProgressSeconds, err := strconv.ParseInt(spliVPorgress[0], 10, 64)
+			if err == nil {
+				go helpers.AddUpdateCourseViews(ctx, *lspID, userLspMap.UserID, vProgressSeconds)
+			}
+		}
 	}
 	if input.Status != "" && input.Status != userLspMap.Status {
 
@@ -198,13 +205,6 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 		UpdatedAt:     updated,
 		CreatedBy:     &userLspMap.CreatedBy,
 		UpdatedBy:     &userLspMap.UpdatedBy,
-	}
-	spliVPorgress := strings.Split(input.VideoProgress, "-")
-	if len(spliVPorgress) > 0 {
-		vProgressSeconds, err := strconv.ParseInt(spliVPorgress[0], 10, 64)
-		if err == nil {
-			go helpers.AddUpdateCourseViews(ctx, *lspID, userLspMap.TopicID, userLspMap.UserID, vProgressSeconds)
-		}
 	}
 	return userLspOutput, nil
 }

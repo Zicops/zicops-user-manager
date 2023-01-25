@@ -102,14 +102,14 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 	}
 }
 
-func AddUpdateCourseViews(ctx context.Context, lspId string, courseId string, userId string, secs int64) {
+func AddUpdateCourseViews(ctx context.Context, lspId string, userId string, secs int64) {
 	cSessionLocal, err := cassandra.GetCassSession("coursez")
 	if err != nil {
 		fmt.Println("error getting cass session", err)
 		return
 	}
 	currentDateString := time.Now().Format("2006-01-02")
-	qryStrGet := fmt.Sprintf("SELECT * from coursez.course_views WHERE lsp_id='%s' date_value='%s' ALLOW FILTERING", courseId, currentDateString)
+	qryStrGet := fmt.Sprintf("SELECT * from coursez.course_views WHERE lsp_id='%s' date_value='%s' ALLOW FILTERING", lspId, currentDateString)
 	qryGet := cSessionLocal.Query(qryStrGet, nil)
 	courseViews := []coursez.CourseView{}
 	if err := qryGet.SelectRelease(&courseViews); err != nil {
