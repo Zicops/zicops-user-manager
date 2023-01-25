@@ -277,8 +277,6 @@ func GetCourseViews(ctx context.Context, lspIds []string, startTime *string, end
 			continue
 		}
 		currentView := courseViews[0]
-		hours := *currentView.Hours / 3600
-		currentView.Hours = &hours
 		output = append(output, &currentView)
 	}
 	return output, nil

@@ -680,7 +680,7 @@ type PaginatedCCStats {
 }
 
 type CourseViews {
-  hours: Int
+  seconds: Int
   created_at: String
   lsp_id: String
   user_ids: [String]

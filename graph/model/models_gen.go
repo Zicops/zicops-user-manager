@@ -72,7 +72,7 @@ type CourseMapFilters struct {
 }
 
 type CourseViews struct {
-	Hours      *int      `json:"hours"`
+	Seconds    *int      `json:"seconds"`
 	CreatedAt  *string   `json:"created_at"`
 	LspID      *string   `json:"lsp_id"`
 	UserIds    []*string `json:"user_ids"`
