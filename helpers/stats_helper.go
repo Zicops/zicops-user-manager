@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/scylladb/gocqlx/v2"
+	"github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/coursez"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -102,18 +103,21 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 	}
 }
 
-func AddUpdateCourseViews(ctx context.Context, lspId string, userId string, secs int64) {
+func AddUpdateCourseViews(lspId string, userId string, secs int64) {
 	cSessionLocal, err := cassandra.GetCassSession("coursez")
 	if err != nil {
-		fmt.Println("error getting cass session", err)
+		logrus.Error("error getting cass session", err)
 		return
 	}
 	currentDateString := time.Now().Format("2006-01-02")
 	qryStrGet := fmt.Sprintf("SELECT * from coursez.course_views WHERE lsp_id='%s' date_value='%s' ALLOW FILTERING", lspId, currentDateString)
 	qryGet := cSessionLocal.Query(qryStrGet, nil)
 	courseViews := []coursez.CourseView{}
+	logrus.Info("query string", qryStrGet)
+	logrus.Info("query", qryGet)
+	logrus.Info("currentDateString", currentDateString)
 	if err := qryGet.SelectRelease(&courseViews); err != nil {
-		fmt.Println("error getting course views", err)
+		logrus.Error("error getting course views", err)
 		return
 	}
 	if len(courseViews) == 0 {

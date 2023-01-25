@@ -90,7 +90,7 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 		if len(spliVPorgress) > 0 {
 			vProgressSeconds, err := strconv.ParseInt(spliVPorgress[0], 10, 64)
 			if err == nil {
-				go helpers.AddUpdateCourseViews(ctx, *lspID, userLspMap.UserID, vProgressSeconds)
+				go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, vProgressSeconds)
 			}
 		}
 	}
@@ -148,7 +148,7 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 		if len(spliVPorgress) > 0 {
 			vProgressSeconds, err := strconv.ParseInt(spliVPorgress[0], 10, 64)
 			if err == nil {
-				go helpers.AddUpdateCourseViews(ctx, *lspID, userLspMap.UserID, vProgressSeconds)
+				go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, vProgressSeconds)
 			}
 		}
 	}
