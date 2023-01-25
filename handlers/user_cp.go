@@ -12,10 +12,11 @@ import (
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/helpers"
 )
 
 func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgressInput) ([]*model.UserCourseProgress, error) {
-	userCass, err := GetUserFromCass(ctx)
+	userCass, lspID, err := GetUserFromCassWithLsp(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
@@ -85,12 +86,16 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 			UpdatedBy:     &userLspMap.UpdatedBy,
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
+		vProgressSeconds, err := strconv.ParseInt(input.VideoProgress, 10, 64)
+		if err == nil {
+			go helpers.AddUpdateCourseViews(ctx, *lspID, userLspMap.TopicID, userLspMap.UserID, vProgressSeconds)
+		}
 	}
 	return userLspMaps, nil
 }
 
 func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgressInput) (*model.UserCourseProgress, error) {
-	userCass, err := GetUserFromCass(ctx)
+	userCass, lspID, err := GetUserFromCassWithLsp(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
@@ -190,6 +195,10 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 		UpdatedAt:     updated,
 		CreatedBy:     &userLspMap.CreatedBy,
 		UpdatedBy:     &userLspMap.UpdatedBy,
+	}
+	vProgressSeconds, err := strconv.ParseInt(input.VideoProgress, 10, 64)
+	if err == nil {
+		go helpers.AddUpdateCourseViews(ctx, *lspID, userLspMap.TopicID, userLspMap.UserID, vProgressSeconds)
 	}
 	return userLspOutput, nil
 }

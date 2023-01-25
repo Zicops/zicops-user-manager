@@ -96,3 +96,43 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 		}
 	}
 }
+
+func AddUpdateCourseViews(ctx context.Context, lspId string, courseId string, userId string, secs int64) {
+	cSessionLocal, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		fmt.Println("error getting cass session", err)
+		return
+	}
+	currentDateString := time.Now().Format("2006-01-02")
+	qryStrGet := fmt.Sprintf("SELECT * from coursez.course_views WHERE lsp_id='%s' date_value='%s' ", courseId, currentDateString)
+	qryGet := cSessionLocal.Query(qryStrGet, nil)
+	courseViews := []coursez.CourseView{}
+	if err := qryGet.SelectRelease(&courseViews); err != nil {
+		fmt.Println("error getting course views", err)
+		return
+	}
+	if len(courseViews) == 0 {
+		// create new record
+		courseViews := coursez.CourseView{
+			LspId:     lspId,
+			DateValue: currentDateString,
+			Users:     []string{userId},
+			Hours:     secs,
+		}
+		insertQuery := cSessionLocal.Query(coursez.CVTable.Insert()).BindStruct(courseViews)
+		if err := insertQuery.ExecRelease(); err != nil {
+			return
+		}
+	} else {
+		// update existing record
+		courseViews := courseViews[0]
+		courseViews.Users = append(courseViews.Users, userId)
+		courseViews.DateValue = currentDateString
+		courseViews.Hours = courseViews.Hours + secs
+		courseViews.LspId = lspId
+		insertQuery := cSessionLocal.Query(coursez.CVTable.Insert()).BindStruct(courseViews)
+		if err := insertQuery.ExecRelease(); err != nil {
+			return
+		}
+	}
+}
