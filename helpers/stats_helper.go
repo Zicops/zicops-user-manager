@@ -126,10 +126,18 @@ func AddUpdateCourseViews(ctx context.Context, lspId string, courseId string, us
 	} else {
 		// update existing record
 		courseViews := courseViews[0]
-		courseViews.Users = append(courseViews.Users, userId)
-		courseViews.DateValue = currentDateString
+		// add userId if not present
+		foundUser := false
+		for _, user := range courseViews.Users {
+			if user == userId {
+				foundUser = true
+				break
+			}
+		}
+		if !foundUser {
+			courseViews.Users = append(courseViews.Users, userId)
+		}
 		courseViews.Hours = courseViews.Hours + secs
-		courseViews.LspId = lspId
 		insertQuery := cSessionLocal.Query(coursez.CVTable.Insert()).BindStruct(courseViews)
 		if err := insertQuery.ExecRelease(); err != nil {
 			return

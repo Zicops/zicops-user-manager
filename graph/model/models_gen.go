@@ -71,6 +71,14 @@ type CourseMapFilters struct {
 	Type        *string   `json:"type"`
 }
 
+type CourseViews struct {
+	Hours      *int      `json:"hours"`
+	CreatedAt  *string   `json:"created_at"`
+	LspID      *string   `json:"lsp_id"`
+	UserIds    []*string `json:"user_ids"`
+	DateString *string   `json:"date_string"`
+}
+
 type LearningSpace struct {
 	LspID      *string   `json:"lsp_id"`
 	OrgID      string    `json:"org_id"`

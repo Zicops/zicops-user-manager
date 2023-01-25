@@ -679,6 +679,14 @@ type PaginatedCCStats {
   pageSize: Int
 }
 
+type CourseViews {
+  hours: Int
+  created_at: String
+  lsp_id: String
+  user_ids: [String]
+  date_string: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -792,6 +800,11 @@ type Query {
     Direction: String
     pageSize: Int
   ): PaginatedCCStats
+  getCourseViews(
+    lsp_ids: [String!]!
+    start_time: String
+    end_time: String
+  ): [CourseViews]
 }
 
 type Mutation {

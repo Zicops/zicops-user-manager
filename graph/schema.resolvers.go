@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -684,6 +685,10 @@ func (r *queryResolver) GetCourseConsumptionStats(ctx context.Context, lspID str
 		return nil, err
 	}
 	return result, nil
+}
+
+func (r *queryResolver) GetCourseViews(ctx context.Context, lspIds []string, startTime *string, endTime *string) ([]*model.CourseViews, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns generated.MutationResolver implementation.
