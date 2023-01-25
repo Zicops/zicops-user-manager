@@ -19,17 +19,18 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 		fmt.Println("error getting cass session", err)
 		return
 	}
-	course := coursez.Course{}
+	courses := []coursez.Course{}
 	qryStrGetCourse := fmt.Sprintf("SELECT * from coursez.course WHERE id='%s' ALLOW FILTERING ", courseId)
 	qryGetCourse := cSessionLocal.Query(qryStrGetCourse, nil)
-	if err := qryGetCourse.SelectRelease(&course); err != nil {
+	if err := qryGetCourse.SelectRelease(&courses); err != nil {
 		fmt.Println("error getting course", err)
 		return
 	}
-	if course.ID == "" {
+	if len(courses) == 0 {
 		fmt.Println("course not found")
 		return
 	}
+	course := courses[0]
 	qryStrGet := fmt.Sprintf("SELECT * from userz.course_consumption_stats WHERE lsp_id='%s' AND course_id='%s' ", lspId, courseId)
 	qryGet := session.Query(qryStrGet, nil)
 	ccStats := []userz.CCStats{}
