@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -35,8 +36,8 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
 	userLspMaps := make([]*model.UserCourseProgress, 0)
-	for _, input := range input {
-
+	for _, v := range input {
+		input := *v
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
@@ -78,7 +79,7 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 			TopicID:       userLspMap.TopicID,
 			TopicType:     userLspMap.TopicType,
 			Status:        userLspMap.Status,
-			TimeStamp:     strconv.FormatInt(userLspMap.TimeStamp, 10),
+			TimeStamp:     input.TimeStamp,
 			VideoProgress: input.VideoProgress,
 			CreatedAt:     created,
 			UpdatedAt:     updated,
@@ -86,10 +87,26 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 			UpdatedBy:     &userLspMap.UpdatedBy,
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
-
-		vProgressSeconds, err := strconv.ParseInt(input.VideoProgress, 10, 64)
-		if err == nil {
-			go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, vProgressSeconds)
+		spliVPorgress := strings.Split(input.TimeStamp, "-")
+		half1 := spliVPorgress[0]
+		half2 := spliVPorgress[1]
+		//convert half1 to int from floating point string
+		half1Int, err := strconv.ParseFloat(half1, 64)
+		if err != nil {
+			log.Errorf("error while converting half1 to int: %v", err)
+		}
+		//convert half2 to int from floating point string
+		half2Int, err := strconv.ParseFloat(half2, 64)
+		if err != nil {
+			log.Errorf("error while converting half2 to int: %v", err)
+		}
+		// convert half1 to int
+		half1Int = math.Floor(half1Int)
+		// convert half2 to int
+		half2Int = math.Floor(half2Int)
+		totalTimeDiff := int64(half2Int - half1Int)
+		if totalTimeDiff > 0 {
+			go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, totalTimeDiff)
 		}
 	}
 	return userLspMaps, nil
@@ -142,12 +159,6 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 	if input.VideoProgress != "" && input.VideoProgress != userLspMap.VideoProgress {
 		userLspMap.VideoProgress = input.VideoProgress
 		updatedCols = append(updatedCols, "video_progress")
-
-		vProgressSeconds, err := strconv.ParseInt(input.VideoProgress, 10, 64)
-		if err == nil {
-			go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, vProgressSeconds)
-		}
-
 	}
 	if input.Status != "" && input.Status != userLspMap.Status {
 
@@ -170,6 +181,27 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 		timeStamp, _ := strconv.ParseInt(input.TimeStamp, 10, 64)
 		userLspMap.TimeStamp = timeStamp
 		updatedCols = append(updatedCols, "time_stamp")
+		spliVPorgress := strings.Split(input.TimeStamp, "-")
+		half1 := spliVPorgress[0]
+		half2 := spliVPorgress[1]
+		//convert half1 to int from floating point string
+		half1Int, err := strconv.ParseFloat(half1, 64)
+		if err != nil {
+			log.Errorf("error while converting half1 to int: %v", err)
+		}
+		//convert half2 to int from floating point string
+		half2Int, err := strconv.ParseFloat(half2, 64)
+		if err != nil {
+			log.Errorf("error while converting half2 to int: %v", err)
+		}
+		// convert half1 to int
+		half1Int = math.Floor(half1Int)
+		// convert half2 to int
+		half2Int = math.Floor(half2Int)
+		totalTimeDiff := int64(half2Int - half1Int)
+		if totalTimeDiff > 0 {
+			go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, totalTimeDiff)
+		}
 	}
 	if input.UpdatedBy != nil {
 		userLspMap.UpdatedBy = *input.UpdatedBy
