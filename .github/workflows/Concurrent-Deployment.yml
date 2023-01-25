@@ -1,0 +1,37 @@
+# Deploy to Staging
+
+name: Concurrent-Deployment
+run-name: Deployment-${{ github.event.inputs.environment }}
+
+# setting concurrency at workflow level
+concurrency: ${{ github.event.inputs.environment }}
+
+# need to add more trigger events?
+on: 
+ workflow_dispatch:
+  inputs:
+      environment:
+       description: 'Environment'
+       type: environment
+       required: true
+      
+
+
+# Deploy  jobs
+
+jobs:
+  Deployment:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+     - uses: trstringer/manual-approval@v1
+       with:
+          secret: ${{ github.TOKEN }}
+          approvers: ngupta10
+     - name: Deploy to staging
+       run: echo deploying
+     - name: Branch name
+       run: echo running on branch ${GITHUB_REF##*/}
+ # call-staging-deployment-workflow:
+ #  needs: [Deployment]
+ #  uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@${GITHUB_REF##*/}
