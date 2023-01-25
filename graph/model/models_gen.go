@@ -44,11 +44,39 @@ type Count struct {
 	Count int    `json:"count"`
 }
 
+type CourseConsumptionStats struct {
+	ID                     *string `json:"ID"`
+	LspID                  *string `json:"LspId"`
+	CourseID               *string `json:"CourseId"`
+	Category               *string `json:"Category"`
+	SubCategory            *string `json:"SubCategory"`
+	Owner                  *string `json:"Owner"`
+	Duration               *int    `json:"Duration"`
+	TotalLearners          *int    `json:"TotalLearners"`
+	ActiveLearners         *int    `json:"ActiveLearners"`
+	CompletedLearners      *int    `json:"CompletedLearners"`
+	ExpectedCompletionTime *int    `json:"ExpectedCompletionTime"`
+	AverageCompletionTime  *int    `json:"AverageCompletionTime"`
+	AverageComplianceScore *int    `json:"AverageComplianceScore"`
+	CreatedAt              *int    `json:"CreatedAt"`
+	UpdatedAt              *int    `json:"UpdatedAt"`
+	CreatedBy              *string `json:"CreatedBy"`
+	UpdatedBy              *string `json:"UpdatedBy"`
+}
+
 type CourseMapFilters struct {
 	LspID       []*string `json:"lsp_id"`
 	IsMandatory *bool     `json:"is_mandatory"`
 	Status      *string   `json:"status"`
 	Type        *string   `json:"type"`
+}
+
+type CourseViews struct {
+	Seconds    *int      `json:"seconds"`
+	CreatedAt  *string   `json:"created_at"`
+	LspID      *string   `json:"lsp_id"`
+	UserIds    []*string `json:"user_ids"`
+	DateString *string   `json:"date_string"`
 }
 
 type LearningSpace struct {
@@ -155,6 +183,13 @@ type PaginatedBookmarks struct {
 	PageCursor *string         `json:"pageCursor"`
 	Direction  *string         `json:"direction"`
 	PageSize   *int            `json:"pageSize"`
+}
+
+type PaginatedCCStats struct {
+	Stats      []*CourseConsumptionStats `json:"stats"`
+	PageCursor *string                   `json:"pageCursor"`
+	Direction  *string                   `json:"direction"`
+	PageSize   *int                      `json:"pageSize"`
 }
 
 type PaginatedCohorts struct {

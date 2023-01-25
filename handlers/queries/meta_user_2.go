@@ -667,3 +667,25 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	//}
 	return &outputResponse, nil
 }
+
+func DeleteCohortImage(ctx context.Context, cohortID string, filename string) (*string, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error while getting the claims: %v", err)
+		return nil, err
+	}
+
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
+	bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, filename)
+
+	res := storageC.DeleteObjectsFromBucket(ctx, bucketPath)
+	if res != "success" {
+		return nil, fmt.Errorf(res)
+	}
+	return &res, nil
+}

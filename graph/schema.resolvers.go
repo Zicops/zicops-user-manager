@@ -371,6 +371,15 @@ func (r *mutationResolver) UpdateLearningSpace(ctx context.Context, input model.
 	return result, nil
 }
 
+func (r *mutationResolver) DeleteCohortImage(ctx context.Context, cohortID string, filename string) (*string, error) {
+	result, err := queries.DeleteCohortImage(ctx, cohortID, filename)
+	if err != nil {
+		log.Errorf("Error while deleting the image of cohort: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
 	if err != nil {
@@ -661,6 +670,24 @@ func (r *queryResolver) GetLearningSpaceDetails(ctx context.Context, lspIds []*s
 
 func (r *queryResolver) GetUserLspRoles(ctx context.Context, userID string, userLspIds []string) ([]*model.UserRole, error) {
 	result, err := handlers.GetUserLspRoles(ctx, userID, userLspIds)
+	if err != nil {
+		log.Errorf("Error getting learning spaces roles for user: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetCourseConsumptionStats(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCCStats, error) {
+	result, err := queries.GetCourseConsumptionStats(ctx, lspID, pageCursor, direction, pageSize)
+	if err != nil {
+		log.Errorf("Error getting learning spaces roles for user: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r *queryResolver) GetCourseViews(ctx context.Context, lspIds []string, startTime *string, endTime *string) ([]*model.CourseViews, error) {
+	result, err := handlers.GetCourseViews(ctx, lspIds, startTime, endTime)
 	if err != nil {
 		log.Errorf("Error getting learning spaces roles for user: %v", err)
 		return nil, err
