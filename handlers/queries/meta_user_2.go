@@ -676,8 +676,8 @@ func DeleteCohortImage(ctx context.Context, cohortID string) (*string, error) {
 	}
 	lspID := claims["lsp_id"].(string)
 
-	var photoBucket string
-	var photoUrl string
+	// var photoBucket string
+	// var photoUrl string
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
@@ -695,21 +695,32 @@ func DeleteCohortImage(ctx context.Context, cohortID string) (*string, error) {
 	}
 	cohort := cohorts[0]
 
-	photoBucket = cohort.ImageBucket
+	// photoBucket = cohort.ImageBucket
+	// storageC := bucket.NewStorageHandler()
+	// gproject := googleprojectlib.GetGoogleProjectID()
+	// err = storageC.InitializeStorageClient(ctx, gproject)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// if photoBucket != "" {
+	// 	photoUrl = storageC.GetSignedURLForObject(photoBucket)
+	// }
+	// res := storageC.DeleteObjectsFromBucket(ctx, photoUrl)
+	// if res != "success" {
+	// 	return nil, fmt.Errorf(res)
+	// }
+	// return &res, nil
+
 	storageC := bucket.NewStorageHandler()
 	gproject := googleprojectlib.GetGoogleProjectID()
 	err = storageC.InitializeStorageClient(ctx, gproject)
 	if err != nil {
 		return nil, err
 	}
-
-	if photoBucket != "" {
-		photoUrl = storageC.GetSignedURLForObject(photoBucket)
-	}
-	res := storageC.DeleteObjectsFromBucket(ctx, photoUrl)
+	res := storageC.DeleteObjectsFromBucket(ctx, cohort.ImageUrl)
 	if res != "success" {
 		return nil, fmt.Errorf(res)
 	}
 	return &res, nil
-
 }
