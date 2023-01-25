@@ -682,8 +682,9 @@ func DeleteCohortImage(ctx context.Context, cohortID string, filename string) (*
 		return nil, err
 	}
 	bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, filename)
-
+	//bucketPath := fmt.Sprintf("%s/%s", "cohorts", filename)
 	res := storageC.DeleteObjectsFromBucket(ctx, bucketPath)
+
 	if res != "success" {
 		return nil, fmt.Errorf(res)
 	}
