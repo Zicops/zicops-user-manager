@@ -713,6 +713,11 @@ func DeleteCohortImage(ctx context.Context, cohortID string) (*string, error) {
 	// return &res, nil
 
 	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
 	res := storageC.DeleteObjectsFromBucket(ctx, cohort.ImageUrl)
 	if res != "success" {
 		return nil, fmt.Errorf(res)
