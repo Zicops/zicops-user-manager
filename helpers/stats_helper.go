@@ -13,7 +13,7 @@ import (
 	"github.com/zicops/zicops-cass-pool/cassandra"
 )
 
-func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, courseId string, userId string, status string, newAdd bool, completionTime int64) {
+func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, courseId string, userId string, status string, newAdd bool, completionTime int64, expectedCompletion string) {
 	cSessionLocal, err := cassandra.GetCassSession("coursez")
 	if err != nil {
 		fmt.Println("error getting cass session", err)
@@ -40,7 +40,7 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 	}
 	if len(ccStats) == 0 {
 		// create new record
-		expectCompletionInt, _ := strconv.ParseInt(course.ExpectedCompletion, 10, 64)
+		expectCompletionInt, _ := strconv.ParseInt(expectedCompletion, 10, 64)
 		ccStats := userz.CCStats{
 			ID:                     uuid.New().String(),
 			LspId:                  lspId,
@@ -87,7 +87,8 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 		}
 		if isCompleted {
 			ccStats.AverageCompletionTime = (ccStats.AverageCompletionTime + completionTime) / ccStats.CompletedLearners
-			compliance_score := 100 - (ccStats.AverageCompletionTime-ccStats.ExpectedCompletionTime)/ccStats.ExpectedCompletionTime
+			expectedCompletitionDuration := ccStats.ExpectedCompletionTime - ccStats.CreatedAt
+			compliance_score := 100 - ((completionTime - expectedCompletitionDuration) / expectedCompletitionDuration)
 			ccStats.AverageComplianceScore = compliance_score
 		}
 		ccStats.TotalLearners = ccStats.CompletedLearners + ccStats.ActiveLearners

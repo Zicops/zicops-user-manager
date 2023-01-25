@@ -94,7 +94,7 @@ func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*mode
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
 		// create or update course consumption stats
-		go helpers.UpdateCCStats(ctx, CassUserSession, *input.LspID, userLspOutput.CourseID, userLspOutput.UserID, userLspOutput.CourseStatus, true, userLspMap.UpdatedAt-userLspMap.CreatedAt)
+		go helpers.UpdateCCStats(ctx, CassUserSession, *input.LspID, userLspOutput.CourseID, userLspOutput.UserID, userLspOutput.CourseStatus, true, userLspMap.UpdatedAt-userLspMap.CreatedAt, *userLspOutput.EndDate)
 
 	}
 	return userLspMaps, nil
@@ -218,7 +218,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 		UpdatedBy:    &userLspMap.UpdatedBy,
 	}
 	// create or update course consumption stats
-	go helpers.UpdateCCStats(ctx, CassUserSession, *input.LspID, userLspOutput.CourseID, userLspOutput.UserID, userLspOutput.CourseStatus, false, userLspMap.UpdatedAt-userLspMap.CreatedAt)
+	go helpers.UpdateCCStats(ctx, CassUserSession, *input.LspID, userLspOutput.CourseID, userLspOutput.UserID, userLspOutput.CourseStatus, false, userLspMap.UpdatedAt-userLspMap.CreatedAt, *userLspOutput.EndDate)
 	return userLspOutput, nil
 }
 
