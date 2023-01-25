@@ -13,7 +13,7 @@ import (
 	"github.com/zicops/zicops-cass-pool/cassandra"
 )
 
-func UpdateCCStats(ctx context.Context, session *gocqlx.Session, courseId string, userId string, status string, newAdd bool, completionTime int64) {
+func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, courseId string, userId string, status string, newAdd bool, completionTime int64) {
 	cSessionLocal, err := cassandra.GetCassSession("coursez")
 	if err != nil {
 		fmt.Println("error getting cass session", err)
@@ -30,7 +30,6 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, courseId string
 		fmt.Println("course not found")
 		return
 	}
-	lspId := course.LspId
 	qryStrGet := fmt.Sprintf("SELECT * from userz.course_consumption_stats WHERE lsp_id='%s' AND course_id='%s' ", lspId, courseId)
 	qryGet := session.Query(qryStrGet, nil)
 	ccStats := []userz.CCStats{}
