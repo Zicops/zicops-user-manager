@@ -43,10 +43,12 @@ jobs:
           if [[ "${{github.base_ref}}" == "master" || "${{github.ref}}" == "refs/heads/master" ]]; then
            echo "GKE_CLUSTER= zicops-dot-com-1" >> $GITHUB_OUTPUT
            echo "NAMESPACE = production" >> $GITHUB_OUTPUT
+          fi
         
           if [[ "${{github.base_ref}}" == "staging" || "${{github.ref}}" == "refs/heads/staging" ]]; then
            echo "GKE_CLUSTER= zicops-production-cost-one" >> $GITHUB_OUTPUT
            echo "NAMESPACE = staging" >> $GITHUB_OUTPUT  
+          fi
 
 
   Approvals:
