@@ -6,7 +6,7 @@ run-name: Deployment-${{ github.event.inputs.environment }}
 # setting concurrency at workflow level
 concurrency: ${{ github.event.inputs.environment }}
 
-# need to add more trigger events?
+# trigger event
 on: 
  workflow_dispatch:
   inputs:
@@ -15,24 +15,61 @@ on:
        type: environment
        required: true
       
-
+env:
+  # Setting an environment variable with the value of approvers
+  prod_approvers: ${{ vars.PRODUCTION_APPROVERS }}
+  staging_approvers: ${{ vars.STAGING_APPROVERS }}
+  
 
 # Deploy  jobs
 
 jobs:
-  Deployment:
+#Initialize variables based on trigger branch (staging or main)
+  initialize:
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
+    outputs:
+      PROJECT_ID: ${{ steps.setvars.outputs.PROJECT_ID }}
+      GKE_CLUSTER: ${{ steps.setvars.outputs.GKE_CLUSTER }}
+      GKE_ZONE: ${{ steps.setvars.outputs.GKE_ZONE }}
+      NAMESPACE: ${{ steps.setvars.outputs.NAMESPACE }}
+      SERVICE_NAME: ${{ steps.setvars.outputs.SERVICE_NAME }}
+      
     steps:
-     - uses: trstringer/manual-approval@v1
-       with:
+     - name: Set variables
+       id: setvars
+       run: |
+          if [[ "${{github.base_ref}}" == "master" || "${{github.ref}}" == "refs/heads/master" ]]; then
+            echo "::set-output name= PROJECT_ID::${{ secrets.GKE_PROJECT }}"
+            echo "::set-output name= GKE_CLUSTER::zicops-dot-com-1"
+            echo "::set-output name= GKE_ZONE::asia-south1-a"
+            echo "::set-output name= NAMESPACE::production"
+            echo "::set-output name= SERVICE_NAME::zicops-user-manager"
+          fi
+
+          if [[ "${{github.base_ref}}" == "staging" || "${{github.ref}}" == "refs/heads/staging" ]]; then
+            echo "::set-output name= PROJECT_ID::${{ secrets.GKE_PROJECT }}"
+            echo "::set-output name= GKE_CLUSTER::zicops-production-cost-one"
+            echo "::set-output name= GKE_ZONE::asia-south1-a"
+            echo "::set-output name= NAMESPACE::staging"
+            echo "::set-output name= SERVICE_NAME::zicops-user-manager"
+          fi
+
+  Approvals:
+    runs-on: ubuntu-latest
+    needs: initialize
+    steps:
+      - name: Print
+        run: echo "PROJECT_ID=${{needs.initialize.outputs.GKE_CLUSTER}}"
+        
+      - name: Get Approvals
+        uses: trstringer/manual-approval@v1
+        with:
           secret: ${{ github.TOKEN }}
           approvers: ngupta10
-     - name: Deploy to staging
-       run: echo deploying
-     - name: Branch name
-       run: echo running on branch ${GITHUB_REF##*/}
+          
+      - name: Branch name
+        run: echo running on branch ${GITHUB_REF##*/}
  # call-staging-deployment-workflow:
  #  needs: [Deployment]
  #  uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@${GITHUB_REF##*/}
-
