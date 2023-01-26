@@ -49,14 +49,14 @@ jobs:
        
 
      - name: Set variables_production
-       if: ${{ github.event.inputs.branch }} == 'main'
+       if: ${{ github.event.inputs.branch == 'main'}} 
        id: setvars
        run: |
         echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
         echo "NAMESPACE = production" >> $GITHUB_OUTPUT
         
      - name: Set variables_staging
-       if: ${{ github.event.inputs.branch }} == 'staging'
+       if: ${{ github.event.inputs.branch == 'staging'}} 
        id: setvars_staging
        run: |
         echo "GKE_CLUSTER=zicops-production-cost-one" >> $GITHUB_OUTPUT
