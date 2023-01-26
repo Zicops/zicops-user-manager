@@ -69,7 +69,9 @@ jobs:
     needs: initialize
     steps:
       - name: Print
-        run: echo ${{needs.initialize.outputs.GKE_CLUSTER}}
+        run: |
+         echo ${{needs.initialize.outputs.GKE_CLUSTER}}
+         echo ${{ github.event.inputs.branch }}
         
       - name: Get Approvals
         uses: trstringer/manual-approval@v1
