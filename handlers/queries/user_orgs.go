@@ -171,6 +171,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 	}
 	CassUserSession := session
 	origin := claims["origin"].(string)
+	mobile := claims["mobile"].(string)
 	// remove https://
 	origin = strings.Replace(origin, "https://", "", 1)
 	// replace www. with empty string
@@ -179,7 +180,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 	origin = strings.Replace(origin, "/", "", 1)
 	returnAll := false
 
-	if origin == "zicops.com" || origin == "demo.zicops.com" {
+	if origin == "zicops.com" || origin == "demo.zicops.com" || mobile != "" {
 		returnAll = true
 	}
 

@@ -187,7 +187,9 @@ func graphqlHandler() gin.HandlerFunc {
 		ctxValue["lsp_id"] = lspID
 		// get current origin in https format
 		origin := c.Request.Header.Get("Origin")
+		mobileHeader := c.Request.Header.Get("zmobile")
 		ctxValue["origin"] = origin
+		ctxValue["mobile"] = mobileHeader
 		request := c.Request
 		requestWithValue := request.WithContext(context.WithValue(request.Context(), "zclaims", ctxValue))
 		h.ServeHTTP(c.Writer, requestWithValue)
