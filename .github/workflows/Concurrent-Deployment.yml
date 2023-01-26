@@ -39,16 +39,17 @@ jobs:
      - name: Set variables_production
        #if: ${{ "${{github.base_ref}}" == "master" || "${{github.ref}}" == "refs/heads/master" }}
        id: setvars
-       run: |
-          if [[ "${{github.base_ref}}" == "master" || "${{github.ref}}" == "refs/heads/master" ]]; then
-           echo "GKE_CLUSTER= zicops-dot-com-1" >> $GITHUB_OUTPUT
-           echo "NAMESPACE = production" >> $GITHUB_OUTPUT
-          fi
+       run: echo "GKE_CLUSTER=hello" >> $GITHUB_OUTPUT
+     #  run: |
+      #    if [[ "${{github.base_ref}}" == "master" || "${{github.ref}}" == "refs/heads/master" ]]; then
+       #    echo "GKE_CLUSTER= zicops-dot-com-1" >> $GITHUB_OUTPUT
+        #   echo "NAMESPACE = production" >> $GITHUB_OUTPUT
+         # fi
         
-          if [[ "${{github.base_ref}}" == "staging" || "${{github.ref}}" == "refs/heads/staging" ]]; then
-           echo "GKE_CLUSTER= zicops-production-cost-one" >> $GITHUB_OUTPUT
-           echo "NAMESPACE = staging" >> $GITHUB_OUTPUT  
-          fi
+          #if [[ "${{github.base_ref}}" == "staging" || "${{github.ref}}" == "refs/heads/staging" ]]; then
+           #echo "GKE_CLUSTER= zicops-production-cost-one" >> $GITHUB_OUTPUT
+           #echo "NAMESPACE = staging" >> $GITHUB_OUTPUT  
+          #fi
 
 
   Approvals:
@@ -56,7 +57,7 @@ jobs:
     needs: initialize
     steps:
       - name: Print
-        run: echo "GKE_ZONE=${{needs.initialize.outputs.GKE_CLUSTER}}"
+        run: echo ${{needs.initialize.outputs.GKE_CLUSTER}}
         
       - name: Get Approvals
         uses: trstringer/manual-approval@v1
