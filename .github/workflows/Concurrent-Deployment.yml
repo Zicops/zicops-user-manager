@@ -32,24 +32,28 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
     outputs:
-      GKE_CLUSTER: ${{ steps.setvars.outputs.GKE_CLUSTER }}
-      NAMESPACE: ${{ steps.setvars.outputs.NAMESPACE }}
+      GKE_CLUSTER: ${{ steps.setvars.outputs.GKE_CLUSTER }}${{ steps.setvars_staging.outputs.GKE_CLUSTER }}
+      NAMESPACE: ${{ steps.setvars.outputs.NAMESPACE }}${{ steps.setvars_staging.outputs.NAMESPACE }}
       
     steps:
+     - name: Initializing variables
+       run: echo "Initializing variables..."
+       
+
      - name: Set variables_production
-       #if: ${{ "${{github.base_ref}}" == "master" || "${{github.ref}}" == "refs/heads/master" }}
+       if: ${{ "${{github.base_ref}}" == "master" || "${{github.ref}}" == "refs/heads/master" }}
        id: setvars
-       #run: echo "GKE_CLUSTER=hello" >> $GITHUB_OUTPUT
        run: |
-          if [[ "${{github.base_ref}}" == "master" || "${{github.ref}}" == "refs/heads/master" ]]; then
-           echo "GKE_CLUSTER= zicops-dot-com-1" >> $GITHUB_OUTPUT
-           echo "NAMESPACE = production" >> $GITHUB_OUTPUT
-          fi
+        echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
+        echo "NAMESPACE = production" >> $GITHUB_OUTPUT
         
-          if [[ "${{github.base_ref}}" == "staging" || "${{github.ref}}" == "refs/heads/staging" ]]; then
-           echo "GKE_CLUSTER= zicops-production-cost-one" >> $GITHUB_OUTPUT
-           echo "NAMESPACE = staging" >> $GITHUB_OUTPUT  
-          fi
+     - name: Set variables_staging
+       if: ${{ "${{github.base_ref}}" == "staging" || "${{github.ref}}" == "refs/heads/staging" }}
+       id: setvars_staging
+       run: |
+        echo "GKE_CLUSTER=zicops-production-cost-one" >> $GITHUB_OUTPUT
+        echo "NAMESPACE = staging" >> $GITHUB_OUTPUT
+
 
 
   Approvals:
