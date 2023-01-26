@@ -41,14 +41,14 @@ jobs:
        
 
      - name: Set variables_production
-       if: ${{ "${{github.base_ref}}" == "master" || "${{github.ref}}" == "refs/heads/master" }}
+       if: github.ref == 'refs/heads/master'
        id: setvars
        run: |
         echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
         echo "NAMESPACE = production" >> $GITHUB_OUTPUT
         
      - name: Set variables_staging
-       if: ${{ "${{github.base_ref}}" == "staging" || "${{github.ref}}" == "refs/heads/staging" }}
+       if: github.ref == 'refs/heads/staging'
        id: setvars_staging
        run: |
         echo "GKE_CLUSTER=zicops-production-cost-one" >> $GITHUB_OUTPUT
