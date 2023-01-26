@@ -151,6 +151,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 		return nil, err
 	}
 	email_creator := claims["email"].(string)
+	device := claims["device"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
 	if userId != "" {
 		emailCreatorID = userId
@@ -178,9 +179,12 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 	// replace /
 	origin = strings.Replace(origin, "/", "", 1)
 	returnAll := false
-	if origin == "zicops.com" || origin == "demo.zicops.com" {
-		returnAll = true
+	if device != "mobile" {
+		if origin == "zicops.com" || origin == "demo.zicops.com" {
+			returnAll = true
+		}
 	}
+
 	userOrgs := make([]*model.UserLspMap, 0)
 	var orgsFromDomain []*model.Organization
 	if !returnAll {
