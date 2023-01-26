@@ -44,7 +44,7 @@ jobs:
            echo "GKE_CLUSTER= zicops-dot-com-1" >> $GITHUB_OUTPUT
            echo "NAMESPACE = production" >> $GITHUB_OUTPUT
         
-          if: ${{ "${{github.base_ref}}" == "staging" || "${{github.ref}}" == "refs/heads/staging" }}
+          if [[ "${{github.base_ref}}" == "staging" || "${{github.ref}}" == "refs/heads/staging" ]]; then
            echo "GKE_CLUSTER= zicops-production-cost-one" >> $GITHUB_OUTPUT
            echo "NAMESPACE = staging" >> $GITHUB_OUTPUT  
 
