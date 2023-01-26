@@ -39,6 +39,7 @@ func CCRouter() (*gin.Engine, error) {
 		incomingToken := jwt.GetToken(currentRequest)
 		claimsFromToken, _ := jwt.GetClaims(incomingToken)
 		c.Set("zclaims", claimsFromToken)
+
 	})
 	restRouter.GET("/healthz", HealthCheckHandler)
 	restRouter.POST("/reset-password", ResetPasswordHandler)
@@ -58,7 +59,7 @@ func org(c *gin.Context) {
 }
 
 func sendOriginInfo(ctx context.Context, domain string) *model.Organization {
-	if domain == "demo.zicops.com" || domain == "https://demo.zicops.com"{
+	if domain == "demo.zicops.com" || domain == "https://demo.zicops.com" {
 		return nil
 	}
 	session, err := cassandra.GetCassSession("userz")
@@ -145,7 +146,7 @@ func HealthCheckHandler(c *gin.Context) {
 	}
 }
 
-//GetHealthStatus ...
+// GetHealthStatus ...
 func GetHealthStatus(w http.ResponseWriter) {
 	healthStatus := "Zicops user manager service is healthy"
 	response, _ := json.Marshal(healthStatus)
@@ -184,6 +185,14 @@ func graphqlHandler() gin.HandlerFunc {
 			lspID = lspIdInt
 		}
 		ctxValue["lsp_id"] = lspID
+
+		device := c.Request.Header.Get("device")
+		defaultDevice := "desktop"
+		if device != "" {
+			defaultDevice = device
+		}
+
+		ctxValue["device"] = defaultDevice
 		// get current origin in https format
 		origin := c.Request.Header.Get("Origin")
 		ctxValue["origin"] = origin
