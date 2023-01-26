@@ -60,7 +60,7 @@ jobs:
     needs: initialize
     steps:
       - name: Print
-        run: echo "PROJECT_ID=${{needs.initialize.outputs.GKE_CLUSTER}}"
+        run: echo "GKE_ZONE=${{needs.initialize.outputs.GKE_ZONE}}"
         
       - name: Get Approvals
         uses: trstringer/manual-approval@v1
