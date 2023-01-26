@@ -185,14 +185,6 @@ func graphqlHandler() gin.HandlerFunc {
 			lspID = lspIdInt
 		}
 		ctxValue["lsp_id"] = lspID
-
-		device := c.Request.Header.Get("device")
-		defaultDevice := "desktop"
-		if device != "" {
-			defaultDevice = device
-		}
-
-		ctxValue["device"] = defaultDevice
 		// get current origin in https format
 		origin := c.Request.Header.Get("Origin")
 		ctxValue["origin"] = origin
