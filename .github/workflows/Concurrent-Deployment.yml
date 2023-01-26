@@ -41,7 +41,7 @@ jobs:
        
 
      - name: Set variables_production
-       if: github.ref == 'refs/heads/master'
+       if: github.ref == 'refs/heads/main'
        id: setvars
        run: |
         echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
