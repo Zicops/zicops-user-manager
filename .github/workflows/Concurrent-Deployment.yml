@@ -38,7 +38,7 @@ jobs:
       GKE_CLUSTER: ${{ steps.setvars.outputs.GKE_CLUSTER }}${{ steps.setvars_staging.outputs.GKE_CLUSTER }}
       NAMESPACE: ${{ steps.setvars.outputs.NAMESPACE }}${{ steps.setvars_staging.outputs.NAMESPACE }}
       APPROVERS: ${{ steps.setvars.outputs.appr }}${{ steps.setvars_staging.outputs.appr }}
-      run_rest_jobs: ${{ steps.set_output.outputs.run_jobs }}
+      run_rest_jobs: ${{ steps.set_output.outputs.run_jobs }}${{ steps.set_output1.outputs.run_jobs }}
       
     steps:
      - name: Initializing variables
@@ -87,9 +87,7 @@ jobs:
     if: ${{ needs.initialize.outputs.run_rest_jobs == 'true'}}
     steps:
       - name: Code Testing
-        run: |
-         echo approvers ${{ needs.initialize.outputs.APPROVERS }}
-         echo run rest jobs ${{ needs.initialize.outputs.run_rest_jobs }}
+        run: echo approvers ${{ needs.initialize.outputs.APPROVERS }} rest jobs ${{ needs.initialize.outputs.run_rest_jobs }}
          
          
       - name: Get Approvals
