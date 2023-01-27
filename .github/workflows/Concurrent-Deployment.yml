@@ -32,6 +32,8 @@ jobs:
   initialize:
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
+    env:
+     BRANCH: test
     outputs:
       GKE_CLUSTER: ${{ steps.setvars.outputs.GKE_CLUSTER }}${{ steps.setvars_staging.outputs.GKE_CLUSTER }}
       NAMESPACE: ${{ steps.setvars.outputs.NAMESPACE }}${{ steps.setvars_staging.outputs.NAMESPACE }}
@@ -43,7 +45,10 @@ jobs:
        run: echo "Initializing variables..."
        
      - name: Extract Branch Name
-       run: echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+       run: |
+        echo "Approvers      $prod_approvers  $staging_approvers"
+        echo "BRANCH= ${GITHUB_REF##*/}" >> $GITHUB_ENV
+        echo env.BRANCH
        
       
        
@@ -52,6 +57,7 @@ jobs:
        if: ${{ env.BRANCH }} == 'main' 
        id: setvars
        run: |
+        echo "${{ env.BRANCH }}"
         echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
         echo "NAMESPACE = production" >> $GITHUB_OUTPUT
         echo "APPROVERS = $prod_approvers" >> $GITHUB_OUTPUT
