@@ -37,7 +37,7 @@ jobs:
     outputs:
       GKE_CLUSTER: ${{ steps.setvars.outputs.GKE_CLUSTER }}${{ steps.setvars_staging.outputs.GKE_CLUSTER }}
       NAMESPACE: ${{ steps.setvars.outputs.NAMESPACE }}${{ steps.setvars_staging.outputs.NAMESPACE }}
-      APPROVERS: ${{ steps.setvars.outputs.APPROVERS }}${{ steps.setvars_staging.outputs.appr }}
+      APPROVERS: ${{ steps.setvars.outputs.appr }}${{ steps.setvars_staging.outputs.appr }}
       run_rest_jobs: ${{ steps.set_output.outputs.run_jobs }}
       
     steps:
@@ -99,7 +99,6 @@ jobs:
           approvers: ${{ needs.initialize.outputs.APPROVERS }}
           minimum-approvals: 1
           issue-title: "Deploying to ${{ github.event.inputs.environment }}"
-          issue-body: "Please approve or deny the deployment"
           exclude-workflow-initiator-as-approver: false
           
 
