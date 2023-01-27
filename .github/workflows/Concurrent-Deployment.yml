@@ -44,7 +44,7 @@ jobs:
        
 
      - name: Set variables_production
-       if: ${{ ${GITHUB_REF##*/} == 'main'}} 
+       if: ${GITHUB_REF##*/} == 'main' 
        id: setvars
        run: |
         echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
@@ -52,7 +52,7 @@ jobs:
         echo "APPROVERS = ${{ vars.PRODUCTION_APPROVERS }}" >> $GITHUB_OUTPUT
         
      - name: Set variables_staging
-       if: ${{ ${GITHUB_REF##*/} == 'staging'}} 
+       if: ${GITHUB_REF##*/} == 'staging' 
        id: setvars_staging
        run: |
         echo "GKE_CLUSTER=zicops-production-cost-one" >> $GITHUB_OUTPUT
