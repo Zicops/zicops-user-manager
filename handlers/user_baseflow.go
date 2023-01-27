@@ -207,7 +207,8 @@ func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, err
 	if len(users) == 0 {
 		return nil, fmt.Errorf("user not found")
 	}
-	for _, email := range emails {
+	for _, dirtyEmail := range emails {
+		email := strings.TrimSpace(dirtyEmail)
 		if email == email_creator {
 			log.Errorf("user %v is trying to invite himself", email_creator)
 			continue
