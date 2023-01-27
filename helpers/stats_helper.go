@@ -96,9 +96,10 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 			ccStats.AverageComplianceScore = compliance_score
 		}
 		ccStats.TotalLearners = ccStats.CompletedLearners + ccStats.ActiveLearners
-		insertQuery := session.Query(userz.CCTable.Update()).BindStruct(ccStats)
-		if err := insertQuery.ExecRelease(); err != nil {
-			logrus.Error("error inserting cc stats", err)
+		updateQry := fmt.Sprintf("UPDATE userz.course_consumption_stats SET updated_by ='%s', updated_at=%d, total_learners=%d, active_learners=%d, completed_learners=%d, average_completion_time=%d, average_compliance_score=%d WHERE lsp_id='%s' AND course_id='%s'",
+			ccStats.UpdatedBy, ccStats.UpdatedAt, ccStats.TotalLearners, ccStats.ActiveLearners, ccStats.CompletedLearners, ccStats.AverageCompletionTime, ccStats.AverageComplianceScore, ccStats.LspId, ccStats.CourseId)
+		if err := session.Query(updateQry, nil).ExecRelease(); err != nil {
+			logrus.Error("error updating cc stats", err)
 			return
 		}
 	}
