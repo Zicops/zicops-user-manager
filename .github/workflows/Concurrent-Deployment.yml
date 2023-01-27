@@ -60,7 +60,7 @@ jobs:
         echo "${{ env.BRANCH }}"
         echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
         echo "NAMESPACE = production" >> $GITHUB_OUTPUT
-        echo "APPROVERS = ${{prod_approvers}}" >> $GITHUB_OUTPUT
+        echo "APPROVERS = $prod_approvers" >> $GITHUB_OUTPUT
         
      - name: Set variables_staging
        if: ${{ env.BRANCH  == 'staging' }}
@@ -68,7 +68,7 @@ jobs:
        run: |
         echo "GKE_CLUSTER=zicops-production-cost-one" >> $GITHUB_OUTPUT
         echo "NAMESPACE = staging" >> $GITHUB_OUTPUT
-        echo "APPROVERS = ${{staging_approvers}}" >> $GITHUB_OUTPUT
+        echo "APPROVERS = $staging_approvers" >> $GITHUB_OUTPUT
         
      - name: Check if branch is either staging or main
        id: set_output
