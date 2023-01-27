@@ -61,12 +61,12 @@ jobs:
      - name: Set variables_production
        if: ${{github.ref == 'refs/heads/main'}}   
        id: setvars_namespace
-       run: echo "NAMESPACE = production" >> $GITHUB_OUTPUT
+       run: echo "NAMESPACE=production" >> $GITHUB_OUTPUT
        
      - name: Set variables_production
        if: ${{github.ref == 'refs/heads/main'}}   
        id: setvars_appr
-       run: echo "appr = ${{env.prod_approvers}}" >> $GITHUB_OUTPUT
+       run: echo "appr=${{env.prod_approvers}}" >> $GITHUB_OUTPUT
    
         
      - name: Set variables_staging
@@ -78,12 +78,12 @@ jobs:
      - name: Set variables_staging
        if: ${{github.ref == 'refs/heads/staging'}}  
        id: setvars_namespace_staging
-       run: echo "NAMESPACE = staging" >> $GITHUB_OUTPUT
+       run: echo "NAMESPACE=staging" >> $GITHUB_OUTPUT
        
      - name: Set variables_staging
        if: ${{github.ref == 'refs/heads/staging'}}  
        id: setvars_appr_staging
-       run: echo "appr = ${{env.staging_approvers}}" >> $GITHUB_OUTPUT
+       run: echo "appr=${{env.staging_approvers}}" >> $GITHUB_OUTPUT
         
      - name: Check if branch is either staging or main
        id: set_output
@@ -102,14 +102,14 @@ jobs:
     if: ${{ needs.initialize.outputs.run_rest_jobs == 'true'}}
     steps:
       - name: Code Testing
-        run: echo approvers ${{ needs.initialize.outputs.APPROVE_RS }} rest jobs ${{ needs.initialize.outputs.run_rest_jobs }}
+        run: echo approvers ${{ needs.initialize.outputs.APPROVERS }} rest jobs ${{ needs.initialize.outputs.run_rest_jobs }}
          
          
       - name: Get Approvals
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.TOKEN }}
-          approvers: ${{ needs.initialize.outputs.APPROVE_RS }}
+          approvers: ${{ needs.initialize.outputs.APPROVERS }}
           minimum-approvals: 1
           issue-title: "Deploying to ${{ github.event.inputs.environment }}"
           exclude-workflow-initiator-as-approver: false
