@@ -37,7 +37,7 @@ jobs:
     outputs:
       GKE_CLUSTER: ${{ steps.setvars.outputs.GKE_CLUSTER }}${{ steps.setvars_staging.outputs.GKE_CLUSTER }}
       NAMESPACE: ${{ steps.setvars.outputs.NAMESPACE }}${{ steps.setvars_staging.outputs.NAMESPACE }}
-      APPROVERS: ${{ steps.setvars.outputs.APPROVERS }}${{ steps.setvars_staging.outputs.APPROVERS }}
+      APPROVERS: ${{ steps.setvars.outputs.APPROVERS }}${{ steps.setvars_staging.outputs.appr }}
       run_rest_jobs: ${{ steps.set_output.outputs.run_jobs }}
       
     steps:
@@ -48,27 +48,27 @@ jobs:
        run: |
         echo "Approvers      $prod_approvers  $staging_approvers"
         echo "BRANCH= ${GITHUB_REF##*/}" >> $GITHUB_ENV
-        echo $env.BRANCH
+        echo ${{env.BRANCH}}
        
       
        
 
      - name: Set variables_production
-       if: ${{env.BRANCH == 'main'}}   
+       if: ${{github.ref == 'refs/heads/main'}}   
        id: setvars
        run: |
         echo "${{ env.BRANCH }}"
         echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
         echo "NAMESPACE = production" >> $GITHUB_OUTPUT
-        echo "APPROVERS = $prod_approvers" >> $GITHUB_OUTPUT
+        echo "appr = ${{env.prod_approvers}}" >> $GITHUB_OUTPUT
         
      - name: Set variables_staging
-       if: ${{env.BRANCH == 'staging'}}  
+       if: ${{github.ref == 'refs/heads/staging'}}  
        id: setvars_staging
        run: |
         echo "GKE_CLUSTER=zicops-production-cost-one" >> $GITHUB_OUTPUT
         echo "NAMESPACE = staging" >> $GITHUB_OUTPUT
-        echo "APPROVERS = $staging_approvers" >> $GITHUB_OUTPUT
+        echo "appr = ${{env.staging_approvers}}" >> $GITHUB_OUTPUT
         
      - name: Check if branch is either staging or main
        id: set_output
@@ -88,7 +88,6 @@ jobs:
     steps:
       - name: Code Testing
         run: |
-         echo running on branch ${{env.BRANCH}}
          echo approvers ${{ needs.initialize.outputs.APPROVERS }}
          echo run rest jobs ${{ needs.initialize.outputs.run_rest_jobs }}
          
