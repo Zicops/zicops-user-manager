@@ -65,12 +65,22 @@ jobs:
         echo "GKE_CLUSTER=zicops-production-cost-one" >> $GITHUB_OUTPUT
         echo "NAMESPACE = staging" >> $GITHUB_OUTPUT
         echo "APPROVERS = ${{ vars.STAGING_APPROVERS }}" >> $GITHUB_OUTPUT
+        
+     - name: Check if branch is either staging or main
+       id: set_output
+       run: |
+         if [[$${GITHUB_REF##*/} == "main" || ${GITHUB_REF##*/} == "staging"]]; then
+          echo "run_jobs=true" >> $GITHUB_OUTPUT
+         else
+          echo "run_jobs=false" >> $GITHUB_OUTPUT
+         fi
 
 
-
+# Get Approvals for Deployment
   Approvals:
     runs-on: ubuntu-latest
     needs: initialize
+    if: ${{ needs.initialize.outputs.run_rest_jobs == 'true'}}
     steps:
       - name: Get Approvals
         uses: trstringer/manual-approval@v1
@@ -86,6 +96,9 @@ jobs:
         run: |
          echo running on branch ${GITHUB_REF##*/}
          echo approvers ${{ needs.initialize.outputs.APPROVERS }}
+         echo run rest jobs ${{ needs.initialize.outputs.run_rest_jobs }}
+         
+      
  # call-staging-deployment-workflow:
  #  needs: [Deployment]
  #  uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@${GITHUB_REF##*/}
