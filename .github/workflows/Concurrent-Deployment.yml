@@ -36,8 +36,8 @@ jobs:
      BRANCH: test
     outputs:
       GKE_CLUSTER: ${{ steps.setvars.outputs.GKE_CLUSTER }}${{ steps.setvars_staging.outputs.GKE_CLUSTER }}
-      NAMESPACE: ${{ steps.setvars.outputs.NAMESPACE }}${{ steps.setvars_staging.outputs.NAMESPACE }}
-      APPROVERS: ${{ steps.setvars.outputs.appr }}${{ steps.setvars_staging.outputs.appr }}
+      NAMES_PACE: ${{ steps.setvars.outputs.NAMESPACE }}${{ steps.setvars_staging.outputs.NAMESPACE }}
+      APPROVE_RS: ${{ steps.setvars.outputs.appr }}${{ steps.setvars_staging.outputs.appr }}
       run_rest_jobs: ${{ steps.set_output.outputs.run_jobs }}${{ steps.set_output1.outputs.run_jobs }}
       
     steps:
@@ -87,14 +87,14 @@ jobs:
     if: ${{ needs.initialize.outputs.run_rest_jobs == 'true'}}
     steps:
       - name: Code Testing
-        run: echo approvers ${{ needs.initialize.outputs.APPROVERS }} rest jobs ${{ needs.initialize.outputs.run_rest_jobs }}
+        run: echo approvers ${{ needs.initialize.outputs.APPROVE_RS }} rest jobs ${{ needs.initialize.outputs.run_rest_jobs }}
          
          
       - name: Get Approvals
         uses: trstringer/manual-approval@v1
         with:
           secret: ${{ github.TOKEN }}
-          approvers: ${{ needs.initialize.outputs.APPROVERS }}
+          approvers: ${{ needs.initialize.outputs.APPROVE_RS }}
           minimum-approvals: 1
           issue-title: "Deploying to ${{ github.event.inputs.environment }}"
           exclude-workflow-initiator-as-approver: false
