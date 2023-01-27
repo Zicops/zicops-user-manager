@@ -62,7 +62,7 @@ jobs:
      - name: Check if branch is either staging or main
        id: set_output
        run: |
-         if [[github.ref == 'refs/heads/main'  || github.ref == 'refs/heads/staging']]; then
+         if github.ref == 'refs/heads/main'  || github.ref == 'refs/heads/staging'; then
           echo "run_jobs=true" >> $GITHUB_OUTPUT
          else
           echo "run_jobs=false" >> $GITHUB_OUTPUT
