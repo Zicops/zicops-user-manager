@@ -42,9 +42,14 @@ jobs:
      - name: Initializing variables
        run: echo "Initializing variables..."
        
+     - name: Extract Branch Name
+       run: echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+       
+      
+       
 
      - name: Set variables_production
-       if: github.ref == 'refs/heads/main' 
+       if: ${{ env.BRANCH }} == 'main' 
        id: setvars
        run: |
         echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
@@ -61,13 +66,13 @@ jobs:
         
      - name: Check if branch is either staging or main
        id: set_output
-       run: |
-         if github.ref == 'refs/heads/main'  || github.ref == 'refs/heads/staging'; then
-          echo "run_jobs=true" >> $GITHUB_OUTPUT
-         else
-          echo "run_jobs=false" >> $GITHUB_OUTPUT
-         fi
-
+       if: ${{ env.BRANCH }} == 'main' || ${{ env.BRANCH }} == 'staging' 
+       run: echo "run_jobs=true" >> $GITHUB_OUTPUT
+         
+     - name: Check if branch is other than stagingor main 
+       id: set_output_1
+       if: ${{ env.BRANCH }} != 'main' && ${{ env.BRANCH }} != 'staging'
+       run: echo "run_jobs=false" >> $GITHUB_OUTPUT
 
 # Get Approvals for Deployment
   Approvals:
