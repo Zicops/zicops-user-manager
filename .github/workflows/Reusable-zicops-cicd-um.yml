@@ -3,51 +3,49 @@ name: ZICOPS UM-CICD(reusable flow)
 on:
   workflow_call:
 
-env:
-  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
-  GKE_CLUSTER: zicops-dot-com-1
-  GKE_ZONE: asia-south1-a
-  NAMESPACE: production
-  SERVICE_NAME: zicops-user-manager
+    inputs:
+      GKE_CLUSTER: 
+       required: true
+       type: string
+      GKE_ZONE:
+       required: true
+       type: string
+      NAMESPACE:
+       required: true
+       type: string
+      SERVICE_NAME:
+       required: true
+       type: string
+      
+      
+    secrets:
+      PROJECT_ID:
+        required: true  
+
 
 jobs:
 
-  build:
+  Push_GCP:
 
     runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v2
-    - name: Auth GCP service account
-      uses: 'google-github-actions/auth@v0'
-      with:
-        credentials_json: ${{ secrets.GCR_DEVOPS_SERVICE_ACCOUNT_KEY }}
-    - name: 'Set up Cloud SDK'
-      uses: 'google-github-actions/setup-gcloud@v0'
-    - name: 'Use gcloud CLI'
-      run: 'gcloud info'
-    - name: Build the Docker image
-      run: |-
-        docker build -t gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA} --build-arg GO_MODULES_TOKEN=${{secrets.GO_MODULES_TOKEN}} .
-    - name: add latest tag
-      run: |-
-        docker tag gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA} gcr.io/$PROJECT_ID/$SERVICE_NAME:latest    
-    - run: |
-        gcloud auth configure-docker -q
-    - run: |
-        gcloud components install gke-gcloud-auth-plugin
+    steps: 
     - name: Push image to GCP
-      run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
+      run: docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE_NAME }}:${GITHUB_SHA}
+      
     - name: Push image to GCP
-      run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
+      run: docker push gcr.io/${{ secrets.PROJECT_ID }}/${{ inputs.SERVICE_NAME }}:latest
+      
     - name: replace environment variable in values.yaml
       run:  envsubst '${GITHUB_SHA}' < k8s/zicops-user-manager/values.template.yaml >  k8s/zicops-user-manager/values.yaml
+      
     - name: Install Helm
       run: |
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+        
     - name: Deploy to zicops-prod-cost-one
       run: |
-        gcloud container clusters get-credentials $GKE_CLUSTER \
-          --zone $GKE_ZONE \
-          --project $PROJECT_ID
-        helm upgrade -n $NAMESPACE zicops-user-manager k8s/zicops-user-manager --install --wait --atomic
+        gcloud container clusters get-credentials ${{ GKE_CLUSTER }}\
+          --zone ${{ inputs.GKE_ZONE }} \
+          --project ${{ secrets.PROJECT_ID }}
+        helm upgrade -n ${{ inputs.NAMESPACE }} zicops-user-manager k8s/zicops-user-manager --install --wait --atomic
