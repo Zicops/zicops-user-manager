@@ -134,7 +134,8 @@ jobs:
   call-staging-deployment-workflow:
    needs: [Initialize,Approvals,Build]
    if: ${{ needs.Initialize.outputs.run_rest_jobs == 'true'}}
-   uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@${GITHUB_REF##*/}
+   uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@main
+   
    with:
     GKE_CLUSTER: ${{ needs.Initialize.outputs.GKE_CLUSTER }}
     GKE_ZONE: $GKE_ZONE
