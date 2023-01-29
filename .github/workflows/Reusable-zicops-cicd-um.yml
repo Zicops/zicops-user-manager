@@ -25,7 +25,7 @@ on:
 
 jobs:
 
-  Push_GCP:
+  Push_GCP__Deploy:
 
     runs-on: ubuntu-latest
 
