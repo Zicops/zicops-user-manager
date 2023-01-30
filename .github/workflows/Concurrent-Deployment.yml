@@ -1,10 +1,10 @@
 # Deploy to Staging
 
 name: Concurrent-Deployment
-run-name: Deployment-${{ github.event.inputs.environment }}
+run-name: Deployment
 
 # setting concurrency at workflow level
-concurrency: ${{ github.event.inputs.environment }}
+concurrency: Production
 
 # trigger event
 on: 
@@ -31,83 +31,30 @@ jobs:
 #Initialize variables based on trigger branch (staging or main)
   Initialize:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    environment: Production
     env:
      BRANCH: test
     outputs:
-      GKE_CLUSTER: ${{ steps.setvars.outputs.GKE_CLUSTER }}${{ steps.setvars_staging.outputs.GKE_CLUSTER }}
-      NAMESPACE: ${{ steps.setvars.outputs.NAMESPACE }}${{ steps.setvars_staging.outputs.NAMESPACE }}
-      APPROVERS: ${{ steps.setvars.outputs.appr }}${{ steps.setvars_staging.outputs.appr }}
-      run_rest_jobs: ${{ steps.set_output.outputs.run_jobs }}${{ steps.set_output1.outputs.run_jobs }}
+      GKE_CLUSTER: ${{ steps.setvars_staging.outputs.GKE_CLUSTER }}
+      NAMESPACE: ${{ steps.setvars_staging.outputs.NAMESPACE }}
+      APPROVERS: ${{ steps.setvars_staging.outputs.appr }}
       
     steps:
      - name: Initializing variables
        run: echo "Initializing variables..."
-       
-     - name: Extract Branch Name
-       run: |
-        echo "Approvers      $prod_approvers  $staging_approvers"
-        echo "BRANCH= ${GITHUB_REF##*/}" >> $GITHUB_ENV
-        echo ${{env.BRANCH}}
-       
-      
-       
-
-     - name: Set variables_production
-       if: ${{github.ref == 'refs/heads/main'}}   
-       id: setvars
-       run: |
-        echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
-        echo "NAMESPACE=production" >> $GITHUB_OUTPUT
-        echo "appr=${{env.prod_approvers}}" >> $GITHUB_OUTPUT
-       
-   
         
      - name: Set variables_staging
-       if: ${{github.ref == 'refs/heads/staging'}}  
        id: setvars_staging
        run: |
         echo "GKE_CLUSTER=zicops-production-cost-one" >> $GITHUB_OUTPUT
         echo "NAMESPACE=staging" >> $GITHUB_OUTPUT
         echo "appr=${{env.staging_approvers}}" >> $GITHUB_OUTPUT
-        
-        
-     - name: Check if branch is either staging or main
-       id: set_output
-       if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' }}
-       run: echo "run_jobs=true" >> $GITHUB_OUTPUT
-         
-     - name: Check if branch is other than stagingor main 
-       id: set_output_1
-       if: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/staging' }}
-       run: echo "run_jobs=false" >> $GITHUB_OUTPUT
 
-# Get Approvals for Deployment
-  Approvals:
-    runs-on: ubuntu-latest
-    needs: Initialize
-    if: ${{ needs.Initialize.outputs.run_rest_jobs == 'true'}}
-    steps:
-      - name: Code Testing
-        run: echo approvers ${{ needs.Initialize.outputs.APPROVERS }} rest jobs ${{ needs.Initialize.outputs.run_rest_jobs }}
-         
-         
-      - name: Get Approvals
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.TOKEN }}
-          approvers: ${{ needs.Initialize.outputs.APPROVERS }}
-          minimum-approvals: 1
-          issue-title: "Deploying to ${{ github.event.inputs.environment }}"
-          exclude-workflow-initiator-as-approver: false
-          
       
     #Build Docker Image
   Build:
      runs-on: ubuntu-latest
-     needs: [Initialize,Approvals]
-     if: ${{ needs.Initialize.outputs.run_rest_jobs == 'true'}}
-
+     needs: [Initialize]
      steps:
      - uses: actions/checkout@v2
      - name: Auth GCP service account
@@ -128,14 +75,25 @@ jobs:
         gcloud auth configure-docker -q
      - run: |
         gcloud components install gke-gcloud-auth-plugin
-          
+  
+  # Get Approvals for Deployment
+  Approvals:
+    runs-on: ubuntu-latest
+    needs: [Initialize, Build]
+    steps:       
+      - name: Get Approvals
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: ${{ needs.Initialize.outputs.APPROVERS }}
+          minimum-approvals: 1
+          issue-title: "Deploying to staging"
+          exclude-workflow-initiator-as-approver: false
 
       
   call-staging-deployment-workflow:
    needs: [Initialize,Approvals,Build]
-   if: ${{ needs.Initialize.outputs.run_rest_jobs == 'true'}}
-   uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@main
-   
+   uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@main   
    with:
     GKE_CLUSTER: ${{ needs.Initialize.outputs.GKE_CLUSTER }}
     GKE_ZONE: $GKE_ZONE
@@ -143,3 +101,52 @@ jobs:
     SERVICE_NAME: $SERVICE_NAME
    secrets:
     PROJECT_ID: $PROJECT_ID
+    
+    
+  Initialize_Prod:
+    runs-on: ubuntu-latest
+    environment: Production
+    needs: [Build,call-staging-deployment-workflow]
+    env:
+     BRANCH: test
+    outputs:
+      GKE_CLUSTER: ${{ steps.setvars.outputs.GKE_CLUSTER }}
+      NAMESPACE: ${{ steps.setvars.outputs.NAMESPACE }}
+      APPROVERS: ${{ steps.setvars.outputs.appr }}
+      
+    steps:
+     - name: Initializing variables
+       run: echo "Initializing variables..."     
+
+     - name: Set variables_production
+       id: setvars
+       run: |
+        echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
+        echo "NAMESPACE=production" >> $GITHUB_OUTPUT
+        
+    # Get Approvals for Deployment
+  Approvals_Prod:
+    runs-on: ubuntu-latest
+    needs: [Initialize_Prod, Build,call-staging-deployment-workflow]
+    steps:       
+      - name: Get Approvals
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: ${{ needs.Initialize_Prod.outputs.APPROVERS }}
+          minimum-approvals: 1
+          issue-title: "Deploying to production"
+          exclude-workflow-initiator-as-approver: false
+
+      
+  call-production-deployment-workflow:
+   needs: [Initialize_Prod, Build,call-staging-deployment-workflow,Approvals_Prod]
+   uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@main   
+   with:
+    GKE_CLUSTER: ${{ needs.Initialize_Prod.outputs.GKE_CLUSTER }}
+    GKE_ZONE: $GKE_ZONE
+    NAMESPACE: ${{ needs.Initialize_Prod.outputs.NAMESPACE }}
+    SERVICE_NAME: $SERVICE_NAME
+   secrets:
+    PROJECT_ID: $PROJECT_ID
+
