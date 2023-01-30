@@ -1,19 +1,14 @@
 # Deploy to Staging
 
-name: Concurrent-Deployment
-run-name: Deployment-${{ github.event.inputs.environment }}
+name: Zicops User Manager Deployment - Mumbai
+run-name: Deployment
 
 # setting concurrency at workflow level
-concurrency: ${{ github.event.inputs.environment }}
+concurrency: Production
 
 # trigger event
 on: 
  workflow_dispatch:
-  inputs:
-      environment:
-       description: 'Environment'
-       type: environment
-       required: true
 
       
 env:
@@ -29,84 +24,53 @@ env:
 
 jobs:
 #Initialize variables based on trigger branch (staging or main)
-  initialize:
+  Initialize_Staging_Variables:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    environment: Production
     env:
      BRANCH: test
     outputs:
-      GKE_CLUSTER: ${{ steps.setvars.outputs.GKE_CLUSTER }}${{ steps.setvars_staging.outputs.GKE_CLUSTER }}
-      NAMESPACE: ${{ steps.setvars.outputs.NAMESPACE }}${{ steps.setvars_staging.outputs.NAMESPACE }}
-      APPROVERS: ${{ steps.setvars.outputs.appr }}${{ steps.setvars_staging.outputs.appr }}
-      run_rest_jobs: ${{ steps.set_output.outputs.run_jobs }}${{ steps.set_output1.outputs.run_jobs }}
+      GKE_CLUSTER: ${{ steps.setvars_staging.outputs.GKE_CLUSTER }}
+      NAMESPACE: ${{ steps.setvars_staging.outputs.NAMESPACE }}
+      APPROVERS: ${{ steps.setvars_staging.outputs.appr }}
       
     steps:
      - name: Initializing variables
        run: echo "Initializing variables..."
-       
-     - name: Extract Branch Name
-       run: |
-        echo "Approvers      $prod_approvers  $staging_approvers"
-        echo "BRANCH= ${GITHUB_REF##*/}" >> $GITHUB_ENV
-        echo ${{env.BRANCH}}
-       
-      
-       
-
-     - name: Set variables_production
-       if: ${{github.ref == 'refs/heads/main'}}   
-       id: setvars
-       run: |
-        echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
-        echo "NAMESPACE=production" >> $GITHUB_OUTPUT
-        echo "appr=${{env.prod_approvers}}" >> $GITHUB_OUTPUT
-       
-   
         
      - name: Set variables_staging
-       if: ${{github.ref == 'refs/heads/staging'}}  
        id: setvars_staging
        run: |
         echo "GKE_CLUSTER=zicops-production-cost-one" >> $GITHUB_OUTPUT
         echo "NAMESPACE=staging" >> $GITHUB_OUTPUT
         echo "appr=${{env.staging_approvers}}" >> $GITHUB_OUTPUT
         
-        
-     - name: Check if branch is either staging or main
-       id: set_output
-       if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' }}
-       run: echo "run_jobs=true" >> $GITHUB_OUTPUT
-         
-     - name: Check if branch is other than stagingor main 
-       id: set_output_1
-       if: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/staging' }}
-       run: echo "run_jobs=false" >> $GITHUB_OUTPUT
-
-# Get Approvals for Deployment
-  Approvals:
+  Initialize_Prod_Variables:
     runs-on: ubuntu-latest
-    needs: initialize
-    if: ${{ needs.initialize.outputs.run_rest_jobs == 'true'}}
+    environment: Production
+    env:
+     BRANCH: test
+    outputs:
+      GKE_CLUSTER: ${{ steps.setvars.outputs.GKE_CLUSTER }}
+      NAMESPACE: ${{ steps.setvars.outputs.NAMESPACE }}
+      APPROVERS: ${{ steps.setvars.outputs.appr }}
+      
     steps:
-      - name: Code Testing
-        run: echo approvers ${{ needs.initialize.outputs.APPROVERS }} rest jobs ${{ needs.initialize.outputs.run_rest_jobs }}
-         
-         
-      - name: Get Approvals
-        uses: trstringer/manual-approval@v1
-        with:
-          secret: ${{ github.TOKEN }}
-          approvers: ${{ needs.initialize.outputs.APPROVERS }}
-          minimum-approvals: 1
-          issue-title: "Deploying to ${{ github.event.inputs.environment }}"
-          exclude-workflow-initiator-as-approver: false
-          
+     - name: Initializing variables
+       run: echo "Initializing variables..."     
+
+     - name: Set variables_production
+       id: setvars
+       run: |
+        echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
+        echo "NAMESPACE=production" >> $GITHUB_OUTPUT
+        echo "appr=${{env.prod_approvers}}" >> $GITHUB_OUTPUT
+
       
     #Build Docker Image
   Build:
      runs-on: ubuntu-latest
-     needs: [initialize,Approvals]
-     if: ${{ needs.initialize.outputs.run_rest_jobs == 'true'}}
+     needs: [Initialize_Staging_Variables, Initialize_Prod_Variables]
 
      steps:
      - uses: actions/checkout@v2
@@ -118,6 +82,7 @@ jobs:
        uses: 'google-github-actions/setup-gcloud@v0'
      - name: 'Use gcloud CLI'
        run: 'gcloud info'
+       
      - name: Build the Docker image
        run: |-
          docker build -t gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA} --build-arg GO_MODULES_TOKEN=${{secrets.GO_MODULES_TOKEN}} .
@@ -128,9 +93,40 @@ jobs:
         gcloud auth configure-docker -q
      - run: |
         gcloud components install gke-gcloud-auth-plugin
-          
+        
+     - name: Push image to GCP
+       run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
+       
+     - name: Push image to GCP
+       run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
+       
+     - name: replace environment variable in values.yaml
+       run:  envsubst '${GITHUB_SHA}' < k8s/zicops-user-manager/values.template.yaml >  k8s/zicops-user-manager/values.yaml
+     - name: Install Helm
+       run: |
+        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+        
+     - name: Deploy to Staging
+       run: |
+        gcloud container clusters get-credentials  ${{ needs.Initialize_Staging_Variables.outputs.GKE_CLUSTER }} \
+          --zone  $GKE_ZONE \
+          --project $PROJECT_ID
+        helm upgrade -n  ${{ needs.Initialize_Staging_Variables.outputs.NAMESPACE }} zicops-user-manager k8s/zicops-user-manager --install --wait --atomic
+        
+     - name: Get Approvals for Production
+       uses: trstringer/manual-approval@v1
+       with:
+          secret: ${{ github.TOKEN }}
+          approvers: ${{ needs.Initialize_Prod_Variables.outputs.APPROVERS }}
+          minimum-approvals: 1
+          issue-title: "Deploying to production"
+          exclude-workflow-initiator-as-approver: false
 
-      
- # call-staging-deployment-workflow:
- #  needs: [Deployment]
- #  uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@${GITHUB_REF##*/}
+     - name: Deploy to Production
+       run: |
+        gcloud container clusters get-credentials  ${{ needs.Initialize_Prod_Variables.outputs.GKE_CLUSTER }} \
+          --zone  $GKE_ZONE \
+          --project $PROJECT_ID
+        helm upgrade -n  ${{ needs.Initialize_Prod_Variables.outputs.NAMESPACE }} zicops-user-manager k8s/zicops-user-manager --install --wait --atomic   
+
+
