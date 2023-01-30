@@ -188,9 +188,10 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	CassUserSession := session
 	outputResponse := make([]*model.User, len(userIds))
 	var wg sync.WaitGroup
-	for i, userID := range userIds {
+	for i, id := range userIds {
+		copiedID := *id
 		wg.Add(1)
-		go func(i int, userID *string) {
+		go func(i int, copyID string) {
 			userCopy := userz.User{}
 			//key := "GetUserDetails" + *userID
 			//result, err := redis.GetRedisValue(key)
@@ -205,11 +206,10 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 				log.Errorf("Failed to upload image to course: %v", err.Error())
 			}
 			if userCopy.ID == "" {
-				qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, *userID)
+				qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, copyID)
 				getUsers := func() (users []userz.User, err error) {
 					q := CassUserSession.Query(qryStr, nil)
 					defer q.Release()
-
 					iter := q.Iter()
 					return users, iter.Select(&users)
 				}
@@ -240,6 +240,8 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			fireBaseUser, err := global.IDP.GetUserByEmail(ctx, userCopy.Email)
 			if err != nil {
 				log.Errorf("Failed to get user from firebase: %v", err.Error())
+				wg.Done()
+				return
 			}
 			phone := ""
 			if fireBaseUser != nil {
@@ -264,7 +266,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			}
 			outputResponse[i] = outputUser
 			wg.Done()
-		}(i, userID)
+		}(i, copiedID)
 		//redisBytes, err := json.Marshal(userCopy)
 		//if err == nil {
 		//	redis.SetTTL(key, 3600)
@@ -275,10 +277,10 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	// get clean user details and remove nulls
 	newResponse := make([]*model.User, 0)
 	for i, user := range outputResponse {
-		if user == nil  || user.ID == nil || *user.ID == ""{
+		if user == nil || user.ID == nil || *user.ID == "" {
 			continue
 		}
 		newResponse = append(newResponse, outputResponse[i])
 	}
-	return outputResponse, nil
+	return newResponse, nil
 }
