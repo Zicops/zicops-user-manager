@@ -9,11 +9,6 @@ concurrency: Production
 # trigger event
 on: 
  workflow_dispatch:
-  inputs:
-      environment:
-       description: 'Environment'
-       type: environment
-       required: true
 
       
 env:
@@ -91,16 +86,23 @@ jobs:
           exclude-workflow-initiator-as-approver: false
 
       
+  
   call-staging-deployment-workflow:
+   runs-on: ubuntu-latest
    needs: [Initialize,Approvals,Build]
-   uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@main   
-   with:
-    GKE_CLUSTER: ${{ needs.Initialize.outputs.GKE_CLUSTER }}
-    GKE_ZONE: $GKE_ZONE
-    NAMESPACE: ${{ needs.Initialize.outputs.NAMESPACE }}
-    SERVICE_NAME: $SERVICE_NAME
-   secrets:
-    PROJECT_ID: $PROJECT_ID
+   steps:
+     - name: Initializing variables
+       run: echo "Deploy Staging" 
+  #call-staging-deployment-workflow:
+   #needs: [Initialize,Approvals,Build]
+   #uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@main   
+   #with:
+    #GKE_CLUSTER: ${{ needs.Initialize.outputs.GKE_CLUSTER }}
+    #GKE_ZONE: $GKE_ZONE
+    #NAMESPACE: ${{ needs.Initialize.outputs.NAMESPACE }}
+    #SERVICE_NAME: $SERVICE_NAME
+   #secrets:
+    #PROJECT_ID: $PROJECT_ID
     
     
   Initialize_Prod:
@@ -123,6 +125,7 @@ jobs:
        run: |
         echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
         echo "NAMESPACE=production" >> $GITHUB_OUTPUT
+        cho "appr=${{env.production_approvers}}" >> $GITHUB_OUTPUT
         
     # Get Approvals for Deployment
   Approvals_Prod:
@@ -138,15 +141,20 @@ jobs:
           issue-title: "Deploying to production"
           exclude-workflow-initiator-as-approver: false
 
-      
   call-production-deployment-workflow:
+   runs-on: ubuntu-latest
    needs: [Initialize_Prod, Build,call-staging-deployment-workflow,Approvals_Prod]
-   uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@main   
-   with:
-    GKE_CLUSTER: ${{ needs.Initialize_Prod.outputs.GKE_CLUSTER }}
-    GKE_ZONE: $GKE_ZONE
-    NAMESPACE: ${{ needs.Initialize_Prod.outputs.NAMESPACE }}
-    SERVICE_NAME: $SERVICE_NAME
-   secrets:
-    PROJECT_ID: $PROJECT_ID
+   steps:
+     - name: Initializing variables
+       run: echo "Deploy Staging"    
+  #call-production-deployment-workflow:
+   #needs: [Initialize_Prod, Build,call-staging-deployment-workflow,Approvals_Prod]
+   #uses: Zicops/zicops-user-manager/.github/workflows/Reusable-zicops-cicd-um.yml@main   
+   #with:
+    #GKE_CLUSTER: ${{ needs.Initialize_Prod.outputs.GKE_CLUSTER }}
+    #GKE_ZONE: $GKE_ZONE
+    #NAMESPACE: ${{ needs.Initialize_Prod.outputs.NAMESPACE }}
+    #SERVICE_NAME: $SERVICE_NAME
+   #secrets:
+    #PROJECT_ID: $PROJECT_ID
 
