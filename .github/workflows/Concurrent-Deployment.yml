@@ -48,7 +48,6 @@ jobs:
   Initialize_Prod:
     runs-on: ubuntu-latest
     environment: Production
-    needs: [Build]
     env:
      BRANCH: test
     outputs:
@@ -71,7 +70,7 @@ jobs:
     #Build Docker Image
   Build:
      runs-on: ubuntu-latest
-     needs: [Initialize]
+     needs: [Initialize, Initialize_Prod]
 
      steps:
      - uses: actions/checkout@v2
