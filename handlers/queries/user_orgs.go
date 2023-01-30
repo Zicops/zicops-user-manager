@@ -370,7 +370,7 @@ func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string
 			CreatedAt: createdAt,
 			UpdatedAt: updatedAt,
 		}
-		userOrgs = append(userOrgs, currentUserOrg)
+		newOrgs = append(newOrgs, currentUserOrg)
 	}
 	outputResponse.UserLspMaps = newOrgs
 	outputResponse.PageCursor = &newCursor
