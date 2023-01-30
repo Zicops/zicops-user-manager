@@ -84,6 +84,7 @@ jobs:
    # needs: [Initialize, Build]
     #steps:       
      # - name: Get Approvals
+     
       #  uses: trstringer/manual-approval@v1
        # with:
         #  secret: ${{ github.TOKEN }}
@@ -100,9 +101,9 @@ jobs:
    needs: [Initialize,Build]
    steps:
     - name: Push image to GCP
-      run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ needs.Initialize.outputs.GITHUB_SHA }}
+      run: docker push gcr.io/${PROJECT_ID}/${SERVICE_NAME}:${{ needs.Initialize.outputs.GITHUB_SHA }}
     - name: Push image to GCP
-      run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
+      run: docker push gcr.io/${PROJECT_ID}/${SERVICE_NAME}:latest
     - name: replace environment variable in values.yaml
       run:  envsubst '${{ needs.Initialize.outputs.GITHUB_SHA }}' < k8s/zicops-user-manager/values.template.yaml >  k8s/zicops-user-manager/values.yaml
     - name: Install Helm
@@ -111,8 +112,8 @@ jobs:
     - name: Deploy to zicops-prod-cost-one
       run: |
         gcloud container clusters get-credentials  ${{ needs.Initialize.outputs.GKE_CLUSTER }} \
-          --zone  $GKE_ZONE \
-          --project $PROJECT_ID
+          --zone  ${GKE_ZONE} \
+          --project ${PROJECT_ID}
         helm upgrade -n  ${{ needs.Initialize.outputs.NAMESPACE }} zicops-user-manager k8s/zicops-user-manager --install --wait --atomic
     
     
@@ -164,8 +165,8 @@ jobs:
      - name: Deploy to zicops-prod-cost-one
        run: |
         gcloud container clusters get-credentials  ${{ needs.Initialize_Prod.outputs.GKE_CLUSTER }} \
-          --zone  $GKE_ZONE \
-          --project $PROJECT_ID
+          --zone  ${GKE_ZONE} \
+          --project ${PROJECT_ID}
         helm upgrade -n  ${{ needs.Initialize_Prod.outputs.NAMESPACE }} zicops-user-manager k8s/zicops-user-manager --install --wait --atomic   
 
 
