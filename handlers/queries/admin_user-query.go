@@ -222,6 +222,9 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 				}
 				userCopy = users[0]
 			}
+			if userCopy.ID == "" {
+				return
+			}
 			createdAt := strconv.FormatInt(userCopy.CreatedAt, 10)
 			updatedAt := strconv.FormatInt(userCopy.UpdatedAt, 10)
 			photoUrl := ""
