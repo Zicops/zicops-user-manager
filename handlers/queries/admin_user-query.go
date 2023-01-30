@@ -192,6 +192,8 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 		copiedID := *id
 		wg.Add(1)
 		go func(i int, copyID string) {
+			log.Infof("User ID: %v", copyID)
+			defer wg.Done()
 			userCopy := userz.User{}
 			//key := "GetUserDetails" + *userID
 			//result, err := redis.GetRedisValue(key)
@@ -204,6 +206,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			err = storageC.InitializeStorageClient(ctx, gproject)
 			if err != nil {
 				log.Errorf("Failed to upload image to course: %v", err.Error())
+				return
 			}
 			if userCopy.ID == "" {
 				qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, copyID)
@@ -216,12 +219,10 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 				users, err := getUsers()
 				if err != nil {
 					log.Errorf("Failed to get user from cassandra: %v", err.Error())
-					wg.Done()
 					return
 				}
 				if len(users) == 0 {
 					log.Errorf("Failed to get user from cassandra: %v", err.Error())
-					wg.Done()
 					return
 				}
 				userCopy = users[0]
@@ -240,7 +241,6 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			fireBaseUser, err := global.IDP.GetUserByEmail(ctx, userCopy.Email)
 			if err != nil {
 				log.Errorf("Failed to get user from firebase: %v", err.Error())
-				wg.Done()
 				return
 			}
 			phone := ""
@@ -265,7 +265,6 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 				Phone:      phone,
 			}
 			outputResponse[i] = outputUser
-			wg.Done()
 		}(i, copiedID)
 		//redisBytes, err := json.Marshal(userCopy)
 		//if err == nil {
