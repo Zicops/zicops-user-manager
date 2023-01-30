@@ -125,7 +125,7 @@ jobs:
        run: |
         echo "GKE_CLUSTER=zicops-dot-com-1" >> $GITHUB_OUTPUT
         echo "NAMESPACE=production" >> $GITHUB_OUTPUT
-        cho "appr=${{env.production_approvers}}" >> $GITHUB_OUTPUT
+        echo "appr=${{env.production_approvers}}" >> $GITHUB_OUTPUT
         
     # Get Approvals for Deployment
   Approvals_Prod:
