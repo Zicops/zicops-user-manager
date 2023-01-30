@@ -32,7 +32,7 @@ jobs:
     outputs:
       GKE_CLUSTER: ${{ steps.setvars_staging.outputs.GKE_CLUSTER }}
       NAMESPACE: ${{ steps.setvars_staging.outputs.NAMESPACE }}
-      APPROVERS: ${{ steps.setvars_staging.outputs.appr DAY_OF_WEEK}}
+      APPROVERS: ${{ steps.setvars_staging.outputs.appr }}
       
     steps:
      - name: Initializing variables
