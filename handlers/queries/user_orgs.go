@@ -355,6 +355,9 @@ func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string
 
 	for _, userOrg := range usersOrgs {
 		copiedOrg := userOrg
+		if copiedOrg.ID == "" {
+			continue
+		}
 		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
 		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
 		currentUserOrg := &model.UserLspMap{
