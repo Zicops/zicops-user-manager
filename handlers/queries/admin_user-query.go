@@ -215,9 +215,13 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 				}
 				users, err := getUsers()
 				if err != nil {
+					log.Errorf("Failed to get user from cassandra: %v", err.Error())
+					wg.Done()
 					return
 				}
 				if len(users) == 0 {
+					log.Errorf("Failed to get user from cassandra: %v", err.Error())
+					wg.Done()
 					return
 				}
 				userCopy = users[0]
@@ -271,7 +275,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	// get clean user details and remove nulls
 	newResponse := make([]*model.User, 0)
 	for i, user := range outputResponse {
-		if user == nil {
+		if user == nil  || user.ID == nil || *user.ID == ""{
 			continue
 		}
 		newResponse = append(newResponse, outputResponse[i])
