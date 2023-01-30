@@ -101,9 +101,9 @@ jobs:
    needs: [Initialize,Build]
    steps:
     - name: Push image to GCP
-      run: docker push gcr.io/${{ PROJECT_ID  }}/${{ SERVICE_NAME }}:${{ needs.Initialize.outputs.GITHUB_SHA }}
+      run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ needs.Initialize.outputs.GITHUB_SHA }}
     - name: Push image to GCP
-      run: docker push gcr.io/${{ PROJECT_ID }}/${{ SERVICE_NAME }}:latest
+      run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
     - name: replace environment variable in values.yaml
       run:  envsubst '${{ needs.Initialize.outputs.GITHUB_SHA }}' < k8s/zicops-user-manager/values.template.yaml >  k8s/zicops-user-manager/values.yaml
     - name: Install Helm
