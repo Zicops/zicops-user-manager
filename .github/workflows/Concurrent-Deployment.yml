@@ -50,6 +50,8 @@ jobs:
   Build:
      runs-on: ubuntu-latest
      needs: [Initialize]
+     outputs:
+      GITHUB_SHA: ${{ steps.setvars_sha.outputs.GITHUB_SHA }}
      steps:
      - uses: actions/checkout@v2
      - name: Auth GCP service account
@@ -60,12 +62,17 @@ jobs:
        uses: 'google-github-actions/setup-gcloud@v0'
      - name: 'Use gcloud CLI'
        run: 'gcloud info'
+       
+     - name: Set sha
+       id: setvars_sha
+       run: |
+        echo "GITHUB_SHA=${GITHUB_SHA} " >> $GITHUB_OUTPUT
      - name: Build the Docker image
        run: |-
-         docker build -t gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA} --build-arg GO_MODULES_TOKEN=${{secrets.GO_MODULES_TOKEN}} .
+         docker build -t gcr.io/$PROJECT_ID/$SERVICE_NAME:${SHA} --build-arg GO_MODULES_TOKEN=${{secrets.GO_MODULES_TOKEN}} .
      - name: add latest tag
        run: |-
-        docker tag gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA} gcr.io/$PROJECT_ID/$SERVICE_NAME:latest    
+        docker tag gcr.io/$PROJECT_ID/$SERVICE_NAME:${SHA} gcr.io/$PROJECT_ID/$SERVICE_NAME:latest    
      - run: |
         gcloud auth configure-docker -q
      - run: |
@@ -93,11 +100,11 @@ jobs:
    needs: [Initialize,Build]
    steps:
     - name: Push image to GCP
-      run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
+      run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${{ needs.Initialize.outputs.GITHUB_SHA }}
     - name: Push image to GCP
       run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
     - name: replace environment variable in values.yaml
-      run:  envsubst '${GITHUB_SHA}' < k8s/zicops-user-manager/values.template.yaml >  k8s/zicops-user-manager/values.yaml
+      run:  envsubst '${{ needs.Initialize.outputs.GITHUB_SHA }}' < k8s/zicops-user-manager/values.template.yaml >  k8s/zicops-user-manager/values.yaml
     - name: Install Helm
       run: |
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
@@ -147,10 +154,10 @@ jobs:
 
   call-production-deployment-workflow:
    runs-on: ubuntu-latest
-   needs: [Initialize_Prod, Build,call-staging-deployment-workflow,Approvals_Prod]
+   needs: [Initialize,Initialize_Prod, Build,call-staging-deployment-workflow,Approvals_Prod]
    steps:
      - name: replace environment variable in values.yaml
-       run:  envsubst '${GITHUB_SHA}' < k8s/zicops-user-manager/values.template.yaml >  k8s/zicops-user-manager/values.yaml
+       run:  envsubst '${{ needs.Initialize.outputs.GITHUB_SHA }}' < k8s/zicops-user-manager/values.template.yaml >  k8s/zicops-user-manager/values.yaml
      - name: Install Helm
        run: |
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
