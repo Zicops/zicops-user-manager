@@ -192,7 +192,6 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 		copiedID := *id
 		wg.Add(1)
 		go func(i int, copyID string) {
-			log.Infof("User ID: %v", copyID)
 			defer wg.Done()
 			userCopy := userz.User{}
 			//key := "GetUserDetails" + *userID
@@ -222,7 +221,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 					return
 				}
 				if len(users) == 0 {
-					log.Errorf("Failed to get user from cassandra: %v", err.Error())
+					log.Errorf("Failed to get user from cassandra: not found")
 					return
 				}
 				userCopy = users[0]
