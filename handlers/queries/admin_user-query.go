@@ -268,6 +268,13 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 		//}
 	}
 	wg.Wait()
-
+	// get clean user details and remove nulls
+	newResponse := make([]*model.User, 0)
+	for i, user := range outputResponse {
+		if user == nil {
+			continue
+		}
+		newResponse = append(newResponse, outputResponse[i])
+	}
 	return outputResponse, nil
 }
