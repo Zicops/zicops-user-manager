@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -119,23 +118,31 @@ func CreateVendor(ctx context.Context, input *model.VendorInput) (string, error)
 }
 
 func CreateProfileVendor(ctx context.Context, input *model.VendorProfile) (string, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
-	if err != nil {
-		log.Println("Got error while getting claims: %v", err)
-		return "", err
-	}
-	lspID := claims["lsp_id"].(string)
-
+	/*
+		claims, err := helpers.GetClaimsFromContext(ctx)
+		if err != nil {
+			log.Println("Got error while getting claims: %v", err)
+			return "", err
+		}
+		lspID := claims["lsp_id"].(string)
+	*/
 	return "", nil
 }
 
 func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (string, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
-	if err != nil {
-		log.Println("Got error while getting claims: %v", err)
-		return "", err
-	}
-	lspID := claims["lsp_id"].(string)
+	/*
+		claims, err := helpers.GetClaimsFromContext(ctx)
+		if err != nil {
+			log.Println("Got error while getting claims: %v", err)
+			return "", err
+		}
+		lspID := claims["lsp_id"].(string)
 
+		session, err := cassandra.GetCassSession("userz")
+		if err != nil {
+			return "", err
+		}
+		CassUserSession := session
+	*/
 	return "", nil
 }
