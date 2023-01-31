@@ -79,6 +79,23 @@ type CourseViews struct {
 	DateString *string   `json:"date_string"`
 }
 
+type ExperienceInput struct {
+	VendorID        string  `json:"VendorId"`
+	PfID            string  `json:"PfId"`
+	Title           string  `json:"Title"`
+	CompanyName     string  `json:"CompanyName"`
+	EmployementType string  `json:"EmployementType"`
+	Location        string  `json:"Location"`
+	LocationType    string  `json:"LocationType"`
+	StartDate       int     `json:"StartDate"`
+	EndDate         *int    `json:"EndDate"`
+	CreatedAt       *string `json:"CreatedAt"`
+	CreatedBy       *string `json:"CreatedBy"`
+	UpdatedAt       *string `json:"UpdatedAt"`
+	UpdatedBy       *string `json:"UpdatedBy"`
+	Status          string  `json:"Status"`
+}
+
 type LearningSpace struct {
 	LspID      *string   `json:"lsp_id"`
 	OrgID      string    `json:"org_id"`

@@ -433,7 +433,21 @@ func (r *mutationResolver) CreateVendor(ctx context.Context, input *model.Vendor
 
 // CreateProfileVendor is the resolver for the createProfileVendor field.
 func (r *mutationResolver) CreateProfileVendor(ctx context.Context, input *model.VendorProfile) (string, error) {
-	panic(fmt.Errorf("not implemented: CreateProfileVendor - createProfileVendor"))
+	resp, err := handlers.CreateProfileVendor(ctx, input)
+	if err != nil {
+		log.Println("Got error while creating profiles of vendor: %v", err)
+	}
+	return resp, err
+}
+
+// CreateExperienceVendor is the resolver for the createExperienceVendor field.
+func (r *mutationResolver) CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (string, error) {
+	resp, err := handlers.CreateExperienceVendor(ctx, input)
+	if err != nil {
+		log.Println("Got error while creating experience of vendor: %v", err)
+		return "", nil
+	}
+	return resp, nil
 }
 
 // UploadSampleFile is the resolver for the uploadSampleFile field.

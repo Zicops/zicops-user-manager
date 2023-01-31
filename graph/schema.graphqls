@@ -595,7 +595,7 @@ type LearningSpace {
   lsp_id: ID
   org_id: String!
   ou_id: String!
-  type: String!
+  #type: String!
   name: String!
   logo_url: String
   profile_url: String
@@ -752,6 +752,23 @@ input VendorProfile {
   ClassroomExpertise: [String]
   Experience: Int
   IsSpeaker: Boolean!
+  CreatedAt: String
+	CreatedBy: String
+	UpdatedAt: String
+	UpdatedBy: String
+	Status: String!
+}
+
+input ExperienceInput {
+  VendorId: String!
+  PfId: String!
+  Title: String!
+  CompanyName: String!
+  EmployementType: String!
+  Location: String!
+  LocationType: String!
+  StartDate: Int!
+  EndDate: Int
   CreatedAt: String
 	CreatedBy: String
 	UpdatedAt: String
@@ -940,6 +957,7 @@ type Mutation {
 
   createVendor(input: VendorInput): String!
   createProfileVendor(input: VendorProfile): String!
+  createExperienceVendor(input: ExperienceInput!): String!
   uploadSampleFile(input: SampleFile): String!
-  createVendorServices(VendorId: String!, SME: SMEInput, CRT: CRTInput, CD: CDInput): Boolean
+  #createVendorServices(VendorId: String!, SME: SMEInput, CRT: CRTInput, CD: CDInput): Boolean
 }
