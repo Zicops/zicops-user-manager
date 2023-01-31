@@ -285,7 +285,7 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 			if orgID == nil {
 				return
 			}
-			qryStr := fmt.Sprintf(`SELECT * from userz.organization where id='%s' `, *orgID)
+			qryStr := fmt.Sprintf(`SELECT * from userz.organization where id='%s' ALLOW FILTERING`, *orgID)
 			getOrgs := func() (users []userz.Organization, err error) {
 				q := CassUserSession.Query(qryStr, nil)
 				defer q.Release()

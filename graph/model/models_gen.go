@@ -83,6 +83,7 @@ type LearningSpace struct {
 	LspID      *string   `json:"lsp_id"`
 	OrgID      string    `json:"org_id"`
 	OuID       string    `json:"ou_id"`
+	Type       string    `json:"type"`
 	Name       string    `json:"name"`
 	LogoURL    *string   `json:"logo_url"`
 	ProfileURL *string   `json:"profile_url"`
@@ -98,6 +99,7 @@ type LearningSpace struct {
 
 type LearningSpaceInput struct {
 	LspID      *string         `json:"lsp_id"`
+	Type       string          `json:"type"`
 	OrgID      string          `json:"org_id"`
 	OuID       string          `json:"ou_id"`
 	Name       string          `json:"name"`
@@ -232,6 +234,34 @@ type PaginatedUsers struct {
 	PageCursor *string `json:"pageCursor"`
 	Direction  *string `json:"direction"`
 	PageSize   *int    `json:"pageSize"`
+}
+
+type SMEInput struct {
+	Description      string    `json:"Description"`
+	IsApplicable     bool      `json:"IsApplicable"`
+	Expertise        []*string `json:"Expertise"`
+	Languages        []*string `json:"Languages"`
+	OutputDeliveries []*string `json:"OutputDeliveries"`
+	SampleFiles      []*string `json:"SampleFiles"`
+	Profiles         []*string `json:"Profiles"`
+	CreatedAt        *string   `json:"CreatedAt"`
+	CreatedBy        *string   `json:"CreatedBy"`
+	UpdatedAt        *string   `json:"UpdatedAt"`
+	UpdatedBy        *string   `json:"UpdatedBy"`
+	Status           string    `json:"Status"`
+}
+
+type SampleFile struct {
+	File        graphql.Upload `json:"File"`
+	Name        string         `json:"Name"`
+	Description string         `json:"Description"`
+	Pricing     string         `json:"Pricing"`
+	FileType    *string        `json:"FileType"`
+	CreatedAt   *string        `json:"CreatedAt"`
+	CreatedBy   *string        `json:"CreatedBy"`
+	UpdatedAt   *string        `json:"UpdatedAt"`
+	UpdatedBy   *string        `json:"UpdatedBy"`
+	Status      string         `json:"Status"`
 }
 
 type User struct {
@@ -691,4 +721,59 @@ type UserRoleInput struct {
 	IsActive   bool    `json:"is_active"`
 	CreatedBy  *string `json:"created_by"`
 	UpdatedBy  *string `json:"updated_by"`
+}
+
+type Vendor struct {
+	VendorID  string  `json:"VendorId"`
+	Type      string  `json:"Type"`
+	Level     string  `json:"Level"`
+	Name      string  `json:"Name"`
+	PhotoURL  string  `json:"PhotoUrl"`
+	Address   string  `json:"Address"`
+	Website   *string `json:"Website"`
+	Facebook  *string `json:"Facebook"`
+	Instagram *string `json:"Instagram"`
+	Twitter   *string `json:"Twitter"`
+	LinkedIn  *string `json:"LinkedIn"`
+	CreatedAt *string `json:"CreatedAt"`
+	CreatedBy *string `json:"CreatedBy"`
+	UpdatedAt *string `json:"UpdatedAt"`
+	UpdatedBy *string `json:"UpdatedBy"`
+	Status    string  `json:"Status"`
+}
+
+type VendorInput struct {
+	Type      string          `json:"type"`
+	Level     string          `json:"level"`
+	Name      string          `json:"name"`
+	Photo     *graphql.Upload `json:"photo"`
+	PhotoURL  *string         `json:"photoUrl"`
+	Address   string          `json:"address"`
+	Website   *string         `json:"website"`
+	Facebook  *string         `json:"facebook"`
+	Instagram *string         `json:"instagram"`
+	Twitter   *string         `json:"twitter"`
+	LinkedIn  *string         `json:"linkedIn"`
+	Users     []*string       `json:"users"`
+	Status    string          `json:"status"`
+}
+
+type VendorProfile struct {
+	VendorID           string          `json:"VendorId"`
+	FirstName          string          `json:"FirstName"`
+	LastName           *string         `json:"LastName"`
+	Email              string          `json:"Email"`
+	Phone              int             `json:"Phone"`
+	Photo              *graphql.Upload `json:"Photo"`
+	Description        *string         `json:"Description"`
+	Languages          []*string       `json:"Languages"`
+	SMEExpertise       []*string       `json:"SMEExpertise"`
+	ClassroomExpertise []*string       `json:"ClassroomExpertise"`
+	Experience         *int            `json:"Experience"`
+	IsSpeaker          bool            `json:"IsSpeaker"`
+	CreatedAt          *string         `json:"CreatedAt"`
+	CreatedBy          *string         `json:"CreatedBy"`
+	UpdatedAt          *string         `json:"UpdatedAt"`
+	UpdatedBy          *string         `json:"UpdatedBy"`
+	Status             string          `json:"Status"`
 }

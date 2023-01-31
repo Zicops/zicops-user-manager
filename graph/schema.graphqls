@@ -575,6 +575,7 @@ type OrganizationUnit {
 
 input LearningSpaceInput {
   lsp_id: ID
+  type: String!
   org_id: String!
   ou_id: String!
   name: String!
@@ -594,6 +595,7 @@ type LearningSpace {
   lsp_id: ID
   org_id: String!
   ou_id: String!
+  type: String!
   name: String!
   logo_url: String
   profile_url: String
@@ -685,6 +687,89 @@ type CourseViews {
   lsp_id: String
   user_ids: [String]
   date_string: String
+}
+
+input VendorInput {
+  type: String!
+  level: String!
+  name: String!
+  photo: Upload
+  photoUrl: String
+  address: String!
+  website: String
+  facebook: String
+  instagram: String
+  twitter: String
+  linkedIn: String
+  users: [String]
+  status: String!
+}
+
+type Vendor {
+  VendorId: String!
+	Type: String!
+	Level: String!
+	Name: String!
+	PhotoUrl: String!
+	Address: String!
+	Website: String
+	Facebook: String
+	Instagram: String
+	Twitter: String
+	LinkedIn: String
+	CreatedAt: String
+	CreatedBy: String
+	UpdatedAt: String
+	UpdatedBy: String
+	Status: String!
+}
+
+input SMEInput {
+  Description: String!
+  IsApplicable: Boolean!
+  Expertise: [String]
+  Languages: [String]
+  OutputDeliveries: [String]
+  SampleFiles: [String]
+  Profiles: [String]!
+  CreatedAt: String
+	CreatedBy: String
+	UpdatedAt: String
+	UpdatedBy: String
+	Status: String!
+}
+
+input VendorProfile {
+  VendorId: String!
+  FirstName: String!
+  LastName: String
+  Email: String!
+  Phone: Int!
+  Photo: Upload
+  Description: String
+  Languages: [String]
+  SMEExpertise: [String]
+  ClassroomExpertise: [String]
+  Experience: Int
+  IsSpeaker: Boolean!
+  CreatedAt: String
+	CreatedBy: String
+	UpdatedAt: String
+	UpdatedBy: String
+	Status: String!
+}
+
+input SampleFile {
+  File: Upload!
+  Name: String!
+  Description: String!
+  Pricing: String!
+  FileType: String
+  CreatedAt: String
+	CreatedBy: String
+	UpdatedAt: String
+	UpdatedBy: String
+	Status: String!
 }
 
 type Query {
@@ -852,4 +937,9 @@ type Mutation {
   addLearningSpace(input: LearningSpaceInput!): LearningSpace
   updateLearningSpace(input: LearningSpaceInput!): LearningSpace
   deleteCohortImage(cohort_id: String!, filename: String!): String
+
+  createVendor(input: VendorInput): String!
+  createProfileVendor(input: VendorProfile): String!
+  uploadSampleFile(input: SampleFile): String!
+  createVendorServices(VendorId: String!, SME: SMEInput, CRT: CRTInput, CD: CDInput): Boolean
 }
