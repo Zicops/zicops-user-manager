@@ -352,9 +352,12 @@ func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string
 		outputResponse.UserLspMaps = userOrgs
 		return nil, nil
 	}
-
+	newOrgs := make([]*model.UserLspMap, 0)
 	for _, userOrg := range usersOrgs {
 		copiedOrg := userOrg
+		if copiedOrg.ID == "" {
+			continue
+		}
 		createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
 		updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
 		currentUserOrg := &model.UserLspMap{
@@ -367,9 +370,9 @@ func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string
 			CreatedAt: createdAt,
 			UpdatedAt: updatedAt,
 		}
-		userOrgs = append(userOrgs, currentUserOrg)
+		newOrgs = append(newOrgs, currentUserOrg)
 	}
-	outputResponse.UserLspMaps = userOrgs
+	outputResponse.UserLspMaps = newOrgs
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction

@@ -188,9 +188,11 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	CassUserSession := session
 	outputResponse := make([]*model.User, len(userIds))
 	var wg sync.WaitGroup
-	for i, userID := range userIds {
+	for i, id := range userIds {
+		copiedID := *id
 		wg.Add(1)
-		go func(i int, userID *string) {
+		go func(i int, copyID string) {
+			defer wg.Done()
 			userCopy := userz.User{}
 			//key := "GetUserDetails" + *userID
 			//result, err := redis.GetRedisValue(key)
@@ -203,24 +205,29 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			err = storageC.InitializeStorageClient(ctx, gproject)
 			if err != nil {
 				log.Errorf("Failed to upload image to course: %v", err.Error())
+				return
 			}
 			if userCopy.ID == "" {
-				qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, *userID)
+				qryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' ALLOW FILTERING`, copyID)
 				getUsers := func() (users []userz.User, err error) {
 					q := CassUserSession.Query(qryStr, nil)
 					defer q.Release()
-
 					iter := q.Iter()
 					return users, iter.Select(&users)
 				}
 				users, err := getUsers()
 				if err != nil {
+					log.Errorf("Failed to get user from cassandra: %v", err.Error())
 					return
 				}
 				if len(users) == 0 {
+					log.Errorf("Failed to get user from cassandra: not found")
 					return
 				}
 				userCopy = users[0]
+			}
+			if userCopy.ID == "" {
+				return
 			}
 			createdAt := strconv.FormatInt(userCopy.CreatedAt, 10)
 			updatedAt := strconv.FormatInt(userCopy.UpdatedAt, 10)
@@ -233,6 +240,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			fireBaseUser, err := global.IDP.GetUserByEmail(ctx, userCopy.Email)
 			if err != nil {
 				log.Errorf("Failed to get user from firebase: %v", err.Error())
+				return
 			}
 			phone := ""
 			if fireBaseUser != nil {
@@ -256,8 +264,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 				Phone:      phone,
 			}
 			outputResponse[i] = outputUser
-			wg.Done()
-		}(i, userID)
+		}(i, copiedID)
 		//redisBytes, err := json.Marshal(userCopy)
 		//if err == nil {
 		//	redis.SetTTL(key, 3600)
@@ -265,6 +272,13 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 		//}
 	}
 	wg.Wait()
-
-	return outputResponse, nil
+	// get clean user details and remove nulls
+	newResponse := make([]*model.User, 0)
+	for i, user := range outputResponse {
+		if user == nil || user.ID == nil || *user.ID == "" {
+			continue
+		}
+		newResponse = append(newResponse, outputResponse[i])
+	}
+	return newResponse, nil
 }
