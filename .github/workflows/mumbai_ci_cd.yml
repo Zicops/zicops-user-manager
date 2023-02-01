@@ -41,8 +41,6 @@ jobs:
       run: |-
         docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
         docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
-    - name: export GITHUB_SHA
-      run: echo "GITHUB_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
 
   approval_stage:
     needs: build_push_image
@@ -61,6 +59,7 @@ jobs:
     needs: approval_stage
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v3
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v0'
     - name: 'Use gcloud CLI'
@@ -102,6 +101,7 @@ jobs:
     needs: approval_prod
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v3
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v0'
     - name: 'Use gcloud CLI'
