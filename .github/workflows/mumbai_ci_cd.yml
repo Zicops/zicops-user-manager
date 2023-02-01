@@ -1,4 +1,4 @@
-name: ZICOPS UM-CICD
+name: Zicops App CI/CD - GCP Mumbai South-1-a
 
 on:
   workflow_dispatch:
@@ -11,13 +11,17 @@ env:
   SERVICE_NAME: zicops-user-manager
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
+
+  authenticate:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
     - name: Auth GCP service account
       uses: 'google-github-actions/auth@v0'
       with:
@@ -26,25 +30,58 @@ jobs:
       uses: 'google-github-actions/setup-gcloud@v0'
     - name: 'Use gcloud CLI'
       run: 'gcloud info'
+
+  build_image:
+    needs: authenticate
+    runs-on: ubuntu-latest
+
+    steps:
     - name: Build the Docker image
       run: |-
         docker build -t gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA} --build-arg GO_MODULES_TOKEN=${{secrets.GO_MODULES_TOKEN}} .
     - name: add latest tag
       run: |-
-        docker tag gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA} gcr.io/$PROJECT_ID/$SERVICE_NAME:latest    
-    - run: |
-        gcloud auth configure-docker -q
-    - run: |
-        gcloud components install gke-gcloud-auth-plugin
+        docker tag gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA} gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
+
+  approval:
+    - name: Approval
+      id: approval
+      uses: actions/manual-approval@v2
+      with:
+        message: Approve before pushing the image to GCP
+
+  push_image:
+    needs: build_image
+    runs-on: ubuntu-latest
+    if: steps.approval.outputs.approved == 'true'
+    steps:
     - name: Push image to GCP
       run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
     - name: Push image to GCP
       run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
+
+  configure_values:
+    needs: push_image
+    runs-on: ubuntu-latest
+
+    steps:
     - name: replace environment variable in values.yaml
       run:  envsubst '${GITHUB_SHA}' < k8s/zicops-user-manager/values.template.yaml >  k8s/zicops-user-manager/values.yaml
+
+  install_tools:
+    needs: configure_values
+    runs-on: ubuntu-latest
+
+    steps:
     - name: Install Helm
       run: |
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+  deploy:
+    needs: install_tools
+    runs-on: ubuntu-latest
+
+    steps:
     - name: Deploy to zicops-prod-cost-one
       run: |
         gcloud container clusters get-credentials $GKE_CLUSTER \
