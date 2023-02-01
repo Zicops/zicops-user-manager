@@ -42,20 +42,20 @@ jobs:
       run: |-
         docker tag gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA} gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
 
-  approval_staging:
+  approval_stage:
     needs: build_image
     runs-on: ubuntu-latest
     steps:
     - name: Approval
-      id: approval
+      id: approval_stage
       uses: actions/manual-approval@v2
       with:
         message: Approve before pushing the image to GCP and deploying to staging
 
   push_image:
-    needs: approval_staging
+    needs: approval_stage
     runs-on: ubuntu-latest
-    if: steps.approval.outputs.approved == 'true'
+    if: steps.approval_stage.outputs.approved == 'true'
     steps:
     - name: Push image to GCP
       run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
@@ -83,20 +83,20 @@ jobs:
           --project $PROJECT_ID
         helm upgrade -n staging zicops-user-manager k8s/zicops-user-manager --install --wait --atomic
 
-  approval_production:
+  approval_prod1:
     needs: build_image
     runs-on: ubuntu-latest
     steps:
     - name: Approval
-      id: approval
+      id: approval_prod1
       uses: actions/manual-approval@v2
       with:
         message: Approve before deploying to production Zicops-One
 
   deploy_production:
-    needs: approval_production
+    needs: approval_prod1
     runs-on: ubuntu-latest
-    if: steps.approval.outputs.approved == 'true'
+    if: steps.approval_prod1.outputs.approved == 'true'
     steps:
     - name: replace environment variable in values.yaml
       run:  envsubst '${GITHUB_SHA}' < k8s/zicops-user-manager/values.template.prod.yaml > k8s/zicops-user-manager/values.yaml
