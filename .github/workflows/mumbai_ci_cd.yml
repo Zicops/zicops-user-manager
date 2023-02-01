@@ -5,8 +5,6 @@ on:
 
 env:
   PROJECT_ID: zicops-one
-  GKE_CLUSTER: zicops-dot-com-1
-  GKE_ZONE: asia-south1-a
   SERVICE_NAME: zicops-user-manager
 
 jobs:
@@ -58,6 +56,9 @@ jobs:
   deploy_staging:
     needs: approval_stage
     runs-on: ubuntu-latest
+    env:
+      GKE_CLUSTER: zicops-production-cost-one
+      GKE_ZONE: asia-south1-a
     steps:
     - uses: actions/checkout@v3
     - name: 'Set up Cloud SDK'
@@ -100,6 +101,9 @@ jobs:
   deploy_production:
     needs: approval_prod
     runs-on: ubuntu-latest
+    env:
+      GKE_CLUSTER: zicops-dot-com-1
+      GKE_ZONE: asia-south1-a
     steps:
     - uses: actions/checkout@v3
     - name: 'Set up Cloud SDK'
