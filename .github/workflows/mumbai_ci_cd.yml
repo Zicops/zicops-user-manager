@@ -10,6 +10,12 @@ env:
   SERVICE_NAME: zicops-user-manager
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: export GITHUB_SHA
+      run: echo "GITHUB_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
   authenticate:
     needs: build
