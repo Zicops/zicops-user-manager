@@ -8,19 +8,19 @@ env:
   GKE_CLUSTER: zicops-dot-com-1
   GKE_ZONE: asia-south1-a
 
-strategy:
-  matrix:
-    deployment: [staging, production]
-    env:
-      staging:
-        NAMESPACE: staging
-        SERVICE_NAME: zicops-user-manager
-        TEMPLATE_FILE: k8s/zicops-user-manager/values.template.dev.yaml
-      production:
-        NAMESPACE: production
-        SERVICE_NAME: zicops-user-manager
-        TEMPLATE_FILE: k8s/zicops-user-manager/values.template.prod.yaml
 jobs:
+  strategy:
+    matrix:
+      deployment: [staging, production]
+      env:
+        staging:
+          NAMESPACE: staging
+          SERVICE_NAME: zicops-user-manager
+          TEMPLATE_FILE: k8s/zicops-user-manager/values.template.dev.yaml
+        production:
+          NAMESPACE: production
+          SERVICE_NAME: zicops-user-manager
+          TEMPLATE_FILE: k8s/zicops-user-manager/values.template.prod.yaml
   build:
     runs-on: ubuntu-latest
 
