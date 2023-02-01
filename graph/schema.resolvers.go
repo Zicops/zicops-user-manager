@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -418,6 +419,40 @@ func (r *mutationResolver) DeleteCohortImage(ctx context.Context, cohortID strin
 		return nil, err
 	}
 	return result, nil
+}
+
+// CreateVendor is the resolver for the createVendor field.
+func (r *mutationResolver) CreateVendor(ctx context.Context, input *model.VendorInput) (string, error) {
+	res, err := handlers.CreateVendor(ctx, input)
+	if err != nil {
+		log.Errorf("Got error while creating vedor: %v", err)
+		return "", err
+	}
+	return res, nil
+}
+
+// CreateProfileVendor is the resolver for the createProfileVendor field.
+func (r *mutationResolver) CreateProfileVendor(ctx context.Context, input *model.VendorProfile) (string, error) {
+	resp, err := handlers.CreateProfileVendor(ctx, input)
+	if err != nil {
+		log.Println("Got error while creating profiles of vendor: %v", err)
+	}
+	return resp, err
+}
+
+// CreateExperienceVendor is the resolver for the createExperienceVendor field.
+func (r *mutationResolver) CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (string, error) {
+	resp, err := handlers.CreateExperienceVendor(ctx, input)
+	if err != nil {
+		log.Println("Got error while creating experience of vendor: %v", err)
+		return "", nil
+	}
+	return resp, nil
+}
+
+// UploadSampleFile is the resolver for the uploadSampleFile field.
+func (r *mutationResolver) UploadSampleFile(ctx context.Context, input *model.SampleFile) (string, error) {
+	panic(fmt.Errorf("not implemented: UploadSampleFile - uploadSampleFile"))
 }
 
 // Logout is the resolver for the logout field.
