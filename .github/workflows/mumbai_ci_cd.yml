@@ -50,12 +50,14 @@ jobs:
     needs: build_image
     runs-on: ubuntu-latest
     steps:
-    - name: Approval
-      id: approval_stage
-      uses: actions/manual-approval@v2
+    - name: Get Approvals for Staging Deployment
+      uses: trstringer/manual-approval@v1.8.0
       with:
-        message: Approve before pushing the image to GCP and deploying to staging
-
+         secret: ${{ github.TOKEN }}
+         approvers: saraswatpuneet,ngupta10, ansh5461
+         minimum-approvals: 1
+         issue-title: "Deploying to staging"
+         exclude-workflow-initiator-as-approver: false
   push_image:
     needs: approval_stage
     runs-on: ubuntu-latest
@@ -81,18 +83,21 @@ jobs:
           --project $PROJECT_ID
         helm upgrade -n staging zicops-user-manager k8s/zicops-user-manager --install --wait --atomic
 
-  approval_prod1:
-    needs: deploy_staging
+  approval_prod:
+    needs: build_image
     runs-on: ubuntu-latest
     steps:
-    - name: Approval
-      id: approval_prod1
-      uses: actions/manual-approval@v2
+    - name: Get Approvals for Zicops One Production Deployment
+      uses: trstringer/manual-approval@v1.8.0
       with:
-        message: Approve before deploying to production Zicops-One
+         secret: ${{ github.TOKEN }}
+         approvers: saraswatpuneet,ngupta10,
+         minimum-approvals: 1
+         issue-title: "Deploying to zicops one production cluster"
+         exclude-workflow-initiator-as-approver: false
 
   deploy_production:
-    needs: approval_prod1
+    needs: approval_prod
     runs-on: ubuntu-latest
     steps:
     - name: Install Helm
