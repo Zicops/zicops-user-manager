@@ -11,17 +11,19 @@ env:
 
 jobs:
   build:
-    runs-on: zicops-runner1
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: export GITHUB_SHA
       run: echo "GITHUB_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-  authenticate:
+  build_push_image:
     needs: build
-    runs-on: zicops-runner1
-
+    runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v3
+    - name: export GITHUB_SHA
+      run: echo "GITHUB_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
     - name: Auth GCP service account
       uses: 'google-github-actions/auth@v0'
       with:
@@ -31,13 +33,6 @@ jobs:
     - name: 'Use gcloud CLI'
       run: 'gcloud info'
 
-  build_push_image:
-    needs: authenticate
-    runs-on: zicops-runner1
-    steps:
-    - uses: actions/checkout@v3
-    - name: export GITHUB_SHA
-      run: echo "GITHUB_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
     - uses: actions/checkout@v3
     - name: Build the Docker image
       run: |-
@@ -52,7 +47,7 @@ jobs:
 
   approval_stage:
     needs: build_push_image
-    runs-on: zicops-runner1
+    runs-on: ubuntu-latest
     steps:
     - name: Get Approvals for Staging Deployment
       uses: trstringer/manual-approval@v1.8.0
@@ -65,8 +60,17 @@ jobs:
 
   deploy_staging:
     needs: approval_stage
-    runs-on: zicops-runner1
+    runs-on: ubuntu-latest
     steps:
+    - name: Auth GCP service account
+      uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: ${{ secrets.GCR_DEVOPS_SERVICE_ACCOUNT_KEY }}
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v0'
+    - name: 'Use gcloud CLI'
+      run: 'gcloud info'
+
     - name: Install Helm
       run: |
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
@@ -81,7 +85,7 @@ jobs:
 
   approval_prod:
     needs: deploy_staging
-    runs-on: zicops-runner1
+    runs-on: ubuntu-latest
     steps:
     - name: Get Approvals for Zicops One Production Deployment
       uses: trstringer/manual-approval@v1.8.0
@@ -94,8 +98,16 @@ jobs:
 
   deploy_production:
     needs: approval_prod
-    runs-on: zicops-runner1
+    runs-on: ubuntu-latest
     steps:
+    - name: Auth GCP service account
+      uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: ${{ secrets.GCR_DEVOPS_SERVICE_ACCOUNT_KEY }}
+    - name: 'Set up Cloud SDK'
+      uses: 'google-github-actions/setup-gcloud@v0'
+    - name: 'Use gcloud CLI'
+      run: 'gcloud info'
     - name: Install Helm
       run: |
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
