@@ -97,13 +97,13 @@ spec:
           - name: GOOGLE_APPLICATION_CREDENTIALS
             value: {{ $zcbcred }}
           - name: CASSANDRA_HOST
-            value: {{ .Values.astra.host | quote }}}
+            value: {{ .Values.astra.host | quote }}
           - name: CASSANDRA_PORT
-            value: {{ .Values.astra.port | quote }}}
+            value: {{ .Values.astra.port | quote }}
           - name: CASSANDRA_USERNAME
-            value: {{ .Values.astra.username | quote }}}
+            value: {{ .Values.astra.username | quote }}
           - name: CASSANDRA_PASSWORD
-            value: {{ .Values.astra.password | quote }}}
+            value: {{ .Values.astra.password | quote }}
           - name: CASSANDRA_CERT
             value: {{ $zcbcert }}
           - name: CASSANDRA_CA
@@ -111,7 +111,7 @@ spec:
           - name: CASSANDRA_KEY
             value: {{ $zcbkey }}
           - name: REDIS_HOST
-            value: {{ .Values.redis.host | quote }}}
+            value: {{ .Values.redis.host | quote }}
           - name: REDIS_PORT
             value: {{ .Values.redis.port | quote }}
           - name: REDIS_PASSWORD
