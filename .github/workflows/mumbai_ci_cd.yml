@@ -1,7 +1,10 @@
-name: Zicops App CI/CD - GCP Mumbai South-1-a
+name: UM CI/CD - GCP Mumbai South-1-a
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 env:
   PROJECT_ID: zicops-one
@@ -93,7 +96,7 @@ jobs:
       uses: trstringer/manual-approval@v1.8.0
       with:
          secret: ${{ github.TOKEN }}
-         approvers: saraswatpuneet,ngupta10,
+         approvers: saraswatpuneet,ngupta10
          minimum-approvals: 1
          issue-title: "Deploying to zicops one production cluster"
          exclude-workflow-initiator-as-approver: false
