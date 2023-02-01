@@ -55,7 +55,6 @@ jobs:
   push_image:
     needs: approval_stage
     runs-on: ubuntu-latest
-    if: approval_stage.outputs.approved == 'true'
     steps:
     - name: Push the Docker image
       run: |-
@@ -96,7 +95,6 @@ jobs:
   deploy_production:
     needs: approval_prod1
     runs-on: ubuntu-latest
-    if: steps.approval_prod1.outputs.approved == 'true'
     steps:
     - name: replace environment variable in values.yaml
       run:  envsubst '${GITHUB_SHA}' < k8s/zicops-user-manager/values.template.prod.yaml > k8s/zicops-user-manager/values.yaml
