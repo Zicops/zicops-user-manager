@@ -84,7 +84,7 @@ jobs:
         helm upgrade -n staging zicops-user-manager k8s/zicops-user-manager --install --wait --atomic
 
   approval_prod:
-    needs: build_image
+    needs: deploy_staging
     runs-on: ubuntu-latest
     steps:
     - name: Get Approvals for Zicops One Production Deployment
