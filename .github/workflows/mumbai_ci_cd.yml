@@ -61,18 +61,13 @@ jobs:
         docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
         docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
 
-  install_tools:
-    needs: configure_values
+  deploy_staging:
+    needs: push_image
     runs-on: ubuntu-latest
     steps:
     - name: Install Helm
       run: |
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-
-  deploy_staging:
-    needs: install_tools
-    runs-on: ubuntu-latest
-    steps:
     - name: replace environment variable in values.yaml
       run:  envsubst '${GITHUB_SHA}' < k8s/zicops-user-manager/values.template.dev.yaml > k8s/zicops-user-manager/values.yaml
     - name: Deploy to zicops-prod-cost-one
@@ -83,7 +78,7 @@ jobs:
         helm upgrade -n staging zicops-user-manager k8s/zicops-user-manager --install --wait --atomic
 
   approval_prod1:
-    needs: build_image
+    needs: deploy_staging
     runs-on: ubuntu-latest
     steps:
     - name: Approval
@@ -96,6 +91,9 @@ jobs:
     needs: approval_prod1
     runs-on: ubuntu-latest
     steps:
+    - name: Install Helm
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
     - name: replace environment variable in values.yaml
       run:  envsubst '${GITHUB_SHA}' < k8s/zicops-user-manager/values.template.prod.yaml > k8s/zicops-user-manager/values.yaml
     - name: Deploy to zicops-prod-cost-one
