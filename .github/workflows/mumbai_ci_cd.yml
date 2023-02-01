@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: zicops-runner1
     steps:
     - uses: actions/checkout@v3
     - name: export GITHUB_SHA
@@ -19,7 +19,7 @@ jobs:
 
   authenticate:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: zicops-runner1
 
     steps:
     - name: Auth GCP service account
@@ -33,7 +33,7 @@ jobs:
 
   build_push_image:
     needs: authenticate
-    runs-on: ubuntu-latest
+    runs-on: zicops-runner1
     steps:
     - uses: actions/checkout@v3
     - name: export GITHUB_SHA
@@ -52,7 +52,7 @@ jobs:
 
   approval_stage:
     needs: build_push_image
-    runs-on: ubuntu-latest
+    runs-on: zicops-runner1
     steps:
     - name: Get Approvals for Staging Deployment
       uses: trstringer/manual-approval@v1.8.0
@@ -65,7 +65,7 @@ jobs:
 
   deploy_staging:
     needs: approval_stage
-    runs-on: ubuntu-latest
+    runs-on: zicops-runner1
     steps:
     - name: Install Helm
       run: |
@@ -81,7 +81,7 @@ jobs:
 
   approval_prod:
     needs: deploy_staging
-    runs-on: ubuntu-latest
+    runs-on: zicops-runner1
     steps:
     - name: Get Approvals for Zicops One Production Deployment
       uses: trstringer/manual-approval@v1.8.0
@@ -94,7 +94,7 @@ jobs:
 
   deploy_production:
     needs: approval_prod
-    runs-on: ubuntu-latest
+    runs-on: zicops-runner1
     steps:
     - name: Install Helm
       run: |
