@@ -57,10 +57,10 @@ jobs:
     runs-on: ubuntu-latest
     if: steps.approval_stage.outputs.approved == 'true'
     steps:
-    - name: Push image to GCP
-      run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
-    - name: Push image to GCP
-      run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
+    - name: Push the Docker image
+      run: |-
+        docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
+        docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
 
   install_tools:
     needs: configure_values
