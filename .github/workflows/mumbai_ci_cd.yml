@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  PROJECT_ID: zicops-one
   GKE_CLUSTER: zicops-dot-com-1
   GKE_ZONE: asia-south1-a
   SERVICE_NAME: zicops-user-manager
