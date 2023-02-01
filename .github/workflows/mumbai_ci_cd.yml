@@ -7,25 +7,15 @@ env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
   GKE_CLUSTER: zicops-dot-com-1
   GKE_ZONE: asia-south1-a
+  SERVICE_NAME: zicops-user-manager
 
 jobs:
-  strategy:
-    matrix:
-      deployment: [staging, production]
-      env:
-        staging:
-          NAMESPACE: staging
-          SERVICE_NAME: zicops-user-manager
-          TEMPLATE_FILE: k8s/zicops-user-manager/values.template.dev.yaml
-        production:
-          NAMESPACE: production
-          SERVICE_NAME: zicops-user-manager
-          TEMPLATE_FILE: k8s/zicops-user-manager/values.template.prod.yaml
   build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
+    - name: export GITHUB_SHA
+      run: echo "GITHUB_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
   authenticate:
     needs: build
@@ -44,7 +34,6 @@ jobs:
   build_image:
     needs: authenticate
     runs-on: ubuntu-latest
-
     steps:
     - name: Build the Docker image
       run: |-
@@ -53,7 +42,7 @@ jobs:
       run: |-
         docker tag gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA} gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
 
-  approval:
+  approval_staging:
     needs: build_image
     runs-on: ubuntu-latest
     steps:
@@ -61,10 +50,10 @@ jobs:
       id: approval
       uses: actions/manual-approval@v2
       with:
-        message: Approve before pushing the image to GCP
+        message: Approve before pushing the image to GCP and deploying to staging
 
   push_image:
-    needs: build_image
+    needs: approval_staging
     runs-on: ubuntu-latest
     if: steps.approval.outputs.approved == 'true'
     steps:
@@ -73,30 +62,47 @@ jobs:
     - name: Push image to GCP
       run: docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
 
-  configure_values:
-    needs: push_image
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: replace environment variable in values.yaml
-      run:  envsubst '${GITHUB_SHA}' < $TEMPLATE_FILE > k8s/zicops-user-manager/values.yaml
   install_tools:
     needs: configure_values
     runs-on: ubuntu-latest
-
     steps:
     - name: Install Helm
       run: |
         curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
-  deploy:
+  deploy_staging:
     needs: install_tools
     runs-on: ubuntu-latest
-
     steps:
+    - name: replace environment variable in values.yaml
+      run:  envsubst '${GITHUB_SHA}' < k8s/zicops-user-manager/values.template.dev.yaml > k8s/zicops-user-manager/values.yaml
     - name: Deploy to zicops-prod-cost-one
       run: |
         gcloud container clusters get-credentials $GKE_CLUSTER \
           --zone $GKE_ZONE \
           --project $PROJECT_ID
-        helm upgrade -n $NAMESPACE zicops-user-manager k8s/zicops-user-manager --install --wait --atomic
+        helm upgrade -n staging zicops-user-manager k8s/zicops-user-manager --install --wait --atomic
+
+  approval_production:
+    needs: build_image
+    runs-on: ubuntu-latest
+    steps:
+    - name: Approval
+      id: approval
+      uses: actions/manual-approval@v2
+      with:
+        message: Approve before deploying to production Zicops-One
+
+  deploy_production:
+    needs: approval_production
+    runs-on: ubuntu-latest
+    if: steps.approval.outputs.approved == 'true'
+    steps:
+    - name: replace environment variable in values.yaml
+      run:  envsubst '${GITHUB_SHA}' < k8s/zicops-user-manager/values.template.prod.yaml > k8s/zicops-user-manager/values.yaml
+    - name: Deploy to zicops-prod-cost-one
+      run: |
+        gcloud container clusters get-credentials $GKE_CLUSTER \
+          --zone $GKE_ZONE \
+          --project $PROJECT_ID
+        helm upgrade -n production zicops-user-manager k8s/zicops-user-manager --install --wait --atomic
