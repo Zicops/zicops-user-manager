@@ -10,15 +10,12 @@ env:
   SERVICE_NAME: zicops-user-manager
 
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: export GITHUB_SHA
-      run: echo "GITHUB_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
   build_push_image:
-    needs: build
+    needs: setup
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -45,7 +42,7 @@ jobs:
         docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
         docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
     - name: export GITHUB_SHA
-      run: echo "GITHUB_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      run: echo "GITHUB_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
 
   approval_stage:
     needs: build_push_image
