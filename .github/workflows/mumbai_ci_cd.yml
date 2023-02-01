@@ -31,7 +31,7 @@ jobs:
     - name: 'Use gcloud CLI'
       run: 'gcloud info'
 
-  build_image:
+  build_push_image:
     needs: authenticate
     runs-on: ubuntu-latest
     steps:
@@ -45,9 +45,13 @@ jobs:
     - name: add latest tag
       run: |-
         docker tag gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA} gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
+    - name: Push the Docker image
+      run: |-
+        docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
+        docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
 
   approval_stage:
-    needs: build_image
+    needs: build_push_image
     runs-on: ubuntu-latest
     steps:
     - name: Get Approvals for Staging Deployment
@@ -58,17 +62,9 @@ jobs:
          minimum-approvals: 1
          issue-title: "Deploying to staging"
          exclude-workflow-initiator-as-approver: false
-  push_image:
-    needs: approval_stage
-    runs-on: ubuntu-latest
-    steps:
-    - name: Push the Docker image
-      run: |-
-        docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
-        docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
 
   deploy_staging:
-    needs: push_image
+    needs: approval_stage
     runs-on: ubuntu-latest
     steps:
     - name: Install Helm
