@@ -55,7 +55,7 @@ jobs:
   push_image:
     needs: approval_stage
     runs-on: ubuntu-latest
-    if: steps.approval_stage.outputs.approved == 'true'
+    if: approval_stage.outputs.approved == 'true'
     steps:
     - name: Push the Docker image
       run: |-
