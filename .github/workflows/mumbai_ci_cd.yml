@@ -22,8 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: export GITHUB_SHA
-      run: echo "GITHUB_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+    - name: Auth GCP service account
+      uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: ${{ secrets.GCR_DEVOPS_SERVICE_ACCOUNT_KEY }}
     - name: 'Set up Cloud SDK'
       uses: 'google-github-actions/setup-gcloud@v0'
     - name: 'Use gcloud CLI'
@@ -38,14 +40,12 @@ jobs:
         gcloud auth configure-docker -q
     - run: |
         gcloud components install gke-gcloud-auth-plugin
-    - name: Auth GCP service account
-      uses: 'google-github-actions/auth@v0'
-      with:
-        credentials_json: ${{ secrets.GCR_DEVOPS_SERVICE_ACCOUNT_KEY }}
     - name: Push the Docker image
       run: |-
         docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA}
         docker push gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
+    - name: export GITHUB_SHA
+      run: echo "GITHUB_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
   approval_stage:
     needs: build_push_image
