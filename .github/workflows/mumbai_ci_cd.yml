@@ -54,6 +54,8 @@ jobs:
         docker tag gcr.io/$PROJECT_ID/$SERVICE_NAME:${GITHUB_SHA} gcr.io/$PROJECT_ID/$SERVICE_NAME:latest
 
   approval:
+    needs: build_image
+    runs-on: ubuntu-latest
     - name: Approval
       id: approval
       uses: actions/manual-approval@v2
