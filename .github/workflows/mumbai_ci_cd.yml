@@ -49,6 +49,7 @@ jobs:
   approval_stage:
     needs: build_push_image
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     steps:
     - name: Get Approvals for Staging Deployment
       uses: trstringer/manual-approval@v1.8.0
