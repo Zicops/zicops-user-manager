@@ -11,9 +11,9 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http-server-um
+      targetPort: um-prod
       protocol: TCP
-      name: http-server-cq
+      name: um-prod
   selector:
     app: {{ template "zicops-user-manager.name" . }}
     release: {{ .Release.Name }}
