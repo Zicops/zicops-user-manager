@@ -689,39 +689,46 @@ type CourseViews {
   date_string: String
 }
 
+
 input VendorInput {
-  type: String!
-  level: String!
-  name: String!
+  lsp_id: String
+  name: String
+  level: String
+  vendor_id: String
+  type: String
   photo: Upload
-  photoUrl: String
-  address: String!
+  address: String
   website: String
-  facebook: String
-  instagram: String
-  twitter: String
-  linkedIn: String
+  facebook_url: String
+  instagram_url: String
+  twitter_url: String
+  linkedin_url: String
   users: [String]
-  status: String!
+  description: String
+  created_at: String
+	reated_by: String
+	updated_at: String
+	updated_by: String
+	status: String
 }
 
 type Vendor {
-  VendorId: String!
-	Type: String!
-	Level: String!
-	Name: String!
-	PhotoUrl: String!
-	Address: String!
-	Website: String
-	Facebook: String
-	Instagram: String
-	Twitter: String
-	LinkedIn: String
-	CreatedAt: String
-	CreatedBy: String
-	UpdatedAt: String
-	UpdatedBy: String
-	Status: String!
+  vendorId: String!
+	type: String!
+	level: String!
+	name: String!
+	photo_url: String
+	address: String
+	website: String
+	facebook_url: String
+	instagram_url: String
+	twitter_url: String
+	linkedin_url: String
+	created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+	status: String!
 }
 
 input SMEInput {
@@ -774,6 +781,29 @@ input ExperienceInput {
 	UpdatedAt: String
 	UpdatedBy: String
 	Status: String!
+}
+
+type ExperienceVendor {
+  ExpId: String!
+  VendorId: String!
+  PfId: String!
+  StartDate: Int!
+  EndDate: Int
+  Title: String!
+  Location: String!
+  LocationType: String!
+  EmployementType: String!
+  CompanyName: String!
+  CreatedAt: String
+	CreatedBy: String
+	UpdatedAt: String
+	UpdatedBy: String
+	Status: String!
+}
+
+type InviteResponse {
+  email: String
+  message: String!
 }
 
 input SampleFile {
@@ -907,11 +937,14 @@ type Query {
     start_time: String
     end_time: String
   ): [CourseViews]
+  getVendorExperience(vendor_id: String!, exp_id: String!):ExperienceVendor
+  getVendors(lsp_id: String): [Vendor]
 }
 
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!, lsp_id: String): Boolean
+  inviteUsersWithRole(emails: [String!]!, lsp_id: String, role: String!): [InviteResponse]
   updateUser(input: UserInput!): User
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
@@ -955,7 +988,8 @@ type Mutation {
   updateLearningSpace(input: LearningSpaceInput!): LearningSpace
   deleteCohortImage(cohort_id: String!, filename: String!): String
 
-  createVendor(input: VendorInput): String!
+  addVendor(input: VendorInput): String!
+  updateVendor(input: VendorInput!): Vendor
   createProfileVendor(input: VendorProfile): String!
   createExperienceVendor(input: ExperienceInput!): String!
   uploadSampleFile(input: SampleFile): String!

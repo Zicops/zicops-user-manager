@@ -40,6 +40,16 @@ func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string, lsp
 	return result, nil
 }
 
+// InviteUsersWithRole is the resolver for the inviteUsersWithRole field.
+func (r *mutationResolver) InviteUsersWithRole(ctx context.Context, emails []string, lspID *string, role string) ([]*model.InviteResponse, error) {
+	res, err := handlers.InviteUserWithRole(ctx, emails, *lspID, role)
+	if err != nil {
+		log.Println("Error while Inviting users with roles: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
 // UpdateUser is the resolver for the updateUser field.
 func (r *mutationResolver) UpdateUser(ctx context.Context, input model.UserInput) (*model.User, error) {
 	result, err := handlers.UpdateUser(ctx, input)
@@ -421,14 +431,24 @@ func (r *mutationResolver) DeleteCohortImage(ctx context.Context, cohortID strin
 	return result, nil
 }
 
-// CreateVendor is the resolver for the createVendor field.
-func (r *mutationResolver) CreateVendor(ctx context.Context, input *model.VendorInput) (string, error) {
-	res, err := handlers.CreateVendor(ctx, input)
+// AddVendor is the resolver for the addVendor field.
+func (r *mutationResolver) AddVendor(ctx context.Context, input *model.VendorInput) (string, error) {
+	res, err := handlers.AddVendor(ctx, input)
 	if err != nil {
 		log.Errorf("Got error while creating vedor: %v", err)
 		return "", err
 	}
 	return res, nil
+}
+
+// UpdateVendor is the resolver for the updateVendor field.
+func (r *mutationResolver) UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, error) {
+	resp, err := handlers.UpdateVendor(ctx, input)
+	if err != nil {
+		log.Errorf("Got error while updating vendor: %v", err)
+		return nil, err
+	}
+	return resp, nil
 }
 
 // CreateProfileVendor is the resolver for the createProfileVendor field.
@@ -803,6 +823,21 @@ func (r *queryResolver) GetCourseViews(ctx context.Context, lspIds []string, sta
 		return nil, err
 	}
 	return result, nil
+}
+
+// GetVendorExperience is the resolver for the getVendorExperience field.
+func (r *queryResolver) GetVendorExperience(ctx context.Context, vendorID string, expID string) (*model.ExperienceVendor, error) {
+	panic(fmt.Errorf("not implemented: GetVendorExperience - getVendorExperience"))
+}
+
+// GetVendors is the resolver for the getVendors field.
+func (r *queryResolver) GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
+	res, err := handlers.GetVendors(ctx, lspID)
+	if err != nil {
+		log.Println("Error getting vendors list: %v", err)
+		return nil, err
+	}
+	return res, err
 }
 
 // Mutation returns generated.MutationResolver implementation.
