@@ -96,11 +96,33 @@ type ExperienceInput struct {
 	Status          string  `json:"Status"`
 }
 
+type ExperienceVendor struct {
+	ExpID           string  `json:"ExpId"`
+	VendorID        string  `json:"VendorId"`
+	PfID            string  `json:"PfId"`
+	StartDate       int     `json:"StartDate"`
+	EndDate         *int    `json:"EndDate"`
+	Title           string  `json:"Title"`
+	Location        string  `json:"Location"`
+	LocationType    string  `json:"LocationType"`
+	EmployementType string  `json:"EmployementType"`
+	CompanyName     string  `json:"CompanyName"`
+	CreatedAt       *string `json:"CreatedAt"`
+	CreatedBy       *string `json:"CreatedBy"`
+	UpdatedAt       *string `json:"UpdatedAt"`
+	UpdatedBy       *string `json:"UpdatedBy"`
+	Status          string  `json:"Status"`
+}
+
+type InviteResponse struct {
+	Email   *string `json:"email"`
+	Message string  `json:"message"`
+}
+
 type LearningSpace struct {
 	LspID      *string   `json:"lsp_id"`
 	OrgID      string    `json:"org_id"`
 	OuID       string    `json:"ou_id"`
-	Type       string    `json:"type"`
 	Name       string    `json:"name"`
 	LogoURL    *string   `json:"logo_url"`
 	ProfileURL *string   `json:"profile_url"`
@@ -741,38 +763,44 @@ type UserRoleInput struct {
 }
 
 type Vendor struct {
-	VendorID  string  `json:"VendorId"`
-	Type      string  `json:"Type"`
-	Level     string  `json:"Level"`
-	Name      string  `json:"Name"`
-	PhotoURL  string  `json:"PhotoUrl"`
-	Address   string  `json:"Address"`
-	Website   *string `json:"Website"`
-	Facebook  *string `json:"Facebook"`
-	Instagram *string `json:"Instagram"`
-	Twitter   *string `json:"Twitter"`
-	LinkedIn  *string `json:"LinkedIn"`
-	CreatedAt *string `json:"CreatedAt"`
-	CreatedBy *string `json:"CreatedBy"`
-	UpdatedAt *string `json:"UpdatedAt"`
-	UpdatedBy *string `json:"UpdatedBy"`
-	Status    string  `json:"Status"`
+	VendorID     string  `json:"vendorId"`
+	Type         string  `json:"type"`
+	Level        string  `json:"level"`
+	Name         string  `json:"name"`
+	PhotoURL     *string `json:"photo_url"`
+	Address      *string `json:"address"`
+	Website      *string `json:"website"`
+	FacebookURL  *string `json:"facebook_url"`
+	InstagramURL *string `json:"instagram_url"`
+	TwitterURL   *string `json:"twitter_url"`
+	LinkedinURL  *string `json:"linkedin_url"`
+	CreatedAt    *string `json:"created_at"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedAt    *string `json:"updated_at"`
+	UpdatedBy    *string `json:"updated_by"`
+	Status       string  `json:"status"`
 }
 
 type VendorInput struct {
-	Type      string          `json:"type"`
-	Level     string          `json:"level"`
-	Name      string          `json:"name"`
-	Photo     *graphql.Upload `json:"photo"`
-	PhotoURL  *string         `json:"photoUrl"`
-	Address   string          `json:"address"`
-	Website   *string         `json:"website"`
-	Facebook  *string         `json:"facebook"`
-	Instagram *string         `json:"instagram"`
-	Twitter   *string         `json:"twitter"`
-	LinkedIn  *string         `json:"linkedIn"`
-	Users     []*string       `json:"users"`
-	Status    string          `json:"status"`
+	LspID        *string         `json:"lsp_id"`
+	Name         *string         `json:"name"`
+	Level        *string         `json:"level"`
+	VendorID     *string         `json:"vendor_id"`
+	Type         *string         `json:"type"`
+	Photo        *graphql.Upload `json:"photo"`
+	Address      *string         `json:"address"`
+	Website      *string         `json:"website"`
+	FacebookURL  *string         `json:"facebook_url"`
+	InstagramURL *string         `json:"instagram_url"`
+	TwitterURL   *string         `json:"twitter_url"`
+	LinkedinURL  *string         `json:"linkedin_url"`
+	Users        []*string       `json:"users"`
+	Description  *string         `json:"description"`
+	CreatedAt    *string         `json:"created_at"`
+	ReatedBy     *string         `json:"reated_by"`
+	UpdatedAt    *string         `json:"updated_at"`
+	UpdatedBy    *string         `json:"updated_by"`
+	Status       *string         `json:"status"`
 }
 
 type VendorProfile struct {
