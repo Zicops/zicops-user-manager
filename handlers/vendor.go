@@ -423,7 +423,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 		lsp = *lspID
 	}
 	var res []*model.Vendor
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map WHERE lsp_id = %s`, lsp)
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map WHERE lsp_id = '%s' `, lsp)
 	session, err := cassandra.GetCassSession("vendorz")
 	if err != nil {
 		return nil, err

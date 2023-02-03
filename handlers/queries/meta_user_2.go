@@ -683,7 +683,7 @@ func DeleteCohortImage(ctx context.Context, cohortID string, filename string) (*
 	CassUserSession := session
 
 	cohorts := []userz.Cohort{}
-	queryStr := fmt.Sprintf(`SELECT * FROM userz.cohort_main WHERE id="%s" AND lsp_id="%s"`, cohortID, lspId)
+	queryStr := fmt.Sprintf(`SELECT * FROM userz.cohort_main WHERE id='%s' AND lsp_id='%s' `, cohortID, lspId)
 	getQuery := CassUserSession.Query(queryStr, nil)
 	if err := getQuery.SelectRelease(&cohorts); err != nil {
 		return nil, err
