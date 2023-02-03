@@ -17,6 +17,7 @@ require (
 	github.com/vektah/gqlparser/v2 v2.5.1
 	github.com/zicops/contracts v0.0.0-20230131212702-20dd35533762
 	github.com/zicops/zicops-cass-pool v0.0.0-20221216180317-e591441b40ab
+	golang.org/x/exp v0.0.0-20230203172020-98cc5a0785f9
 	golang.org/x/oauth2 v0.4.0
 	google.golang.org/api v0.109.0
 	gopkg.in/tylerb/graceful.v1 v1.2.15
