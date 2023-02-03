@@ -694,7 +694,7 @@ func DeleteCohortImage(ctx context.Context, cohortID string, filename string) (*
 	cohort := cohorts[0]
 	cohort.ImageUrl = ""
 
-	upStms, uNames := userz.CohortTable.Update("image_url")
+	upStms, uNames := userz.CohortTable.Update("imageurl")
 	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&cohort)
 	if err := updateQuery.ExecRelease(); err != nil {
 		log.Errorf("error updating cohort: %v", err)
