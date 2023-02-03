@@ -321,7 +321,19 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (s
 	return expId, nil
 }
 
-func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role string) ([]*model.InviteResponse, error) {
+func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role *string) ([]*model.InviteResponse, error) {
+	roles := []string{"admin", "learner", "vendor"}
+	isPresent := false
+	for _, vv := range roles {
+		v := vv
+		if v == *role {
+			isPresent = true
+		}
+	}
+	if !isPresent {
+		l := "learner"
+		role = &l
+	}
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -366,7 +378,7 @@ func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role
 			FirstName:  "",
 			LastName:   "",
 			Email:      email,
-			Role:       role,
+			Role:       *role,
 			Status:     "",
 			IsVerified: false,
 			IsActive:   false,
@@ -396,7 +408,7 @@ func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role
 		}
 		userRoleMap := &model.UserRoleInput{
 			UserID:    userID,
-			Role:      role,
+			Role:      *role,
 			UserLspID: *lspMaps[0].UserLspID,
 			IsActive:  true,
 			CreatedBy: &email_creator,
@@ -487,7 +499,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 			res = append(res, vendorData)
 			wg.Done()
 		}(v.VendorId)
+		wg.Wait()
 	}
-	wg.Wait()
 	return res, nil
 }

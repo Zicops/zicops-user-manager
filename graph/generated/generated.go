@@ -157,7 +157,7 @@ type ComplexityRoot struct {
 		CreateProfileVendor       func(childComplexity int, input *model.VendorProfile) int
 		DeleteCohortImage         func(childComplexity int, cohortID string, filename string) int
 		InviteUsers               func(childComplexity int, emails []string, lspID *string) int
-		InviteUsersWithRole       func(childComplexity int, emails []string, lspID *string, role string) int
+		InviteUsersWithRole       func(childComplexity int, emails []string, lspID *string, role *string) int
 		Login                     func(childComplexity int) int
 		RegisterUsers             func(childComplexity int, input []*model.UserInput) int
 		UpdateCohortMain          func(childComplexity int, input model.CohortMainInput) int
@@ -577,7 +577,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error)
 	InviteUsers(ctx context.Context, emails []string, lspID *string) (*bool, error)
-	InviteUsersWithRole(ctx context.Context, emails []string, lspID *string, role string) ([]*model.InviteResponse, error)
+	InviteUsersWithRole(ctx context.Context, emails []string, lspID *string, role *string) ([]*model.InviteResponse, error)
 	UpdateUser(ctx context.Context, input model.UserInput) (*model.User, error)
 	Login(ctx context.Context) (*model.User, error)
 	AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*model.UserLspMap, error)
@@ -1446,7 +1446,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InviteUsersWithRole(childComplexity, args["emails"].([]string), args["lsp_id"].(*string), args["role"].(string)), true
+		return e.complexity.Mutation.InviteUsersWithRole(childComplexity, args["emails"].([]string), args["lsp_id"].(*string), args["role"].(*string)), true
 
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
@@ -5057,7 +5057,7 @@ type Query {
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!, lsp_id: String): Boolean
-  inviteUsersWithRole(emails: [String!]!, lsp_id: String, role: String!): [InviteResponse]
+  inviteUsersWithRole(emails: [String!]!, lsp_id: String, role: String): [InviteResponse]
   updateUser(input: UserInput!): User
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
@@ -5476,10 +5476,10 @@ func (ec *executionContext) field_Mutation_inviteUsersWithRole_args(ctx context.
 		}
 	}
 	args["lsp_id"] = arg1
-	var arg2 string
+	var arg2 *string
 	if tmp, ok := rawArgs["role"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -10014,7 +10014,7 @@ func (ec *executionContext) _Mutation_inviteUsersWithRole(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InviteUsersWithRole(rctx, fc.Args["emails"].([]string), fc.Args["lsp_id"].(*string), fc.Args["role"].(string))
+		return ec.resolvers.Mutation().InviteUsersWithRole(rctx, fc.Args["emails"].([]string), fc.Args["lsp_id"].(*string), fc.Args["role"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

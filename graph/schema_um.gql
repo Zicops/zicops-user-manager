@@ -575,6 +575,7 @@ type OrganizationUnit {
 
 input LearningSpaceInput {
   lsp_id: ID
+  type: String!
   org_id: String!
   ou_id: String!
   name: String!
@@ -594,6 +595,7 @@ type LearningSpace {
   lsp_id: ID
   org_id: String!
   ou_id: String!
+  #type: String!
   name: String!
   logo_url: String
   profile_url: String
@@ -685,6 +687,136 @@ type CourseViews {
   lsp_id: String
   user_ids: [String]
   date_string: String
+}
+
+
+input VendorInput {
+  lsp_id: String
+  name: String
+  level: String
+  vendor_id: String
+  type: String
+  photo: Upload
+  address: String
+  website: String
+  facebook_url: String
+  instagram_url: String
+  twitter_url: String
+  linkedin_url: String
+  users: [String]
+  description: String
+  created_at: String
+	reated_by: String
+	updated_at: String
+	updated_by: String
+	status: String
+}
+
+type Vendor {
+  vendorId: String!
+	type: String!
+	level: String!
+	name: String!
+	photo_url: String
+	address: String
+	website: String
+	facebook_url: String
+	instagram_url: String
+	twitter_url: String
+	linkedin_url: String
+	created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+	status: String!
+}
+
+input SMEInput {
+  Description: String!
+  IsApplicable: Boolean!
+  Expertise: [String]
+  Languages: [String]
+  OutputDeliveries: [String]
+  SampleFiles: [String]
+  Profiles: [String]!
+  CreatedAt: String
+	CreatedBy: String
+	UpdatedAt: String
+	UpdatedBy: String
+	Status: String!
+}
+
+input VendorProfile {
+  VendorId: String!
+  FirstName: String!
+  LastName: String
+  Email: String!
+  Phone: Int!
+  Photo: Upload
+  Description: String
+  Languages: [String]
+  SMEExpertise: [String]
+  ClassroomExpertise: [String]
+  Experience: Int
+  IsSpeaker: Boolean!
+  CreatedAt: String
+	CreatedBy: String
+	UpdatedAt: String
+	UpdatedBy: String
+	Status: String!
+}
+
+input ExperienceInput {
+  VendorId: String!
+  PfId: String!
+  Title: String!
+  CompanyName: String!
+  EmployementType: String!
+  Location: String!
+  LocationType: String!
+  StartDate: Int!
+  EndDate: Int
+  CreatedAt: String
+	CreatedBy: String
+	UpdatedAt: String
+	UpdatedBy: String
+	Status: String!
+}
+
+type ExperienceVendor {
+  ExpId: String!
+  VendorId: String!
+  PfId: String!
+  StartDate: Int!
+  EndDate: Int
+  Title: String!
+  Location: String!
+  LocationType: String!
+  EmployementType: String!
+  CompanyName: String!
+  CreatedAt: String
+	CreatedBy: String
+	UpdatedAt: String
+	UpdatedBy: String
+	Status: String!
+}
+
+type InviteResponse {
+  email: String
+  message: String!
+}
+
+input SampleFile {
+  File: Upload!
+  Name: String!
+  Description: String!
+  Pricing: String!
+  FileType: String
+  CreatedAt: String
+	CreatedBy: String
+	UpdatedAt: String
+	UpdatedBy: String
+	Status: String!
 }
 
 type Query {
@@ -805,11 +937,14 @@ type Query {
     start_time: String
     end_time: String
   ): [CourseViews]
+  getVendorExperience(vendor_id: String!, exp_id: String!):ExperienceVendor
+  getVendors(lsp_id: String): [Vendor]
 }
 
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!, lsp_id: String): Boolean
+  inviteUsersWithRole(emails: [String!]!, lsp_id: String, role: String): [InviteResponse]
   updateUser(input: UserInput!): User
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
@@ -852,4 +987,11 @@ type Mutation {
   addLearningSpace(input: LearningSpaceInput!): LearningSpace
   updateLearningSpace(input: LearningSpaceInput!): LearningSpace
   deleteCohortImage(cohort_id: String!, filename: String!): String
+
+  addVendor(input: VendorInput): String!
+  updateVendor(input: VendorInput!): Vendor
+  createProfileVendor(input: VendorProfile): String!
+  createExperienceVendor(input: ExperienceInput!): String!
+  uploadSampleFile(input: SampleFile): String!
+  #createVendorServices(VendorId: String!, SME: SMEInput, CRT: CRTInput, CD: CDInput): Boolean
 }
