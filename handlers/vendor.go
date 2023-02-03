@@ -434,7 +434,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 		q := CassUserSession.Query(queryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
-		return vendorIds, iter.Select(vendorIds)
+		return vendorIds, iter.Select(&vendorIds)
 	}
 	vendorIds, err := getVendorIds()
 	if err != nil {
