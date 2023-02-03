@@ -12,8 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/exp/slices"
-
 	"github.com/google/uuid"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/contracts/vendorz"
@@ -325,7 +323,14 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (s
 
 func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role *string) ([]*model.InviteResponse, error) {
 	roles := []string{"admin", "learner", "vendor"}
-	if !(slices.Contains(roles, *role)) {
+	isPresent := false
+	for _, vv := range roles {
+		v := vv
+		if v == *role {
+			isPresent = true
+		}
+	}
+	if !isPresent {
 		l := "learner"
 		role = &l
 	}
