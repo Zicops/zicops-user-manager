@@ -499,7 +499,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 			res = append(res, vendorData)
 			wg.Done()
 		}(v.VendorId)
-		wg.Wait()
 	}
+	wg.Wait()
 	return res, nil
 }
