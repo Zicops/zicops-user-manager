@@ -133,7 +133,7 @@ func UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, 
 		return nil, nil
 	}
 	email := claims["email"].(string)
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = %s`, *input.VendorID)
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s'`, *input.VendorID)
 	session, err := cassandra.GetCassSession("vendorz")
 	if err != nil {
 		return nil, err
