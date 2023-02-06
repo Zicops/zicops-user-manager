@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -22,12 +23,12 @@ import (
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
 )
 
-func AddVendor(ctx context.Context, input *model.VendorInput) (string, error) {
+func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error) {
 	//create vendor, map it to lsp id, thats all
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
-		return "", err
+		return nil, err
 	}
 	lspId := claims["lsp_id"].(string)
 	if input.LspID != nil {
@@ -40,15 +41,15 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (string, error) {
 
 	session, err := cassandra.GetCassSession("vendorz")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	CassUserSession := session
 
 	//create vendor
 	vendor := vendorz.Vendor{
 		VendorId:  vendorId,
-		Name:      *input.Name,
-		Type:      *input.Type,
+		Name:      input.Name,
+		Type:      input.Type,
 		CreatedAt: createdAt,
 		CreatedBy: email,
 	}
@@ -74,23 +75,23 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (string, error) {
 	gproject := googleprojectlib.GetGoogleProjectID()
 	err = storageC.InitializeStorageClient(ctx, gproject)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if input.Photo != nil {
 		bucketPath := fmt.Sprintf("%s/%s/%s", "vendor", vendor.Name, input.Photo.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		defer writer.Close()
 		fileBuffer := bytes.NewBuffer(nil)
 		if _, err := io.Copy(fileBuffer, input.Photo.File); err != nil {
-			return "", err
+			return nil, err
 		}
 		currentBytes := fileBuffer.Bytes()
 		_, err = io.Copy(writer, bytes.NewReader(currentBytes))
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 		url := storageC.GetSignedURLForObject(bucketPath)
 		vendor.PhotoBucket = bucketPath
@@ -98,17 +99,27 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (string, error) {
 	}
 
 	if input.Users != nil {
-		//invite users
 		users := changesStringType(input.Users)
-		vendor.Users = users
+		resp, err := MapVendorUser(ctx, vendorId, users, email)
+		if err != nil {
+			return nil, err
+		}
+		//check all users, and return appended users
+		vendor.Users = resp
 	}
 	if input.Status != nil {
 		vendor.Status = *input.Status
 	}
+	if input.Level != nil {
+		vendor.Level = *input.Level
+	}
+	if input.Description != nil {
+		vendor.Description = *input.Description
+	}
 
 	insertQuery := CassUserSession.Query(vendorz.VendorTable.Insert()).BindStruct(vendor)
 	if err = insertQuery.Exec(); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	//create its mapping to the specific LSP
@@ -120,10 +131,28 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (string, error) {
 	}
 	insertQueryMap := CassUserSession.Query(vendorz.VendorLspMapTable.Insert()).BindStruct(vendorLspMap)
 	if err = insertQueryMap.Exec(); err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return vendorId, nil
+	ca := strconv.Itoa(int(createdAt))
+	res := &model.Vendor{
+		VendorID:     vendorId,
+		Type:         vendor.Type,
+		Level:        vendor.Level,
+		Name:         vendor.Name,
+		Description:  &vendor.Description,
+		PhotoURL:     &vendor.PhotoUrl,
+		Address:      &vendor.Address,
+		Website:      &vendor.Website,
+		FacebookURL:  &vendor.Facebook,
+		InstagramURL: &vendor.Instagram,
+		TwitterURL:   &vendor.Twitter,
+		LinkedinURL:  &vendor.LinkedIn,
+		CreatedAt:    &ca,
+		CreatedBy:    &email,
+	}
+
+	return res, nil
 }
 
 func UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, error) {
@@ -156,6 +185,10 @@ func UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, 
 		updatedCols = append(updatedCols, "level")
 		vendor.Level = *input.Level
 	}
+	if input.Description != nil {
+		updatedCols = append(updatedCols, "description")
+		vendor.Description = *input.Description
+	}
 	if input.Address != nil {
 		updatedCols = append(updatedCols, "address")
 		vendor.Address = *input.Address
@@ -182,10 +215,13 @@ func UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, 
 	}
 
 	if input.Users != nil {
-		//invite users
 		updatedCols = append(updatedCols, "users")
 		users := changesStringType(input.Users)
-		vendor.Users = users
+		resp, err := MapVendorUser(ctx, *input.VendorID, users, email)
+		if err != nil {
+			return nil, err
+		}
+		vendor.Users = resp
 	}
 	if input.Status != nil {
 		updatedCols = append(updatedCols, "status")
@@ -220,6 +256,21 @@ func UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, 
 		updatedCols = append(updatedCols, "photo_bucket")
 		updatedCols = append(updatedCols, "photo_url")
 	}
+	vendor.Type = input.Type
+	//name - compulsory => means necessarily passed, check everytime, if unique then update
+	var vendorsName []model.Vendor
+	queryName := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s' AND name = '%s' ALLOW FILTERING`, *input.VendorID, input.Name)
+	getQueryName := CassUserSession.Query(queryName, nil)
+	if err = getQueryName.SelectRelease(&vendorsName); err != nil {
+		return nil, err
+	}
+	if len(vendorsName) == 0 {
+		vendor.Name = input.Name
+		updatedCols = append(updatedCols, "name")
+	} else {
+		return nil, errors.New("name needs to be unique, cant be updated")
+	}
+
 	if len(updatedCols) > 0 {
 		updatedCols = append(updatedCols, "updated_by")
 		vendor.UpdatedBy = email
@@ -241,6 +292,7 @@ func UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, 
 		Type:         vendor.Type,
 		Level:        vendor.Level,
 		Name:         vendor.Name,
+		Description:  &vendor.Description,
 		PhotoURL:     &vendor.PhotoUrl,
 		Address:      &vendor.Address,
 		Website:      &vendor.Website,
@@ -256,6 +308,61 @@ func UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, 
 	}
 
 	return res, nil
+}
+
+func MapVendorUser(ctx context.Context, vendorId string, users []string, creator string) ([]string, error) {
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+
+	//get all the emails already mapped with that vendor
+	var mappedUsers []vendorz.VendorUserMap
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s'`, vendorId)
+	query := CassUserSession.Query(queryStr, nil)
+	if err = query.SelectRelease(&mappedUsers); err != nil {
+		return nil, err
+	}
+	var resp []string
+	for _, vv := range mappedUsers {
+		v := vv
+		email, err := base64.URLEncoding.DecodeString(v.UserId)
+		if err != nil {
+			return nil, err
+		}
+		resp = append(resp, string(email))
+	}
+
+	for _, email := range users {
+		//check if already exists
+		userId := base64.URLEncoding.EncodeToString([]byte(email))
+		var res []vendorz.VendorUserMap
+		queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' AND user_id = '%s'`, vendorId, userId)
+		getQuery := CassUserSession.Query(queryStr, nil)
+		if err = getQuery.SelectRelease(&res); err != nil {
+			return nil, err
+		}
+		if len(res) == 0 {
+			createdAt := time.Now().Unix()
+			vendorUserMap := vendorz.VendorUserMap{
+				VendorId:  vendorId,
+				UserId:    userId,
+				CreatedAt: createdAt,
+				CreatedBy: creator,
+				Status:    "",
+			}
+			insertVendorUserMap := CassUserSession.Query(vendorz.VendorUserMapTable.Insert()).BindStruct(vendorUserMap)
+			if err = insertVendorUserMap.Exec(); err != nil {
+				return nil, err
+			}
+			resp = append(resp, email)
+		} else {
+			continue
+		}
+	}
+	return resp, nil
 }
 
 func changesStringType(input []*string) []string {
@@ -486,6 +593,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 				Level:        vendor.Level,
 				Name:         vendor.Name,
 				PhotoURL:     &vendor.PhotoUrl,
+				Website:      &vendor.Website,
 				Address:      &vendor.Address,
 				FacebookURL:  &vendor.Facebook,
 				InstagramURL: &vendor.Instagram,
@@ -499,6 +607,74 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 			res = append(res, vendorData)
 			wg.Done()
 		}(v.VendorId)
+	}
+	wg.Wait()
+	return res, nil
+}
+
+func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []*model.User
+	var userIds []vendorz.VendorUserMap
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s'`, vendorID)
+
+	getQuery := CassUserSession.Query(queryStr, nil)
+
+	if err = getQuery.SelectRelease(&userIds); err != nil {
+		return nil, err
+	}
+	var wg sync.WaitGroup
+	for _, vv := range userIds {
+		v := vv
+		wg.Add(1)
+		//iterate over these userIds and return user details
+		go func(userId string) {
+			//return user data
+			QueryStr := fmt.Sprintf(`SELECT * FROM userz.user WHERE id = '%s'`, userId)
+			getQuery = CassUserSession.Query(QueryStr, nil)
+
+			var users []userz.User
+			if err = getQuery.SelectRelease(&users); err != nil {
+				return
+			}
+			if len(users) > 0 {
+				return
+			}
+			user := users[0]
+
+			createdAt := strconv.Itoa(int(user.CreatedAt))
+			updatedAt := strconv.Itoa(int(user.UpdatedAt))
+			temp := &model.User{
+				ID:         &user.ID,
+				FirstName:  user.FirstName,
+				LastName:   user.LastName,
+				Status:     user.Status,
+				Role:       user.Role,
+				IsVerified: user.IsVerified,
+				IsActive:   user.IsActive,
+				Gender:     user.Gender,
+				CreatedAt:  createdAt,
+				CreatedBy:  &user.CreatedBy,
+				UpdatedAt:  updatedAt,
+				UpdatedBy:  &user.UpdatedBy,
+				Email:      user.Email,
+				PhotoURL:   &user.PhotoURL,
+			}
+			userData := temp
+			res = append(res, userData)
+
+			wg.Done()
+		}(v.UserId)
 	}
 	wg.Wait()
 	return res, nil
