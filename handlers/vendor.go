@@ -48,8 +48,8 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	//create vendor
 	vendor := vendorz.Vendor{
 		VendorId:  vendorId,
-		Name:      input.Name,
-		Type:      input.Type,
+		Name:      *input.Name,
+		Type:      *input.Type,
 		CreatedAt: createdAt,
 		CreatedBy: email,
 	}
@@ -256,16 +256,20 @@ func UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, 
 		updatedCols = append(updatedCols, "photo_bucket")
 		updatedCols = append(updatedCols, "photo_url")
 	}
-	vendor.Type = input.Type
+	if input.Type != nil {
+		vendor.Type = *input.Type
+		updatedCols = append(updatedCols, "type")
+	}
+
 	//name - compulsory => means necessarily passed, check everytime, if unique then update
 	var vendorsName []model.Vendor
-	queryName := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s' AND name = '%s' ALLOW FILTERING`, *input.VendorID, input.Name)
+	queryName := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s' AND name = '%s' ALLOW FILTERING`, *input.VendorID, *input.Name)
 	getQueryName := CassUserSession.Query(queryName, nil)
 	if err = getQueryName.SelectRelease(&vendorsName); err != nil {
 		return nil, err
 	}
 	if len(vendorsName) == 0 {
-		vendor.Name = input.Name
+		vendor.Name = *input.Name
 		updatedCols = append(updatedCols, "name")
 	} else {
 		return nil, errors.New("name needs to be unique, cant be updated")

@@ -692,7 +692,7 @@ type CourseViews {
 
 input VendorInput {
   lsp_id: String
-  name: String!
+  name: String
   level: String
   vendor_id: String
   type: String
