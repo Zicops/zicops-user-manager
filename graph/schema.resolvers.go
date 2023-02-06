@@ -432,11 +432,11 @@ func (r *mutationResolver) DeleteCohortImage(ctx context.Context, cohortID strin
 }
 
 // AddVendor is the resolver for the addVendor field.
-func (r *mutationResolver) AddVendor(ctx context.Context, input *model.VendorInput) (string, error) {
+func (r *mutationResolver) AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error) {
 	res, err := handlers.AddVendor(ctx, input)
 	if err != nil {
 		log.Errorf("Got error while creating vedor: %v", err)
-		return "", err
+		return nil, err
 	}
 	return res, nil
 }
@@ -838,6 +838,16 @@ func (r *queryResolver) GetVendors(ctx context.Context, lspID *string) ([]*model
 		return nil, err
 	}
 	return res, err
+}
+
+// GetVendorAdmins is the resolver for the getVendorAdmins field.
+func (r *queryResolver) GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error) {
+	resp, err := handlers.GetVendorAdmins(ctx, vendorID)
+	if err != nil {
+		log.Printf("Got error while getting Vendor Admins: %v", err)
+		return nil, err
+	}
+	return resp, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
