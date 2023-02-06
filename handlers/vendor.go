@@ -325,7 +325,7 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 
 	//get all the emails already mapped with that vendor
 	var mappedUsers []vendorz.VendorUserMap
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s'`, vendorId)
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' ALLOW FILTERING`, vendorId)
 	query := CassUserSession.Query(queryStr, nil)
 	if err = query.SelectRelease(&mappedUsers); err != nil {
 		return nil, err
@@ -344,7 +344,7 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 		//check if already exists
 		userId := base64.URLEncoding.EncodeToString([]byte(email))
 		var res []vendorz.VendorUserMap
-		queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' AND user_id = '%s'`, vendorId, userId)
+		queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' AND user_id = '%s' ALLOW FILTERING`, vendorId, userId)
 		getQuery := CassUserSession.Query(queryStr, nil)
 		if err = getQuery.SelectRelease(&res); err != nil {
 			return nil, err
