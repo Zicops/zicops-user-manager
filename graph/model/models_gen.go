@@ -772,10 +772,10 @@ type Vendor struct {
 
 type VendorInput struct {
 	LspID        *string         `json:"lsp_id"`
-	Name         string          `json:"name"`
+	Name         *string         `json:"name"`
 	Level        *string         `json:"level"`
 	VendorID     *string         `json:"vendor_id"`
-	Type         string          `json:"type"`
+	Type         *string         `json:"type"`
 	Photo        *graphql.Upload `json:"photo"`
 	Address      *string         `json:"address"`
 	Website      *string         `json:"website"`

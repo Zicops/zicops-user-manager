@@ -4827,10 +4827,10 @@ type CourseViews {
 
 input VendorInput {
   lsp_id: String
-  name: String!
+  name: String
   level: String
   vendor_id: String
-  type: String!
+  type: String
   photo: Upload
   address: String
   website: String
@@ -32319,7 +32319,7 @@ func (ec *executionContext) unmarshalInputVendorInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32343,7 +32343,7 @@ func (ec *executionContext) unmarshalInputVendorInput(ctx context.Context, obj i
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalNString2string(ctx, v)
+			it.Type, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
