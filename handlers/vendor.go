@@ -633,11 +633,21 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 
 	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' ALLOW FILTERING`, vendorID)
 
-	getQuery := CassUserSession.Query(queryStr, nil)
-
-	if err = getQuery.SelectRelease(&userIds); err != nil {
+	getUserIds := func() (vendorUserIds []vendorz.VendorUserMap, err error) {
+		q := CassUserSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return vendorUserIds, iter.Select(&vendorUserIds)
+	}
+	userIds, err = getUserIds()
+	if err != nil {
 		return nil, err
 	}
+
+	if len(userIds) == 0 {
+		return nil, nil
+	}
+
 	var wg sync.WaitGroup
 	for _, vv := range userIds {
 		v := vv
@@ -653,13 +663,18 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 			CassUserSession := usersession
 
 			QueryStr := fmt.Sprintf(`SELECT * FROM userz.users WHERE id = '%s'`, userId)
-			getQuery = CassUserSession.Query(QueryStr, nil)
-
-			var users []userz.User
-			if err = getQuery.SelectRelease(&users); err != nil {
+			getUserData := func() (users []userz.User, err error) {
+				q := CassUserSession.Query(QueryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return users, iter.Select(&users)
+			}
+			users, err := getUserData()
+			if err != nil {
 				return
 			}
-			if len(users) > 0 {
+
+			if len(users) == 0 {
 				return
 			}
 			user := users[0]
