@@ -850,6 +850,16 @@ func (r *queryResolver) GetVendorAdmins(ctx context.Context, vendorID string) ([
 	return resp, nil
 }
 
+// GetVendorDetails is the resolver for the getVendorDetails field.
+func (r *queryResolver) GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, error) {
+	res, err := handlers.GetVendorDetails(ctx, vendorID)
+	if err != nil {
+		log.Println("Got error while getting vendor details: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

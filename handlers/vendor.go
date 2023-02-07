@@ -706,3 +706,53 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 	wg.Wait()
 	return res, nil
 }
+
+func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		return nil, err
+	}
+	CassSession := session
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s'`, vendorID)
+	getVendorDetails := func() (vendors []vendorz.Vendor, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return vendors, iter.Select(&vendors)
+	}
+	vendors, err := getVendorDetails()
+	if err != nil {
+		return nil, err
+	}
+	if len(vendors) == 0 {
+		return nil, nil
+	}
+
+	vendor := vendors[0]
+	createdAt := strconv.Itoa(int(vendor.CreatedAt))
+	updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
+	res := &model.Vendor{
+		VendorID:     vendor.VendorId,
+		Type:         vendor.Type,
+		Level:        vendor.Level,
+		Name:         vendor.Name,
+		Description:  &vendor.Description,
+		PhotoURL:     &vendor.PhotoUrl,
+		Address:      &vendor.Address,
+		Website:      &vendor.Website,
+		FacebookURL:  &vendor.Facebook,
+		InstagramURL: &vendor.Instagram,
+		TwitterURL:   &vendor.Twitter,
+		LinkedinURL:  &vendor.LinkedIn,
+		CreatedAt:    &createdAt,
+		CreatedBy:    &vendor.CreatedBy,
+		UpdatedAt:    &updatedAt,
+		UpdatedBy:    &vendor.UpdatedBy,
+		Status:       vendor.Status,
+	}
+	return res, nil
+}
