@@ -574,7 +574,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 		wg.Add(1)
 		go func(vendorId string) {
 
-			queryStr = fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s'`, vendorId)
+			queryStr = fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s' ALLOW FILTERING`, vendorId)
 			getVendors := func() (vendors []vendorz.Vendor, err error) {
 				q := CassUserSession.Query(queryStr, nil)
 				defer q.Release()
