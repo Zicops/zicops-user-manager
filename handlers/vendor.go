@@ -623,7 +623,6 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 		return nil, err
 	}
 
-	var res []*model.User
 	var userIds []vendorz.VendorUserMap
 	session, err := cassandra.GetCassSession("vendorz")
 	if err != nil {
@@ -647,13 +646,14 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 	if len(userIds) == 0 {
 		return nil, nil
 	}
+	res := make([]*model.User, len(userIds))
 
 	var wg sync.WaitGroup
-	for _, vv := range userIds {
+	for k, vv := range userIds {
 		v := vv
 		wg.Add(1)
 		//iterate over these userIds and return user details
-		go func(userId string) {
+		go func(userId string, k int) {
 			//return user data
 
 			usersession, err := cassandra.GetCassSession("userz")
@@ -698,10 +698,10 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 				PhotoURL:   &user.PhotoURL,
 			}
 			userData := temp
-			res = append(res, userData)
+			res[k] = userData
 
 			wg.Done()
-		}(v.UserId)
+		}(v.UserId, k)
 	}
 	wg.Wait()
 	return res, nil
