@@ -645,6 +645,13 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 		//iterate over these userIds and return user details
 		go func(userId string) {
 			//return user data
+
+			usersession, err := cassandra.GetCassSession("userz")
+			if err != nil {
+				return
+			}
+			CassUserSession := usersession
+
 			QueryStr := fmt.Sprintf(`SELECT * FROM userz.user WHERE id = '%s'`, userId)
 			getQuery = CassUserSession.Query(QueryStr, nil)
 
