@@ -921,6 +921,7 @@ type Query {
   getVendorExperience(vendor_id: String!, exp_id: String!):ExperienceVendor
   getVendors(lsp_id: String): [Vendor]
   getVendorAdmins(vendor_id: String!): [User]
+  getVendorDetails(vendor_id: String!): Vendor
 }
 
 type Mutation {
