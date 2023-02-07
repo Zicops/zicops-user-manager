@@ -631,7 +631,7 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 	}
 	CassUserSession := session
 
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s'`, vendorID)
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' ALLOW FILTERING`, vendorID)
 
 	getQuery := CassUserSession.Query(queryStr, nil)
 
