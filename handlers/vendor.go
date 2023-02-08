@@ -36,6 +36,8 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	if input.LspID != nil {
 		lspId = *input.LspID
 	}
+	vendorType := "vendor"
+	*input.Type = vendorType
 	email := claims["email"].(string)
 	createdAt := time.Now().Unix()
 
@@ -342,6 +344,9 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 	}
 
 	for _, email := range users {
+		if !IsEmailValid(email) {
+			continue
+		}
 		//check if already exists
 		userId := base64.URLEncoding.EncodeToString([]byte(email))
 		var res []vendorz.VendorUserMap
