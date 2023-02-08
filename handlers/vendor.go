@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -17,6 +18,7 @@ import (
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/contracts/vendorz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
 	"github.com/zicops/zicops-user-manager/lib/db/bucket"
@@ -656,6 +658,15 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 		go func(userId string, k int) {
 			//return user data
 
+			email, err := base64.URLEncoding.DecodeString(userId)
+			if err != nil {
+				return
+			}
+
+			if !IsEmailValid(string(email)) || string(email) == "" {
+				return
+			}
+
 			usersession, err := cassandra.GetCassSession("userz")
 			if err != nil {
 				return
@@ -707,6 +718,11 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 	return res, nil
 }
 
+func IsEmailValid(e string) bool {
+	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	return emailRegex.MatchString(e)
+}
+
 func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, error) {
 	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
@@ -755,4 +771,118 @@ func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, erro
 		Status:       vendor.Status,
 	}
 	return res, nil
+}
+
+func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendors, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error while getting context: %v", err)
+		return nil, err
+	}
+	lsp := claims["lsp_id"].(string)
+	if lspID != nil {
+		lsp = *lspID
+	}
+	var newPage []byte
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		return nil, err
+	}
+	CassVendorSession := session
+
+	if pageCursor != nil && *pageCursor != "" {
+		page, err := global.CryptSession.DecryptString(*pageCursor, nil)
+		if err != nil {
+			return nil, err
+		}
+		newPage = page
+	}
+
+	var vendorIds []vendorz.VendorLspMap
+	var newCursor string
+	var pageSizeInt int
+	if pageSize != nil {
+		pageSizeInt = *pageSize
+	} else {
+		pageSizeInt = 10
+	}
+
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map where lsp_id = '%s' ALLOW FILTERING`, lsp)
+	getVendorIds := func(page []byte) (vendors []vendorz.VendorLspMap, nextPage []byte, err error) {
+		q := CassVendorSession.Query(queryStr, nil)
+		defer q.Release()
+		q.PageState(page)
+		q.PageSize(pageSizeInt)
+		iter := q.Iter()
+		return vendors, iter.PageState(), iter.Select(&vendors)
+	}
+
+	vendorIds, newPage, err = getVendorIds(newPage)
+	if err != nil {
+		return nil, err
+	}
+	if len(newPage) != 0 {
+		newCursor, err = global.CryptSession.EncryptAsString(newPage, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if len(vendorIds) == 0 {
+		return nil, nil
+	}
+	res := make([]*model.Vendor, len(vendorIds))
+
+	var outputResponse model.PaginatedVendors
+	var wg sync.WaitGroup
+	for k, vv := range vendorIds {
+		v := vv
+		wg.Add(1)
+		go func(vendorId string, k int) {
+
+			queryStr = fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s' ALLOW FILTERING`, vendorId)
+			getVendors := func() (vendors []vendorz.Vendor, err error) {
+				q := CassVendorSession.Query(queryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return vendors, iter.Select(&vendors)
+			}
+			vendors, err := getVendors()
+			if err != nil {
+				return
+			}
+			if len(vendors) == 0 {
+				return
+			}
+			vendor := vendors[0]
+
+			createdAt := strconv.Itoa(int(vendor.CreatedAt))
+			updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
+			vendorData := &model.Vendor{
+				VendorID:     vendor.VendorId,
+				Type:         vendor.Type,
+				Level:        vendor.Level,
+				Name:         vendor.Name,
+				PhotoURL:     &vendor.PhotoUrl,
+				Website:      &vendor.Website,
+				Address:      &vendor.Address,
+				FacebookURL:  &vendor.Facebook,
+				InstagramURL: &vendor.Instagram,
+				TwitterURL:   &vendor.Twitter,
+				LinkedinURL:  &vendor.LinkedIn,
+				CreatedAt:    &createdAt,
+				CreatedBy:    &vendor.CreatedBy,
+				UpdatedAt:    &updatedAt,
+				Status:       vendor.Status,
+			}
+			res[k] = vendorData
+			wg.Done()
+		}(v.VendorId, k)
+	}
+	wg.Wait()
+	outputResponse.Vendors = res
+	outputResponse.Direction = direction
+	outputResponse.PageSize = pageSize
+	outputResponse.PageCursor = &newCursor
+	return &outputResponse, nil
 }

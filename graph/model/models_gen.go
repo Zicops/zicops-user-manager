@@ -271,6 +271,13 @@ type PaginatedUsers struct {
 	PageSize   *int    `json:"pageSize"`
 }
 
+type PaginatedVendors struct {
+	Vendors    []*Vendor `json:"vendors"`
+	PageCursor *string   `json:"pageCursor"`
+	Direction  *string   `json:"direction"`
+	PageSize   *int      `json:"pageSize"`
+}
+
 type SMEInput struct {
 	Description      string    `json:"description"`
 	IsApplicable     bool      `json:"is_applicable"`

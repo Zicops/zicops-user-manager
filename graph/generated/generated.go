@@ -273,6 +273,13 @@ type ComplexityRoot struct {
 		Users      func(childComplexity int) int
 	}
 
+	PaginatedVendors struct {
+		Direction  func(childComplexity int) int
+		PageCursor func(childComplexity int) int
+		PageSize   func(childComplexity int) int
+		Vendors    func(childComplexity int) int
+	}
+
 	Query struct {
 		GetCohortDetails               func(childComplexity int, cohortID string) int
 		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) int
@@ -286,6 +293,7 @@ type ComplexityRoot struct {
 		GetOrganizationUnits           func(childComplexity int, ouIds []*string) int
 		GetOrganizations               func(childComplexity int, orgIds []*string) int
 		GetOrganizationsByName         func(childComplexity int, name *string, prevPageSnapShot string, pageSize int) int
+		GetPaginatedVendors            func(childComplexity int, lspID *string, pageCursor *string, direction *string, pageSize *int) int
 		GetUnitsByOrgID                func(childComplexity int, orgID string) int
 		GetUserBookmarks               func(childComplexity int, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string, lspID *string) int
@@ -663,6 +671,7 @@ type QueryResolver interface {
 	GetCourseViews(ctx context.Context, lspIds []string, startTime *string, endTime *string) ([]*model.CourseViews, error)
 	GetVendorExperience(ctx context.Context, vendorID string, expID string) (*model.ExperienceVendor, error)
 	GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error)
+	GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendors, error)
 	GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error)
 	GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, error)
 }
@@ -2139,6 +2148,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PaginatedUsers.Users(childComplexity), true
 
+	case "PaginatedVendors.direction":
+		if e.complexity.PaginatedVendors.Direction == nil {
+			break
+		}
+
+		return e.complexity.PaginatedVendors.Direction(childComplexity), true
+
+	case "PaginatedVendors.pageCursor":
+		if e.complexity.PaginatedVendors.PageCursor == nil {
+			break
+		}
+
+		return e.complexity.PaginatedVendors.PageCursor(childComplexity), true
+
+	case "PaginatedVendors.pageSize":
+		if e.complexity.PaginatedVendors.PageSize == nil {
+			break
+		}
+
+		return e.complexity.PaginatedVendors.PageSize(childComplexity), true
+
+	case "PaginatedVendors.vendors":
+		if e.complexity.PaginatedVendors.Vendors == nil {
+			break
+		}
+
+		return e.complexity.PaginatedVendors.Vendors(childComplexity), true
+
 	case "Query.getCohortDetails":
 		if e.complexity.Query.GetCohortDetails == nil {
 			break
@@ -2282,6 +2319,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetOrganizationsByName(childComplexity, args["name"].(*string), args["prevPageSnapShot"].(string), args["pageSize"].(int)), true
+
+	case "Query.getPaginatedVendors":
+		if e.complexity.Query.GetPaginatedVendors == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getPaginatedVendors_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetPaginatedVendors(childComplexity, args["lsp_id"].(*string), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
 	case "Query.getUnitsByOrgId":
 		if e.complexity.Query.GetUnitsByOrgID == nil {
@@ -4877,6 +4926,13 @@ type Vendor {
 	status: String!
 }
 
+type PaginatedVendors {
+  vendors: [Vendor]
+  pageCursor: String
+  direction: String
+  pageSize: Int
+}
+
 input SMEInput {
   description: String!
   is_applicable: Boolean!
@@ -5069,6 +5125,7 @@ type Query {
   ): [CourseViews]
   getVendorExperience(vendor_id: String!, exp_id: String!):ExperienceVendor
   getVendors(lsp_id: String): [Vendor]
+  getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
 }
@@ -6236,6 +6293,48 @@ func (ec *executionContext) field_Query_getOrganizations_args(ctx context.Contex
 		}
 	}
 	args["org_ids"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getPaginatedVendors_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lsp_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["pageCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageCursor"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["Direction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Direction"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["pageSize"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageSize"] = arg3
 	return args, nil
 }
 
@@ -16215,6 +16314,206 @@ func (ec *executionContext) fieldContext_PaginatedUsers_pageSize(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _PaginatedVendors_vendors(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedVendors) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedVendors_vendors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Vendors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Vendor)
+	fc.Result = res
+	return ec.marshalOVendor2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedVendors_vendors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedVendors",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "vendorId":
+				return ec.fieldContext_Vendor_vendorId(ctx, field)
+			case "type":
+				return ec.fieldContext_Vendor_type(ctx, field)
+			case "level":
+				return ec.fieldContext_Vendor_level(ctx, field)
+			case "name":
+				return ec.fieldContext_Vendor_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Vendor_description(ctx, field)
+			case "photo_url":
+				return ec.fieldContext_Vendor_photo_url(ctx, field)
+			case "address":
+				return ec.fieldContext_Vendor_address(ctx, field)
+			case "website":
+				return ec.fieldContext_Vendor_website(ctx, field)
+			case "facebook_url":
+				return ec.fieldContext_Vendor_facebook_url(ctx, field)
+			case "instagram_url":
+				return ec.fieldContext_Vendor_instagram_url(ctx, field)
+			case "twitter_url":
+				return ec.fieldContext_Vendor_twitter_url(ctx, field)
+			case "linkedin_url":
+				return ec.fieldContext_Vendor_linkedin_url(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Vendor_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_Vendor_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_Vendor_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_Vendor_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_Vendor_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Vendor", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginatedVendors_pageCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedVendors) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedVendors_pageCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedVendors_pageCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedVendors",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginatedVendors_direction(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedVendors) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedVendors_direction(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Direction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedVendors_direction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedVendors",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginatedVendors_pageSize(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedVendors) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedVendors_pageSize(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedVendors_pageSize(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedVendors",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query_logout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_logout(ctx, field)
 	if err != nil {
@@ -18910,6 +19209,68 @@ func (ec *executionContext) fieldContext_Query_getVendors(ctx context.Context, f
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getVendors_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getPaginatedVendors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getPaginatedVendors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetPaginatedVendors(rctx, fc.Args["lsp_id"].(*string), fc.Args["pageCursor"].(*string), fc.Args["Direction"].(*string), fc.Args["pageSize"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PaginatedVendors)
+	fc.Result = res
+	return ec.marshalOPaginatedVendors2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedVendors(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getPaginatedVendors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "vendors":
+				return ec.fieldContext_PaginatedVendors_vendors(ctx, field)
+			case "pageCursor":
+				return ec.fieldContext_PaginatedVendors_pageCursor(ctx, field)
+			case "direction":
+				return ec.fieldContext_PaginatedVendors_direction(ctx, field)
+			case "pageSize":
+				return ec.fieldContext_PaginatedVendors_pageSize(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PaginatedVendors", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getPaginatedVendors_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -34025,6 +34386,43 @@ func (ec *executionContext) _PaginatedUsers(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var paginatedVendorsImplementors = []string{"PaginatedVendors"}
+
+func (ec *executionContext) _PaginatedVendors(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedVendors) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedVendorsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaginatedVendors")
+		case "vendors":
+
+			out.Values[i] = ec._PaginatedVendors_vendors(ctx, field, obj)
+
+		case "pageCursor":
+
+			out.Values[i] = ec._PaginatedVendors_pageCursor(ctx, field, obj)
+
+		case "direction":
+
+			out.Values[i] = ec._PaginatedVendors_direction(ctx, field, obj)
+
+		case "pageSize":
+
+			out.Values[i] = ec._PaginatedVendors_pageSize(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -34774,6 +35172,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getVendors(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getPaginatedVendors":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getPaginatedVendors(ctx, field)
 				return res
 			}
 
@@ -38114,6 +38532,13 @@ func (ec *executionContext) marshalOPaginatedUsers2ᚖgithubᚗcomᚋzicopsᚋzi
 		return graphql.Null
 	}
 	return ec._PaginatedUsers(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPaginatedVendors2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedVendors(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedVendors) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PaginatedVendors(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOSampleFile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐSampleFile(ctx context.Context, v interface{}) (*model.SampleFile, error) {
