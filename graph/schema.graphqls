@@ -716,6 +716,7 @@ type Vendor {
   description: String
 	photo_url: String
 	address: String
+  users: [String]
 	website: String
 	facebook_url: String
 	instagram_url: String

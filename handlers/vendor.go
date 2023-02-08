@@ -145,6 +145,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		Name:         vendor.Name,
 		Description:  &vendor.Description,
 		PhotoURL:     &vendor.PhotoUrl,
+		Users:        input.Users,
 		Address:      &vendor.Address,
 		Website:      &vendor.Website,
 		FacebookURL:  &vendor.Facebook,
@@ -153,6 +154,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		LinkedinURL:  &vendor.LinkedIn,
 		CreatedAt:    &ca,
 		CreatedBy:    &email,
+		Status:       *input.Status,
 	}
 
 	return res, nil
@@ -604,6 +606,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 				Level:        vendor.Level,
 				Name:         vendor.Name,
 				PhotoURL:     &vendor.PhotoUrl,
+				Description:  &vendor.Description,
 				Website:      &vendor.Website,
 				Address:      &vendor.Address,
 				FacebookURL:  &vendor.Facebook,
@@ -613,6 +616,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 				CreatedAt:    &createdAt,
 				CreatedBy:    &vendor.CreatedBy,
 				UpdatedAt:    &updatedAt,
+				UpdatedBy:    &vendor.UpdatedBy,
 				Status:       vendor.Status,
 			}
 			res = append(res, vendorData)

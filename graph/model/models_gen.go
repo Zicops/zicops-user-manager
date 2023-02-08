@@ -758,23 +758,24 @@ type UserRoleInput struct {
 }
 
 type Vendor struct {
-	VendorID     string  `json:"vendorId"`
-	Type         string  `json:"type"`
-	Level        string  `json:"level"`
-	Name         string  `json:"name"`
-	Description  *string `json:"description"`
-	PhotoURL     *string `json:"photo_url"`
-	Address      *string `json:"address"`
-	Website      *string `json:"website"`
-	FacebookURL  *string `json:"facebook_url"`
-	InstagramURL *string `json:"instagram_url"`
-	TwitterURL   *string `json:"twitter_url"`
-	LinkedinURL  *string `json:"linkedin_url"`
-	CreatedAt    *string `json:"created_at"`
-	CreatedBy    *string `json:"created_by"`
-	UpdatedAt    *string `json:"updated_at"`
-	UpdatedBy    *string `json:"updated_by"`
-	Status       string  `json:"status"`
+	VendorID     string    `json:"vendorId"`
+	Type         string    `json:"type"`
+	Level        string    `json:"level"`
+	Name         string    `json:"name"`
+	Description  *string   `json:"description"`
+	PhotoURL     *string   `json:"photo_url"`
+	Address      *string   `json:"address"`
+	Users        []*string `json:"users"`
+	Website      *string   `json:"website"`
+	FacebookURL  *string   `json:"facebook_url"`
+	InstagramURL *string   `json:"instagram_url"`
+	TwitterURL   *string   `json:"twitter_url"`
+	LinkedinURL  *string   `json:"linkedin_url"`
+	CreatedAt    *string   `json:"created_at"`
+	CreatedBy    *string   `json:"created_by"`
+	UpdatedAt    *string   `json:"updated_at"`
+	UpdatedBy    *string   `json:"updated_by"`
+	Status       string    `json:"status"`
 }
 
 type VendorInput struct {

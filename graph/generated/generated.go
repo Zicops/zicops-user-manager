@@ -580,6 +580,7 @@ type ComplexityRoot struct {
 		Type         func(childComplexity int) int
 		UpdatedAt    func(childComplexity int) int
 		UpdatedBy    func(childComplexity int) int
+		Users        func(childComplexity int) int
 		VendorID     func(childComplexity int) int
 		Website      func(childComplexity int) int
 	}
@@ -4086,6 +4087,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Vendor.UpdatedBy(childComplexity), true
 
+	case "Vendor.users":
+		if e.complexity.Vendor.Users == nil {
+			break
+		}
+
+		return e.complexity.Vendor.Users(childComplexity), true
+
 	case "Vendor.vendorId":
 		if e.complexity.Vendor.VendorID == nil {
 			break
@@ -4914,6 +4922,7 @@ type Vendor {
   description: String
 	photo_url: String
 	address: String
+  users: [String]
 	website: String
 	facebook_url: String
 	instagram_url: String
@@ -13235,6 +13244,8 @@ func (ec *executionContext) fieldContext_Mutation_addVendor(ctx context.Context,
 				return ec.fieldContext_Vendor_photo_url(ctx, field)
 			case "address":
 				return ec.fieldContext_Vendor_address(ctx, field)
+			case "users":
+				return ec.fieldContext_Vendor_users(ctx, field)
 			case "website":
 				return ec.fieldContext_Vendor_website(ctx, field)
 			case "facebook_url":
@@ -13323,6 +13334,8 @@ func (ec *executionContext) fieldContext_Mutation_updateVendor(ctx context.Conte
 				return ec.fieldContext_Vendor_photo_url(ctx, field)
 			case "address":
 				return ec.fieldContext_Vendor_address(ctx, field)
+			case "users":
+				return ec.fieldContext_Vendor_users(ctx, field)
 			case "website":
 				return ec.fieldContext_Vendor_website(ctx, field)
 			case "facebook_url":
@@ -16364,6 +16377,8 @@ func (ec *executionContext) fieldContext_PaginatedVendors_vendors(ctx context.Co
 				return ec.fieldContext_Vendor_photo_url(ctx, field)
 			case "address":
 				return ec.fieldContext_Vendor_address(ctx, field)
+			case "users":
+				return ec.fieldContext_Vendor_users(ctx, field)
 			case "website":
 				return ec.fieldContext_Vendor_website(ctx, field)
 			case "facebook_url":
@@ -19177,6 +19192,8 @@ func (ec *executionContext) fieldContext_Query_getVendors(ctx context.Context, f
 				return ec.fieldContext_Vendor_photo_url(ctx, field)
 			case "address":
 				return ec.fieldContext_Vendor_address(ctx, field)
+			case "users":
+				return ec.fieldContext_Vendor_users(ctx, field)
 			case "website":
 				return ec.fieldContext_Vendor_website(ctx, field)
 			case "facebook_url":
@@ -19411,6 +19428,8 @@ func (ec *executionContext) fieldContext_Query_getVendorDetails(ctx context.Cont
 				return ec.fieldContext_Vendor_photo_url(ctx, field)
 			case "address":
 				return ec.fieldContext_Vendor_address(ctx, field)
+			case "users":
+				return ec.fieldContext_Vendor_users(ctx, field)
 			case "website":
 				return ec.fieldContext_Vendor_website(ctx, field)
 			case "facebook_url":
@@ -28102,6 +28121,47 @@ func (ec *executionContext) _Vendor_address(ctx context.Context, field graphql.C
 }
 
 func (ec *executionContext) fieldContext_Vendor_address(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Vendor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Vendor_users(ctx context.Context, field graphql.CollectedField, obj *model.Vendor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Vendor_users(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Users, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Vendor_users(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Vendor",
 		Field:      field,
@@ -36842,6 +36902,10 @@ func (ec *executionContext) _Vendor(ctx context.Context, sel ast.SelectionSet, o
 		case "address":
 
 			out.Values[i] = ec._Vendor_address(ctx, field, obj)
+
+		case "users":
+
+			out.Values[i] = ec._Vendor_users(ctx, field, obj)
 
 		case "website":
 
