@@ -840,6 +840,16 @@ func (r *queryResolver) GetVendors(ctx context.Context, lspID *string) ([]*model
 	return res, err
 }
 
+// GetPaginatedVendors is the resolver for the getPaginatedVendors field.
+func (r *queryResolver) GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendors, error) {
+	res, err := handlers.GetPaginatedVendors(ctx, lspID, pageCursor, direction, pageSize)
+	if err != nil {
+		log.Printf("Got error while getting paginated vendors: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
 // GetVendorAdmins is the resolver for the getVendorAdmins field.
 func (r *queryResolver) GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error) {
 	resp, err := handlers.GetVendorAdmins(ctx, vendorID)

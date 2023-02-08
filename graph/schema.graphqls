@@ -728,6 +728,13 @@ type Vendor {
 	status: String!
 }
 
+type PaginatedVendors {
+  vendors: [Vendor]
+  pageCursor: String
+  direction: String
+  pageSize: Int
+}
+
 input SMEInput {
   description: String!
   is_applicable: Boolean!
@@ -920,6 +927,7 @@ type Query {
   ): [CourseViews]
   getVendorExperience(vendor_id: String!, exp_id: String!):ExperienceVendor
   getVendors(lsp_id: String): [Vendor]
+  getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
 }
