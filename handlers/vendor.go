@@ -37,8 +37,6 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		lspId = *input.LspID
 	}
 	email := claims["email"].(string)
-	id, _ := uuid.NewUUID()
-	vendorId := id.String()
 	createdAt := time.Now().Unix()
 
 	session, err := cassandra.GetCassSession("vendorz")
@@ -47,6 +45,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	}
 	CassUserSession := session
 
+	vendorId := uuid.New().String()
 	//create vendor
 	vendor := vendorz.Vendor{
 		VendorId:  vendorId,
