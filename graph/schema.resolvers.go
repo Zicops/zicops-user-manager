@@ -442,7 +442,7 @@ func (r *mutationResolver) AddVendor(ctx context.Context, input *model.VendorInp
 }
 
 // UpdateVendor is the resolver for the updateVendor field.
-func (r *mutationResolver) UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, error) {
+func (r *mutationResolver) UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error) {
 	resp, err := handlers.UpdateVendor(ctx, input)
 	if err != nil {
 		log.Errorf("Got error while updating vendor: %v", err)

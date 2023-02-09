@@ -178,7 +178,7 @@ type ComplexityRoot struct {
 		UpdateUserPreference      func(childComplexity int, input model.UserPreferenceInput) int
 		UpdateUserQuizAttempt     func(childComplexity int, input model.UserQuizAttemptInput) int
 		UpdateUserRole            func(childComplexity int, input model.UserRoleInput) int
-		UpdateVendor              func(childComplexity int, input model.VendorInput) int
+		UpdateVendor              func(childComplexity int, input *model.VendorInput) int
 		UploadSampleFile          func(childComplexity int, input *model.SampleFile) int
 	}
 
@@ -629,7 +629,7 @@ type MutationResolver interface {
 	UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*model.LearningSpace, error)
 	DeleteCohortImage(ctx context.Context, cohortID string, filename string) (*string, error)
 	AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error)
-	UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, error)
+	UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error)
 	CreateProfileVendor(ctx context.Context, input *model.VendorProfile) (string, error)
 	CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (string, error)
 	UploadSampleFile(ctx context.Context, input *model.SampleFile) (string, error)
@@ -1708,7 +1708,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateVendor(childComplexity, args["input"].(model.VendorInput)), true
+		return e.complexity.Mutation.UpdateVendor(childComplexity, args["input"].(*model.VendorInput)), true
 
 	case "Mutation.uploadSampleFile":
 		if e.complexity.Mutation.UploadSampleFile == nil {
@@ -5187,7 +5187,7 @@ type Mutation {
   deleteCohortImage(cohort_id: String!, filename: String!): String
 
   addVendor(input: VendorInput): Vendor
-  updateVendor(input: VendorInput!): Vendor
+  updateVendor(input: VendorInput): Vendor
   createProfileVendor(input: VendorProfile): String!
   createExperienceVendor(input: ExperienceInput!): String!
   uploadSampleFile(input: SampleFile): String!
@@ -5885,10 +5885,10 @@ func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_updateVendor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.VendorInput
+	var arg0 *model.VendorInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNVendorInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorInput(ctx, tmp)
+		arg0, err = ec.unmarshalOVendorInput2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -13298,7 +13298,7 @@ func (ec *executionContext) _Mutation_updateVendor(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateVendor(rctx, fc.Args["input"].(model.VendorInput))
+		return ec.resolvers.Mutation().UpdateVendor(rctx, fc.Args["input"].(*model.VendorInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -37787,11 +37787,6 @@ func (ec *executionContext) unmarshalNUserRoleInput2ᚕᚖgithubᚗcomᚋzicops�
 		}
 	}
 	return res, nil
-}
-
-func (ec *executionContext) unmarshalNVendorInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorInput(ctx context.Context, v interface{}) (model.VendorInput, error) {
-	res, err := ec.unmarshalInputVendorInput(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

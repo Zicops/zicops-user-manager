@@ -981,7 +981,7 @@ type Mutation {
   deleteCohortImage(cohort_id: String!, filename: String!): String
 
   addVendor(input: VendorInput): Vendor
-  updateVendor(input: VendorInput!): Vendor
+  updateVendor(input: VendorInput): Vendor
   createProfileVendor(input: VendorProfile): String!
   createExperienceVendor(input: ExperienceInput!): String!
   uploadSampleFile(input: SampleFile): String!

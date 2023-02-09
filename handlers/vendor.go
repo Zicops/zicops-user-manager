@@ -160,7 +160,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	return res, nil
 }
 
-func UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, error) {
+func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error) {
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims from context: %v", err)
