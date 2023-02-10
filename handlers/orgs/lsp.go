@@ -53,7 +53,7 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	if err != nil {
 		return nil, err
 	}
-	if input.Logo != nil && input.Logo == nil {
+	if input.Logo != nil {
 
 		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "logos", input.Logo.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
@@ -80,7 +80,7 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	}
 	photoUrl := ""
 	photoBucket := ""
-	if input.Profile != nil && input.Profile == nil {
+	if input.Profile != nil {
 		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "photos", input.Profile.Filename)
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
