@@ -625,6 +625,18 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 			}
 			vendor := vendors[0]
 
+			//vendorAdmins
+			admins, err := GetVendorAdmins(ctx, vendorId)
+			if err != nil {
+				log.Printf("Got error while getting vendor Admins for %v: %v", vendorId, err)
+			}
+			var usersEmail []*string
+			for _, vv := range admins {
+				v := vv
+				usersEmail = append(usersEmail, &v.Email)
+			}
+
+			//photo
 			photoUrl := ""
 			if vendor.PhotoBucket != "" {
 				photoUrl = storageC.GetSignedURLForObject(vendor.PhotoBucket)
@@ -642,6 +654,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 				Description:  &vendor.Description,
 				Website:      &vendor.Website,
 				Address:      &vendor.Address,
+				Users:        usersEmail,
 				FacebookURL:  &vendor.Facebook,
 				InstagramURL: &vendor.Instagram,
 				TwitterURL:   &vendor.Twitter,
@@ -800,6 +813,18 @@ func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, erro
 	createdAt := strconv.Itoa(int(vendor.CreatedAt))
 	updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
 
+	//vendorAdmins
+	admins, err := GetVendorAdmins(ctx, vendorID)
+	if err != nil {
+		log.Printf("Got error while getting vendor Admins for %v: %v", vendorID, err)
+	}
+	var usersEmail []*string
+	for _, vv := range admins {
+		v := vv
+		usersEmail = append(usersEmail, &v.Email)
+	}
+
+	//photo
 	photoUrl := ""
 	if vendor.PhotoBucket != "" {
 		photoUrl = storageC.GetSignedURLForObject(vendor.PhotoBucket)
@@ -815,6 +840,7 @@ func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, erro
 		Description:  &vendor.Description,
 		PhotoURL:     &photoUrl,
 		Address:      &vendor.Address,
+		Users:        usersEmail,
 		Website:      &vendor.Website,
 		FacebookURL:  &vendor.Facebook,
 		InstagramURL: &vendor.Instagram,
