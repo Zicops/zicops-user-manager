@@ -156,7 +156,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		LinkedinURL:  &vendor.LinkedIn,
 		CreatedAt:    &ca,
 		CreatedBy:    &email,
-		Status:       *input.Status,
+		Status:       input.Status,
 	}
 
 	return res, nil
@@ -229,6 +229,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 			return nil, err
 		}
 		vendor.Users = resp
+		updatedCols = append(updatedCols, "users")
 	}
 	if input.Status != nil {
 		updatedCols = append(updatedCols, "status")
@@ -334,7 +335,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		CreatedBy:    &vendor.CreatedBy,
 		UpdatedAt:    &updatedAt,
 		UpdatedBy:    &email,
-		Status:       vendor.Status,
+		Status:       &vendor.Status,
 	}
 
 	return res, nil
@@ -626,14 +627,16 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 			vendor := vendors[0]
 
 			//vendorAdmins
-			admins, err := GetVendorAdmins(ctx, vendorId)
+			var usersEmail []*string
+			admins, err := GetVendorAdminsEmails(ctx, vendorId)
 			if err != nil {
 				log.Printf("Got error while getting vendor Admins for %v: %v", vendorId, err)
 			}
-			var usersEmail []*string
-			for _, vv := range admins {
-				v := vv
-				usersEmail = append(usersEmail, &v.Email)
+			if len(admins) != 0 {
+				for _, vv := range admins {
+					v := vv
+					usersEmail = append(usersEmail, &v)
+				}
 			}
 
 			//photo
@@ -663,13 +666,61 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 				CreatedBy:    &vendor.CreatedBy,
 				UpdatedAt:    &updatedAt,
 				UpdatedBy:    &vendor.UpdatedBy,
-				Status:       vendor.Status,
+				Status:       &vendor.Status,
 			}
 			res = append(res, vendorData)
 			wg.Done()
 		}(v.VendorId)
 	}
 	wg.Wait()
+	return res, nil
+}
+
+func GetVendorAdminsEmails(ctx context.Context, vendorID string) ([]string, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var userIds []vendorz.VendorUserMap
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' ALLOW FILTERING`, vendorID)
+
+	getUserIds := func() (vendorUserIds []vendorz.VendorUserMap, err error) {
+		q := CassUserSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return vendorUserIds, iter.Select(&vendorUserIds)
+	}
+	userIds, err = getUserIds()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(userIds) == 0 {
+		return nil, nil
+	}
+	res := make([]string, len(userIds))
+
+	for k, vv := range userIds {
+		v := vv
+		userId := v.UserId
+		email, err := base64.URLEncoding.DecodeString(userId)
+		if err != nil {
+			return nil, err
+		}
+
+		if !IsEmailValid(string(email)) || string(email) == "" {
+			return nil, err
+		}
+		res[k] = string(email)
+	}
+
 	return res, nil
 }
 
@@ -814,16 +865,17 @@ func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, erro
 	updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
 
 	//vendorAdmins
-	admins, err := GetVendorAdmins(ctx, vendorID)
+	var usersEmail []*string
+	admins, err := GetVendorAdminsEmails(ctx, vendorID)
 	if err != nil {
 		log.Printf("Got error while getting vendor Admins for %v: %v", vendorID, err)
 	}
-	var usersEmail []*string
-	for _, vv := range admins {
-		v := vv
-		usersEmail = append(usersEmail, &v.Email)
+	if len(admins) != 0 {
+		for _, vv := range admins {
+			v := vv
+			usersEmail = append(usersEmail, &v)
+		}
 	}
-
 	//photo
 	photoUrl := ""
 	if vendor.PhotoBucket != "" {
@@ -850,7 +902,7 @@ func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, erro
 		CreatedBy:    &vendor.CreatedBy,
 		UpdatedAt:    &updatedAt,
 		UpdatedBy:    &vendor.UpdatedBy,
-		Status:       vendor.Status,
+		Status:       &vendor.Status,
 	}
 	return res, nil
 }
@@ -938,6 +990,19 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 			}
 			vendor := vendors[0]
 
+			//vendorAdmins
+			var usersEmail []*string
+			admins, err := GetVendorAdminsEmails(ctx, vendorId)
+			if err != nil {
+				log.Printf("Got error while getting vendor Admins for %v: %v", vendorId, err)
+			}
+			if len(admins) != 0 {
+				for _, vv := range admins {
+					v := vv
+					usersEmail = append(usersEmail, &v)
+				}
+			}
+
 			createdAt := strconv.Itoa(int(vendor.CreatedAt))
 			updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
 			vendorData := &model.Vendor{
@@ -948,6 +1013,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 				PhotoURL:     &vendor.PhotoUrl,
 				Website:      &vendor.Website,
 				Address:      &vendor.Address,
+				Users:        usersEmail,
 				FacebookURL:  &vendor.Facebook,
 				InstagramURL: &vendor.Instagram,
 				TwitterURL:   &vendor.Twitter,
@@ -955,7 +1021,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 				CreatedAt:    &createdAt,
 				CreatedBy:    &vendor.CreatedBy,
 				UpdatedAt:    &updatedAt,
-				Status:       vendor.Status,
+				Status:       &vendor.Status,
 			}
 			res[k] = vendorData
 			wg.Done()
