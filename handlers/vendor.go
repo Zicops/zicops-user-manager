@@ -37,7 +37,9 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		lspId = *input.LspID
 	}
 	vendorType := "vendor"
-	*input.Type = vendorType
+	if input.Type == nil || *input.Type == "" {
+		*input.Type = vendorType
+	}
 	email := claims["email"].(string)
 	createdAt := time.Now().Unix()
 
@@ -268,7 +270,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 
 	if input.Name != nil {
 		var vendorsName []vendorz.Vendor
-		queryName := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s' AND name = '%s' ALLOW FILTERING`, *input.VendorID, *input.Name)
+		queryName := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE name = '%s' ALLOW FILTERING`, *input.Name)
 		getQueryName := CassUserSession.Query(queryName, nil)
 		if err = getQueryName.SelectRelease(&vendorsName); err != nil {
 			return nil, err
@@ -276,8 +278,15 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		if len(vendorsName) == 0 {
 			vendor.Name = *input.Name
 			updatedCols = append(updatedCols, "name")
+			//if the name we have entered is different from vendor id's original name, means we are trying to update the name of vendor to something else
+			//which is not unique
 		} else {
-			return nil, errors.New("name needs to be unique, cant be updated")
+			for _, vv := range vendorsName {
+				v := vv
+				if v.Name == *input.Name && input.VendorID != &v.VendorId {
+					return nil, errors.New("name needs to be unique, cant be updated")
+				}
+			}
 		}
 	}
 
@@ -297,11 +306,22 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 	createdAt := strconv.Itoa(int(vendor.CreatedAt))
 	updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
 
+	admins, err := GetVendorAdmins(ctx, *input.VendorID)
+	if err != nil {
+		log.Printf("Not able to get users: %v", err)
+	}
+	var adminNames []*string
+	for _, v := range admins {
+		tmp := v.Email
+		adminNames = append(adminNames, &tmp)
+	}
+
 	res := &model.Vendor{
 		VendorID:     vendor.VendorId,
 		Type:         vendor.Type,
 		Level:        vendor.Level,
 		Name:         vendor.Name,
+		Users:        adminNames,
 		Description:  &vendor.Description,
 		PhotoURL:     &vendor.PhotoUrl,
 		Address:      &vendor.Address,
@@ -581,6 +601,13 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 		v := vv
 		wg.Add(1)
 		go func(vendorId string) {
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				log.Printf("Failed to upload image to course: %v", err.Error())
+				return
+			}
 
 			queryStr = fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s' ALLOW FILTERING`, vendorId)
 			getVendors := func() (vendors []vendorz.Vendor, err error) {
@@ -598,6 +625,12 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 			}
 			vendor := vendors[0]
 
+			photoUrl := ""
+			if vendor.PhotoBucket != "" {
+				photoUrl = storageC.GetSignedURLForObject(vendor.PhotoBucket)
+			} else {
+				photoUrl = vendor.PhotoUrl
+			}
 			createdAt := strconv.Itoa(int(vendor.CreatedAt))
 			updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
 			vendorData := &model.Vendor{
@@ -605,7 +638,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 				Type:         vendor.Type,
 				Level:        vendor.Level,
 				Name:         vendor.Name,
-				PhotoURL:     &vendor.PhotoUrl,
+				PhotoURL:     &photoUrl,
 				Description:  &vendor.Description,
 				Website:      &vendor.Website,
 				Address:      &vendor.Address,
@@ -755,17 +788,32 @@ func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, erro
 	if len(vendors) == 0 {
 		return nil, nil
 	}
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		log.Printf("Failed to upload image to course: %v", err.Error())
+		return nil, err
+	}
 
 	vendor := vendors[0]
 	createdAt := strconv.Itoa(int(vendor.CreatedAt))
 	updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
+
+	photoUrl := ""
+	if vendor.PhotoBucket != "" {
+		photoUrl = storageC.GetSignedURLForObject(vendor.PhotoBucket)
+	} else {
+		photoUrl = vendor.PhotoUrl
+	}
+
 	res := &model.Vendor{
 		VendorID:     vendor.VendorId,
 		Type:         vendor.Type,
 		Level:        vendor.Level,
 		Name:         vendor.Name,
 		Description:  &vendor.Description,
-		PhotoURL:     &vendor.PhotoUrl,
+		PhotoURL:     &photoUrl,
 		Address:      &vendor.Address,
 		Website:      &vendor.Website,
 		FacebookURL:  &vendor.Facebook,
