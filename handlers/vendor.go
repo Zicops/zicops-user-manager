@@ -788,17 +788,32 @@ func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, erro
 	if len(vendors) == 0 {
 		return nil, nil
 	}
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		log.Printf("Failed to upload image to course: %v", err.Error())
+		return nil, err
+	}
 
 	vendor := vendors[0]
 	createdAt := strconv.Itoa(int(vendor.CreatedAt))
 	updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
+
+	photoUrl := ""
+	if vendor.PhotoBucket != "" {
+		photoUrl = storageC.GetSignedURLForObject(vendor.PhotoBucket)
+	} else {
+		photoUrl = vendor.PhotoUrl
+	}
+
 	res := &model.Vendor{
 		VendorID:     vendor.VendorId,
 		Type:         vendor.Type,
 		Level:        vendor.Level,
 		Name:         vendor.Name,
 		Description:  &vendor.Description,
-		PhotoURL:     &vendor.PhotoUrl,
+		PhotoURL:     &photoUrl,
 		Address:      &vendor.Address,
 		Website:      &vendor.Website,
 		FacebookURL:  &vendor.Facebook,
