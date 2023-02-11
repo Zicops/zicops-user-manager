@@ -775,7 +775,7 @@ type Vendor struct {
 	CreatedBy    *string   `json:"created_by"`
 	UpdatedAt    *string   `json:"updated_at"`
 	UpdatedBy    *string   `json:"updated_by"`
-	Status       string    `json:"status"`
+	Status       *string   `json:"status"`
 }
 
 type VendorInput struct {

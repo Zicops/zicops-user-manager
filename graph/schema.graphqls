@@ -726,7 +726,7 @@ type Vendor {
 	created_by: String
 	updated_at: String
 	updated_by: String
-	status: String!
+	status: String
 }
 
 type PaginatedVendors {
