@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/global"
 	graceful "gopkg.in/tylerb/graceful.v1" // see: https://github.com/tylerb/graceful
@@ -23,9 +24,9 @@ func (handler *maxPayloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 }
 
 // CCBackendController ....
-func CCBackendController(ctx context.Context, port int, errorChannel chan error) {
+func CCBackendController(ctx context.Context, port int, errorChannel chan error, router *gin.Engine) {
 	log.Infof("Initializing router and endpoints.")
-	ccRouter, err := CCRouter()
+	ccRouter, err := CCRouter(router)
 	if err != nil {
 		errorChannel <- err
 		return

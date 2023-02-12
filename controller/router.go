@@ -25,10 +25,8 @@ import (
 )
 
 // CCRouter ... the router for the controller
-func CCRouter() (*gin.Engine, error) {
-	restRouter := gin.Default()
-	// configure cors as needed for FE/BE interactions: For now defaults
-
+func CCRouter(restRouter *gin.Engine) (*gin.Engine, error) {
+	// set up cors
 	configCors := cors.DefaultConfig()
 	configCors.AllowAllOrigins = true
 	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
