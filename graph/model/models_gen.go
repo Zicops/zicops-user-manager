@@ -80,20 +80,16 @@ type CourseViews struct {
 }
 
 type ExperienceInput struct {
-	VendorID        string  `json:"VendorId"`
-	PfID            string  `json:"PfId"`
-	Title           string  `json:"Title"`
-	CompanyName     string  `json:"CompanyName"`
-	EmployementType string  `json:"EmployementType"`
-	Location        string  `json:"Location"`
-	LocationType    string  `json:"LocationType"`
-	StartDate       int     `json:"StartDate"`
-	EndDate         *int    `json:"EndDate"`
-	CreatedAt       *string `json:"CreatedAt"`
-	CreatedBy       *string `json:"CreatedBy"`
-	UpdatedAt       *string `json:"UpdatedAt"`
-	UpdatedBy       *string `json:"UpdatedBy"`
-	Status          string  `json:"Status"`
+	VendorID        string `json:"vendor_id"`
+	PfID            string `json:"pf_id"`
+	Title           string `json:"title"`
+	CompanyName     string `json:"company_name"`
+	EmployementType string `json:"employement_type"`
+	Location        string `json:"location"`
+	LocationType    string `json:"location_type"`
+	StartDate       int    `json:"start_date"`
+	EndDate         *int   `json:"end_date"`
+	Status          string `json:"status"`
 }
 
 type ExperienceVendor struct {
@@ -275,18 +271,21 @@ type PaginatedUsers struct {
 	PageSize   *int    `json:"pageSize"`
 }
 
+type PaginatedVendors struct {
+	Vendors    []*Vendor `json:"vendors"`
+	PageCursor *string   `json:"pageCursor"`
+	Direction  *string   `json:"direction"`
+	PageSize   *int      `json:"pageSize"`
+}
+
 type SMEInput struct {
-	Description      string    `json:"Description"`
-	IsApplicable     bool      `json:"IsApplicable"`
-	Expertise        []*string `json:"Expertise"`
-	Languages        []*string `json:"Languages"`
-	OutputDeliveries []*string `json:"OutputDeliveries"`
-	SampleFiles      []*string `json:"SampleFiles"`
-	Profiles         []*string `json:"Profiles"`
-	CreatedAt        *string   `json:"CreatedAt"`
-	CreatedBy        *string   `json:"CreatedBy"`
-	UpdatedAt        *string   `json:"UpdatedAt"`
-	UpdatedBy        *string   `json:"UpdatedBy"`
+	Description      string    `json:"description"`
+	IsApplicable     bool      `json:"is_applicable"`
+	Expertise        []*string `json:"expertise"`
+	Languages        []*string `json:"languages"`
+	OutputDeliveries []*string `json:"output_deliveries"`
+	SampleFiles      []*string `json:"sample_files"`
+	Profiles         []*string `json:"profiles"`
 	Status           string    `json:"Status"`
 }
 
@@ -296,10 +295,6 @@ type SampleFile struct {
 	Description string         `json:"Description"`
 	Pricing     string         `json:"Pricing"`
 	FileType    *string        `json:"FileType"`
-	CreatedAt   *string        `json:"CreatedAt"`
-	CreatedBy   *string        `json:"CreatedBy"`
-	UpdatedAt   *string        `json:"UpdatedAt"`
-	UpdatedBy   *string        `json:"UpdatedBy"`
 	Status      string         `json:"Status"`
 }
 
@@ -763,22 +758,24 @@ type UserRoleInput struct {
 }
 
 type Vendor struct {
-	VendorID     string  `json:"vendorId"`
-	Type         string  `json:"type"`
-	Level        string  `json:"level"`
-	Name         string  `json:"name"`
-	PhotoURL     *string `json:"photo_url"`
-	Address      *string `json:"address"`
-	Website      *string `json:"website"`
-	FacebookURL  *string `json:"facebook_url"`
-	InstagramURL *string `json:"instagram_url"`
-	TwitterURL   *string `json:"twitter_url"`
-	LinkedinURL  *string `json:"linkedin_url"`
-	CreatedAt    *string `json:"created_at"`
-	CreatedBy    *string `json:"created_by"`
-	UpdatedAt    *string `json:"updated_at"`
-	UpdatedBy    *string `json:"updated_by"`
-	Status       string  `json:"status"`
+	VendorID     string    `json:"vendorId"`
+	Type         string    `json:"type"`
+	Level        string    `json:"level"`
+	Name         string    `json:"name"`
+	Description  *string   `json:"description"`
+	PhotoURL     *string   `json:"photo_url"`
+	Address      *string   `json:"address"`
+	Users        []*string `json:"users"`
+	Website      *string   `json:"website"`
+	FacebookURL  *string   `json:"facebook_url"`
+	InstagramURL *string   `json:"instagram_url"`
+	TwitterURL   *string   `json:"twitter_url"`
+	LinkedinURL  *string   `json:"linkedin_url"`
+	CreatedAt    *string   `json:"created_at"`
+	CreatedBy    *string   `json:"created_by"`
+	UpdatedAt    *string   `json:"updated_at"`
+	UpdatedBy    *string   `json:"updated_by"`
+	Status       *string   `json:"status"`
 }
 
 type VendorInput struct {
@@ -796,29 +793,21 @@ type VendorInput struct {
 	LinkedinURL  *string         `json:"linkedin_url"`
 	Users        []*string       `json:"users"`
 	Description  *string         `json:"description"`
-	CreatedAt    *string         `json:"created_at"`
-	ReatedBy     *string         `json:"reated_by"`
-	UpdatedAt    *string         `json:"updated_at"`
-	UpdatedBy    *string         `json:"updated_by"`
 	Status       *string         `json:"status"`
 }
 
 type VendorProfile struct {
-	VendorID           string          `json:"VendorId"`
-	FirstName          string          `json:"FirstName"`
-	LastName           *string         `json:"LastName"`
-	Email              string          `json:"Email"`
-	Phone              int             `json:"Phone"`
-	Photo              *graphql.Upload `json:"Photo"`
-	Description        *string         `json:"Description"`
-	Languages          []*string       `json:"Languages"`
-	SMEExpertise       []*string       `json:"SMEExpertise"`
-	ClassroomExpertise []*string       `json:"ClassroomExpertise"`
-	Experience         *int            `json:"Experience"`
-	IsSpeaker          bool            `json:"IsSpeaker"`
-	CreatedAt          *string         `json:"CreatedAt"`
-	CreatedBy          *string         `json:"CreatedBy"`
-	UpdatedAt          *string         `json:"UpdatedAt"`
-	UpdatedBy          *string         `json:"UpdatedBy"`
-	Status             string          `json:"Status"`
+	VendorID           string          `json:"vendor_id"`
+	FirstName          string          `json:"first_name"`
+	LastName           *string         `json:"last_name"`
+	Email              string          `json:"email"`
+	Phone              int             `json:"phone"`
+	Photo              *graphql.Upload `json:"photo"`
+	Description        *string         `json:"description"`
+	Languages          []*string       `json:"languages"`
+	SmeExpertise       []*string       `json:"SME_expertise"`
+	ClassroomExpertise []*string       `json:"Classroom_expertise"`
+	Experience         *int            `json:"experience"`
+	IsSpeaker          bool            `json:"is_speaker"`
+	Status             string          `json:"status"`
 }

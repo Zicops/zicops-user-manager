@@ -669,9 +669,35 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 }
 
 func DeleteCohortImage(ctx context.Context, cohortID string, filename string) (*string, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting the claims: %v", err)
+		return nil, err
+	}
+	lspId := claims["lsp_id"].(string)
+
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+
+	cohorts := []userz.Cohort{}
+	queryStr := fmt.Sprintf(`SELECT * FROM userz.cohort_main WHERE id='%s' AND lsp_id='%s' `, cohortID, lspId)
+	getQuery := CassUserSession.Query(queryStr, nil)
+	if err := getQuery.SelectRelease(&cohorts); err != nil {
+		return nil, err
+	}
+	if len(cohorts) == 0 {
+		return nil, fmt.Errorf("cohorts not found")
+	}
+	cohort := cohorts[0]
+	cohort.ImageUrl = ""
+
+	upStms, uNames := userz.CohortTable.Update("imageurl")
+	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&cohort)
+	if err := updateQuery.ExecRelease(); err != nil {
+		log.Errorf("error updating cohort: %v", err)
 		return nil, err
 	}
 

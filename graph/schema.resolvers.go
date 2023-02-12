@@ -41,7 +41,7 @@ func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string, lsp
 }
 
 // InviteUsersWithRole is the resolver for the inviteUsersWithRole field.
-func (r *mutationResolver) InviteUsersWithRole(ctx context.Context, emails []string, lspID *string, role string) ([]*model.InviteResponse, error) {
+func (r *mutationResolver) InviteUsersWithRole(ctx context.Context, emails []string, lspID *string, role *string) ([]*model.InviteResponse, error) {
 	res, err := handlers.InviteUserWithRole(ctx, emails, *lspID, role)
 	if err != nil {
 		log.Println("Error while Inviting users with roles: %v", err)
@@ -432,17 +432,17 @@ func (r *mutationResolver) DeleteCohortImage(ctx context.Context, cohortID strin
 }
 
 // AddVendor is the resolver for the addVendor field.
-func (r *mutationResolver) AddVendor(ctx context.Context, input *model.VendorInput) (string, error) {
+func (r *mutationResolver) AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error) {
 	res, err := handlers.AddVendor(ctx, input)
 	if err != nil {
 		log.Errorf("Got error while creating vedor: %v", err)
-		return "", err
+		return nil, err
 	}
 	return res, nil
 }
 
 // UpdateVendor is the resolver for the updateVendor field.
-func (r *mutationResolver) UpdateVendor(ctx context.Context, input model.VendorInput) (*model.Vendor, error) {
+func (r *mutationResolver) UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error) {
 	resp, err := handlers.UpdateVendor(ctx, input)
 	if err != nil {
 		log.Errorf("Got error while updating vendor: %v", err)
@@ -838,6 +838,36 @@ func (r *queryResolver) GetVendors(ctx context.Context, lspID *string) ([]*model
 		return nil, err
 	}
 	return res, err
+}
+
+// GetPaginatedVendors is the resolver for the getPaginatedVendors field.
+func (r *queryResolver) GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendors, error) {
+	res, err := handlers.GetPaginatedVendors(ctx, lspID, pageCursor, direction, pageSize)
+	if err != nil {
+		log.Printf("Got error while getting paginated vendors: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetVendorAdmins is the resolver for the getVendorAdmins field.
+func (r *queryResolver) GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error) {
+	resp, err := handlers.GetVendorAdmins(ctx, vendorID)
+	if err != nil {
+		log.Printf("Got error while getting Vendor Admins: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetVendorDetails is the resolver for the getVendorDetails field.
+func (r *queryResolver) GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, error) {
+	res, err := handlers.GetVendorDetails(ctx, vendorID)
+	if err != nil {
+		log.Println("Got error while getting vendor details: %v", err)
+		return nil, err
+	}
+	return res, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
