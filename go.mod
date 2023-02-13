@@ -7,9 +7,9 @@ require (
 	cloud.google.com/go/storage v1.29.0
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.17.24
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.8.2
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/penglongli/gin-metrics v0.1.10
 	github.com/satori/go.uuid v1.2.0
