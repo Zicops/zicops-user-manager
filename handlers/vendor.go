@@ -104,7 +104,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	}
 
 	if input.Users != nil {
-		users := changesStringType(input.Users)
+		users := ChangesStringType(input.Users)
 		resp, err := MapVendorUser(ctx, vendorId, users, email)
 		if err != nil {
 			return nil, err
@@ -223,7 +223,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 
 	if input.Users != nil {
 		updatedCols = append(updatedCols, "users")
-		users := changesStringType(input.Users)
+		users := ChangesStringType(input.Users)
 		resp, err := MapVendorUser(ctx, *input.VendorID, users, email)
 		if err != nil {
 			return nil, err
@@ -399,7 +399,7 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 	return resp, nil
 }
 
-func changesStringType(input []*string) []string {
+func ChangesStringType(input []*string) []string {
 	var res []string
 	for _, vv := range input {
 		v := vv
@@ -797,6 +797,16 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 
 			createdAt := strconv.Itoa(int(user.CreatedAt))
 			updatedAt := strconv.Itoa(int(user.UpdatedAt))
+			fireBaseUser, err := global.IDP.GetUserByEmail(ctx, user.Email)
+			if err != nil {
+				log.Printf("Failed to get user from firebase: %v", err.Error())
+				return
+			}
+			phone := ""
+			if fireBaseUser != nil {
+				phone = fireBaseUser.PhoneNumber
+			}
+
 			temp := &model.User{
 				ID:         &user.ID,
 				FirstName:  user.FirstName,
@@ -812,6 +822,7 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 				UpdatedBy:  &user.UpdatedBy,
 				Email:      user.Email,
 				PhotoURL:   &user.PhotoURL,
+				Phone:      phone,
 			}
 			userData := temp
 			res[k] = userData
