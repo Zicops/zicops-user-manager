@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -269,26 +268,31 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		updatedCols = append(updatedCols, "type")
 	}
 
+	// if input.Name != nil {
+	// 	var vendorsName []vendorz.Vendor
+	// 	queryName := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE name = '%s' ALLOW FILTERING`, *input.Name)
+	// 	getQueryName := CassUserSession.Query(queryName, nil)
+	// 	if err = getQueryName.SelectRelease(&vendorsName); err != nil {
+	// 		return nil, err
+	// 	}
+	// 	if len(vendorsName) == 0 {
+	// 		vendor.Name = *input.Name
+	// 		updatedCols = append(updatedCols, "name")
+	// 		//if the name we have entered is different from vendor id's original name, means we are trying to update the name of vendor to something else
+	// 		//which is not unique
+	// 	} else {
+	// 		for _, vv := range vendorsName {
+	// 			v := vv
+	// 			if v.Name == *input.Name && input.VendorID != &v.VendorId {
+	// 				return nil, errors.New("name needs to be unique, cant be updated")
+	// 			}
+	// 		}
+	// 	}
+	// }
+
 	if input.Name != nil {
-		var vendorsName []vendorz.Vendor
-		queryName := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE name = '%s' ALLOW FILTERING`, *input.Name)
-		getQueryName := CassUserSession.Query(queryName, nil)
-		if err = getQueryName.SelectRelease(&vendorsName); err != nil {
-			return nil, err
-		}
-		if len(vendorsName) == 0 {
-			vendor.Name = *input.Name
-			updatedCols = append(updatedCols, "name")
-			//if the name we have entered is different from vendor id's original name, means we are trying to update the name of vendor to something else
-			//which is not unique
-		} else {
-			for _, vv := range vendorsName {
-				v := vv
-				if v.Name == *input.Name && input.VendorID != &v.VendorId {
-					return nil, errors.New("name needs to be unique, cant be updated")
-				}
-			}
-		}
+		vendor.Name = *input.Name
+		updatedCols = append(updatedCols, "name")
 	}
 
 	if len(updatedCols) > 0 {
