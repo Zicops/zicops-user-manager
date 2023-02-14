@@ -764,9 +764,9 @@ input VendorProfile {
 }
 
 input ExperienceInput {
-  exp_id: String!
-  vendor_id: String!
-  email: String!
+  exp_id: String
+  vendor_id: String
+  email: String
   title: String
   company_name: String
   employement_type: String
@@ -781,13 +781,13 @@ type ExperienceVendor {
   ExpId: String!
   VendorId: String!
   PfId: String!
-  StartDate: Int!
+  StartDate: Int
   EndDate: Int
-  Title: String!
-  Location: String!
-  LocationType: String!
-  EmployementType: String!
-  CompanyName: String!
+  Title: String
+  Location: String
+  LocationType: String
+  EmployementType: String
+  CompanyName: String
   CreatedAt: String
 	CreatedBy: String
 	UpdatedAt: String

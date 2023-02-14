@@ -16,7 +16,7 @@ require (
 	github.com/scylladb/gocqlx/v2 v2.8.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.1
-	github.com/zicops/contracts v0.0.0-20230214141611-8791b1596be8
+	github.com/zicops/contracts v0.0.0-20230214191049-9bbe15b0f31a
 	github.com/zicops/zicops-cass-pool v0.0.0-20221216180317-e591441b40ab
 	golang.org/x/oauth2 v0.5.0
 	google.golang.org/api v0.110.0
@@ -63,7 +63,7 @@ require (
 	github.com/ugorji/go/codec v1.2.9 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
-	golang.org/x/net v0.6.0 // indirect
+	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
