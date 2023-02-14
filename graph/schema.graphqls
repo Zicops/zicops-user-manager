@@ -764,16 +764,17 @@ input VendorProfile {
 }
 
 input ExperienceInput {
+  exp_id: String!
   vendor_id: String!
-  pf_id: String!
-  title: String!
-  company_name: String!
-  employement_type: String!
-  location: String!
-  location_type: String!
-  start_date: Int!
+  email: String!
+  title: String
+  company_name: String
+  employement_type: String
+  location: String
+  location_type: String
+  start_date: Int
   end_date: Int
-	status: String!
+	status: String
 }
 
 type ExperienceVendor {
@@ -926,7 +927,8 @@ type Query {
     start_time: String
     end_time: String
   ): [CourseViews]
-  getVendorExperience(vendor_id: String!, exp_id: String!):ExperienceVendor
+  getVendorExperience(vendor_id: String!, pf_id: String!):[ExperienceVendor]
+  getVendorExperienceDetails(vendor_id: String!, pf_id: String!, exp_id: String!): ExperienceVendor
   getVendors(lsp_id: String): [Vendor]
   getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [User]
@@ -983,7 +985,8 @@ type Mutation {
   addVendor(input: VendorInput): Vendor
   updateVendor(input: VendorInput): Vendor
   createProfileVendor(input: VendorProfile): String!
-  createExperienceVendor(input: ExperienceInput!): String!
+  createExperienceVendor(input: ExperienceInput!): ExperienceVendor
+  updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
   uploadSampleFile(input: SampleFile): String!
   #createVendorServices(VendorId: String!, SME: SMEInput, CRT: CRTInput, CD: CDInput): Boolean
 }
