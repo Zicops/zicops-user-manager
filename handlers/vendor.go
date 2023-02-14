@@ -438,12 +438,13 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 
 	expId := uuid.New().String()
 
-	pfId := base64.URLEncoding.EncodeToString([]byte(input.Email))
+	pfId := base64.URLEncoding.EncodeToString([]byte(*input.Email))
 	currentTime := time.Now().Unix()
 	CassUserSession := session
+
 	exp := vendorz.VendorExperience{
 		ExpId:           expId,
-		VendorId:        input.VendorID,
+		VendorId:        *input.VendorID,
 		PfId:            pfId,
 		StartDate:       int64(*input.StartDate),
 		EndDate:         int64(*input.EndDate),
@@ -466,15 +467,15 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 	ct := strconv.Itoa(int(currentTime))
 	res := model.ExperienceVendor{
 		ExpID:           expId,
-		VendorID:        input.VendorID,
+		VendorID:        *input.VendorID,
 		PfID:            pfId,
-		StartDate:       *input.StartDate,
+		StartDate:       input.StartDate,
 		EndDate:         input.EndDate,
-		Title:           *input.Title,
-		CompanyName:     *input.CompanyName,
-		Location:        *input.Location,
-		LocationType:    *input.LocationType,
-		EmployementType: *input.EmployementType,
+		Title:           input.Title,
+		CompanyName:     input.CompanyName,
+		Location:        input.Location,
+		LocationType:    input.LocationType,
+		EmployementType: input.EmployementType,
 		CreatedAt:       &ct,
 		CreatedBy:       &email_creator,
 		UpdatedAt:       &ct,
@@ -1107,17 +1108,18 @@ func GetVendorExperience(ctx context.Context, vendorID string, pfID string) ([]*
 
 		ca := strconv.Itoa(int(v.CreatedAt))
 		ua := strconv.Itoa(int(v.UpdatedAt))
+		sd := int(v.StartDate)
 		tmp := &model.ExperienceVendor{
 			ExpID:           v.ExpId,
 			VendorID:        v.VendorId,
 			PfID:            v.PfId,
-			StartDate:       int(v.StartDate),
+			StartDate:       &sd,
 			EndDate:         &endDate,
-			Title:           v.Title,
-			EmployementType: v.EmployementType,
-			Location:        v.Location,
-			LocationType:    v.LocationType,
-			CompanyName:     v.Company,
+			Title:           &v.Title,
+			EmployementType: &v.EmployementType,
+			Location:        &v.Location,
+			LocationType:    &v.LocationType,
+			CompanyName:     &v.Company,
 			CreatedAt:       &ca,
 			CreatedBy:       &v.CreatedBy,
 			UpdatedAt:       &ua,
@@ -1161,18 +1163,19 @@ func GetVendorExperienceDetails(ctx context.Context, vendorID string, pfID strin
 	ed := int(pfe.EndDate)
 	ca := strconv.Itoa(int(pfe.CreatedAt))
 	ua := strconv.Itoa(int(pfe.UpdatedAt))
+	sd := int(pfe.StartDate)
 
 	res := &model.ExperienceVendor{
 		ExpID:           pfe.ExpId,
 		VendorID:        pfe.VendorId,
 		PfID:            pfe.PfId,
-		StartDate:       int(pfe.StartDate),
+		StartDate:       &sd,
 		EndDate:         &ed,
-		Title:           pfe.Title,
-		Location:        pfe.Location,
-		LocationType:    pfe.LocationType,
-		EmployementType: pfe.EmployementType,
-		CompanyName:     pfe.Company,
+		Title:           &pfe.Title,
+		Location:        &pfe.Location,
+		LocationType:    &pfe.LocationType,
+		EmployementType: &pfe.EmployementType,
+		CompanyName:     &pfe.Company,
 		CreatedAt:       &ca,
 		CreatedBy:       &pfe.CreatedBy,
 		UpdatedAt:       &ua,
@@ -1197,8 +1200,8 @@ func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 	}
 	CassSession := session
 
-	pfId := base64.URLEncoding.EncodeToString([]byte(input.Email))
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.experience WHERE vendor_id = '%s' AND pf_id = '%s' AND exp_id = '%s'`, input.VendorID, pfId, input.ExpID)
+	pfId := base64.URLEncoding.EncodeToString([]byte(*input.Email))
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.experience WHERE vendor_id = '%s' AND pf_id = '%s' AND exp_id = '%s'`, *input.VendorID, pfId, *input.ExpID)
 
 	getExperienceVendor := func() (exp []vendorz.VendorExperience, err error) {
 		q := CassSession.Query(queryStr, nil)
@@ -1270,18 +1273,19 @@ func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 	endDate := int(experienceVendor.EndDate)
 	ca := strconv.Itoa(int(experienceVendor.CreatedAt))
 	ua := strconv.Itoa(int(updatedAt))
+	sd := int(experienceVendor.StartDate)
 
 	res := model.ExperienceVendor{
-		ExpID:           input.ExpID,
-		VendorID:        input.VendorID,
+		ExpID:           *input.ExpID,
+		VendorID:        *input.VendorID,
 		PfID:            pfId,
-		StartDate:       int(experienceVendor.StartDate),
+		StartDate:       &sd,
 		EndDate:         &endDate,
-		Title:           experienceVendor.Title,
-		Location:        experienceVendor.Location,
-		LocationType:    experienceVendor.LocationType,
-		EmployementType: experienceVendor.EmployementType,
-		CompanyName:     experienceVendor.Company,
+		Title:           &experienceVendor.Title,
+		Location:        &experienceVendor.Location,
+		LocationType:    &experienceVendor.LocationType,
+		EmployementType: &experienceVendor.EmployementType,
+		CompanyName:     &experienceVendor.Company,
 		CreatedAt:       &ca,
 		CreatedBy:       &experienceVendor.CreatedBy,
 		UpdatedAt:       &ua,

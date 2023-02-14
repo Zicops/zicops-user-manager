@@ -80,9 +80,9 @@ type CourseViews struct {
 }
 
 type ExperienceInput struct {
-	ExpID           string  `json:"exp_id"`
-	VendorID        string  `json:"vendor_id"`
-	Email           string  `json:"email"`
+	ExpID           *string `json:"exp_id"`
+	VendorID        *string `json:"vendor_id"`
+	Email           *string `json:"email"`
 	Title           *string `json:"title"`
 	CompanyName     *string `json:"company_name"`
 	EmployementType *string `json:"employement_type"`
@@ -97,13 +97,13 @@ type ExperienceVendor struct {
 	ExpID           string  `json:"ExpId"`
 	VendorID        string  `json:"VendorId"`
 	PfID            string  `json:"PfId"`
-	StartDate       int     `json:"StartDate"`
+	StartDate       *int    `json:"StartDate"`
 	EndDate         *int    `json:"EndDate"`
-	Title           string  `json:"Title"`
-	Location        string  `json:"Location"`
-	LocationType    string  `json:"LocationType"`
-	EmployementType string  `json:"EmployementType"`
-	CompanyName     string  `json:"CompanyName"`
+	Title           *string `json:"Title"`
+	Location        *string `json:"Location"`
+	LocationType    *string `json:"LocationType"`
+	EmployementType *string `json:"EmployementType"`
+	CompanyName     *string `json:"CompanyName"`
 	CreatedAt       *string `json:"CreatedAt"`
 	CreatedBy       *string `json:"CreatedBy"`
 	UpdatedAt       *string `json:"UpdatedAt"`

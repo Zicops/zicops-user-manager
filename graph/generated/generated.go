@@ -4998,9 +4998,9 @@ input VendorProfile {
 }
 
 input ExperienceInput {
-  exp_id: String!
-  vendor_id: String!
-  email: String!
+  exp_id: String
+  vendor_id: String
+  email: String
   title: String
   company_name: String
   employement_type: String
@@ -5015,13 +5015,13 @@ type ExperienceVendor {
   ExpId: String!
   VendorId: String!
   PfId: String!
-  StartDate: Int!
+  StartDate: Int
   EndDate: Int
-  Title: String!
-  Location: String!
-  LocationType: String!
-  EmployementType: String!
-  CompanyName: String!
+  Title: String
+  Location: String
+  LocationType: String
+  EmployementType: String
+  CompanyName: String
   CreatedAt: String
 	CreatedBy: String
 	UpdatedAt: String
@@ -8925,14 +8925,11 @@ func (ec *executionContext) _ExperienceVendor_StartDate(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ExperienceVendor_StartDate(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9010,14 +9007,11 @@ func (ec *executionContext) _ExperienceVendor_Title(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ExperienceVendor_Title(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9054,14 +9048,11 @@ func (ec *executionContext) _ExperienceVendor_Location(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ExperienceVendor_Location(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9098,14 +9089,11 @@ func (ec *executionContext) _ExperienceVendor_LocationType(ctx context.Context, 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ExperienceVendor_LocationType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9142,14 +9130,11 @@ func (ec *executionContext) _ExperienceVendor_EmployementType(ctx context.Contex
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ExperienceVendor_EmployementType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9186,14 +9171,11 @@ func (ec *executionContext) _ExperienceVendor_CompanyName(ctx context.Context, f
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ExperienceVendor_CompanyName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -30827,7 +30809,7 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exp_id"))
-			it.ExpID, err = ec.unmarshalNString2string(ctx, v)
+			it.ExpID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30835,7 +30817,7 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
-			it.VendorID, err = ec.unmarshalNString2string(ctx, v)
+			it.VendorID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30843,7 +30825,7 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33692,9 +33674,6 @@ func (ec *executionContext) _ExperienceVendor(ctx context.Context, sel ast.Selec
 
 			out.Values[i] = ec._ExperienceVendor_StartDate(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "EndDate":
 
 			out.Values[i] = ec._ExperienceVendor_EndDate(ctx, field, obj)
@@ -33703,37 +33682,22 @@ func (ec *executionContext) _ExperienceVendor(ctx context.Context, sel ast.Selec
 
 			out.Values[i] = ec._ExperienceVendor_Title(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "Location":
 
 			out.Values[i] = ec._ExperienceVendor_Location(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "LocationType":
 
 			out.Values[i] = ec._ExperienceVendor_LocationType(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "EmployementType":
 
 			out.Values[i] = ec._ExperienceVendor_EmployementType(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "CompanyName":
 
 			out.Values[i] = ec._ExperienceVendor_CompanyName(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "CreatedAt":
 
 			out.Values[i] = ec._ExperienceVendor_CreatedAt(ctx, field, obj)
