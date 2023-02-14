@@ -161,6 +161,7 @@ type ComplexityRoot struct {
 		Login                     func(childComplexity int) int
 		RegisterUsers             func(childComplexity int, input []*model.UserInput) int
 		UpdateCohortMain          func(childComplexity int, input model.CohortMainInput) int
+		UpdateExperienceVendor    func(childComplexity int, input model.ExperienceInput) int
 		UpdateLearningSpace       func(childComplexity int, input model.LearningSpaceInput) int
 		UpdateOrganization        func(childComplexity int, input model.OrganizationInput) int
 		UpdateOrganizationUnit    func(childComplexity int, input model.OrganizationUnitInput) int
@@ -318,7 +319,8 @@ type ComplexityRoot struct {
 		GetUsersForAdmin               func(childComplexity int, publishTime *int, pageCursor *string, direction *string, pageSize *int, filters *model.UserFilters) int
 		GetVendorAdmins                func(childComplexity int, vendorID string) int
 		GetVendorDetails               func(childComplexity int, vendorID string) int
-		GetVendorExperience            func(childComplexity int, vendorID string, expID string) int
+		GetVendorExperience            func(childComplexity int, vendorID string, pfID string) int
+		GetVendorExperienceDetails     func(childComplexity int, vendorID string, pfID string, expID string) int
 		GetVendors                     func(childComplexity int, lspID *string) int
 		Logout                         func(childComplexity int) int
 	}
@@ -631,7 +633,8 @@ type MutationResolver interface {
 	AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error)
 	UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error)
 	CreateProfileVendor(ctx context.Context, input *model.VendorProfile) (string, error)
-	CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (string, error)
+	CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error)
+	UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error)
 	UploadSampleFile(ctx context.Context, input *model.SampleFile) (string, error)
 }
 type QueryResolver interface {
@@ -670,7 +673,8 @@ type QueryResolver interface {
 	GetUserLspRoles(ctx context.Context, userID string, userLspIds []string) ([]*model.UserRole, error)
 	GetCourseConsumptionStats(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCCStats, error)
 	GetCourseViews(ctx context.Context, lspIds []string, startTime *string, endTime *string) ([]*model.CourseViews, error)
-	GetVendorExperience(ctx context.Context, vendorID string, expID string) (*model.ExperienceVendor, error)
+	GetVendorExperience(ctx context.Context, vendorID string, pfID string) ([]*model.ExperienceVendor, error)
+	GetVendorExperienceDetails(ctx context.Context, vendorID string, pfID string, expID string) (*model.ExperienceVendor, error)
 	GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error)
 	GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendors, error)
 	GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error)
@@ -1493,6 +1497,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateCohortMain(childComplexity, args["input"].(model.CohortMainInput)), true
+
+	case "Mutation.updateExperienceVendor":
+		if e.complexity.Mutation.UpdateExperienceVendor == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateExperienceVendor_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateExperienceVendor(childComplexity, args["input"].(model.ExperienceInput)), true
 
 	case "Mutation.updateLearningSpace":
 		if e.complexity.Mutation.UpdateLearningSpace == nil {
@@ -2631,7 +2647,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetVendorExperience(childComplexity, args["vendor_id"].(string), args["exp_id"].(string)), true
+		return e.complexity.Query.GetVendorExperience(childComplexity, args["vendor_id"].(string), args["pf_id"].(string)), true
+
+	case "Query.getVendorExperienceDetails":
+		if e.complexity.Query.GetVendorExperienceDetails == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getVendorExperienceDetails_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetVendorExperienceDetails(childComplexity, args["vendor_id"].(string), args["pf_id"].(string), args["exp_id"].(string)), true
 
 	case "Query.getVendors":
 		if e.complexity.Query.GetVendors == nil {
@@ -4970,16 +4998,17 @@ input VendorProfile {
 }
 
 input ExperienceInput {
+  exp_id: String!
   vendor_id: String!
-  pf_id: String!
-  title: String!
-  company_name: String!
-  employement_type: String!
-  location: String!
-  location_type: String!
-  start_date: Int!
+  email: String!
+  title: String
+  company_name: String
+  employement_type: String
+  location: String
+  location_type: String
+  start_date: Int
   end_date: Int
-	status: String!
+	status: String
 }
 
 type ExperienceVendor {
@@ -5132,7 +5161,8 @@ type Query {
     start_time: String
     end_time: String
   ): [CourseViews]
-  getVendorExperience(vendor_id: String!, exp_id: String!):ExperienceVendor
+  getVendorExperience(vendor_id: String!, pf_id: String!):[ExperienceVendor]
+  getVendorExperienceDetails(vendor_id: String!, pf_id: String!, exp_id: String!): ExperienceVendor
   getVendors(lsp_id: String): [Vendor]
   getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [User]
@@ -5189,7 +5219,8 @@ type Mutation {
   addVendor(input: VendorInput): Vendor
   updateVendor(input: VendorInput): Vendor
   createProfileVendor(input: VendorProfile): String!
-  createExperienceVendor(input: ExperienceInput!): String!
+  createExperienceVendor(input: ExperienceInput!): ExperienceVendor
+  updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
   uploadSampleFile(input: SampleFile): String!
   #createVendorServices(VendorId: String!, SME: SMEInput, CRT: CRTInput, CD: CDInput): Boolean
 }
@@ -5619,6 +5650,21 @@ func (ec *executionContext) field_Mutation_updateCohortMain_args(ctx context.Con
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCohortMainInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCohortMainInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateExperienceVendor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.ExperienceInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNExperienceInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐExperienceInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7022,6 +7068,39 @@ func (ec *executionContext) field_Query_getVendorDetails_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getVendorExperienceDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["vendor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["pf_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pf_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pf_id"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["exp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exp_id"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["exp_id"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getVendorExperience_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -7035,14 +7114,14 @@ func (ec *executionContext) field_Query_getVendorExperience_args(ctx context.Con
 	}
 	args["vendor_id"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["exp_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exp_id"))
+	if tmp, ok := rawArgs["pf_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pf_id"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["exp_id"] = arg1
+	args["pf_id"] = arg1
 	return args, nil
 }
 
@@ -13450,14 +13529,11 @@ func (ec *executionContext) _Mutation_createExperienceVendor(ctx context.Context
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.ExperienceVendor)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOExperienceVendor2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐExperienceVendor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createExperienceVendor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -13467,7 +13543,39 @@ func (ec *executionContext) fieldContext_Mutation_createExperienceVendor(ctx con
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "ExpId":
+				return ec.fieldContext_ExperienceVendor_ExpId(ctx, field)
+			case "VendorId":
+				return ec.fieldContext_ExperienceVendor_VendorId(ctx, field)
+			case "PfId":
+				return ec.fieldContext_ExperienceVendor_PfId(ctx, field)
+			case "StartDate":
+				return ec.fieldContext_ExperienceVendor_StartDate(ctx, field)
+			case "EndDate":
+				return ec.fieldContext_ExperienceVendor_EndDate(ctx, field)
+			case "Title":
+				return ec.fieldContext_ExperienceVendor_Title(ctx, field)
+			case "Location":
+				return ec.fieldContext_ExperienceVendor_Location(ctx, field)
+			case "LocationType":
+				return ec.fieldContext_ExperienceVendor_LocationType(ctx, field)
+			case "EmployementType":
+				return ec.fieldContext_ExperienceVendor_EmployementType(ctx, field)
+			case "CompanyName":
+				return ec.fieldContext_ExperienceVendor_CompanyName(ctx, field)
+			case "CreatedAt":
+				return ec.fieldContext_ExperienceVendor_CreatedAt(ctx, field)
+			case "CreatedBy":
+				return ec.fieldContext_ExperienceVendor_CreatedBy(ctx, field)
+			case "UpdatedAt":
+				return ec.fieldContext_ExperienceVendor_UpdatedAt(ctx, field)
+			case "UpdatedBy":
+				return ec.fieldContext_ExperienceVendor_UpdatedBy(ctx, field)
+			case "Status":
+				return ec.fieldContext_ExperienceVendor_Status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ExperienceVendor", field.Name)
 		},
 	}
 	defer func() {
@@ -13478,6 +13586,90 @@ func (ec *executionContext) fieldContext_Mutation_createExperienceVendor(ctx con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createExperienceVendor_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateExperienceVendor(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateExperienceVendor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateExperienceVendor(rctx, fc.Args["input"].(model.ExperienceInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ExperienceVendor)
+	fc.Result = res
+	return ec.marshalOExperienceVendor2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐExperienceVendor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateExperienceVendor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ExpId":
+				return ec.fieldContext_ExperienceVendor_ExpId(ctx, field)
+			case "VendorId":
+				return ec.fieldContext_ExperienceVendor_VendorId(ctx, field)
+			case "PfId":
+				return ec.fieldContext_ExperienceVendor_PfId(ctx, field)
+			case "StartDate":
+				return ec.fieldContext_ExperienceVendor_StartDate(ctx, field)
+			case "EndDate":
+				return ec.fieldContext_ExperienceVendor_EndDate(ctx, field)
+			case "Title":
+				return ec.fieldContext_ExperienceVendor_Title(ctx, field)
+			case "Location":
+				return ec.fieldContext_ExperienceVendor_Location(ctx, field)
+			case "LocationType":
+				return ec.fieldContext_ExperienceVendor_LocationType(ctx, field)
+			case "EmployementType":
+				return ec.fieldContext_ExperienceVendor_EmployementType(ctx, field)
+			case "CompanyName":
+				return ec.fieldContext_ExperienceVendor_CompanyName(ctx, field)
+			case "CreatedAt":
+				return ec.fieldContext_ExperienceVendor_CreatedAt(ctx, field)
+			case "CreatedBy":
+				return ec.fieldContext_ExperienceVendor_CreatedBy(ctx, field)
+			case "UpdatedAt":
+				return ec.fieldContext_ExperienceVendor_UpdatedAt(ctx, field)
+			case "UpdatedBy":
+				return ec.fieldContext_ExperienceVendor_UpdatedBy(ctx, field)
+			case "Status":
+				return ec.fieldContext_ExperienceVendor_Status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ExperienceVendor", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateExperienceVendor_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -19072,7 +19264,7 @@ func (ec *executionContext) _Query_getVendorExperience(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetVendorExperience(rctx, fc.Args["vendor_id"].(string), fc.Args["exp_id"].(string))
+		return ec.resolvers.Query().GetVendorExperience(rctx, fc.Args["vendor_id"].(string), fc.Args["pf_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19081,9 +19273,9 @@ func (ec *executionContext) _Query_getVendorExperience(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.ExperienceVendor)
+	res := resTmp.([]*model.ExperienceVendor)
 	fc.Result = res
-	return ec.marshalOExperienceVendor2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐExperienceVendor(ctx, field.Selections, res)
+	return ec.marshalOExperienceVendor2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐExperienceVendor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getVendorExperience(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -19136,6 +19328,90 @@ func (ec *executionContext) fieldContext_Query_getVendorExperience(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getVendorExperience_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getVendorExperienceDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getVendorExperienceDetails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetVendorExperienceDetails(rctx, fc.Args["vendor_id"].(string), fc.Args["pf_id"].(string), fc.Args["exp_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ExperienceVendor)
+	fc.Result = res
+	return ec.marshalOExperienceVendor2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐExperienceVendor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getVendorExperienceDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ExpId":
+				return ec.fieldContext_ExperienceVendor_ExpId(ctx, field)
+			case "VendorId":
+				return ec.fieldContext_ExperienceVendor_VendorId(ctx, field)
+			case "PfId":
+				return ec.fieldContext_ExperienceVendor_PfId(ctx, field)
+			case "StartDate":
+				return ec.fieldContext_ExperienceVendor_StartDate(ctx, field)
+			case "EndDate":
+				return ec.fieldContext_ExperienceVendor_EndDate(ctx, field)
+			case "Title":
+				return ec.fieldContext_ExperienceVendor_Title(ctx, field)
+			case "Location":
+				return ec.fieldContext_ExperienceVendor_Location(ctx, field)
+			case "LocationType":
+				return ec.fieldContext_ExperienceVendor_LocationType(ctx, field)
+			case "EmployementType":
+				return ec.fieldContext_ExperienceVendor_EmployementType(ctx, field)
+			case "CompanyName":
+				return ec.fieldContext_ExperienceVendor_CompanyName(ctx, field)
+			case "CreatedAt":
+				return ec.fieldContext_ExperienceVendor_CreatedAt(ctx, field)
+			case "CreatedBy":
+				return ec.fieldContext_ExperienceVendor_CreatedBy(ctx, field)
+			case "UpdatedAt":
+				return ec.fieldContext_ExperienceVendor_UpdatedAt(ctx, field)
+			case "UpdatedBy":
+				return ec.fieldContext_ExperienceVendor_UpdatedBy(ctx, field)
+			case "Status":
+				return ec.fieldContext_ExperienceVendor_Status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ExperienceVendor", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getVendorExperienceDetails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -30540,13 +30816,21 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"vendor_id", "pf_id", "title", "company_name", "employement_type", "location", "location_type", "start_date", "end_date", "status"}
+	fieldsInOrder := [...]string{"exp_id", "vendor_id", "email", "title", "company_name", "employement_type", "location", "location_type", "start_date", "end_date", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "exp_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("exp_id"))
+			it.ExpID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "vendor_id":
 			var err error
 
@@ -30555,11 +30839,11 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
-		case "pf_id":
+		case "email":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pf_id"))
-			it.PfID, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30567,7 +30851,7 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
-			it.Title, err = ec.unmarshalNString2string(ctx, v)
+			it.Title, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30575,7 +30859,7 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("company_name"))
-			it.CompanyName, err = ec.unmarshalNString2string(ctx, v)
+			it.CompanyName, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30583,7 +30867,7 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("employement_type"))
-			it.EmployementType, err = ec.unmarshalNString2string(ctx, v)
+			it.EmployementType, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30591,7 +30875,7 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location"))
-			it.Location, err = ec.unmarshalNString2string(ctx, v)
+			it.Location, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30599,7 +30883,7 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("location_type"))
-			it.LocationType, err = ec.unmarshalNString2string(ctx, v)
+			it.LocationType, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30607,7 +30891,7 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
-			it.StartDate, err = ec.unmarshalNInt2int(ctx, v)
+			it.StartDate, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30623,7 +30907,7 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			it.Status, err = ec.unmarshalNString2string(ctx, v)
+			it.Status, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33909,9 +34193,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_createExperienceVendor(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+		case "updateExperienceVendor":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateExperienceVendor(ctx, field)
+			})
+
 		case "uploadSampleFile":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -35209,6 +35496,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getVendorExperience(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getVendorExperienceDetails":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getVendorExperienceDetails(ctx, field)
 				return res
 			}
 
@@ -38260,6 +38567,47 @@ func (ec *executionContext) marshalOCourseViews2ᚖgithubᚗcomᚋzicopsᚋzicop
 		return graphql.Null
 	}
 	return ec._CourseViews(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOExperienceVendor2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐExperienceVendor(ctx context.Context, sel ast.SelectionSet, v []*model.ExperienceVendor) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOExperienceVendor2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐExperienceVendor(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
 }
 
 func (ec *executionContext) marshalOExperienceVendor2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐExperienceVendor(ctx context.Context, sel ast.SelectionSet, v *model.ExperienceVendor) graphql.Marshaler {
