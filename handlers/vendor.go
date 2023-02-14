@@ -443,21 +443,37 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 	CassUserSession := session
 
 	exp := vendorz.VendorExperience{
-		ExpId:           expId,
-		VendorId:        *input.VendorID,
-		PfId:            pfId,
-		StartDate:       int64(*input.StartDate),
-		EndDate:         int64(*input.EndDate),
-		Title:           *input.Title,
-		Location:        *input.Location,
-		LocationType:    *input.LocationType,
-		EmployementType: *input.EmployementType,
-		Company:         *input.CompanyName,
-		CreatedAt:       currentTime,
-		CreatedBy:       email_creator,
-		UpdatedAt:       currentTime,
-		UpdatedBy:       email_creator,
-		Status:          *input.Status,
+		ExpId:     expId,
+		VendorId:  *input.VendorID,
+		PfId:      pfId,
+		CreatedAt: currentTime,
+		CreatedBy: email_creator,
+		UpdatedAt: currentTime,
+		UpdatedBy: email_creator,
+	}
+	if input.StartDate != nil {
+		exp.StartDate = int64(*input.StartDate)
+	}
+	if input.EndDate != nil {
+		exp.EndDate = int64(*input.EndDate)
+	}
+	if input.Title != nil {
+		exp.Title = *input.Title
+	}
+	if input.Location != nil {
+		exp.Location = *input.Location
+	}
+	if input.LocationType != nil {
+		exp.LocationType = *input.LocationType
+	}
+	if input.EmployementType != nil {
+		exp.EmployementType = *input.EmployementType
+	}
+	if input.CompanyName != nil {
+		exp.Company = *input.CompanyName
+	}
+	if input.Status != nil {
+		exp.Status = *input.Status
 	}
 
 	insertQuery := CassUserSession.Query(vendorz.VendorExperienceTable.Insert()).BindStruct(exp)
@@ -1201,7 +1217,7 @@ func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 	CassSession := session
 
 	pfId := base64.URLEncoding.EncodeToString([]byte(*input.Email))
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.experience WHERE vendor_id = '%s' AND pf_id = '%s' AND exp_id = '%s'`, *input.VendorID, pfId, *input.ExpID)
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.experience WHERE vendor_id = '%s' AND pf_id = '%s' AND exp_id = '%s' ALLOW FILTERING`, *input.VendorID, pfId, *input.ExpID)
 
 	getExperienceVendor := func() (exp []vendorz.VendorExperience, err error) {
 		q := CassSession.Query(queryStr, nil)
