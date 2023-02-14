@@ -446,8 +446,6 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 		ExpId:           expId,
 		VendorId:        *input.VendorID,
 		PfId:            pfId,
-		StartDate:       int64(*input.StartDate),
-		EndDate:         int64(*input.EndDate),
 		Title:           *input.Title,
 		Location:        *input.Location,
 		LocationType:    *input.LocationType,
@@ -458,6 +456,12 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 		UpdatedAt:       currentTime,
 		UpdatedBy:       email_creator,
 		Status:          *input.Status,
+	}
+	if input.StartDate != nil {
+		exp.StartDate = int64(*input.StartDate)
+	}
+	if input.EndDate != nil {
+		exp.EndDate = int64(*input.EndDate)
 	}
 
 	insertQuery := CassUserSession.Query(vendorz.VendorExperienceTable.Insert()).BindStruct(exp)
