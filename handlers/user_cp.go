@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
+	"github.com/zicops/contracts/coursez"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/graph/model"
@@ -240,7 +241,7 @@ func GetCourseViews(ctx context.Context, lspIds []string, startTime *string, end
 		}
 		getQueryStr := fmt.Sprintf("SELECT * FROM coursez.course_views WHERE lsp_id='%s' AND date_value >= '%s' AND date_value <= '%s' ALLOW FILTERING", lspID, startDateString, endDateString)
 		getQuery := CassUserSession.Query(getQueryStr, nil)
-		var courseViews []model.CourseViews
+		var courseViews []coursez.CourseView
 		if err := getQuery.SelectRelease(&courseViews); err != nil {
 			log.Errorf("error getting course views: %v", err)
 			return nil, err
@@ -249,7 +250,21 @@ func GetCourseViews(ctx context.Context, lspIds []string, startTime *string, end
 			continue
 		}
 		currentView := courseViews[0]
-		output = append(output, &currentView)
+		seconds := int(currentView.Hours)
+		createdAt := strconv.Itoa(int(currentView.CreatedAt))
+		var userIds []*string
+		for _, vv := range currentView.Users {
+			v := vv
+			userIds = append(userIds, &v)
+		}
+		res := model.CourseViews{
+			Seconds:    &seconds,
+			CreatedAt:  &createdAt,
+			LspID:      &currentView.LspId,
+			UserIds:    userIds,
+			DateString: &currentView.DateValue,
+		}
+		output = append(output, &res)
 	}
 	return output, nil
 }

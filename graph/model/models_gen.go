@@ -80,34 +80,35 @@ type CourseViews struct {
 }
 
 type ExperienceInput struct {
-	VendorID        string `json:"vendor_id"`
-	PfID            string `json:"pf_id"`
-	Title           string `json:"title"`
-	CompanyName     string `json:"company_name"`
-	EmployementType string `json:"employement_type"`
-	Location        string `json:"location"`
-	LocationType    string `json:"location_type"`
-	StartDate       int    `json:"start_date"`
-	EndDate         *int   `json:"end_date"`
-	Status          string `json:"status"`
+	ExpID           *string `json:"exp_id"`
+	VendorID        *string `json:"vendor_id"`
+	Email           *string `json:"email"`
+	Title           *string `json:"title"`
+	CompanyName     *string `json:"company_name"`
+	EmployementType *string `json:"employement_type"`
+	Location        *string `json:"location"`
+	LocationType    *string `json:"location_type"`
+	StartDate       *int    `json:"start_date"`
+	EndDate         *int    `json:"end_date"`
+	Status          *string `json:"status"`
 }
 
 type ExperienceVendor struct {
 	ExpID           string  `json:"ExpId"`
 	VendorID        string  `json:"VendorId"`
 	PfID            string  `json:"PfId"`
-	StartDate       int     `json:"StartDate"`
+	StartDate       *int    `json:"StartDate"`
 	EndDate         *int    `json:"EndDate"`
-	Title           string  `json:"Title"`
-	Location        string  `json:"Location"`
-	LocationType    string  `json:"LocationType"`
-	EmployementType string  `json:"EmployementType"`
-	CompanyName     string  `json:"CompanyName"`
+	Title           *string `json:"Title"`
+	Location        *string `json:"Location"`
+	LocationType    *string `json:"LocationType"`
+	EmployementType *string `json:"EmployementType"`
+	CompanyName     *string `json:"CompanyName"`
 	CreatedAt       *string `json:"CreatedAt"`
 	CreatedBy       *string `json:"CreatedBy"`
 	UpdatedAt       *string `json:"UpdatedAt"`
 	UpdatedBy       *string `json:"UpdatedBy"`
-	Status          string  `json:"Status"`
+	Status          *string `json:"Status"`
 }
 
 type InviteResponse struct {

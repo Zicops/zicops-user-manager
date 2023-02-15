@@ -461,13 +461,23 @@ func (r *mutationResolver) CreateProfileVendor(ctx context.Context, input *model
 }
 
 // CreateExperienceVendor is the resolver for the createExperienceVendor field.
-func (r *mutationResolver) CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (string, error) {
+func (r *mutationResolver) CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error) {
 	resp, err := handlers.CreateExperienceVendor(ctx, input)
 	if err != nil {
 		log.Println("Got error while creating experience of vendor: %v", err)
-		return "", nil
+		return nil, nil
 	}
 	return resp, nil
+}
+
+// UpdateExperienceVendor is the resolver for the updateExperienceVendor field.
+func (r *mutationResolver) UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error) {
+	res, err := handlers.UpdateExperienceVendor(ctx, input)
+	if err != nil {
+		log.Printf("Error updating experience of the vendor: %v", err)
+		return nil, err
+	}
+	return res, nil
 }
 
 // UploadSampleFile is the resolver for the uploadSampleFile field.
@@ -826,8 +836,23 @@ func (r *queryResolver) GetCourseViews(ctx context.Context, lspIds []string, sta
 }
 
 // GetVendorExperience is the resolver for the getVendorExperience field.
-func (r *queryResolver) GetVendorExperience(ctx context.Context, vendorID string, expID string) (*model.ExperienceVendor, error) {
-	panic(fmt.Errorf("not implemented: GetVendorExperience - getVendorExperience"))
+func (r *queryResolver) GetVendorExperience(ctx context.Context, vendorID string, pfID string) ([]*model.ExperienceVendor, error) {
+	res, err := handlers.GetVendorExperience(ctx, vendorID, pfID)
+	if err != nil {
+		log.Println("Got error while getting vendor's experience: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetVendorExperienceDetails is the resolver for the getVendorExperienceDetails field.
+func (r *queryResolver) GetVendorExperienceDetails(ctx context.Context, vendorID string, pfID string, expID string) (*model.ExperienceVendor, error) {
+	res, err := handlers.GetVendorExperienceDetails(ctx, vendorID, pfID, expID)
+	if err != nil {
+		log.Printf("Got error while getting vendor experience details: %v", err)
+		return nil, err
+	}
+	return res, nil
 }
 
 // GetVendors is the resolver for the getVendors field.

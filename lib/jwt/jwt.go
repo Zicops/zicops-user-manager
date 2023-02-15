@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strconv"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	jwt "github.com/golang-jwt/jwt"
 )
 
 // ValidateOnParse will say whether the token should be validated when the token is parsed
@@ -79,11 +79,11 @@ func GetClaims(stoken string) (map[string]interface{}, error) {
 	})
 
 	if token == nil {
-		return nil, fmt.Errorf("Unable to get claims from token")
+		return nil, fmt.Errorf("unable to get claims from token")
 	}
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, fmt.Errorf("Unable to get claims from token")
+		return nil, fmt.Errorf("unable to get claims from token")
 	}
 	if validate && !token.Valid {
 		return nil, fmt.Errorf("not valid token")
@@ -149,7 +149,7 @@ func GetUserID(r *http.Request) (string, error) {
 	return claims.Get("sub").AsString(), nil
 }
 
-//GetUserEmail get user email address from request while registering action/user it is useful
+// GetUserEmail get user email address from request while registering action/user it is useful
 func GetUserEmail(r *http.Request) (string, error) {
 	claims, err := Claims(r)
 
@@ -163,7 +163,7 @@ func GetUserEmail(r *http.Request) (string, error) {
 	return claims.Get("email").AsString(), nil
 }
 
-//GetAudience get user email address from request while registering action/user it is useful
+// GetAudience get user email address from request while registering action/user it is useful
 func GetAudience(r *http.Request) (string, error) {
 	claims, err := Claims(r)
 

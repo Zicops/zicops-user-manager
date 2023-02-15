@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -104,7 +103,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	}
 
 	if input.Users != nil {
-		users := changesStringType(input.Users)
+		users := ChangesStringType(input.Users)
 		resp, err := MapVendorUser(ctx, vendorId, users, email)
 		if err != nil {
 			return nil, err
@@ -223,7 +222,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 
 	if input.Users != nil {
 		updatedCols = append(updatedCols, "users")
-		users := changesStringType(input.Users)
+		users := ChangesStringType(input.Users)
 		resp, err := MapVendorUser(ctx, *input.VendorID, users, email)
 		if err != nil {
 			return nil, err
@@ -269,26 +268,31 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		updatedCols = append(updatedCols, "type")
 	}
 
+	// if input.Name != nil {
+	// 	var vendorsName []vendorz.Vendor
+	// 	queryName := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE name = '%s' ALLOW FILTERING`, *input.Name)
+	// 	getQueryName := CassUserSession.Query(queryName, nil)
+	// 	if err = getQueryName.SelectRelease(&vendorsName); err != nil {
+	// 		return nil, err
+	// 	}
+	// 	if len(vendorsName) == 0 {
+	// 		vendor.Name = *input.Name
+	// 		updatedCols = append(updatedCols, "name")
+	// 		//if the name we have entered is different from vendor id's original name, means we are trying to update the name of vendor to something else
+	// 		//which is not unique
+	// 	} else {
+	// 		for _, vv := range vendorsName {
+	// 			v := vv
+	// 			if v.Name == *input.Name && input.VendorID != &v.VendorId {
+	// 				return nil, errors.New("name needs to be unique, cant be updated")
+	// 			}
+	// 		}
+	// 	}
+	// }
+
 	if input.Name != nil {
-		var vendorsName []vendorz.Vendor
-		queryName := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE name = '%s' ALLOW FILTERING`, *input.Name)
-		getQueryName := CassUserSession.Query(queryName, nil)
-		if err = getQueryName.SelectRelease(&vendorsName); err != nil {
-			return nil, err
-		}
-		if len(vendorsName) == 0 {
-			vendor.Name = *input.Name
-			updatedCols = append(updatedCols, "name")
-			//if the name we have entered is different from vendor id's original name, means we are trying to update the name of vendor to something else
-			//which is not unique
-		} else {
-			for _, vv := range vendorsName {
-				v := vv
-				if v.Name == *input.Name && input.VendorID != &v.VendorId {
-					return nil, errors.New("name needs to be unique, cant be updated")
-				}
-			}
-		}
+		vendor.Name = *input.Name
+		updatedCols = append(updatedCols, "name")
 	}
 
 	if len(updatedCols) > 0 {
@@ -300,7 +304,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 	}
 
 	upStms, uNames := vendorz.VendorTable.Update(updatedCols...)
-	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(vendor)
+	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&vendor)
 	if err = updateQuery.ExecRelease(); err != nil {
 		log.Printf("Error updating user: %v", err)
 	}
@@ -399,7 +403,7 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 	return resp, nil
 }
 
-func changesStringType(input []*string) []string {
+func ChangesStringType(input []*string) []string {
 	var res []string
 	for _, vv := range input {
 		v := vv
@@ -418,48 +422,84 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfile) (strin
 	return "", nil
 }
 
-func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (string, error) {
+func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error) {
 
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
-		return "", err
+		return nil, err
 	}
 	email_creator := claims["email"].(string)
 
-	//employement type, location, location type
-	description := fmt.Sprintf("%s %s %s", input.EmployementType, input.Location, input.LocationType)
 	session, err := cassandra.GetCassSession("vendorz")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	expIdUuid, _ := uuid.NewUUID()
-	expId := expIdUuid.String()
 
+	expId := uuid.New().String()
+
+	pfId := base64.URLEncoding.EncodeToString([]byte(*input.Email))
 	currentTime := time.Now().Unix()
 	CassUserSession := session
+
 	exp := vendorz.VendorExperience{
-		ExpId:       expId,
-		VendorId:    input.VendorID,
-		PfId:        input.PfID,
-		StartDate:   int64(input.StartDate),
-		EndDate:     int64(*input.EndDate),
-		Title:       input.Title,
-		Company:     input.CompanyName,
-		Description: description,
-		CreatedAt:   currentTime,
-		CreatedBy:   email_creator,
-		UpdatedAt:   currentTime,
-		UpdatedBy:   email_creator,
-		Status:      input.Status,
+		ExpId:     expId,
+		VendorId:  *input.VendorID,
+		PfId:      pfId,
+		CreatedAt: currentTime,
+		CreatedBy: email_creator,
+		UpdatedAt: currentTime,
+		UpdatedBy: email_creator,
+	}
+	if input.StartDate != nil {
+		exp.StartDate = int64(*input.StartDate)
+	}
+	if input.EndDate != nil {
+		exp.EndDate = int64(*input.EndDate)
+	}
+	if input.Title != nil {
+		exp.Title = *input.Title
+	}
+	if input.Location != nil {
+		exp.Location = *input.Location
+	}
+	if input.LocationType != nil {
+		exp.LocationType = *input.LocationType
+	}
+	if input.EmployementType != nil {
+		exp.EmployementType = *input.EmployementType
+	}
+	if input.CompanyName != nil {
+		exp.Company = *input.CompanyName
+	}
+	if input.Status != nil {
+		exp.Status = *input.Status
 	}
 
 	insertQuery := CassUserSession.Query(vendorz.VendorExperienceTable.Insert()).BindStruct(exp)
 	if err := insertQuery.ExecRelease(); err != nil {
-		return "", err
+		return nil, err
+	}
+	ct := strconv.Itoa(int(currentTime))
+	res := model.ExperienceVendor{
+		ExpID:           expId,
+		VendorID:        *input.VendorID,
+		PfID:            pfId,
+		StartDate:       input.StartDate,
+		EndDate:         input.EndDate,
+		Title:           input.Title,
+		CompanyName:     input.CompanyName,
+		Location:        input.Location,
+		LocationType:    input.LocationType,
+		EmployementType: input.EmployementType,
+		CreatedAt:       &ct,
+		CreatedBy:       &email_creator,
+		UpdatedAt:       &ct,
+		UpdatedBy:       &ct,
+		Status:          input.Status,
 	}
 
-	return expId, nil
+	return &res, nil
 }
 
 func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role *string) ([]*model.InviteResponse, error) {
@@ -797,6 +837,16 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 
 			createdAt := strconv.Itoa(int(user.CreatedAt))
 			updatedAt := strconv.Itoa(int(user.UpdatedAt))
+			fireBaseUser, err := global.IDP.GetUserByEmail(ctx, user.Email)
+			if err != nil {
+				log.Printf("Failed to get user from firebase: %v", err.Error())
+				return
+			}
+			phone := ""
+			if fireBaseUser != nil {
+				phone = fireBaseUser.PhoneNumber
+			}
+
 			temp := &model.User{
 				ID:         &user.ID,
 				FirstName:  user.FirstName,
@@ -812,6 +862,7 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 				UpdatedBy:  &user.UpdatedBy,
 				Email:      user.Email,
 				PhotoURL:   &user.PhotoURL,
+				Phone:      phone,
 			}
 			userData := temp
 			res[k] = userData
@@ -1033,4 +1084,230 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 	outputResponse.PageSize = pageSize
 	outputResponse.PageCursor = &newCursor
 	return &outputResponse, nil
+}
+
+func GetVendorExperience(ctx context.Context, vendorID string, pfID string) ([]*model.ExperienceVendor, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error while getting claims: %v", err)
+		return nil, err
+	}
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Printf("Got error while creating session: %v", err)
+		return nil, err
+	}
+	CassSession := session
+
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.experience WHERE vendor_id = '%s' AND pf_id = '%s' ALLOW FILTERING`, vendorID, pfID)
+	getProfile := func() (vendorExp []vendorz.VendorExperience, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return vendorExp, iter.Select(&vendorExp)
+	}
+
+	vendorProfileExp, err := getProfile()
+	if err != nil {
+		log.Printf("Got error while getting experience for a profile: %v", err)
+		return nil, err
+	}
+	if len(vendorProfileExp) == 0 {
+		return nil, nil
+	}
+
+	res := make([]*model.ExperienceVendor, len(vendorProfileExp))
+	for k, vv := range vendorProfileExp {
+		v := vv
+		endDate := int(v.EndDate)
+
+		ca := strconv.Itoa(int(v.CreatedAt))
+		ua := strconv.Itoa(int(v.UpdatedAt))
+		sd := int(v.StartDate)
+		tmp := &model.ExperienceVendor{
+			ExpID:           v.ExpId,
+			VendorID:        v.VendorId,
+			PfID:            v.PfId,
+			StartDate:       &sd,
+			EndDate:         &endDate,
+			Title:           &v.Title,
+			EmployementType: &v.EmployementType,
+			Location:        &v.Location,
+			LocationType:    &v.LocationType,
+			CompanyName:     &v.Company,
+			CreatedAt:       &ca,
+			CreatedBy:       &v.CreatedBy,
+			UpdatedAt:       &ua,
+			UpdatedBy:       &v.UpdatedBy,
+			Status:          &v.Status,
+		}
+		res[k] = tmp
+	}
+	return res, nil
+}
+
+func GetVendorExperienceDetails(ctx context.Context, vendorID string, pfID string, expID string) (*model.ExperienceVendor, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error while getting claims: %v", err)
+		return nil, err
+	}
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.experience WHERE vendor_id = '%s' AND pf_id = '%s' AND exp_id = '%s' ALLOW FILTERING`, vendorID, pfID, expID)
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Printf("Got error while getting session of vendor: %v", err)
+	}
+	CassSession := session
+	getProfileExperience := func() (exp []vendorz.VendorExperience, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return exp, iter.Select(&exp)
+	}
+
+	profileExperience, err := getProfileExperience()
+
+	if err != nil {
+		log.Printf("Got error while getting data from profile experience: %v", err)
+	}
+	if len(profileExperience) == 0 {
+		return nil, nil
+	}
+	pfe := profileExperience[0]
+
+	ed := int(pfe.EndDate)
+	ca := strconv.Itoa(int(pfe.CreatedAt))
+	ua := strconv.Itoa(int(pfe.UpdatedAt))
+	sd := int(pfe.StartDate)
+
+	res := &model.ExperienceVendor{
+		ExpID:           pfe.ExpId,
+		VendorID:        pfe.VendorId,
+		PfID:            pfe.PfId,
+		StartDate:       &sd,
+		EndDate:         &ed,
+		Title:           &pfe.Title,
+		Location:        &pfe.Location,
+		LocationType:    &pfe.LocationType,
+		EmployementType: &pfe.EmployementType,
+		CompanyName:     &pfe.Company,
+		CreatedAt:       &ca,
+		CreatedBy:       &pfe.CreatedBy,
+		UpdatedAt:       &ua,
+		UpdatedBy:       &pfe.UpdatedBy,
+		Status:          &pfe.Status,
+	}
+	return res, nil
+}
+
+func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error while getting claims : %v", err)
+		return nil, nil
+	}
+	updatedBy := claims["email"].(string)
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Printf("Got error while getting session: %v", err)
+		return nil, err
+	}
+	CassSession := session
+
+	pfId := base64.URLEncoding.EncodeToString([]byte(*input.Email))
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.experience WHERE vendor_id = '%s' AND pf_id = '%s' AND exp_id = '%s' ALLOW FILTERING`, *input.VendorID, pfId, *input.ExpID)
+
+	getExperienceVendor := func() (exp []vendorz.VendorExperience, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return exp, iter.Select(&exp)
+	}
+
+	exp, err := getExperienceVendor()
+	if err != nil {
+		log.Printf("Got error while getting experience of the vendor: %v", err)
+		return nil, err
+	}
+
+	if len(exp) == 0 {
+		return nil, fmt.Errorf("experience not found: %v", err)
+	}
+	experienceVendor := exp[0]
+	var updatedCols []string
+	//update all the given values
+	if input.CompanyName != nil {
+		updatedCols = append(updatedCols, "company")
+		experienceVendor.Company = *input.CompanyName
+	}
+	if input.StartDate != nil {
+		tmp := *input.StartDate
+		updatedCols = append(updatedCols, "start_date")
+		experienceVendor.StartDate = int64(tmp)
+	}
+	if input.EndDate != nil {
+		tmp := *input.EndDate
+		updatedCols = append(updatedCols, "end_date")
+		experienceVendor.EndDate = int64(tmp)
+	}
+	if input.Title != nil {
+		updatedCols = append(updatedCols, "title")
+		experienceVendor.Title = *input.Title
+	}
+	if input.Location != nil {
+		updatedCols = append(updatedCols, "location")
+		experienceVendor.Location = *input.Location
+	}
+	if input.LocationType != nil {
+		updatedCols = append(updatedCols, "location_type")
+		experienceVendor.LocationType = *input.LocationType
+	}
+	if input.EmployementType != nil {
+		updatedCols = append(updatedCols, "employement_type")
+		experienceVendor.EmployementType = *input.EmployementType
+	}
+	if input.Status != nil {
+		updatedCols = append(updatedCols, "status")
+		experienceVendor.Status = *input.Status
+	}
+	updatedAt := time.Now().Unix()
+	if len(updatedCols) > 0 {
+		updatedCols = append(updatedCols, "updated_by")
+		updatedCols = append(updatedCols, "updated_at")
+		experienceVendor.UpdatedAt = updatedAt
+		experienceVendor.UpdatedBy = updatedBy
+
+		upStms, uNames := vendorz.VendorExperienceTable.Update(updatedCols...)
+		updateQuery := CassSession.Query(upStms, uNames).BindStruct(&experienceVendor)
+
+		if err = updateQuery.ExecRelease(); err != nil {
+			log.Printf("Error updating experience of vendor's profile: %v", err)
+		}
+	}
+	endDate := int(experienceVendor.EndDate)
+	ca := strconv.Itoa(int(experienceVendor.CreatedAt))
+	ua := strconv.Itoa(int(updatedAt))
+	sd := int(experienceVendor.StartDate)
+
+	res := model.ExperienceVendor{
+		ExpID:           *input.ExpID,
+		VendorID:        *input.VendorID,
+		PfID:            pfId,
+		StartDate:       &sd,
+		EndDate:         &endDate,
+		Title:           &experienceVendor.Title,
+		Location:        &experienceVendor.Location,
+		LocationType:    &experienceVendor.LocationType,
+		EmployementType: &experienceVendor.EmployementType,
+		CompanyName:     &experienceVendor.Company,
+		CreatedAt:       &ca,
+		CreatedBy:       &experienceVendor.CreatedBy,
+		UpdatedAt:       &ua,
+		UpdatedBy:       &updatedBy,
+		Status:          &experienceVendor.Status,
+	}
+
+	return &res, nil
 }
