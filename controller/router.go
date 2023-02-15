@@ -127,9 +127,14 @@ func ResetPasswordHandler(c *gin.Context) {
 	ctx := c.Request.Context()
 	passwordReset, err := global.IDP.GetResetPasswordURL(ctx, email, origin, origin)
 	if err != nil {
+		log.Error(err)
 		return
 	}
-	global.SGClient.SendPasswordResetEmail(email, passwordReset, "")
+	err = global.SGClient.SendPasswordResetEmail(email, passwordReset, "")
+	if err != nil {
+		log.Error(err)
+		return
+	}
 }
 
 func HealthCheckHandler(c *gin.Context) {
