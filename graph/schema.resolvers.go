@@ -452,7 +452,7 @@ func (r *mutationResolver) UpdateVendor(ctx context.Context, input *model.Vendor
 }
 
 // CreateProfileVendor is the resolver for the createProfileVendor field.
-func (r *mutationResolver) CreateProfileVendor(ctx context.Context, input *model.VendorProfile) (string, error) {
+func (r *mutationResolver) CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error) {
 	resp, err := handlers.CreateProfileVendor(ctx, input)
 	if err != nil {
 		log.Println("Got error while creating profiles of vendor: %v", err)
@@ -890,6 +890,26 @@ func (r *queryResolver) GetVendorDetails(ctx context.Context, vendorID string) (
 	res, err := handlers.GetVendorDetails(ctx, vendorID)
 	if err != nil {
 		log.Println("Got error while getting vendor details: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// ViewProfileVendorDetails is the resolver for the viewProfileVendorDetails field.
+func (r *queryResolver) ViewProfileVendorDetails(ctx context.Context, vendorID string, email string, pType string) (*model.VendorProfile, error) {
+	res, err := handlers.ViewProfileVendorDetails(ctx, vendorID, email, pType)
+	if err != nil {
+		log.Printf("Got error while getting details of the vendor: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// ViewAllProfiles is the resolver for the viewAllProfiles field.
+func (r *queryResolver) ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*model.VendorProfile, error) {
+	res, err := handlers.ViewAllProfiles(ctx, vendorID, pType)
+	if err != nil {
+		log.Printf("Got error while getting details of the vendor: %v", err)
 		return nil, err
 	}
 	return res, nil
