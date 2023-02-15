@@ -496,7 +496,7 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 		CreatedBy:       &email_creator,
 		UpdatedAt:       &ct,
 		UpdatedBy:       &ct,
-		Status:          *input.Status,
+		Status:          input.Status,
 	}
 
 	return &res, nil
@@ -1140,7 +1140,7 @@ func GetVendorExperience(ctx context.Context, vendorID string, pfID string) ([]*
 			CreatedBy:       &v.CreatedBy,
 			UpdatedAt:       &ua,
 			UpdatedBy:       &v.UpdatedBy,
-			Status:          v.Status,
+			Status:          &v.Status,
 		}
 		res[k] = tmp
 	}
@@ -1153,7 +1153,7 @@ func GetVendorExperienceDetails(ctx context.Context, vendorID string, pfID strin
 		log.Printf("Got error while getting claims: %v", err)
 		return nil, err
 	}
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.experience WHERE vendor_id = '%s' AND pf_id = '%s' AND exp_id = '%s'`, vendorID, pfID, expID)
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.experience WHERE vendor_id = '%s' AND pf_id = '%s' AND exp_id = '%s' ALLOW FILTERING`, vendorID, pfID, expID)
 	session, err := cassandra.GetCassSession("vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session of vendor: %v", err)
@@ -1196,7 +1196,7 @@ func GetVendorExperienceDetails(ctx context.Context, vendorID string, pfID strin
 		CreatedBy:       &pfe.CreatedBy,
 		UpdatedAt:       &ua,
 		UpdatedBy:       &pfe.UpdatedBy,
-		Status:          pfe.Status,
+		Status:          &pfe.Status,
 	}
 	return res, nil
 }
@@ -1306,7 +1306,7 @@ func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 		CreatedBy:       &experienceVendor.CreatedBy,
 		UpdatedAt:       &ua,
 		UpdatedBy:       &updatedBy,
-		Status:          experienceVendor.Status,
+		Status:          &experienceVendor.Status,
 	}
 
 	return &res, nil
