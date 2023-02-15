@@ -747,20 +747,43 @@ input SMEInput {
 	Status: String!
 }
 
-input VendorProfile {
+input VendorProfileInput {
   vendor_id: String!
-  first_name: String!
+  first_name: String
+  type: String!
   last_name: String
-  email: String!
-  phone: Int!
+  email: String
+  phone: String
   photo: Upload
   description: String
   languages: [String]
   SME_expertise: [String]
   Classroom_expertise: [String]
-  experience: Int
-  is_speaker: Boolean!
-	status: String!
+  experience: [String]
+  is_speaker: Boolean
+	status: String
+}
+
+type VendorProfile {
+  pf_id: String
+  vendor_id: String
+  type: String
+  first_name: String
+  last_name: String
+  email: String
+  phone: String
+  photo_url: String
+  description: String
+  language: [String]
+  sme_expertise: [String]
+  classroom_expertise: [String]
+  experience: [String]
+  is_speaker: Boolean
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+	status: String
 }
 
 input ExperienceInput {
@@ -933,6 +956,8 @@ type Query {
   getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
+  viewProfileVendorDetails(vendor_id: String!, email: String!, p_type: String!): VendorProfile
+  viewAllProfiles(vendor_id: String!, p_type: String!): [VendorProfile]
 }
 
 type Mutation {
@@ -984,7 +1009,7 @@ type Mutation {
 
   addVendor(input: VendorInput): Vendor
   updateVendor(input: VendorInput): Vendor
-  createProfileVendor(input: VendorProfile): String!
+  createProfileVendor(input: VendorProfileInput): VendorProfile
   createExperienceVendor(input: ExperienceInput!): ExperienceVendor
   updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
   uploadSampleFile(input: SampleFile): String!

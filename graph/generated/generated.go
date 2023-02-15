@@ -154,7 +154,7 @@ type ComplexityRoot struct {
 		AddUserRoles              func(childComplexity int, input []*model.UserRoleInput) int
 		AddVendor                 func(childComplexity int, input *model.VendorInput) int
 		CreateExperienceVendor    func(childComplexity int, input model.ExperienceInput) int
-		CreateProfileVendor       func(childComplexity int, input *model.VendorProfile) int
+		CreateProfileVendor       func(childComplexity int, input *model.VendorProfileInput) int
 		DeleteCohortImage         func(childComplexity int, cohortID string, filename string) int
 		InviteUsers               func(childComplexity int, emails []string, lspID *string) int
 		InviteUsersWithRole       func(childComplexity int, emails []string, lspID *string, role *string) int
@@ -323,6 +323,8 @@ type ComplexityRoot struct {
 		GetVendorExperienceDetails     func(childComplexity int, vendorID string, pfID string, expID string) int
 		GetVendors                     func(childComplexity int, lspID *string) int
 		Logout                         func(childComplexity int) int
+		ViewAllProfiles                func(childComplexity int, vendorID string, pType string) int
+		ViewProfileVendorDetails       func(childComplexity int, vendorID string, email string, pType string) int
 	}
 
 	User struct {
@@ -586,6 +588,28 @@ type ComplexityRoot struct {
 		VendorID     func(childComplexity int) int
 		Website      func(childComplexity int) int
 	}
+
+	VendorProfile struct {
+		ClassroomExpertise func(childComplexity int) int
+		CreatedAt          func(childComplexity int) int
+		CreatedBy          func(childComplexity int) int
+		Description        func(childComplexity int) int
+		Email              func(childComplexity int) int
+		Experience         func(childComplexity int) int
+		FirstName          func(childComplexity int) int
+		IsSpeaker          func(childComplexity int) int
+		Language           func(childComplexity int) int
+		LastName           func(childComplexity int) int
+		PfID               func(childComplexity int) int
+		Phone              func(childComplexity int) int
+		PhotoURL           func(childComplexity int) int
+		SmeExpertise       func(childComplexity int) int
+		Status             func(childComplexity int) int
+		Type               func(childComplexity int) int
+		UpdatedAt          func(childComplexity int) int
+		UpdatedBy          func(childComplexity int) int
+		VendorID           func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
@@ -632,7 +656,7 @@ type MutationResolver interface {
 	DeleteCohortImage(ctx context.Context, cohortID string, filename string) (*string, error)
 	AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error)
 	UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error)
-	CreateProfileVendor(ctx context.Context, input *model.VendorProfile) (string, error)
+	CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error)
 	CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error)
 	UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error)
 	UploadSampleFile(ctx context.Context, input *model.SampleFile) (string, error)
@@ -679,6 +703,8 @@ type QueryResolver interface {
 	GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendors, error)
 	GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error)
 	GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, error)
+	ViewProfileVendorDetails(ctx context.Context, vendorID string, email string, pType string) (*model.VendorProfile, error)
+	ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*model.VendorProfile, error)
 }
 
 type executableSchema struct {
@@ -1429,7 +1455,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateProfileVendor(childComplexity, args["input"].(*model.VendorProfile)), true
+		return e.complexity.Mutation.CreateProfileVendor(childComplexity, args["input"].(*model.VendorProfileInput)), true
 
 	case "Mutation.deleteCohortImage":
 		if e.complexity.Mutation.DeleteCohortImage == nil {
@@ -2679,6 +2705,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Logout(childComplexity), true
+
+	case "Query.viewAllProfiles":
+		if e.complexity.Query.ViewAllProfiles == nil {
+			break
+		}
+
+		args, err := ec.field_Query_viewAllProfiles_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ViewAllProfiles(childComplexity, args["vendor_id"].(string), args["p_type"].(string)), true
+
+	case "Query.viewProfileVendorDetails":
+		if e.complexity.Query.ViewProfileVendorDetails == nil {
+			break
+		}
+
+		args, err := ec.field_Query_viewProfileVendorDetails_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ViewProfileVendorDetails(childComplexity, args["vendor_id"].(string), args["email"].(string), args["p_type"].(string)), true
 
 	case "User.created_at":
 		if e.complexity.User.CreatedAt == nil {
@@ -4136,6 +4186,139 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Vendor.Website(childComplexity), true
 
+	case "VendorProfile.classroom_expertise":
+		if e.complexity.VendorProfile.ClassroomExpertise == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.ClassroomExpertise(childComplexity), true
+
+	case "VendorProfile.created_at":
+		if e.complexity.VendorProfile.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.CreatedAt(childComplexity), true
+
+	case "VendorProfile.created_by":
+		if e.complexity.VendorProfile.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.CreatedBy(childComplexity), true
+
+	case "VendorProfile.description":
+		if e.complexity.VendorProfile.Description == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.Description(childComplexity), true
+
+	case "VendorProfile.email":
+		if e.complexity.VendorProfile.Email == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.Email(childComplexity), true
+
+	case "VendorProfile.experience":
+		if e.complexity.VendorProfile.Experience == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.Experience(childComplexity), true
+
+	case "VendorProfile.first_name":
+		if e.complexity.VendorProfile.FirstName == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.FirstName(childComplexity), true
+
+	case "VendorProfile.is_speaker":
+		if e.complexity.VendorProfile.IsSpeaker == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.IsSpeaker(childComplexity), true
+
+	case "VendorProfile.language":
+		if e.complexity.VendorProfile.Language == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.Language(childComplexity), true
+
+	case "VendorProfile.last_name":
+		if e.complexity.VendorProfile.LastName == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.LastName(childComplexity), true
+
+	case "VendorProfile.pf_id":
+		if e.complexity.VendorProfile.PfID == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.PfID(childComplexity), true
+
+	case "VendorProfile.phone":
+		if e.complexity.VendorProfile.Phone == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.Phone(childComplexity), true
+
+	case "VendorProfile.photo_url":
+		if e.complexity.VendorProfile.PhotoURL == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.PhotoURL(childComplexity), true
+
+	case "VendorProfile.sme_expertise":
+		if e.complexity.VendorProfile.SmeExpertise == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.SmeExpertise(childComplexity), true
+
+	case "VendorProfile.status":
+		if e.complexity.VendorProfile.Status == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.Status(childComplexity), true
+
+	case "VendorProfile.type":
+		if e.complexity.VendorProfile.Type == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.Type(childComplexity), true
+
+	case "VendorProfile.updated_at":
+		if e.complexity.VendorProfile.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.UpdatedAt(childComplexity), true
+
+	case "VendorProfile.updated_by":
+		if e.complexity.VendorProfile.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.UpdatedBy(childComplexity), true
+
+	case "VendorProfile.vendor_id":
+		if e.complexity.VendorProfile.VendorID == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.VendorID(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -4171,7 +4354,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUserQuizAttemptInput,
 		ec.unmarshalInputUserRoleInput,
 		ec.unmarshalInputVendorInput,
-		ec.unmarshalInputVendorProfile,
+		ec.unmarshalInputVendorProfileInput,
 	)
 	first := true
 
@@ -4981,20 +5164,43 @@ input SMEInput {
 	Status: String!
 }
 
-input VendorProfile {
+input VendorProfileInput {
   vendor_id: String!
-  first_name: String!
+  first_name: String
+  type: String!
   last_name: String
-  email: String!
-  phone: Int!
+  email: String
+  phone: String
   photo: Upload
   description: String
   languages: [String]
   SME_expertise: [String]
   Classroom_expertise: [String]
-  experience: Int
-  is_speaker: Boolean!
-	status: String!
+  experience: [String]
+  is_speaker: Boolean
+	status: String
+}
+
+type VendorProfile {
+  pf_id: String
+  vendor_id: String
+  type: String
+  first_name: String
+  last_name: String
+  email: String
+  phone: String
+  photo_url: String
+  description: String
+  language: [String]
+  sme_expertise: [String]
+  classroom_expertise: [String]
+  experience: [String]
+  is_speaker: Boolean
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+	status: String
 }
 
 input ExperienceInput {
@@ -5167,6 +5373,8 @@ type Query {
   getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
+  viewProfileVendorDetails(vendor_id: String!, email: String!, p_type: String!): VendorProfile
+  viewAllProfiles(vendor_id: String!, p_type: String!): [VendorProfile]
 }
 
 type Mutation {
@@ -5218,7 +5426,7 @@ type Mutation {
 
   addVendor(input: VendorInput): Vendor
   updateVendor(input: VendorInput): Vendor
-  createProfileVendor(input: VendorProfile): String!
+  createProfileVendor(input: VendorProfileInput): VendorProfile
   createExperienceVendor(input: ExperienceInput!): ExperienceVendor
   updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
   uploadSampleFile(input: SampleFile): String!
@@ -5535,10 +5743,10 @@ func (ec *executionContext) field_Mutation_createExperienceVendor_args(ctx conte
 func (ec *executionContext) field_Mutation_createProfileVendor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.VendorProfile
+	var arg0 *model.VendorProfileInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOVendorProfile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfile(ctx, tmp)
+		arg0, err = ec.unmarshalOVendorProfileInput2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfileInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7137,6 +7345,63 @@ func (ec *executionContext) field_Query_getVendors_args(ctx context.Context, raw
 		}
 	}
 	args["lsp_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_viewAllProfiles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["vendor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["p_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("p_type"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["p_type"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_viewProfileVendorDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["vendor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["p_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("p_type"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["p_type"] = arg2
 	return args, nil
 }
 
@@ -13446,21 +13711,18 @@ func (ec *executionContext) _Mutation_createProfileVendor(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateProfileVendor(rctx, fc.Args["input"].(*model.VendorProfile))
+		return ec.resolvers.Mutation().CreateProfileVendor(rctx, fc.Args["input"].(*model.VendorProfileInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.VendorProfile)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOVendorProfile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createProfileVendor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -13470,7 +13732,47 @@ func (ec *executionContext) fieldContext_Mutation_createProfileVendor(ctx contex
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "pf_id":
+				return ec.fieldContext_VendorProfile_pf_id(ctx, field)
+			case "vendor_id":
+				return ec.fieldContext_VendorProfile_vendor_id(ctx, field)
+			case "type":
+				return ec.fieldContext_VendorProfile_type(ctx, field)
+			case "first_name":
+				return ec.fieldContext_VendorProfile_first_name(ctx, field)
+			case "last_name":
+				return ec.fieldContext_VendorProfile_last_name(ctx, field)
+			case "email":
+				return ec.fieldContext_VendorProfile_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_VendorProfile_phone(ctx, field)
+			case "photo_url":
+				return ec.fieldContext_VendorProfile_photo_url(ctx, field)
+			case "description":
+				return ec.fieldContext_VendorProfile_description(ctx, field)
+			case "language":
+				return ec.fieldContext_VendorProfile_language(ctx, field)
+			case "sme_expertise":
+				return ec.fieldContext_VendorProfile_sme_expertise(ctx, field)
+			case "classroom_expertise":
+				return ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
+			case "experience":
+				return ec.fieldContext_VendorProfile_experience(ctx, field)
+			case "is_speaker":
+				return ec.fieldContext_VendorProfile_is_speaker(ctx, field)
+			case "created_at":
+				return ec.fieldContext_VendorProfile_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_VendorProfile_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_VendorProfile_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_VendorProfile_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_VendorProfile_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VendorProfile", field.Name)
 		},
 	}
 	defer func() {
@@ -19717,6 +20019,190 @@ func (ec *executionContext) fieldContext_Query_getVendorDetails(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getVendorDetails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_viewProfileVendorDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_viewProfileVendorDetails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ViewProfileVendorDetails(rctx, fc.Args["vendor_id"].(string), fc.Args["email"].(string), fc.Args["p_type"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.VendorProfile)
+	fc.Result = res
+	return ec.marshalOVendorProfile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_viewProfileVendorDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "pf_id":
+				return ec.fieldContext_VendorProfile_pf_id(ctx, field)
+			case "vendor_id":
+				return ec.fieldContext_VendorProfile_vendor_id(ctx, field)
+			case "type":
+				return ec.fieldContext_VendorProfile_type(ctx, field)
+			case "first_name":
+				return ec.fieldContext_VendorProfile_first_name(ctx, field)
+			case "last_name":
+				return ec.fieldContext_VendorProfile_last_name(ctx, field)
+			case "email":
+				return ec.fieldContext_VendorProfile_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_VendorProfile_phone(ctx, field)
+			case "photo_url":
+				return ec.fieldContext_VendorProfile_photo_url(ctx, field)
+			case "description":
+				return ec.fieldContext_VendorProfile_description(ctx, field)
+			case "language":
+				return ec.fieldContext_VendorProfile_language(ctx, field)
+			case "sme_expertise":
+				return ec.fieldContext_VendorProfile_sme_expertise(ctx, field)
+			case "classroom_expertise":
+				return ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
+			case "experience":
+				return ec.fieldContext_VendorProfile_experience(ctx, field)
+			case "is_speaker":
+				return ec.fieldContext_VendorProfile_is_speaker(ctx, field)
+			case "created_at":
+				return ec.fieldContext_VendorProfile_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_VendorProfile_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_VendorProfile_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_VendorProfile_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_VendorProfile_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VendorProfile", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_viewProfileVendorDetails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_viewAllProfiles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_viewAllProfiles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ViewAllProfiles(rctx, fc.Args["vendor_id"].(string), fc.Args["p_type"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.VendorProfile)
+	fc.Result = res
+	return ec.marshalOVendorProfile2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_viewAllProfiles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "pf_id":
+				return ec.fieldContext_VendorProfile_pf_id(ctx, field)
+			case "vendor_id":
+				return ec.fieldContext_VendorProfile_vendor_id(ctx, field)
+			case "type":
+				return ec.fieldContext_VendorProfile_type(ctx, field)
+			case "first_name":
+				return ec.fieldContext_VendorProfile_first_name(ctx, field)
+			case "last_name":
+				return ec.fieldContext_VendorProfile_last_name(ctx, field)
+			case "email":
+				return ec.fieldContext_VendorProfile_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_VendorProfile_phone(ctx, field)
+			case "photo_url":
+				return ec.fieldContext_VendorProfile_photo_url(ctx, field)
+			case "description":
+				return ec.fieldContext_VendorProfile_description(ctx, field)
+			case "language":
+				return ec.fieldContext_VendorProfile_language(ctx, field)
+			case "sme_expertise":
+				return ec.fieldContext_VendorProfile_sme_expertise(ctx, field)
+			case "classroom_expertise":
+				return ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
+			case "experience":
+				return ec.fieldContext_VendorProfile_experience(ctx, field)
+			case "is_speaker":
+				return ec.fieldContext_VendorProfile_is_speaker(ctx, field)
+			case "created_at":
+				return ec.fieldContext_VendorProfile_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_VendorProfile_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_VendorProfile_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_VendorProfile_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_VendorProfile_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VendorProfile", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_viewAllProfiles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -28839,6 +29325,785 @@ func (ec *executionContext) fieldContext_Vendor_status(ctx context.Context, fiel
 	return fc, nil
 }
 
+func (ec *executionContext) _VendorProfile_pf_id(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_pf_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PfID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_pf_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_vendor_id(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_vendor_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VendorID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_vendor_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_type(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_first_name(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_first_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_first_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_last_name(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_last_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_last_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_email(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_email(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_email(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_phone(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_phone(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_phone(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_photo_url(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_photo_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PhotoURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_photo_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_description(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_language(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_language(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Language, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_language(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_sme_expertise(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_sme_expertise(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SmeExpertise, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_sme_expertise(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_classroom_expertise(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ClassroomExpertise, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_classroom_expertise(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_experience(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_experience(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Experience, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_experience(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_is_speaker(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_is_speaker(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsSpeaker, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_is_speaker(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_created_at(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_created_by(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_created_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_created_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_updated_by(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_updated_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_updated_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_status(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext___Directive_name(ctx, field)
 	if err != nil {
@@ -33232,14 +34497,14 @@ func (ec *executionContext) unmarshalInputVendorInput(ctx context.Context, obj i
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputVendorProfile(ctx context.Context, obj interface{}) (model.VendorProfile, error) {
-	var it model.VendorProfile
+func (ec *executionContext) unmarshalInputVendorProfileInput(ctx context.Context, obj interface{}) (model.VendorProfileInput, error) {
+	var it model.VendorProfileInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"vendor_id", "first_name", "last_name", "email", "phone", "photo", "description", "languages", "SME_expertise", "Classroom_expertise", "experience", "is_speaker", "status"}
+	fieldsInOrder := [...]string{"vendor_id", "first_name", "type", "last_name", "email", "phone", "photo", "description", "languages", "SME_expertise", "Classroom_expertise", "experience", "is_speaker", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -33258,7 +34523,15 @@ func (ec *executionContext) unmarshalInputVendorProfile(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first_name"))
-			it.FirstName, err = ec.unmarshalNString2string(ctx, v)
+			it.FirstName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33274,7 +34547,7 @@ func (ec *executionContext) unmarshalInputVendorProfile(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalNString2string(ctx, v)
+			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33282,7 +34555,7 @@ func (ec *executionContext) unmarshalInputVendorProfile(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
-			it.Phone, err = ec.unmarshalNInt2int(ctx, v)
+			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33330,7 +34603,7 @@ func (ec *executionContext) unmarshalInputVendorProfile(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("experience"))
-			it.Experience, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Experience, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33338,7 +34611,7 @@ func (ec *executionContext) unmarshalInputVendorProfile(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_speaker"))
-			it.IsSpeaker, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.IsSpeaker, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33346,7 +34619,7 @@ func (ec *executionContext) unmarshalInputVendorProfile(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
-			it.Status, err = ec.unmarshalNString2string(ctx, v)
+			it.Status, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34142,9 +35415,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_createProfileVendor(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "createExperienceVendor":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -35554,6 +36824,46 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getVendorDetails(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "viewProfileVendorDetails":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_viewProfileVendorDetails(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "viewAllProfiles":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_viewAllProfiles(ctx, field)
 				return res
 			}
 
@@ -37208,6 +38518,103 @@ func (ec *executionContext) _Vendor(ctx context.Context, sel ast.SelectionSet, o
 		case "status":
 
 			out.Values[i] = ec._Vendor_status(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var vendorProfileImplementors = []string{"VendorProfile"}
+
+func (ec *executionContext) _VendorProfile(ctx context.Context, sel ast.SelectionSet, obj *model.VendorProfile) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, vendorProfileImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("VendorProfile")
+		case "pf_id":
+
+			out.Values[i] = ec._VendorProfile_pf_id(ctx, field, obj)
+
+		case "vendor_id":
+
+			out.Values[i] = ec._VendorProfile_vendor_id(ctx, field, obj)
+
+		case "type":
+
+			out.Values[i] = ec._VendorProfile_type(ctx, field, obj)
+
+		case "first_name":
+
+			out.Values[i] = ec._VendorProfile_first_name(ctx, field, obj)
+
+		case "last_name":
+
+			out.Values[i] = ec._VendorProfile_last_name(ctx, field, obj)
+
+		case "email":
+
+			out.Values[i] = ec._VendorProfile_email(ctx, field, obj)
+
+		case "phone":
+
+			out.Values[i] = ec._VendorProfile_phone(ctx, field, obj)
+
+		case "photo_url":
+
+			out.Values[i] = ec._VendorProfile_photo_url(ctx, field, obj)
+
+		case "description":
+
+			out.Values[i] = ec._VendorProfile_description(ctx, field, obj)
+
+		case "language":
+
+			out.Values[i] = ec._VendorProfile_language(ctx, field, obj)
+
+		case "sme_expertise":
+
+			out.Values[i] = ec._VendorProfile_sme_expertise(ctx, field, obj)
+
+		case "classroom_expertise":
+
+			out.Values[i] = ec._VendorProfile_classroom_expertise(ctx, field, obj)
+
+		case "experience":
+
+			out.Values[i] = ec._VendorProfile_experience(ctx, field, obj)
+
+		case "is_speaker":
+
+			out.Values[i] = ec._VendorProfile_is_speaker(ctx, field, obj)
+
+		case "created_at":
+
+			out.Values[i] = ec._VendorProfile_created_at(ctx, field, obj)
+
+		case "created_by":
+
+			out.Values[i] = ec._VendorProfile_created_by(ctx, field, obj)
+
+		case "updated_at":
+
+			out.Values[i] = ec._VendorProfile_updated_at(ctx, field, obj)
+
+		case "updated_by":
+
+			out.Values[i] = ec._VendorProfile_updated_by(ctx, field, obj)
+
+		case "status":
+
+			out.Values[i] = ec._VendorProfile_status(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -39931,11 +41338,59 @@ func (ec *executionContext) unmarshalOVendorInput2ᚖgithubᚗcomᚋzicopsᚋzic
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOVendorProfile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfile(ctx context.Context, v interface{}) (*model.VendorProfile, error) {
+func (ec *executionContext) marshalOVendorProfile2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfile(ctx context.Context, sel ast.SelectionSet, v []*model.VendorProfile) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOVendorProfile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfile(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOVendorProfile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfile(ctx context.Context, sel ast.SelectionSet, v *model.VendorProfile) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._VendorProfile(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOVendorProfileInput2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfileInput(ctx context.Context, v interface{}) (*model.VendorProfileInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalInputVendorProfile(ctx, v)
+	res, err := ec.unmarshalInputVendorProfileInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

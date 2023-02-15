@@ -798,17 +798,40 @@ type VendorInput struct {
 }
 
 type VendorProfile struct {
+	PfID               *string   `json:"pf_id"`
+	VendorID           *string   `json:"vendor_id"`
+	Type               *string   `json:"type"`
+	FirstName          *string   `json:"first_name"`
+	LastName           *string   `json:"last_name"`
+	Email              *string   `json:"email"`
+	Phone              *string   `json:"phone"`
+	PhotoURL           *string   `json:"photo_url"`
+	Description        *string   `json:"description"`
+	Language           []*string `json:"language"`
+	SmeExpertise       []*string `json:"sme_expertise"`
+	ClassroomExpertise []*string `json:"classroom_expertise"`
+	Experience         []*string `json:"experience"`
+	IsSpeaker          *bool     `json:"is_speaker"`
+	CreatedAt          *string   `json:"created_at"`
+	CreatedBy          *string   `json:"created_by"`
+	UpdatedAt          *string   `json:"updated_at"`
+	UpdatedBy          *string   `json:"updated_by"`
+	Status             *string   `json:"status"`
+}
+
+type VendorProfileInput struct {
 	VendorID           string          `json:"vendor_id"`
-	FirstName          string          `json:"first_name"`
+	FirstName          *string         `json:"first_name"`
+	Type               string          `json:"type"`
 	LastName           *string         `json:"last_name"`
-	Email              string          `json:"email"`
-	Phone              int             `json:"phone"`
+	Email              *string         `json:"email"`
+	Phone              *string         `json:"phone"`
 	Photo              *graphql.Upload `json:"photo"`
 	Description        *string         `json:"description"`
 	Languages          []*string       `json:"languages"`
 	SmeExpertise       []*string       `json:"SME_expertise"`
 	ClassroomExpertise []*string       `json:"Classroom_expertise"`
-	Experience         *int            `json:"experience"`
-	IsSpeaker          bool            `json:"is_speaker"`
-	Status             string          `json:"status"`
+	Experience         []*string       `json:"experience"`
+	IsSpeaker          *bool           `json:"is_speaker"`
+	Status             *string         `json:"status"`
 }

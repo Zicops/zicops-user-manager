@@ -412,14 +412,127 @@ func ChangesStringType(input []*string) []string {
 	return res
 }
 
-func CreateProfileVendor(ctx context.Context, input *model.VendorProfile) (string, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
-		return "", err
+		return nil, err
+	}
+	createdBy := claims["email"].(string)
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Printf("Got error while getting session: %v", err)
+		return nil, err
+	}
+	CassSession := session
+
+	pfId := base64.URLEncoding.EncodeToString([]byte(*input.Email))
+	profile := vendorz.VendorProfile{
+		PfId:     pfId,
+		VendorId: input.VendorID,
+		Type:     input.Type,
+	}
+	if input.FirstName != nil {
+		profile.FirstName = *input.FirstName
+	}
+	if input.LastName != nil {
+		profile.LastName = *input.LastName
+	}
+	if input.Email != nil {
+		profile.Email = *input.Email
+	}
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
+	if input.Photo != nil {
+		bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", "profile", pfId, input.Photo.Filename)
+		writer, err := storageC.UploadToGCS(ctx, bucketPath)
+		if err != nil {
+			return nil, err
+		}
+		defer writer.Close()
+		fileBuffer := bytes.NewBuffer(nil)
+		if _, err := io.Copy(fileBuffer, input.Photo.File); err != nil {
+			return nil, err
+		}
+		currentBytes := fileBuffer.Bytes()
+		_, err = io.Copy(writer, bytes.NewReader(currentBytes))
+		if err != nil {
+			return nil, err
+		}
+		url := storageC.GetSignedURLForObject(bucketPath)
+		profile.PhotoBucket = bucketPath
+		profile.PhotoURL = url
+	}
+	if input.Description != nil {
+		profile.Description = *input.Description
+	}
+	if input.Languages != nil {
+		tmp := ChangesStringType(input.Languages)
+		profile.Languages = tmp
+	}
+	if input.SmeExpertise != nil {
+		tmp := ChangesStringType(input.SmeExpertise)
+		profile.SMEExpertise = tmp
+	}
+	if input.ClassroomExpertise != nil {
+		tmp := ChangesStringType(input.ClassroomExpertise)
+		profile.ClassroomExpertise = tmp
+	}
+	if input.Experience != nil {
+		tmp := ChangesStringType(input.Experience)
+		profile.Experience = tmp
+	}
+	if input.IsSpeaker != nil {
+		profile.IsSpeaker = *input.IsSpeaker
+	}
+	if input.Status != nil {
+		profile.IsSpeaker = *input.IsSpeaker
+	}
+	profile.CreatedAt = time.Now().Unix()
+	profile.CreatedBy = createdBy
+
+	/*
+
+		insertQuery := CassUserSession.Query(vendorz.VendorTable.Insert()).BindStruct(vendor)
+		if err = insertQuery.Exec(); err != nil {
+			return nil, err
+		}
+	*/
+	insertQuery := CassSession.Query(vendorz.VendorProfileTable.Insert()).BindStruct(profile)
+	if err = insertQuery.Exec(); err != nil {
+		log.Printf("Got error while inserting data: %v", err)
+		return nil, err
 	}
 
-	return "", nil
+	phone := strconv.Itoa(int(profile.Phone))
+	createdAt := strconv.Itoa(int(profile.CreatedAt))
+
+	res := model.VendorProfile{
+		PfID:               &profile.PfId,
+		VendorID:           &profile.VendorId,
+		FirstName:          &profile.FirstName,
+		LastName:           &profile.LastName,
+		Email:              &profile.Email,
+		Phone:              &phone,
+		PhotoURL:           &profile.PhotoURL,
+		Description:        &profile.Description,
+		Language:           input.Languages,
+		SmeExpertise:       input.SmeExpertise,
+		ClassroomExpertise: input.ClassroomExpertise,
+		Experience:         input.Experience,
+		IsSpeaker:          &profile.IsSpeaker,
+		CreatedAt:          &createdAt,
+		CreatedBy:          &profile.CreatedBy,
+		UpdatedAt:          nil,
+		UpdatedBy:          nil,
+		Status:             &profile.Status,
+	}
+	return &res, nil
 }
 
 func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error) {
@@ -1310,4 +1423,180 @@ func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 	}
 
 	return &res, nil
+}
+
+func ViewProfileVendorDetails(ctx context.Context, vendorID string, email string, pType string) (*model.VendorProfile, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error while getting claims: %v", err)
+		return nil, err
+	}
+	pfId := base64.URLEncoding.EncodeToString([]byte(email))
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE pf_id = '%s' AND vendor_id = '%s' AND type = '%s' ALLOW FILTERING`, pfId, vendorID, pType)
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Printf("Got error while getting session of vendor: %v", err)
+	}
+	CassSession := session
+	getProfileDetail := func() (exp []vendorz.VendorProfile, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return exp, iter.Select(&exp)
+	}
+
+	profileDetails, err := getProfileDetail()
+
+	if err != nil {
+		log.Printf("Got error while getting data from profile experience: %v", err)
+	}
+	if len(profileDetails) == 0 {
+		return nil, nil
+	}
+	profile := profileDetails[0]
+
+	//get photo url
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		log.Printf("Failed to upload image to course: %v", err.Error())
+		return nil, err
+	}
+	photoUrl := ""
+	if profile.PhotoBucket != "" {
+		photoUrl = storageC.GetSignedURLForObject(profile.PhotoBucket)
+	} else {
+		photoUrl = profile.PhotoURL
+	}
+
+	phone := strconv.Itoa(int(profile.Phone))
+
+	languages := ChangeToPointerArray(profile.Languages)
+	sme := ChangeToPointerArray(profile.SMEExpertise)
+	crt := ChangeToPointerArray(profile.ClassroomExpertise)
+	exp := ChangeToPointerArray(profile.Experience)
+	createdAt := strconv.Itoa(int(profile.CreatedAt))
+	updatedAt := strconv.Itoa(int(profile.UpdatedAt))
+
+	res := model.VendorProfile{
+		PfID:               &pfId,
+		VendorID:           &vendorID,
+		Type:               &profile.Type,
+		FirstName:          &profile.FirstName,
+		LastName:           &profile.LastName,
+		Email:              &profile.Email,
+		Phone:              &phone,
+		PhotoURL:           &photoUrl,
+		Description:        &profile.Description,
+		Language:           languages,
+		SmeExpertise:       sme,
+		ClassroomExpertise: crt,
+		Experience:         exp,
+		IsSpeaker:          &profile.IsSpeaker,
+		CreatedAt:          &createdAt,
+		CreatedBy:          &profile.CreatedBy,
+		UpdatedAt:          &updatedAt,
+		UpdatedBy:          &profile.UpdatedBy,
+		Status:             &profile.Status,
+	}
+	return &res, nil
+}
+
+func ChangeToPointerArray(input []string) []*string {
+	var res []*string
+	if len(input) > 0 {
+		for _, vv := range input {
+			v := vv
+			res = append(res, &v)
+		}
+	}
+	return res
+}
+
+func ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*model.VendorProfile, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error while getting claims: %v", err)
+		return nil, err
+	}
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE vendor_id = '%s' AND type = '%s' ALLOW FILTERING`, vendorID, pType)
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Printf("Got error while getting session of vendor: %v", err)
+	}
+	CassSession := session
+
+	getAllProfiles := func() (profiles []vendorz.VendorProfile, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return profiles, iter.Select(&profiles)
+	}
+
+	profiles, err := getAllProfiles()
+	if err != nil {
+		log.Println("Got error while getting profiles ", err)
+		return nil, err
+	}
+	if len(profiles) == 0 {
+		return nil, nil
+	}
+
+	res := make([]*model.VendorProfile, len(profiles))
+	var wg sync.WaitGroup
+	for k, vv := range profiles {
+		v := vv
+
+		wg.Add(1)
+		//get photo url
+		go func(k int, v vendorz.VendorProfile) {
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				log.Printf("Failed to upload image to course: %v", err.Error())
+				return
+			}
+			photoUrl := ""
+			if v.PhotoBucket != "" {
+				photoUrl = storageC.GetSignedURLForObject(v.PhotoBucket)
+			} else {
+				photoUrl = v.PhotoURL
+			}
+
+			phone := strconv.Itoa(int(v.Phone))
+			languages := ChangeToPointerArray(v.Languages)
+			sme := ChangeToPointerArray(v.SMEExpertise)
+			crt := ChangeToPointerArray(v.ClassroomExpertise)
+			exp := ChangeToPointerArray(v.Experience)
+			createdAt := strconv.Itoa(int(v.CreatedAt))
+			updatedAt := strconv.Itoa(int(v.UpdatedAt))
+			tmp := model.VendorProfile{
+				PfID:               &v.PfId,
+				VendorID:           &v.VendorId,
+				Type:               &v.Type,
+				FirstName:          &v.FirstName,
+				LastName:           &v.LastName,
+				Email:              &v.Email,
+				Phone:              &phone,
+				PhotoURL:           &photoUrl,
+				Description:        &v.Description,
+				Language:           languages,
+				SmeExpertise:       sme,
+				ClassroomExpertise: crt,
+				Experience:         exp,
+				IsSpeaker:          &v.IsSpeaker,
+				CreatedAt:          &createdAt,
+				CreatedBy:          &v.CreatedBy,
+				UpdatedAt:          &updatedAt,
+				UpdatedBy:          &v.UpdatedBy,
+				Status:             &v.Status,
+			}
+			res[k] = &tmp
+			wg.Done()
+		}(k, v)
+	}
+	wg.Wait()
+	return res, nil
 }

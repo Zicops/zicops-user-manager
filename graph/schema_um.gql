@@ -716,6 +716,7 @@ type Vendor {
   description: String
 	photo_url: String
 	address: String
+  users: [String]
 	website: String
 	facebook_url: String
 	instagram_url: String
@@ -725,7 +726,7 @@ type Vendor {
 	created_by: String
 	updated_at: String
 	updated_by: String
-	status: String!
+	status: String
 }
 
 type PaginatedVendors {
@@ -746,51 +747,75 @@ input SMEInput {
 	Status: String!
 }
 
-input VendorProfile {
+input VendorProfileInput {
   vendor_id: String!
-  first_name: String!
+  first_name: String
+  type: String!
   last_name: String
-  email: String!
-  phone: Int!
+  email: String
+  phone: String
   photo: Upload
   description: String
   languages: [String]
   SME_expertise: [String]
   Classroom_expertise: [String]
-  experience: Int
-  is_speaker: Boolean!
-	status: String!
+  experience: [String]
+  is_speaker: Boolean
+	status: String
+}
+
+type VendorProfile {
+  pf_id: String
+  vendor_id: String
+  type: String
+  first_name: String
+  last_name: String
+  email: String
+  phone: String
+  photo_url: String
+  description: String
+  language: [String]
+  sme_expertise: [String]
+  classroom_expertise: [String]
+  experience: [String]
+  is_speaker: Boolean
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+	status: String
 }
 
 input ExperienceInput {
-  vendor_id: String!
-  pf_id: String!
-  title: String!
-  company_name: String!
-  employement_type: String!
-  location: String!
-  location_type: String!
-  start_date: Int!
+  exp_id: String
+  vendor_id: String
+  email: String
+  title: String
+  company_name: String
+  employement_type: String
+  location: String
+  location_type: String
+  start_date: Int
   end_date: Int
-	status: String!
+	status: String
 }
 
 type ExperienceVendor {
   ExpId: String!
   VendorId: String!
   PfId: String!
-  StartDate: Int!
+  StartDate: Int
   EndDate: Int
-  Title: String!
-  Location: String!
-  LocationType: String!
-  EmployementType: String!
-  CompanyName: String!
+  Title: String
+  Location: String
+  LocationType: String
+  EmployementType: String
+  CompanyName: String
   CreatedAt: String
 	CreatedBy: String
 	UpdatedAt: String
 	UpdatedBy: String
-	Status: String!
+	Status: String
 }
 
 type InviteResponse {
@@ -925,11 +950,14 @@ type Query {
     start_time: String
     end_time: String
   ): [CourseViews]
-  getVendorExperience(vendor_id: String!, exp_id: String!):ExperienceVendor
+  getVendorExperience(vendor_id: String!, pf_id: String!):[ExperienceVendor]
+  getVendorExperienceDetails(vendor_id: String!, pf_id: String!, exp_id: String!): ExperienceVendor
   getVendors(lsp_id: String): [Vendor]
   getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
+  viewProfileVendorDetails(vendor_id: String!, email: String!, p_type: String!): VendorProfile
+  viewAllProfiles(vendor_id: String!, p_type: String!): [VendorProfile]
 }
 
 type Mutation {
@@ -980,9 +1008,10 @@ type Mutation {
   deleteCohortImage(cohort_id: String!, filename: String!): String
 
   addVendor(input: VendorInput): Vendor
-  updateVendor(input: VendorInput!): Vendor
-  createProfileVendor(input: VendorProfile): String!
-  createExperienceVendor(input: ExperienceInput!): String!
+  updateVendor(input: VendorInput): Vendor
+  createProfileVendor(input: VendorProfileInput): VendorProfile
+  createExperienceVendor(input: ExperienceInput!): ExperienceVendor
+  updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
   uploadSampleFile(input: SampleFile): String!
   #createVendorServices(VendorId: String!, SME: SMEInput, CRT: CRTInput, CD: CDInput): Boolean
 }
