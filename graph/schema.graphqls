@@ -792,7 +792,7 @@ type ExperienceVendor {
 	CreatedBy: String
 	UpdatedAt: String
 	UpdatedBy: String
-	Status: String!
+	Status: String
 }
 
 type InviteResponse {

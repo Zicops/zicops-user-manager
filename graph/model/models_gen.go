@@ -108,7 +108,7 @@ type ExperienceVendor struct {
 	CreatedBy       *string `json:"CreatedBy"`
 	UpdatedAt       *string `json:"UpdatedAt"`
 	UpdatedBy       *string `json:"UpdatedBy"`
-	Status          string  `json:"Status"`
+	Status          *string `json:"Status"`
 }
 
 type InviteResponse struct {
