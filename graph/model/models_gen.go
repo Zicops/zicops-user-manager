@@ -811,6 +811,7 @@ type VendorProfile struct {
 	SmeExpertise       []*string `json:"sme_expertise"`
 	ClassroomExpertise []*string `json:"classroom_expertise"`
 	Experience         []*string `json:"experience"`
+	ExperienceYears    *string   `json:"experience_years"`
 	IsSpeaker          *bool     `json:"is_speaker"`
 	CreatedAt          *string   `json:"created_at"`
 	CreatedBy          *string   `json:"created_by"`
@@ -824,7 +825,7 @@ type VendorProfileInput struct {
 	FirstName          *string         `json:"first_name"`
 	Type               string          `json:"type"`
 	LastName           *string         `json:"last_name"`
-	Email              *string         `json:"email"`
+	Email              string          `json:"email"`
 	Phone              *string         `json:"phone"`
 	Photo              *graphql.Upload `json:"photo"`
 	Description        *string         `json:"description"`
@@ -832,6 +833,7 @@ type VendorProfileInput struct {
 	SmeExpertise       []*string       `json:"SME_expertise"`
 	ClassroomExpertise []*string       `json:"Classroom_expertise"`
 	Experience         []*string       `json:"experience"`
+	ExperienceYears    *string         `json:"experience_years"`
 	IsSpeaker          *bool           `json:"is_speaker"`
 	Status             *string         `json:"status"`
 }

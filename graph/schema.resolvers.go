@@ -485,6 +485,16 @@ func (r *mutationResolver) UploadSampleFile(ctx context.Context, input *model.Sa
 	panic(fmt.Errorf("not implemented: UploadSampleFile - uploadSampleFile"))
 }
 
+// UpdateProfileVendor is the resolver for the updateProfileVendor field.
+func (r *mutationResolver) UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error) {
+	res, err := handlers.UpdateProfileVendor(ctx, input)
+	if err != nil {
+		log.Printf("Error updating experience of the vendor: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
 // Logout is the resolver for the logout field.
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)

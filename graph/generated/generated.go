@@ -165,6 +165,7 @@ type ComplexityRoot struct {
 		UpdateLearningSpace       func(childComplexity int, input model.LearningSpaceInput) int
 		UpdateOrganization        func(childComplexity int, input model.OrganizationInput) int
 		UpdateOrganizationUnit    func(childComplexity int, input model.OrganizationUnitInput) int
+		UpdateProfileVendor       func(childComplexity int, input *model.VendorProfileInput) int
 		UpdateUser                func(childComplexity int, input model.UserInput) int
 		UpdateUserBookmark        func(childComplexity int, input model.UserBookmarkInput) int
 		UpdateUserCohort          func(childComplexity int, input model.UserCohortInput) int
@@ -596,6 +597,7 @@ type ComplexityRoot struct {
 		Description        func(childComplexity int) int
 		Email              func(childComplexity int) int
 		Experience         func(childComplexity int) int
+		ExperienceYears    func(childComplexity int) int
 		FirstName          func(childComplexity int) int
 		IsSpeaker          func(childComplexity int) int
 		Language           func(childComplexity int) int
@@ -660,6 +662,7 @@ type MutationResolver interface {
 	CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error)
 	UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error)
 	UploadSampleFile(ctx context.Context, input *model.SampleFile) (string, error)
+	UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error)
 }
 type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
@@ -1571,6 +1574,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateOrganizationUnit(childComplexity, args["input"].(model.OrganizationUnitInput)), true
+
+	case "Mutation.updateProfileVendor":
+		if e.complexity.Mutation.UpdateProfileVendor == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateProfileVendor_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateProfileVendor(childComplexity, args["input"].(*model.VendorProfileInput)), true
 
 	case "Mutation.updateUser":
 		if e.complexity.Mutation.UpdateUser == nil {
@@ -4228,6 +4243,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.VendorProfile.Experience(childComplexity), true
 
+	case "VendorProfile.experience_years":
+		if e.complexity.VendorProfile.ExperienceYears == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.ExperienceYears(childComplexity), true
+
 	case "VendorProfile.first_name":
 		if e.complexity.VendorProfile.FirstName == nil {
 			break
@@ -5169,7 +5191,7 @@ input VendorProfileInput {
   first_name: String
   type: String!
   last_name: String
-  email: String
+  email: String!
   phone: String
   photo: Upload
   description: String
@@ -5177,6 +5199,7 @@ input VendorProfileInput {
   SME_expertise: [String]
   Classroom_expertise: [String]
   experience: [String]
+  experience_years: String
   is_speaker: Boolean
 	status: String
 }
@@ -5195,6 +5218,7 @@ type VendorProfile {
   sme_expertise: [String]
   classroom_expertise: [String]
   experience: [String]
+  experience_years: String
   is_speaker: Boolean
   created_at: String
 	created_by: String
@@ -5362,6 +5386,7 @@ type Query {
     Direction: String
     pageSize: Int
   ): PaginatedCCStats
+  #total learner - assigned  =  asc, des
   getCourseViews(
     lsp_ids: [String!]!
     start_time: String
@@ -5430,6 +5455,7 @@ type Mutation {
   createExperienceVendor(input: ExperienceInput!): ExperienceVendor
   updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
   uploadSampleFile(input: SampleFile): String!
+  updateProfileVendor(input: VendorProfileInput): VendorProfile
   #createVendorServices(VendorId: String!, SME: SMEInput, CRT: CRTInput, CD: CDInput): Boolean
 }
 `, BuiltIn: false},
@@ -5918,6 +5944,21 @@ func (ec *executionContext) field_Mutation_updateOrganization_args(ctx context.C
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNOrganizationInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐOrganizationInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateProfileVendor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.VendorProfileInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOVendorProfileInput2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfileInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -13759,6 +13800,8 @@ func (ec *executionContext) fieldContext_Mutation_createProfileVendor(ctx contex
 				return ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
 			case "experience":
 				return ec.fieldContext_VendorProfile_experience(ctx, field)
+			case "experience_years":
+				return ec.fieldContext_VendorProfile_experience_years(ctx, field)
 			case "is_speaker":
 				return ec.fieldContext_VendorProfile_is_speaker(ctx, field)
 			case "created_at":
@@ -14006,6 +14049,100 @@ func (ec *executionContext) fieldContext_Mutation_uploadSampleFile(ctx context.C
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_uploadSampleFile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateProfileVendor(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateProfileVendor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateProfileVendor(rctx, fc.Args["input"].(*model.VendorProfileInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.VendorProfile)
+	fc.Result = res
+	return ec.marshalOVendorProfile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateProfileVendor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "pf_id":
+				return ec.fieldContext_VendorProfile_pf_id(ctx, field)
+			case "vendor_id":
+				return ec.fieldContext_VendorProfile_vendor_id(ctx, field)
+			case "type":
+				return ec.fieldContext_VendorProfile_type(ctx, field)
+			case "first_name":
+				return ec.fieldContext_VendorProfile_first_name(ctx, field)
+			case "last_name":
+				return ec.fieldContext_VendorProfile_last_name(ctx, field)
+			case "email":
+				return ec.fieldContext_VendorProfile_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_VendorProfile_phone(ctx, field)
+			case "photo_url":
+				return ec.fieldContext_VendorProfile_photo_url(ctx, field)
+			case "description":
+				return ec.fieldContext_VendorProfile_description(ctx, field)
+			case "language":
+				return ec.fieldContext_VendorProfile_language(ctx, field)
+			case "sme_expertise":
+				return ec.fieldContext_VendorProfile_sme_expertise(ctx, field)
+			case "classroom_expertise":
+				return ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
+			case "experience":
+				return ec.fieldContext_VendorProfile_experience(ctx, field)
+			case "experience_years":
+				return ec.fieldContext_VendorProfile_experience_years(ctx, field)
+			case "is_speaker":
+				return ec.fieldContext_VendorProfile_is_speaker(ctx, field)
+			case "created_at":
+				return ec.fieldContext_VendorProfile_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_VendorProfile_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_VendorProfile_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_VendorProfile_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_VendorProfile_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VendorProfile", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateProfileVendor_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -20087,6 +20224,8 @@ func (ec *executionContext) fieldContext_Query_viewProfileVendorDetails(ctx cont
 				return ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
 			case "experience":
 				return ec.fieldContext_VendorProfile_experience(ctx, field)
+			case "experience_years":
+				return ec.fieldContext_VendorProfile_experience_years(ctx, field)
 			case "is_speaker":
 				return ec.fieldContext_VendorProfile_is_speaker(ctx, field)
 			case "created_at":
@@ -20179,6 +20318,8 @@ func (ec *executionContext) fieldContext_Query_viewAllProfiles(ctx context.Conte
 				return ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
 			case "experience":
 				return ec.fieldContext_VendorProfile_experience(ctx, field)
+			case "experience_years":
+				return ec.fieldContext_VendorProfile_experience_years(ctx, field)
 			case "is_speaker":
 				return ec.fieldContext_VendorProfile_is_speaker(ctx, field)
 			case "created_at":
@@ -29858,6 +29999,47 @@ func (ec *executionContext) fieldContext_VendorProfile_experience(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _VendorProfile_experience_years(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_experience_years(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExperienceYears, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_experience_years(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _VendorProfile_is_speaker(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_VendorProfile_is_speaker(ctx, field)
 	if err != nil {
@@ -34504,7 +34686,7 @@ func (ec *executionContext) unmarshalInputVendorProfileInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"vendor_id", "first_name", "type", "last_name", "email", "phone", "photo", "description", "languages", "SME_expertise", "Classroom_expertise", "experience", "is_speaker", "status"}
+	fieldsInOrder := [...]string{"vendor_id", "first_name", "type", "last_name", "email", "phone", "photo", "description", "languages", "SME_expertise", "Classroom_expertise", "experience", "experience_years", "is_speaker", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -34547,7 +34729,7 @@ func (ec *executionContext) unmarshalInputVendorProfileInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34604,6 +34786,14 @@ func (ec *executionContext) unmarshalInputVendorProfileInput(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("experience"))
 			it.Experience, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "experience_years":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("experience_years"))
+			it.ExperienceYears, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35436,6 +35626,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "updateProfileVendor":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateProfileVendor(ctx, field)
+			})
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -38591,6 +38787,10 @@ func (ec *executionContext) _VendorProfile(ctx context.Context, sel ast.Selectio
 		case "experience":
 
 			out.Values[i] = ec._VendorProfile_experience(ctx, field, obj)
+
+		case "experience_years":
+
+			out.Values[i] = ec._VendorProfile_experience_years(ctx, field, obj)
 
 		case "is_speaker":
 

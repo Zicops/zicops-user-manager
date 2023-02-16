@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -162,13 +163,17 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 }
 
 func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error) {
+	if input.VendorID == nil {
+		return nil, errors.New("please pass vendor id")
+	}
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims from context: %v", err)
 		return nil, nil
 	}
 	email := claims["email"].(string)
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s'`, *input.VendorID)
+	v_id := *input.VendorID
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s'`, v_id)
 	session, err := cassandra.GetCassSession("vendorz")
 	if err != nil {
 		return nil, err
@@ -185,39 +190,39 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 	}
 
 	vendor := vendors[0]
-	var updatedCols []string
+	updatedCols := []string{}
 
 	if input.Level != nil {
-		updatedCols = append(updatedCols, "level")
 		vendor.Level = *input.Level
+		updatedCols = append(updatedCols, "level")
 	}
 	if input.Description != nil {
-		updatedCols = append(updatedCols, "description")
 		vendor.Description = *input.Description
+		updatedCols = append(updatedCols, "description")
 	}
 	if input.Address != nil {
-		updatedCols = append(updatedCols, "address")
 		vendor.Address = *input.Address
+		updatedCols = append(updatedCols, "address")
 	}
 	if input.Website != nil {
-		updatedCols = append(updatedCols, "website")
 		vendor.Website = *input.Website
+		updatedCols = append(updatedCols, "website")
 	}
 	if input.FacebookURL != nil {
-		updatedCols = append(updatedCols, "facebook")
 		vendor.Facebook = *input.FacebookURL
+		updatedCols = append(updatedCols, "facebook")
 	}
 	if input.InstagramURL != nil {
-		updatedCols = append(updatedCols, "instagram")
 		vendor.Instagram = *input.InstagramURL
+		updatedCols = append(updatedCols, "instagram")
 	}
 	if input.TwitterURL != nil {
-		updatedCols = append(updatedCols, "twitter")
 		vendor.Twitter = *input.TwitterURL
+		updatedCols = append(updatedCols, "twitter")
 	}
 	if input.LinkedinURL != nil {
-		updatedCols = append(updatedCols, "linkedin")
 		vendor.LinkedIn = *input.LinkedinURL
+		updatedCols = append(updatedCols, "linkedin")
 	}
 
 	if input.Users != nil {
@@ -231,8 +236,8 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		updatedCols = append(updatedCols, "users")
 	}
 	if input.Status != nil {
-		updatedCols = append(updatedCols, "status")
 		vendor.Status = *input.Status
+		updatedCols = append(updatedCols, "status")
 	}
 
 	storageC := bucket.NewStorageHandler()
@@ -268,28 +273,6 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		updatedCols = append(updatedCols, "type")
 	}
 
-	// if input.Name != nil {
-	// 	var vendorsName []vendorz.Vendor
-	// 	queryName := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE name = '%s' ALLOW FILTERING`, *input.Name)
-	// 	getQueryName := CassUserSession.Query(queryName, nil)
-	// 	if err = getQueryName.SelectRelease(&vendorsName); err != nil {
-	// 		return nil, err
-	// 	}
-	// 	if len(vendorsName) == 0 {
-	// 		vendor.Name = *input.Name
-	// 		updatedCols = append(updatedCols, "name")
-	// 		//if the name we have entered is different from vendor id's original name, means we are trying to update the name of vendor to something else
-	// 		//which is not unique
-	// 	} else {
-	// 		for _, vv := range vendorsName {
-	// 			v := vv
-	// 			if v.Name == *input.Name && input.VendorID != &v.VendorId {
-	// 				return nil, errors.New("name needs to be unique, cant be updated")
-	// 			}
-	// 		}
-	// 	}
-	// }
-
 	if input.Name != nil {
 		vendor.Name = *input.Name
 		updatedCols = append(updatedCols, "name")
@@ -301,13 +284,15 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 
 		updatedCols = append(updatedCols, "updated_at")
 		vendor.UpdatedAt = time.Now().Unix()
+
+		upStms, uNames := vendorz.VendorTable.Update(updatedCols...)
+		updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&vendor)
+		if err = updateQuery.ExecRelease(); err != nil {
+			log.Printf("Error updating user: %v", err)
+			return nil, err
+		}
 	}
 
-	upStms, uNames := vendorz.VendorTable.Update(updatedCols...)
-	updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&vendor)
-	if err = updateQuery.ExecRelease(); err != nil {
-		log.Printf("Error updating user: %v", err)
-	}
 	createdAt := strconv.Itoa(int(vendor.CreatedAt))
 	updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
 
@@ -427,20 +412,18 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	}
 	CassSession := session
 
-	pfId := base64.URLEncoding.EncodeToString([]byte(*input.Email))
+	pfId := base64.URLEncoding.EncodeToString([]byte(input.Email))
 	profile := vendorz.VendorProfile{
 		PfId:     pfId,
 		VendorId: input.VendorID,
 		Type:     input.Type,
+		Email:    input.Email,
 	}
 	if input.FirstName != nil {
 		profile.FirstName = *input.FirstName
 	}
 	if input.LastName != nil {
 		profile.LastName = *input.LastName
-	}
-	if input.Email != nil {
-		profile.Email = *input.Email
 	}
 	storageC := bucket.NewStorageHandler()
 	gproject := googleprojectlib.GetGoogleProjectID()
@@ -487,6 +470,9 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		tmp := ChangesStringType(input.Experience)
 		profile.Experience = tmp
 	}
+	if input.ExperienceYears != nil {
+		profile.ExperienceYears = *input.ExperienceYears
+	}
 	if input.IsSpeaker != nil {
 		profile.IsSpeaker = *input.IsSpeaker
 	}
@@ -509,22 +495,23 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		return nil, err
 	}
 
-	phone := strconv.Itoa(int(profile.Phone))
 	createdAt := strconv.Itoa(int(profile.CreatedAt))
 
 	res := model.VendorProfile{
 		PfID:               &profile.PfId,
 		VendorID:           &profile.VendorId,
+		Type:               &profile.Type,
 		FirstName:          &profile.FirstName,
 		LastName:           &profile.LastName,
 		Email:              &profile.Email,
-		Phone:              &phone,
+		Phone:              &profile.Phone,
 		PhotoURL:           &profile.PhotoURL,
 		Description:        &profile.Description,
 		Language:           input.Languages,
 		SmeExpertise:       input.SmeExpertise,
 		ClassroomExpertise: input.ClassroomExpertise,
 		Experience:         input.Experience,
+		ExperienceYears:    input.ExperienceYears,
 		IsSpeaker:          &profile.IsSpeaker,
 		CreatedAt:          &createdAt,
 		CreatedBy:          &profile.CreatedBy,
@@ -561,8 +548,6 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 		PfId:      pfId,
 		CreatedAt: currentTime,
 		CreatedBy: email_creator,
-		UpdatedAt: currentTime,
-		UpdatedBy: email_creator,
 	}
 	if input.StartDate != nil {
 		exp.StartDate = int64(*input.StartDate)
@@ -607,8 +592,6 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 		EmployementType: input.EmployementType,
 		CreatedAt:       &ct,
 		CreatedBy:       &email_creator,
-		UpdatedAt:       &ct,
-		UpdatedBy:       &ct,
 		Status:          input.Status,
 	}
 
@@ -1315,6 +1298,9 @@ func GetVendorExperienceDetails(ctx context.Context, vendorID string, pfID strin
 }
 
 func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error) {
+	if input.VendorID == nil || input.Email == nil || input.ExpID == nil {
+		return nil, errors.New("please pass all of the following fields, vendorId, email, expId")
+	}
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims : %v", err)
@@ -1349,7 +1335,7 @@ func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 		return nil, fmt.Errorf("experience not found: %v", err)
 	}
 	experienceVendor := exp[0]
-	var updatedCols []string
+	updatedCols := []string{}
 	//update all the given values
 	if input.CompanyName != nil {
 		updatedCols = append(updatedCols, "company")
@@ -1470,8 +1456,6 @@ func ViewProfileVendorDetails(ctx context.Context, vendorID string, email string
 		photoUrl = profile.PhotoURL
 	}
 
-	phone := strconv.Itoa(int(profile.Phone))
-
 	languages := ChangeToPointerArray(profile.Languages)
 	sme := ChangeToPointerArray(profile.SMEExpertise)
 	crt := ChangeToPointerArray(profile.ClassroomExpertise)
@@ -1486,13 +1470,14 @@ func ViewProfileVendorDetails(ctx context.Context, vendorID string, email string
 		FirstName:          &profile.FirstName,
 		LastName:           &profile.LastName,
 		Email:              &profile.Email,
-		Phone:              &phone,
+		Phone:              &profile.Phone,
 		PhotoURL:           &photoUrl,
 		Description:        &profile.Description,
 		Language:           languages,
 		SmeExpertise:       sme,
 		ClassroomExpertise: crt,
 		Experience:         exp,
+		ExperienceYears:    &profile.ExperienceYears,
 		IsSpeaker:          &profile.IsSpeaker,
 		CreatedAt:          &createdAt,
 		CreatedBy:          &profile.CreatedBy,
@@ -1565,7 +1550,6 @@ func ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*mod
 				photoUrl = v.PhotoURL
 			}
 
-			phone := strconv.Itoa(int(v.Phone))
 			languages := ChangeToPointerArray(v.Languages)
 			sme := ChangeToPointerArray(v.SMEExpertise)
 			crt := ChangeToPointerArray(v.ClassroomExpertise)
@@ -1579,13 +1563,14 @@ func ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*mod
 				FirstName:          &v.FirstName,
 				LastName:           &v.LastName,
 				Email:              &v.Email,
-				Phone:              &phone,
+				Phone:              &v.Phone,
 				PhotoURL:           &photoUrl,
 				Description:        &v.Description,
 				Language:           languages,
 				SmeExpertise:       sme,
 				ClassroomExpertise: crt,
 				Experience:         exp,
+				ExperienceYears:    &v.ExperienceYears,
 				IsSpeaker:          &v.IsSpeaker,
 				CreatedAt:          &createdAt,
 				CreatedBy:          &v.CreatedBy,
@@ -1599,4 +1584,144 @@ func ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*mod
 	}
 	wg.Wait()
 	return res, nil
+}
+
+func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error while getting claims: %v", err)
+		return nil, err
+	}
+	email := claims["email"].(string)
+	pfId := base64.URLEncoding.EncodeToString([]byte(input.Email))
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE pf_id = '%s' AND vendor_id = '%s' AND type = '%s' ALLOW FILTERING`, pfId, input.VendorID, input.Type)
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Printf("Got error while getting session of vendor: %v", err)
+	}
+	CassSession := session
+
+	getProfileDetails := func() (profiles []vendorz.VendorProfile, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return profiles, iter.Select(&profiles)
+	}
+	profiles, err := getProfileDetails()
+	if err != nil {
+		log.Printf("Got error while getting profile data: %v", err)
+		return nil, err
+	}
+	if len(profiles) > 0 {
+		return nil, nil
+	}
+	profile := profiles[0]
+	updatedCols := []string{}
+	if input.ClassroomExpertise != nil {
+		tmp := ChangesStringType(input.ClassroomExpertise)
+		profile.ClassroomExpertise = tmp
+		updatedCols = append(updatedCols, "classroom_expertise")
+	}
+	if input.Description != nil {
+		profile.Description = *input.Description
+		updatedCols = append(updatedCols, "description")
+	}
+	if input.FirstName != nil {
+		profile.FirstName = *input.FirstName
+		updatedCols = append(updatedCols, "first_name")
+	}
+	if input.IsSpeaker != nil {
+		profile.IsSpeaker = *input.IsSpeaker
+		updatedCols = append(updatedCols, "is_speaker")
+	}
+	if input.Languages != nil {
+		tmp := ChangesStringType(input.Languages)
+		profile.Languages = tmp
+		updatedCols = append(updatedCols, "languages")
+	}
+	if input.LastName != nil {
+		profile.LastName = *input.LastName
+		updatedCols = append(updatedCols, "last_name")
+	}
+	if input.Phone != nil {
+		profile.Phone = *input.Phone
+		updatedCols = append(updatedCols, "phone")
+	}
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		return nil, err
+	}
+	if input.Photo != nil {
+		bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", "profile", pfId, input.Photo.Filename)
+		writer, err := storageC.UploadToGCS(ctx, bucketPath)
+		if err != nil {
+			return nil, err
+		}
+		defer writer.Close()
+		fileBuffer := bytes.NewBuffer(nil)
+		if _, err := io.Copy(fileBuffer, input.Photo.File); err != nil {
+			return nil, err
+		}
+		currentBytes := fileBuffer.Bytes()
+		_, err = io.Copy(writer, bytes.NewReader(currentBytes))
+		if err != nil {
+			return nil, err
+		}
+		url := storageC.GetSignedURLForObject(bucketPath)
+		profile.PhotoBucket = bucketPath
+		profile.PhotoURL = url
+		updatedCols = append(updatedCols, "photo_bucket", "photo_url")
+	}
+	if input.SmeExpertise != nil {
+		tmp := ChangesStringType(input.SmeExpertise)
+		profile.SMEExpertise = tmp
+		updatedCols = append(updatedCols, "sme_expertise")
+	}
+	if input.Status != nil {
+		profile.Status = *input.Status
+		updatedCols = append(updatedCols, "status")
+	}
+
+	if len(updatedCols) > 0 {
+		profile.UpdatedBy = email
+		profile.UpdatedAt = time.Now().Unix()
+		updatedCols = append(updatedCols, "updated_by", "updated_at")
+		upStms, uNames := vendorz.VendorProfileTable.Update(updatedCols...)
+		updateQuery := CassSession.Query(upStms, uNames).BindStruct(&profile)
+		if err = updateQuery.ExecRelease(); err != nil {
+			log.Printf("Error updating profile: %v", err)
+			return nil, err
+		}
+	}
+	lang := ChangeToPointerArray(profile.Languages)
+	sme := ChangeToPointerArray(profile.SMEExpertise)
+	cre := ChangeToPointerArray(profile.ClassroomExpertise)
+	exp := ChangeToPointerArray(profile.Experience)
+	ca := strconv.Itoa(int(profile.CreatedAt))
+	ua := strconv.Itoa(int(profile.UpdatedAt))
+
+	res := model.VendorProfile{
+		PfID:               &profile.PfId,
+		VendorID:           &profile.VendorId,
+		Type:               &profile.Type,
+		FirstName:          &profile.FirstName,
+		LastName:           &profile.LastName,
+		Email:              &profile.Email,
+		Phone:              &profile.Phone,
+		PhotoURL:           &profile.PhotoURL,
+		Description:        &profile.Description,
+		Language:           lang,
+		SmeExpertise:       sme,
+		ClassroomExpertise: cre,
+		Experience:         exp,
+		ExperienceYears:    &profile.ExperienceYears,
+		IsSpeaker:          &profile.IsSpeaker,
+		CreatedAt:          &ca,
+		CreatedBy:          &profile.CreatedBy,
+		UpdatedAt:          &ua,
+		Status:             &profile.Status,
+	}
+	return &res, nil
 }
