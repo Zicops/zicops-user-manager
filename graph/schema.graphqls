@@ -752,7 +752,7 @@ input VendorProfileInput {
   first_name: String
   type: String!
   last_name: String
-  email: String
+  email: String!
   phone: String
   photo: Upload
   description: String
@@ -760,6 +760,7 @@ input VendorProfileInput {
   SME_expertise: [String]
   Classroom_expertise: [String]
   experience: [String]
+  experience_years: String
   is_speaker: Boolean
 	status: String
 }
@@ -778,6 +779,7 @@ type VendorProfile {
   sme_expertise: [String]
   classroom_expertise: [String]
   experience: [String]
+  experience_years: String
   is_speaker: Boolean
   created_at: String
 	created_by: String
@@ -945,6 +947,7 @@ type Query {
     Direction: String
     pageSize: Int
   ): PaginatedCCStats
+  #total learner - assigned  =  asc, des
   getCourseViews(
     lsp_ids: [String!]!
     start_time: String
@@ -1013,5 +1016,5 @@ type Mutation {
   createExperienceVendor(input: ExperienceInput!): ExperienceVendor
   updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
   uploadSampleFile(input: SampleFile): String!
-  #createVendorServices(VendorId: String!, SME: SMEInput, CRT: CRTInput, CD: CDInput): Boolean
+  updateProfileVendor(input: VendorProfileInput): VendorProfile
 }
