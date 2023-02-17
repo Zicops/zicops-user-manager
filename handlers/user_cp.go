@@ -238,7 +238,8 @@ func GetCourseViews(ctx context.Context, lspIds []string, startTime *string, end
 			log.Errorf("error getting course views: %v", err)
 			return nil, err
 		}
-		for _, currentView := range courseViews {
+		for _, cv := range courseViews {
+			currentView := cv
 			seconds := int(currentView.Hours)
 			createdAt := strconv.Itoa(int(currentView.CreatedAt))
 			var userIds []*string
