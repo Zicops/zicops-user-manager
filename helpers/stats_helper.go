@@ -131,6 +131,7 @@ func AddUpdateCourseViews(lspId string, userId string, secs int64, oldSecs int64
 			DateValue: currentDateString,
 			Users:     []string{userId},
 			Hours:     secs,
+			CreatedAt: time.Now().Unix(),
 		}
 		insertQuery := cSessionLocal.Query(coursez.CVTable.Insert()).BindStruct(courseViews)
 		if err := insertQuery.ExecRelease(); err != nil {
