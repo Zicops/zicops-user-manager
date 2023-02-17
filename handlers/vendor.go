@@ -83,7 +83,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		return nil, err
 	}
 	if input.Photo != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", "vendor", vendor.Name, input.Photo.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", "vendor", vendor.Name, base64.URLEncoding.EncodeToString([]byte(input.Photo.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -247,7 +247,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		return nil, err
 	}
 	if input.Photo != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", "vendor", vendor.Name, input.Photo.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", "vendor", vendor.Name, base64.URLEncoding.EncodeToString([]byte(input.Photo.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -432,7 +432,7 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		return nil, err
 	}
 	if input.Photo != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", "profile", pfId, input.Photo.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", "profile", pfId, base64.URLEncoding.EncodeToString([]byte(input.Photo.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -1654,7 +1654,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		return nil, err
 	}
 	if input.Photo != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", "profile", pfId, input.Photo.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", "profile", pfId, base64.URLEncoding.EncodeToString([]byte(input.Photo.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err

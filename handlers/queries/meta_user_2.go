@@ -264,7 +264,7 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 		return nil, err
 	}
 	if input.Image != nil && input.ImageURL == nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, input.Image.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, base64.URLEncoding.EncodeToString([]byte(input.Image.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -377,7 +377,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		return nil, err
 	}
 	if input.Image != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, input.Image.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, base64.URLEncoding.EncodeToString([]byte(input.Image.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err

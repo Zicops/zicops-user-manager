@@ -55,7 +55,7 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	}
 	if input.Logo != nil {
 
-		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "logos", input.Logo.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "logos", base64.URLEncoding.EncodeToString([]byte(input.Logo.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -81,7 +81,7 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	photoUrl := ""
 	photoBucket := ""
 	if input.Profile != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "photos", input.Profile.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "photos", base64.URLEncoding.EncodeToString([]byte(input.Profile.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -256,7 +256,7 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 		return nil, err
 	}
 	if input.Logo != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "logos", input.Profile.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "logos", base64.URLEncoding.EncodeToString([]byte(input.Profile.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -278,7 +278,7 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 		updatedCols = append(updatedCols, "logo_url")
 	}
 	if input.Profile != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "profile", input.Profile.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "profile", base64.URLEncoding.EncodeToString([]byte(input.Profile.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err

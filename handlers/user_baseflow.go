@@ -72,7 +72,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 	for _, user := range input {
 		userID := base64.URLEncoding.EncodeToString([]byte(user.Email))
 		if user.Photo != nil && user.PhotoURL == nil {
-			bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", userID, user.Photo.Filename)
+			bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", userID, base64.URLEncoding.EncodeToString([]byte(user.Photo.Filename)))
 			writer, err := storageC.UploadToGCS(ctx, bucketPath)
 			if err != nil {
 				return nil, nil, err
@@ -321,7 +321,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		return nil, err
 	}
 	if user.Photo != nil && user.PhotoURL == nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", *user.ID, user.Photo.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", *user.ID, base64.URLEncoding.EncodeToString([]byte(user.Photo.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
