@@ -238,25 +238,23 @@ func GetCourseViews(ctx context.Context, lspIds []string, startTime *string, end
 			log.Errorf("error getting course views: %v", err)
 			return nil, err
 		}
-		if len(courseViews) == 0 {
-			continue
+		for _, currentView := range courseViews {
+			seconds := int(currentView.Hours)
+			createdAt := strconv.Itoa(int(currentView.CreatedAt))
+			var userIds []*string
+			for _, vv := range currentView.Users {
+				v := vv
+				userIds = append(userIds, &v)
+			}
+			res := model.CourseViews{
+				Seconds:    &seconds,
+				CreatedAt:  &createdAt,
+				LspID:      &currentView.LspId,
+				UserIds:    userIds,
+				DateString: &currentView.DateValue,
+			}
+			output = append(output, &res)
 		}
-		currentView := courseViews[0]
-		seconds := int(currentView.Hours)
-		createdAt := strconv.Itoa(int(currentView.CreatedAt))
-		var userIds []*string
-		for _, vv := range currentView.Users {
-			v := vv
-			userIds = append(userIds, &v)
-		}
-		res := model.CourseViews{
-			Seconds:    &seconds,
-			CreatedAt:  &createdAt,
-			LspID:      &currentView.LspId,
-			UserIds:    userIds,
-			DateString: &currentView.DateValue,
-		}
-		output = append(output, &res)
 	}
 	return output, nil
 }
