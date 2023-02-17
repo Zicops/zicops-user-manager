@@ -221,19 +221,11 @@ func GetCourseViews(ctx context.Context, lspIds []string, startTime *string, end
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	startT, err := strconv.ParseInt(*startTime, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("start time is required")
+	if startTime == nil || endTime == nil {
+		return nil, fmt.Errorf("start and end time are required")
 	}
-	endT, err := strconv.ParseInt(*endTime, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("end time is required")
-	}
-
-	startDate := time.Unix(startT, 0)
-	endDate := time.Unix(endT, 0)
-	startDateString := startDate.Format("2006-01-02")
-	endDateString := endDate.Format("2006-01-02")
+	startDateString := *startTime
+	endDateString := *endTime
 	output := []*model.CourseViews{}
 	for _, lspID := range lspIds {
 		if lspID == "" {
