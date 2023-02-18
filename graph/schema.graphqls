@@ -791,7 +791,7 @@ type VendorProfile {
 input ExperienceInput {
   exp_id: String
   vendor_id: String
-  email: String
+  email: String!
   title: String
   company_name: String
   employement_type: String
@@ -825,13 +825,28 @@ type InviteResponse {
   message: String!
 }
 
-input SampleFile {
-  File: Upload!
-  Name: String!
-  Description: String!
-  Pricing: String!
-  FileType: String
-	Status: String!
+input SampleFileInput {
+  file: Upload!
+  name: String!
+  description: String
+  pricing: String!
+  fileType: String
+	status: String
+  vendorId: String!
+  p_type: String!
+}
+
+type SampleFile {
+  sf_id: String!
+  name: String
+  fileType: String
+  price: String
+  file_url: String
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+	status: String
 }
 
 type Query {
@@ -961,6 +976,7 @@ type Query {
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!, p_type: String!): VendorProfile
   viewAllProfiles(vendor_id: String!, p_type: String!): [VendorProfile]
+  getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
 }
 
 type Mutation {
@@ -1015,6 +1031,6 @@ type Mutation {
   createProfileVendor(input: VendorProfileInput): VendorProfile
   createExperienceVendor(input: ExperienceInput!): ExperienceVendor
   updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
-  uploadSampleFile(input: SampleFile): String!
+  uploadSampleFile(input: SampleFileInput): SampleFile
   updateProfileVendor(input: VendorProfileInput): VendorProfile
 }

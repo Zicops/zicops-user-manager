@@ -278,6 +278,19 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		updatedCols = append(updatedCols, "name")
 	}
 
+	createdAt := strconv.Itoa(int(vendor.CreatedAt))
+	updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
+
+	admins, err := GetVendorAdmins(ctx, *input.VendorID)
+	if err != nil {
+		log.Printf("Not able to get users: %v", err)
+	}
+	var adminNames []*string
+	for _, v := range admins {
+		tmp := v.Email
+		adminNames = append(adminNames, &tmp)
+	}
+
 	if len(updatedCols) > 0 {
 		updatedCols = append(updatedCols, "updated_by")
 		vendor.UpdatedBy = email
@@ -291,19 +304,6 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 			log.Printf("Error updating user: %v", err)
 			return nil, err
 		}
-	}
-
-	createdAt := strconv.Itoa(int(vendor.CreatedAt))
-	updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
-
-	admins, err := GetVendorAdmins(ctx, *input.VendorID)
-	if err != nil {
-		log.Printf("Not able to get users: %v", err)
-	}
-	var adminNames []*string
-	for _, v := range admins {
-		tmp := v.Email
-		adminNames = append(adminNames, &tmp)
 	}
 
 	res := &model.Vendor{
@@ -482,20 +482,13 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	profile.CreatedAt = time.Now().Unix()
 	profile.CreatedBy = createdBy
 
-	/*
-
-		insertQuery := CassUserSession.Query(vendorz.VendorTable.Insert()).BindStruct(vendor)
-		if err = insertQuery.Exec(); err != nil {
-			return nil, err
-		}
-	*/
 	insertQuery := CassSession.Query(vendorz.VendorProfileTable.Insert()).BindStruct(profile)
 	if err = insertQuery.Exec(); err != nil {
 		log.Printf("Got error while inserting data: %v", err)
 		return nil, err
 	}
 
-	createdAt := strconv.Itoa(int(profile.CreatedAt))
+	createdAt := strconv.Itoa(int(time.Now().Unix()))
 
 	res := model.VendorProfile{
 		PfID:               &profile.PfId,
@@ -538,7 +531,7 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 
 	expId := uuid.New().String()
 
-	pfId := base64.URLEncoding.EncodeToString([]byte(*input.Email))
+	pfId := base64.URLEncoding.EncodeToString([]byte(input.Email))
 	currentTime := time.Now().Unix()
 	CassUserSession := session
 
@@ -1298,7 +1291,7 @@ func GetVendorExperienceDetails(ctx context.Context, vendorID string, pfID strin
 }
 
 func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error) {
-	if input.VendorID == nil || input.Email == nil || input.ExpID == nil {
+	if input.VendorID == nil || input.ExpID == nil {
 		return nil, errors.New("please pass all of the following fields, vendorId, email, expId")
 	}
 	claims, err := helpers.GetClaimsFromContext(ctx)
@@ -1315,7 +1308,7 @@ func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 	}
 	CassSession := session
 
-	pfId := base64.URLEncoding.EncodeToString([]byte(*input.Email))
+	pfId := base64.URLEncoding.EncodeToString([]byte(input.Email))
 	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.experience WHERE vendor_id = '%s' AND pf_id = '%s' AND exp_id = '%s' ALLOW FILTERING`, *input.VendorID, pfId, *input.ExpID)
 
 	getExperienceVendor := func() (exp []vendorz.VendorExperience, err error) {
@@ -1724,4 +1717,156 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		Status:             &profile.Status,
 	}
 	return &res, nil
+}
+
+func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model.SampleFile, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error in getting claims: %v", err)
+	}
+	email := claims["email"].(string)
+	log.Println("Upload Sample File called")
+
+	res := model.SampleFile{}
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Printf("Got error while getting session of vendor: %v", err)
+	}
+	CassSession := session
+
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		log.Printf("Failed to upload sample file: %v", err.Error())
+		return &res, err
+	}
+	bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", input.VendorID, input.PType, input.Name)
+	writer, err := storageC.UploadToGCS(ctx, bucketPath)
+	if err != nil {
+		log.Printf("Failed to upload sample file: %v", err.Error())
+		return &res, nil
+	}
+	defer writer.Close()
+	fileBuffer := bytes.NewBuffer(nil)
+	if _, err := io.Copy(fileBuffer, input.File.File); err != nil {
+		return &res, nil
+	}
+	currentBytes := fileBuffer.Bytes()
+	_, err = io.Copy(writer, bytes.NewReader(currentBytes))
+	if err != nil {
+		return &res, nil
+	}
+	getUrl := storageC.GetSignedURLForObject(bucketPath)
+	if getUrl == "" {
+		return &res, fmt.Errorf("failed to upload sample file: %v", errors.New("failed to get URL"))
+	}
+	sfId := uuid.New().String()
+	ca := time.Now().Unix()
+
+	file := vendorz.SampleFile{
+		SfId:       sfId,
+		Name:       input.Name,
+		Pricing:    input.Pricing,
+		FileBucket: bucketPath,
+		VendorId:   input.VendorID,
+		PType:      input.PType,
+		CreatedAt:  ca,
+		CreatedBy:  email,
+	}
+
+	createdAt := strconv.Itoa(int(ca))
+	res.SfID = sfId
+	res.Name = &input.Name
+	res.Price = &input.Pricing
+	res.CreatedAt = &createdAt
+	res.CreatedBy = &email
+	res.FileURL = &getUrl
+
+	if input.Description != nil {
+		file.Description = *input.Description
+	}
+	if input.FileType != nil {
+		file.FileType = *input.FileType
+		res.FileType = input.FileType
+	}
+	if getUrl != "" {
+		file.FileUrl = getUrl
+	}
+	if input.Status != nil {
+		file.Status = *input.Status
+		res.Status = input.Status
+	}
+	insertQueryMap := CassSession.Query(vendorz.SampleFileTable.Insert()).BindStruct(file)
+	if err = insertQueryMap.Exec(); err != nil {
+		return nil, err
+	}
+
+	return &res, nil
+}
+
+func GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*model.SampleFile, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error while getting claims of the user: %v", err)
+		return nil, err
+	}
+
+	var res []*model.SampleFile
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Printf("Got error while getting session: %v", err)
+		return nil, err
+	}
+	CassSession := session
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.sample_file WHERE vendor_id = '%s' AND p_type = '%s' ALLOW FILTERING`, vendorID, pType)
+	getFiles := func() (files []vendorz.SampleFile, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return files, iter.Select(&files)
+	}
+	files, err := getFiles()
+	if err != nil {
+		return nil, err
+	}
+	if len(files) == 0 {
+		return nil, nil
+	}
+
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		log.Printf("Failed to view sample files of course: %v", err.Error())
+		return nil, err
+	}
+	for _, vv := range files {
+		v := vv
+		photoUrl := ""
+		createdAt := strconv.Itoa(int(v.CreatedAt))
+		updatedAt := strconv.Itoa(int(v.UpdatedAt))
+		//just map these to model.sample-files and return
+		file := model.SampleFile{
+			SfID:      v.SfId,
+			Name:      &v.Name,
+			FileType:  &v.FileType,
+			Price:     &v.Pricing,
+			CreatedAt: &createdAt,
+			CreatedBy: &v.CreatedBy,
+			UpdatedAt: &updatedAt,
+			UpdatedBy: &v.UpdatedBy,
+			Status:    &v.Status,
+		}
+		if v.FileBucket != "" {
+			photoUrl = storageC.GetSignedURLForObject(v.FileBucket)
+		} else {
+			photoUrl = v.FileUrl
+		}
+		file.FileURL = &photoUrl
+
+		res = append(res, &file)
+	}
+	return res, nil
 }

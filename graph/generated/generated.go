@@ -181,7 +181,7 @@ type ComplexityRoot struct {
 		UpdateUserQuizAttempt     func(childComplexity int, input model.UserQuizAttemptInput) int
 		UpdateUserRole            func(childComplexity int, input model.UserRoleInput) int
 		UpdateVendor              func(childComplexity int, input *model.VendorInput) int
-		UploadSampleFile          func(childComplexity int, input *model.SampleFile) int
+		UploadSampleFile          func(childComplexity int, input *model.SampleFileInput) int
 	}
 
 	Organization struct {
@@ -296,6 +296,7 @@ type ComplexityRoot struct {
 		GetOrganizations               func(childComplexity int, orgIds []*string) int
 		GetOrganizationsByName         func(childComplexity int, name *string, prevPageSnapShot string, pageSize int) int
 		GetPaginatedVendors            func(childComplexity int, lspID *string, pageCursor *string, direction *string, pageSize *int) int
+		GetSampleFiles                 func(childComplexity int, vendorID string, pType string) int
 		GetUnitsByOrgID                func(childComplexity int, orgID string) int
 		GetUserBookmarks               func(childComplexity int, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string, lspID *string) int
@@ -326,6 +327,19 @@ type ComplexityRoot struct {
 		Logout                         func(childComplexity int) int
 		ViewAllProfiles                func(childComplexity int, vendorID string, pType string) int
 		ViewProfileVendorDetails       func(childComplexity int, vendorID string, email string, pType string) int
+	}
+
+	SampleFile struct {
+		CreatedAt func(childComplexity int) int
+		CreatedBy func(childComplexity int) int
+		FileType  func(childComplexity int) int
+		FileURL   func(childComplexity int) int
+		Name      func(childComplexity int) int
+		Price     func(childComplexity int) int
+		SfID      func(childComplexity int) int
+		Status    func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+		UpdatedBy func(childComplexity int) int
 	}
 
 	User struct {
@@ -661,7 +675,7 @@ type MutationResolver interface {
 	CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error)
 	CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error)
 	UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error)
-	UploadSampleFile(ctx context.Context, input *model.SampleFile) (string, error)
+	UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model.SampleFile, error)
 	UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error)
 }
 type QueryResolver interface {
@@ -708,6 +722,7 @@ type QueryResolver interface {
 	GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, error)
 	ViewProfileVendorDetails(ctx context.Context, vendorID string, email string, pType string) (*model.VendorProfile, error)
 	ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*model.VendorProfile, error)
+	GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*model.SampleFile, error)
 }
 
 type executableSchema struct {
@@ -1777,7 +1792,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UploadSampleFile(childComplexity, args["input"].(*model.SampleFile)), true
+		return e.complexity.Mutation.UploadSampleFile(childComplexity, args["input"].(*model.SampleFileInput)), true
 
 	case "Organization.created_at":
 		if e.complexity.Organization.CreatedAt == nil {
@@ -2390,6 +2405,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetPaginatedVendors(childComplexity, args["lsp_id"].(*string), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
+	case "Query.getSampleFiles":
+		if e.complexity.Query.GetSampleFiles == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getSampleFiles_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetSampleFiles(childComplexity, args["vendor_id"].(string), args["p_type"].(string)), true
+
 	case "Query.getUnitsByOrgId":
 		if e.complexity.Query.GetUnitsByOrgID == nil {
 			break
@@ -2744,6 +2771,76 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ViewProfileVendorDetails(childComplexity, args["vendor_id"].(string), args["email"].(string), args["p_type"].(string)), true
+
+	case "SampleFile.created_at":
+		if e.complexity.SampleFile.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.SampleFile.CreatedAt(childComplexity), true
+
+	case "SampleFile.created_by":
+		if e.complexity.SampleFile.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.SampleFile.CreatedBy(childComplexity), true
+
+	case "SampleFile.fileType":
+		if e.complexity.SampleFile.FileType == nil {
+			break
+		}
+
+		return e.complexity.SampleFile.FileType(childComplexity), true
+
+	case "SampleFile.file_url":
+		if e.complexity.SampleFile.FileURL == nil {
+			break
+		}
+
+		return e.complexity.SampleFile.FileURL(childComplexity), true
+
+	case "SampleFile.name":
+		if e.complexity.SampleFile.Name == nil {
+			break
+		}
+
+		return e.complexity.SampleFile.Name(childComplexity), true
+
+	case "SampleFile.price":
+		if e.complexity.SampleFile.Price == nil {
+			break
+		}
+
+		return e.complexity.SampleFile.Price(childComplexity), true
+
+	case "SampleFile.sf_id":
+		if e.complexity.SampleFile.SfID == nil {
+			break
+		}
+
+		return e.complexity.SampleFile.SfID(childComplexity), true
+
+	case "SampleFile.status":
+		if e.complexity.SampleFile.Status == nil {
+			break
+		}
+
+		return e.complexity.SampleFile.Status(childComplexity), true
+
+	case "SampleFile.updated_at":
+		if e.complexity.SampleFile.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.SampleFile.UpdatedAt(childComplexity), true
+
+	case "SampleFile.updated_by":
+		if e.complexity.SampleFile.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.SampleFile.UpdatedBy(childComplexity), true
 
 	case "User.created_at":
 		if e.complexity.User.CreatedAt == nil {
@@ -4356,7 +4453,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputOrganizationInput,
 		ec.unmarshalInputOrganizationUnitInput,
 		ec.unmarshalInputSMEInput,
-		ec.unmarshalInputSampleFile,
+		ec.unmarshalInputSampleFileInput,
 		ec.unmarshalInputUserBookmarkInput,
 		ec.unmarshalInputUserCohortInput,
 		ec.unmarshalInputUserCourseInput,
@@ -5230,7 +5327,7 @@ type VendorProfile {
 input ExperienceInput {
   exp_id: String
   vendor_id: String
-  email: String
+  email: String!
   title: String
   company_name: String
   employement_type: String
@@ -5264,13 +5361,28 @@ type InviteResponse {
   message: String!
 }
 
-input SampleFile {
-  File: Upload!
-  Name: String!
-  Description: String!
-  Pricing: String!
-  FileType: String
-	Status: String!
+input SampleFileInput {
+  file: Upload!
+  name: String!
+  description: String
+  pricing: String!
+  fileType: String
+	status: String
+  vendorId: String!
+  p_type: String!
+}
+
+type SampleFile {
+  sf_id: String!
+  name: String
+  fileType: String
+  price: String
+  file_url: String
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+	status: String
 }
 
 type Query {
@@ -5400,6 +5512,7 @@ type Query {
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!, p_type: String!): VendorProfile
   viewAllProfiles(vendor_id: String!, p_type: String!): [VendorProfile]
+  getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
 }
 
 type Mutation {
@@ -5454,9 +5567,8 @@ type Mutation {
   createProfileVendor(input: VendorProfileInput): VendorProfile
   createExperienceVendor(input: ExperienceInput!): ExperienceVendor
   updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
-  uploadSampleFile(input: SampleFile): String!
+  uploadSampleFile(input: SampleFileInput): SampleFile
   updateProfileVendor(input: VendorProfileInput): VendorProfile
-  #createVendorServices(VendorId: String!, SME: SMEInput, CRT: CRTInput, CD: CDInput): Boolean
 }
 `, BuiltIn: false},
 }
@@ -6195,10 +6307,10 @@ func (ec *executionContext) field_Mutation_updateVendor_args(ctx context.Context
 func (ec *executionContext) field_Mutation_uploadSampleFile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *model.SampleFile
+	var arg0 *model.SampleFileInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOSampleFile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐSampleFile(ctx, tmp)
+		arg0, err = ec.unmarshalOSampleFileInput2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐSampleFileInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -6639,6 +6751,30 @@ func (ec *executionContext) field_Query_getPaginatedVendors_args(ctx context.Con
 		}
 	}
 	args["pageSize"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getSampleFiles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["vendor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["p_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("p_type"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["p_type"] = arg1
 	return args, nil
 }
 
@@ -14014,21 +14150,18 @@ func (ec *executionContext) _Mutation_uploadSampleFile(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UploadSampleFile(rctx, fc.Args["input"].(*model.SampleFile))
+		return ec.resolvers.Mutation().UploadSampleFile(rctx, fc.Args["input"].(*model.SampleFileInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.SampleFile)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOSampleFile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐSampleFile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_uploadSampleFile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -14038,7 +14171,29 @@ func (ec *executionContext) fieldContext_Mutation_uploadSampleFile(ctx context.C
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "sf_id":
+				return ec.fieldContext_SampleFile_sf_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SampleFile_name(ctx, field)
+			case "fileType":
+				return ec.fieldContext_SampleFile_fileType(ctx, field)
+			case "price":
+				return ec.fieldContext_SampleFile_price(ctx, field)
+			case "file_url":
+				return ec.fieldContext_SampleFile_file_url(ctx, field)
+			case "created_at":
+				return ec.fieldContext_SampleFile_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_SampleFile_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_SampleFile_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_SampleFile_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_SampleFile_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SampleFile", field.Name)
 		},
 	}
 	defer func() {
@@ -20350,6 +20505,80 @@ func (ec *executionContext) fieldContext_Query_viewAllProfiles(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getSampleFiles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getSampleFiles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetSampleFiles(rctx, fc.Args["vendor_id"].(string), fc.Args["p_type"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.SampleFile)
+	fc.Result = res
+	return ec.marshalOSampleFile2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐSampleFile(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getSampleFiles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "sf_id":
+				return ec.fieldContext_SampleFile_sf_id(ctx, field)
+			case "name":
+				return ec.fieldContext_SampleFile_name(ctx, field)
+			case "fileType":
+				return ec.fieldContext_SampleFile_fileType(ctx, field)
+			case "price":
+				return ec.fieldContext_SampleFile_price(ctx, field)
+			case "file_url":
+				return ec.fieldContext_SampleFile_file_url(ctx, field)
+			case "created_at":
+				return ec.fieldContext_SampleFile_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_SampleFile_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_SampleFile_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_SampleFile_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_SampleFile_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SampleFile", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getSampleFiles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -20474,6 +20703,419 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 				return ec.fieldContext___Schema_directives(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type __Schema", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SampleFile_sf_id(ctx context.Context, field graphql.CollectedField, obj *model.SampleFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SampleFile_sf_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SfID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SampleFile_sf_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SampleFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SampleFile_name(ctx context.Context, field graphql.CollectedField, obj *model.SampleFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SampleFile_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SampleFile_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SampleFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SampleFile_fileType(ctx context.Context, field graphql.CollectedField, obj *model.SampleFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SampleFile_fileType(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FileType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SampleFile_fileType(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SampleFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SampleFile_price(ctx context.Context, field graphql.CollectedField, obj *model.SampleFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SampleFile_price(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Price, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SampleFile_price(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SampleFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SampleFile_file_url(ctx context.Context, field graphql.CollectedField, obj *model.SampleFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SampleFile_file_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FileURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SampleFile_file_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SampleFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SampleFile_created_at(ctx context.Context, field graphql.CollectedField, obj *model.SampleFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SampleFile_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SampleFile_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SampleFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SampleFile_created_by(ctx context.Context, field graphql.CollectedField, obj *model.SampleFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SampleFile_created_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SampleFile_created_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SampleFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SampleFile_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.SampleFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SampleFile_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SampleFile_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SampleFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SampleFile_updated_by(ctx context.Context, field graphql.CollectedField, obj *model.SampleFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SampleFile_updated_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SampleFile_updated_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SampleFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SampleFile_status(ctx context.Context, field graphql.CollectedField, obj *model.SampleFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SampleFile_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SampleFile_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SampleFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -32269,7 +32911,7 @@ func (ec *executionContext) unmarshalInputExperienceInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
-			it.Email, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Email, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32799,65 +33441,81 @@ func (ec *executionContext) unmarshalInputSMEInput(ctx context.Context, obj inte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputSampleFile(ctx context.Context, obj interface{}) (model.SampleFile, error) {
-	var it model.SampleFile
+func (ec *executionContext) unmarshalInputSampleFileInput(ctx context.Context, obj interface{}) (model.SampleFileInput, error) {
+	var it model.SampleFileInput
 	asMap := map[string]interface{}{}
 	for k, v := range obj.(map[string]interface{}) {
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"File", "Name", "Description", "Pricing", "FileType", "Status"}
+	fieldsInOrder := [...]string{"file", "name", "description", "pricing", "fileType", "status", "vendorId", "p_type"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "File":
+		case "file":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("File"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("file"))
 			it.File, err = ec.unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Name":
+		case "name":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Name"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			it.Name, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Description":
+		case "description":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Description"))
-			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Pricing":
+		case "pricing":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Pricing"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pricing"))
 			it.Pricing, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "FileType":
+		case "fileType":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("FileType"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fileType"))
 			it.FileType, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Status":
+		case "status":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Status"))
-			it.Status, err = ec.unmarshalNString2string(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "vendorId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendorId"))
+			it.VendorID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "p_type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("p_type"))
+			it.PType, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35623,9 +36281,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_uploadSampleFile(ctx, field)
 			})
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "updateProfileVendor":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -37070,6 +37725,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getSampleFiles":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getSampleFiles(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -37081,6 +37756,70 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Query___schema(ctx, field)
 			})
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var sampleFileImplementors = []string{"SampleFile"}
+
+func (ec *executionContext) _SampleFile(ctx context.Context, sel ast.SelectionSet, obj *model.SampleFile) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sampleFileImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SampleFile")
+		case "sf_id":
+
+			out.Values[i] = ec._SampleFile_sf_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._SampleFile_name(ctx, field, obj)
+
+		case "fileType":
+
+			out.Values[i] = ec._SampleFile_fileType(ctx, field, obj)
+
+		case "price":
+
+			out.Values[i] = ec._SampleFile_price(ctx, field, obj)
+
+		case "file_url":
+
+			out.Values[i] = ec._SampleFile_file_url(ctx, field, obj)
+
+		case "created_at":
+
+			out.Values[i] = ec._SampleFile_created_at(ctx, field, obj)
+
+		case "created_by":
+
+			out.Values[i] = ec._SampleFile_created_by(ctx, field, obj)
+
+		case "updated_at":
+
+			out.Values[i] = ec._SampleFile_updated_at(ctx, field, obj)
+
+		case "updated_by":
+
+			out.Values[i] = ec._SampleFile_updated_by(ctx, field, obj)
+
+		case "status":
+
+			out.Values[i] = ec._SampleFile_status(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -40507,11 +41246,59 @@ func (ec *executionContext) marshalOPaginatedVendors2ᚖgithubᚗcomᚋzicopsᚋ
 	return ec._PaginatedVendors(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOSampleFile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐSampleFile(ctx context.Context, v interface{}) (*model.SampleFile, error) {
+func (ec *executionContext) marshalOSampleFile2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐSampleFile(ctx context.Context, sel ast.SelectionSet, v []*model.SampleFile) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOSampleFile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐSampleFile(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOSampleFile2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐSampleFile(ctx context.Context, sel ast.SelectionSet, v *model.SampleFile) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SampleFile(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSampleFileInput2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐSampleFileInput(ctx context.Context, v interface{}) (*model.SampleFileInput, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalInputSampleFile(ctx, v)
+	res, err := ec.unmarshalInputSampleFileInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

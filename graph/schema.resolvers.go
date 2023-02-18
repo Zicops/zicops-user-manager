@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -481,8 +480,13 @@ func (r *mutationResolver) UpdateExperienceVendor(ctx context.Context, input mod
 }
 
 // UploadSampleFile is the resolver for the uploadSampleFile field.
-func (r *mutationResolver) UploadSampleFile(ctx context.Context, input *model.SampleFile) (string, error) {
-	panic(fmt.Errorf("not implemented: UploadSampleFile - uploadSampleFile"))
+func (r *mutationResolver) UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model.SampleFile, error) {
+	res, err := handlers.UploadSampleFile(ctx, input)
+	if err != nil {
+		log.Printf("Error updating experience of the vendor: %v", err)
+		return nil, err
+	}
+	return res, nil
 }
 
 // UpdateProfileVendor is the resolver for the updateProfileVendor field.
@@ -920,6 +924,16 @@ func (r *queryResolver) ViewAllProfiles(ctx context.Context, vendorID string, pT
 	res, err := handlers.ViewAllProfiles(ctx, vendorID, pType)
 	if err != nil {
 		log.Printf("Got error while getting details of the vendor: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetSampleFiles is the resolver for the getSampleFiles field.
+func (r *queryResolver) GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*model.SampleFile, error) {
+	res, err := handlers.GetSampleFiles(ctx, vendorID, pType)
+	if err != nil {
+		log.Printf("error while getting sample files for vendor: %v", err)
 		return nil, err
 	}
 	return res, nil
