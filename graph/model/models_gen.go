@@ -82,7 +82,7 @@ type CourseViews struct {
 type ExperienceInput struct {
 	ExpID           *string `json:"exp_id"`
 	VendorID        *string `json:"vendor_id"`
-	Email           *string `json:"email"`
+	Email           string  `json:"email"`
 	Title           *string `json:"title"`
 	CompanyName     *string `json:"company_name"`
 	EmployementType *string `json:"employement_type"`
@@ -291,12 +291,27 @@ type SMEInput struct {
 }
 
 type SampleFile struct {
-	File        graphql.Upload `json:"File"`
-	Name        string         `json:"Name"`
-	Description string         `json:"Description"`
-	Pricing     string         `json:"Pricing"`
-	FileType    *string        `json:"FileType"`
-	Status      string         `json:"Status"`
+	SfID      string  `json:"sf_id"`
+	Name      *string `json:"name"`
+	FileType  *string `json:"fileType"`
+	Price     *string `json:"price"`
+	FileURL   *string `json:"file_url"`
+	CreatedAt *string `json:"created_at"`
+	CreatedBy *string `json:"created_by"`
+	UpdatedAt *string `json:"updated_at"`
+	UpdatedBy *string `json:"updated_by"`
+	Status    *string `json:"status"`
+}
+
+type SampleFileInput struct {
+	File        graphql.Upload `json:"file"`
+	Name        string         `json:"name"`
+	Description *string        `json:"description"`
+	Pricing     string         `json:"pricing"`
+	FileType    *string        `json:"fileType"`
+	Status      *string        `json:"status"`
+	VendorID    string         `json:"vendorId"`
+	PType       string         `json:"p_type"`
 }
 
 type User struct {
