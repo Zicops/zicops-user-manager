@@ -108,8 +108,8 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 		return &outputResponse, nil
 	}
 	var wg sync.WaitGroup
-	for i, copiedCourse := range userCourses {
-		courseCopy := copiedCourse
+	for i, ccc := range userCourses {
+		cc := ccc
 		wg.Add(1)
 		go func(i int, courseCopy userz.UserCourse) {
 			endDate := strconv.FormatInt(courseCopy.EndDate, 10)
@@ -133,7 +133,7 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 			}
 			allCourses[i] = currentCourse
 			wg.Done()
-		}(i, courseCopy)
+		}(i, cc)
 	}
 	wg.Wait()
 	outputResponse.UserCourses = allCourses
@@ -259,8 +259,8 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 		statsStatus = make([]*model.Count, len(input.CourseStatus))
 		for i, s := range input.CourseStatus {
 			wg.Add(1)
-			status := *s
-			tempClause := whereClause
+			ss := *s
+			tt := whereClause
 			go func(i int, status string, tempClause string) {
 				if i == 0 && tempClause == "" {
 					tempClause = fmt.Sprintf(`where course_status='%s'`, status)
@@ -284,7 +284,7 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 				}
 				statsStatus[i] = currentStatus
 				wg.Done()
-			}(i, status, tempClause)
+			}(i, ss, tt)
 		}
 	}
 	statsType := make([]*model.Count, 0)
@@ -292,8 +292,8 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 		statsType = make([]*model.Count, len(input.CourseType))
 		for i, s := range input.CourseType {
 			wg.Add(1)
-			tempClause := whereClause
-			status := *s
+			tt := whereClause
+			ss := *s
 			go func(i int, status string, tempClause string) {
 				if i == 0 && tempClause == "" {
 					tempClause = fmt.Sprintf(`where course_type='%s'`, status)
@@ -317,7 +317,7 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 				}
 				statsType[i] = currentStatus
 				wg.Done()
-			}(i, status, tempClause)
+			}(i, ss, tt)
 		}
 	}
 	wg.Wait()
@@ -389,8 +389,9 @@ func GetCourseConsumptionStats(ctx context.Context, lspID string, pageCursor *st
 	}
 	var wg sync.WaitGroup
 	outputResponse := make([]*model.CourseConsumptionStats, len(courseConsumptionStats))
-	for i, courseConsumptionStat := range courseConsumptionStats {
+	for i, cc := range courseConsumptionStats {
 		wg.Add(1)
+		cStat := cc
 		go func(i int, courseConsumptionStat userz.CCStats) {
 			expectCompletiontime := int(courseConsumptionStat.ExpectedCompletionTime)
 			avgCompletiontime := int(courseConsumptionStat.AverageCompletionTime)
@@ -422,7 +423,7 @@ func GetCourseConsumptionStats(ctx context.Context, lspID string, pageCursor *st
 			}
 			outputResponse[i] = &currentCourseConsumptionStat
 			wg.Done()
-		}(i, courseConsumptionStat)
+		}(i, cStat)
 
 	}
 	wg.Wait()

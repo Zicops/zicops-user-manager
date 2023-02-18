@@ -271,8 +271,8 @@ func getUserCourseProgressByUserCourseID(ctx context.Context, userId string, use
 		return nil, nil
 	}
 	var wg sync.WaitGroup
-	for i, copiedCP := range userCPs {
-		userCP := copiedCP
+	for i, cp := range userCPs {
+		uc := cp
 		wg.Add(1)
 		go func(i int, userCP userz.UserCourseProgress) {
 			createdAt := strconv.FormatInt(userCP.CreatedAt, 10)
@@ -294,7 +294,7 @@ func getUserCourseProgressByUserCourseID(ctx context.Context, userId string, use
 			}
 			userCPsMapCurrent[i] = currentUserCP
 			wg.Done()
-		}(i, userCP)
+		}(i, uc)
 	}
 	wg.Wait()
 	userCPsMap = append(userCPsMap, userCPsMapCurrent...)

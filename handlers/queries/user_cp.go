@@ -56,8 +56,8 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 			continue
 		}
 		var wg sync.WaitGroup
-		for i, copiedCP := range userCPs {
-			userCP := copiedCP
+		for i, cc := range userCPs {
+			ucp := cc
 			wg.Add(1)
 			go func(i int, userCP userz.UserCourseProgress) {
 				createdAt := strconv.FormatInt(userCP.CreatedAt, 10)
@@ -79,7 +79,7 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 				}
 				userCPsMapCurrent[i] = currentUserCP
 				wg.Done()
-			}(i, userCP)
+			}(i, ucp)
 		}
 		wg.Wait()
 		userCPsMap = append(userCPsMap, userCPsMapCurrent...)
@@ -133,8 +133,8 @@ func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID 
 		return userCPsMap, nil
 	}
 	var wg sync.WaitGroup
-	for i, copiedCP := range userCPs {
-		userCP := copiedCP
+	for i, cc := range userCPs {
+		ucp := cc
 		wg.Add(1)
 		go func(i int, userCP userz.UserCourseProgress) {
 			createdAt := strconv.FormatInt(userCP.CreatedAt, 10)
@@ -156,7 +156,7 @@ func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID 
 			}
 			userCPsMap[i] = currentUserCP
 			wg.Done()
-		}(i, userCP)
+		}(i, ucp)
 	}
 	wg.Wait()
 	//redisBytes, err := json.Marshal(userCPsMap)

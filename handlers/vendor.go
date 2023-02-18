@@ -892,8 +892,8 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 	res := make([]*model.User, len(userIds))
 
 	var wg sync.WaitGroup
-	for k, vv := range userIds {
-		v := vv
+	for kk, vvv := range userIds {
+		vv := vvv
 		wg.Add(1)
 		//iterate over these userIds and return user details
 		go func(userId string, k int) {
@@ -964,7 +964,7 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 			res[k] = userData
 
 			wg.Done()
-		}(v.UserId, k)
+		}(vv.UserId, kk)
 	}
 	wg.Wait()
 	return res, nil
@@ -1116,8 +1116,8 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 
 	var outputResponse model.PaginatedVendors
 	var wg sync.WaitGroup
-	for k, vv := range vendorIds {
-		v := vv
+	for kk, vvv := range vendorIds {
+		vv := vvv
 		wg.Add(1)
 		go func(vendorId string, k int) {
 
@@ -1172,7 +1172,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 			}
 			res[k] = vendorData
 			wg.Done()
-		}(v.VendorId, k)
+		}(vv.VendorId, kk)
 	}
 	wg.Wait()
 	outputResponse.Vendors = res
@@ -1530,8 +1530,8 @@ func ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*mod
 
 	res := make([]*model.VendorProfile, len(profiles))
 	var wg sync.WaitGroup
-	for k, vv := range profiles {
-		v := vv
+	for kk, vvv := range profiles {
+		vv := vvv
 
 		wg.Add(1)
 		//get photo url
@@ -1580,7 +1580,7 @@ func ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*mod
 			}
 			res[k] = &tmp
 			wg.Done()
-		}(k, v)
+		}(kk, vv)
 	}
 	wg.Wait()
 	return res, nil
