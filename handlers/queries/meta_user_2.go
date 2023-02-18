@@ -101,8 +101,8 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 		return &outputResponse, nil
 	}
 	var wg sync.WaitGroup
-	for i, copiedUser := range usersCohort {
-		cohortCopy := copiedUser
+	for i, cu := range usersCohort {
+		cc := cu
 		wg.Add(1)
 		go func(i int, cohortCopy userz.UserCohort) {
 			createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
@@ -122,7 +122,7 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 			}
 			allUsers[i] = userCohort
 			wg.Done()
-		}(i, cohortCopy)
+		}(i, cc)
 	}
 	wg.Wait()
 	outputResponse.Cohorts = allUsers
@@ -205,8 +205,8 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 		return &outputResponse, nil
 	}
 	var wg sync.WaitGroup
-	for i, userOrg := range userCohorts {
-		cohortCopy := userOrg
+	for i, uo := range userCohorts {
+		cc := uo
 		wg.Add(1)
 		go func(i int, cohortCopy userz.UserCohort) {
 			createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
@@ -226,7 +226,7 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 			}
 			cohortUsers[i] = userCohort
 			wg.Done()
-		}(i, cohortCopy)
+		}(i, cc)
 	}
 	wg.Wait()
 	outputResponse.Cohorts = cohortUsers
@@ -264,7 +264,7 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 		return nil, err
 	}
 	if input.Image != nil && input.ImageURL == nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, input.Image.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, base64.URLEncoding.EncodeToString([]byte(input.Image.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -377,7 +377,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 		return nil, err
 	}
 	if input.Image != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, input.Image.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", "cohorts", cohortID, base64.URLEncoding.EncodeToString([]byte(input.Image.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -618,10 +618,10 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 		return &outputResponse, nil
 	}
 	var wg sync.WaitGroup
-	for i, userOrg := range cohorts {
-		cohortCopy := userOrg
+	for i, uo := range cohorts {
+		cc := uo
 		wg.Add(1)
-		go func(i int, cohort userz.Cohort) {
+		go func(i int, cohortCopy userz.Cohort) {
 			createdAt := strconv.FormatInt(cohortCopy.CreatedAt, 10)
 			updatedAt := strconv.FormatInt(cohortCopy.UpdatedAt, 10)
 			imageBucket := cohortCopy.ImageBucket
@@ -653,7 +653,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 			}
 			cohortUsers[i] = userCohort
 			wg.Done()
-		}(i, cohortCopy)
+		}(i, cc)
 	}
 	wg.Wait()
 	outputResponse.Cohorts = cohortUsers

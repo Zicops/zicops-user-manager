@@ -116,8 +116,8 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 		return &outputResponse, nil
 	}
 	var wg sync.WaitGroup
-	for i, copiedUser := range users {
-		userCopy := copiedUser
+	for i, cu := range users {
+		u := cu
 		wg.Add(1)
 		go func(i int, userCopy userz.User) {
 			createdAt := strconv.FormatInt(userCopy.CreatedAt, 10)
@@ -161,7 +161,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 			}
 			allUsers[i] = currentUser
 			wg.Done()
-		}(i, userCopy)
+		}(i, u)
 	}
 	wg.Wait()
 	outputResponse.Users = allUsers

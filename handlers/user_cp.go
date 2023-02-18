@@ -221,19 +221,11 @@ func GetCourseViews(ctx context.Context, lspIds []string, startTime *string, end
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	startT, err := strconv.ParseInt(*startTime, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("start time is required")
+	if startTime == nil || endTime == nil {
+		return nil, fmt.Errorf("start and end time are required")
 	}
-	endT, err := strconv.ParseInt(*endTime, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("end time is required")
-	}
-
-	startDate := time.Unix(startT, 0)
-	endDate := time.Unix(endT, 0)
-	startDateString := startDate.Format("2006-01-02")
-	endDateString := endDate.Format("2006-01-02")
+	startDateString := *startTime
+	endDateString := *endTime
 	output := []*model.CourseViews{}
 	for _, lspID := range lspIds {
 		if lspID == "" {
@@ -246,25 +238,24 @@ func GetCourseViews(ctx context.Context, lspIds []string, startTime *string, end
 			log.Errorf("error getting course views: %v", err)
 			return nil, err
 		}
-		if len(courseViews) == 0 {
-			continue
+		for _, cv := range courseViews {
+			currentView := cv
+			seconds := int(currentView.Hours)
+			createdAt := strconv.Itoa(int(currentView.CreatedAt))
+			var userIds []*string
+			for _, vv := range currentView.Users {
+				v := vv
+				userIds = append(userIds, &v)
+			}
+			res := model.CourseViews{
+				Seconds:    &seconds,
+				CreatedAt:  &createdAt,
+				LspID:      &currentView.LspId,
+				UserIds:    userIds,
+				DateString: &currentView.DateValue,
+			}
+			output = append(output, &res)
 		}
-		currentView := courseViews[0]
-		seconds := int(currentView.Hours)
-		createdAt := strconv.Itoa(int(currentView.CreatedAt))
-		var userIds []*string
-		for _, vv := range currentView.Users {
-			v := vv
-			userIds = append(userIds, &v)
-		}
-		res := model.CourseViews{
-			Seconds:    &seconds,
-			CreatedAt:  &createdAt,
-			LspID:      &currentView.LspId,
-			UserIds:    userIds,
-			DateString: &currentView.DateValue,
-		}
-		output = append(output, &res)
 	}
 	return output, nil
 }

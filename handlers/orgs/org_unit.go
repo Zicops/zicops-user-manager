@@ -181,7 +181,7 @@ func GetOrganizationUnits(ctx context.Context, ouIds []*string) ([]*model.Organi
 	CassUserSession := session
 	outputOrgs := make([]*model.OrganizationUnit, len(ouIds))
 	var wg sync.WaitGroup
-	for i, orgID := range ouIds {
+	for i, id := range ouIds {
 		wg.Add(1)
 		go func(i int, orgID *string) {
 			if orgID == nil {
@@ -222,7 +222,7 @@ func GetOrganizationUnits(ctx context.Context, ouIds []*string) ([]*model.Organi
 			}
 			outputOrgs[i] = result
 			wg.Done()
-		}(i, orgID)
+		}(i, id)
 	}
 	wg.Wait()
 	return outputOrgs, nil
@@ -257,8 +257,8 @@ func GetUnitsByOrgID(ctx context.Context, orgID string) ([]*model.OrganizationUn
 		return outputOrgs, nil
 	}
 	var wg sync.WaitGroup
-	for i, orgCas := range orgs {
-		orgCass := orgCas
+	for i, c := range orgs {
+		oCass := c
 		wg.Add(1)
 		go func(i int, orgCass userz.OrganizationUnits) {
 			created := strconv.FormatInt(orgCass.CreatedAt, 10)
@@ -281,7 +281,7 @@ func GetUnitsByOrgID(ctx context.Context, orgID string) ([]*model.OrganizationUn
 			}
 			outputOrgs[i] = result
 			wg.Done()
-		}(i, orgCass)
+		}(i, oCass)
 
 	}
 	wg.Wait()

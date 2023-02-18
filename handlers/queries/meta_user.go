@@ -206,8 +206,8 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID *string, cou
 		return &outputResponse, nil
 	}
 	var wg sync.WaitGroup
-	for i, copiedCourse := range userNotes {
-		courseCopy := copiedCourse
+	for i, ccc := range userNotes {
+		cc := ccc
 		wg.Add(1)
 		go func(i int, courseCopy userz.UserBookmarks) {
 			createdAt := strconv.FormatInt(courseCopy.CreatedAt, 10)
@@ -230,7 +230,7 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID *string, cou
 			}
 			allCourses[i] = currentCourse
 			wg.Done()
-		}(i, courseCopy)
+		}(i, cc)
 	}
 	wg.Wait()
 	outputResponse.Bookmarks = allCourses
@@ -287,8 +287,8 @@ func GetUserExamAttempts(ctx context.Context, userID *string, examID string) ([]
 		return userOrgs, nil
 	}
 	var wg sync.WaitGroup
-	for i, userOrg := range usersOrgs {
-		copiedOrg := userOrg
+	for i, uo := range usersOrgs {
+		cc := uo
 		wg.Add(1)
 		go func(i int, copiedOrg userz.UserExamAttempts) {
 			createdAt := strconv.FormatInt(copiedOrg.CreatedAt, 10)
@@ -312,7 +312,7 @@ func GetUserExamAttempts(ctx context.Context, userID *string, examID string) ([]
 			}
 			userOrgs[i] = currentUserOrg
 			wg.Done()
-		}(i, copiedOrg)
+		}(i, cc)
 	}
 	wg.Wait()
 	//redisBytes, err := json.Marshal(userOrgs)
@@ -441,13 +441,13 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 		return userOrgs, nil
 	}
 	var wg sync.WaitGroup
-	for i, userOrg := range usersOrgs {
-		copiedOrg := userOrg
+	for i, uo := range usersOrgs {
+		cc := uo
 		wg.Add(1)
-		go func(i int, userOrg userz.UserExamProgress) {
-			createdAt := strconv.FormatInt(userOrg.CreatedAt, 10)
-			updatedAt := strconv.FormatInt(userOrg.UpdatedAt, 10)
-			totalTimeSpent := strconv.FormatInt(userOrg.TotalTimeSpent, 10)
+		go func(i int, copiedOrg userz.UserExamProgress) {
+			createdAt := strconv.FormatInt(copiedOrg.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(copiedOrg.UpdatedAt, 10)
+			totalTimeSpent := strconv.FormatInt(copiedOrg.TotalTimeSpent, 10)
 			currentUserOrg := &model.UserExamProgress{
 				UserEpID:       &copiedOrg.ID,
 				UserID:         copiedOrg.UserID,
@@ -469,7 +469,7 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 			}
 			userOrgs[i] = currentUserOrg
 			wg.Done()
-		}(i, copiedOrg)
+		}(i, cc)
 	}
 	wg.Wait()
 	//redisBytes, err := json.Marshal(userOrgs)

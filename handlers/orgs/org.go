@@ -3,6 +3,7 @@ package orgs
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"strconv"
@@ -47,7 +48,7 @@ func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model
 	uniqueOrgId := input.Name + input.Website + input.Industry + input.Subdomain
 	orgId := uuid.NewSHA1(uuid.NameSpaceURL, []byte(uniqueOrgId)).String()
 	if input.Logo != nil {
-		bucketPath := fmt.Sprintf("orgs/%s/%s/%s", "logos", orgId, input.Logo.Filename)
+		bucketPath := fmt.Sprintf("orgs/%s/%s/%s", "logos", orgId, base64.URLEncoding.EncodeToString([]byte(input.Logo.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -178,7 +179,7 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 		return nil, err
 	}
 	if input.Logo != nil {
-		bucketPath := fmt.Sprintf("orgs/%s/%s/%s", "logos", orgCass.ID, input.Logo.Filename)
+		bucketPath := fmt.Sprintf("orgs/%s/%s/%s", "logos", orgCass.ID, base64.URLEncoding.EncodeToString([]byte(input.Logo.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err

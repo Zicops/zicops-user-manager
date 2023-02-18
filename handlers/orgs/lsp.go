@@ -55,7 +55,7 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	}
 	if input.Logo != nil {
 
-		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "logos", input.Logo.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "logos", base64.URLEncoding.EncodeToString([]byte(input.Logo.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -81,7 +81,7 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	photoUrl := ""
 	photoBucket := ""
 	if input.Profile != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "photos", input.Profile.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "photos", base64.URLEncoding.EncodeToString([]byte(input.Profile.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -256,7 +256,7 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 		return nil, err
 	}
 	if input.Logo != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "logos", input.Profile.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "logos", base64.URLEncoding.EncodeToString([]byte(input.Profile.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -278,7 +278,7 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 		updatedCols = append(updatedCols, "logo_url")
 	}
 	if input.Profile != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "profile", input.Profile.Filename)
+		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "profile", base64.URLEncoding.EncodeToString([]byte(input.Profile.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -345,7 +345,8 @@ func GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.Le
 	CassUserSession := session
 	outputOrgs := make([]*model.LearningSpace, len(lspIds))
 	var wg sync.WaitGroup
-	for i, orgID := range lspIds {
+	for i, oid := range lspIds {
+		id := oid
 		wg.Add(1)
 		go func(i int, orgID *string) {
 			if orgID == nil {
@@ -407,7 +408,7 @@ func GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.Le
 			}
 			outputOrgs[i] = result
 			wg.Done()
-		}(i, orgID)
+		}(i, id)
 	}
 	wg.Wait()
 	return outputOrgs, nil
@@ -507,7 +508,7 @@ func GetLearningSpacesByOuID(ctx context.Context, ouID string, orgID string) ([]
 	outputOrgs := make([]*model.LearningSpace, len(ouID))
 	lspIDs := []string{orgID}
 	var wg sync.WaitGroup
-	for i, orgID := range lspIDs {
+	for i, id := range lspIDs {
 		wg.Add(1)
 		go func(i int, orgID string) {
 			qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where org_unit_id='%s' AND org_id='%s' ALLOW FILTERING `, ouID, orgID)
@@ -567,7 +568,7 @@ func GetLearningSpacesByOuID(ctx context.Context, ouID string, orgID string) ([]
 			}
 			outputOrgs[i] = result
 			wg.Done()
-		}(i, orgID)
+		}(i, id)
 	}
 	wg.Wait()
 	return outputOrgs, nil

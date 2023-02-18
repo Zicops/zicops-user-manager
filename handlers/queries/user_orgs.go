@@ -199,8 +199,8 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 		}
 		usrLspMapLocal := make([]*model.UserLspMap, len(lspMaps))
 		var wg sync.WaitGroup
-		for i, lspMap := range lspMaps {
-			lspCopy := lspMap
+		for i, lm := range lspMaps {
+			lcp := lm
 			wg.Add(1)
 			go func(i int, lspCopy *model.LearningSpace) {
 				lspIdCurrent := lspCopy.LspID
@@ -212,7 +212,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 					usrLspMapLocal[i] = &usrLspMap
 				}
 				wg.Done()
-			}(i, lspCopy)
+			}(i, lcp)
 		}
 		wg.Wait()
 		for _, usrLspMap := range usrLspMapLocal {
