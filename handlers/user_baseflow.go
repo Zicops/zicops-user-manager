@@ -70,7 +70,8 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 	}
 	lspToAdd := orgs[0]
 	for _, user := range input {
-		userID := base64.URLEncoding.EncodeToString([]byte(user.Email))
+		emailLower := strings.ToLower(user.Email)
+		userID := base64.URLEncoding.EncodeToString([]byte(emailLower))
 		if user.Photo != nil && user.PhotoURL == nil {
 			bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", userID, base64.URLEncoding.EncodeToString([]byte(user.Photo.Filename)))
 			writer, err := storageC.UploadToGCS(ctx, bucketPath)
@@ -211,13 +212,15 @@ func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, err
 		return nil, fmt.Errorf("user not found")
 	}
 	for _, dirtyEmail := range emails {
-		email := strings.TrimSpace(dirtyEmail)
+		emailRaw := strings.TrimSpace(dirtyEmail)
+		email := strings.ToLower(emailRaw)
 		if email == email_creator {
 			log.Errorf("user %v is trying to invite himself", email_creator)
 			continue
 		}
 		users := []userz.User{}
-		userID := base64.URLEncoding.EncodeToString([]byte(email))
+		emailLower := strings.ToLower(email)
+		userID := base64.URLEncoding.EncodeToString([]byte(emailLower))
 		getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, userID)
 		getQuery := CassUserSession.Query(getQueryStr, nil)
 		if err := getQuery.SelectRelease(&users); err != nil {
@@ -277,7 +280,8 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	CassUserSession := session
 
 	canUpdate := false
-	userID := base64.URLEncoding.EncodeToString([]byte(user.Email))
+	emailLower := strings.ToLower(user.Email)
+	userID := base64.URLEncoding.EncodeToString([]byte(emailLower))
 	if err != nil {
 		return nil, err
 	}
@@ -461,11 +465,12 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 	if userEmail == "puneet@zicops.com" {
 		return nil, fmt.Errorf("user is not allowed to proceed with zicops apis")
 	}
-	currentUserIT, err := global.IDP.GetUserByEmail(ctx, userEmail)
+	emailLower := strings.ToLower(userEmail)
+	currentUserIT, err := global.IDP.GetUserByEmail(ctx, emailLower)
 	if err != nil {
 		return nil, err
 	}
-	userID := base64.URLEncoding.EncodeToString([]byte(userEmail))
+	userID := base64.URLEncoding.EncodeToString([]byte(emailLower))
 	userCass := userz.User{
 		ID: userID,
 	}
@@ -524,6 +529,7 @@ func Logout(ctx context.Context) (*bool, error) {
 	if err != nil {
 		return &logoutSuccess, err
 	}
-	redis.DeleteRedisValue(base64.URLEncoding.EncodeToString([]byte(email)))
+	emailLower := strings.ToLower(email)
+	redis.DeleteRedisValue(base64.URLEncoding.EncodeToString([]byte(emailLower)))
 	return &logoutSuccess, nil
 }
