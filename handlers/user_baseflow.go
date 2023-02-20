@@ -219,8 +219,7 @@ func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, err
 			continue
 		}
 		users := []userz.User{}
-		emailLower := strings.ToLower(email)
-		userID := base64.URLEncoding.EncodeToString([]byte(emailLower))
+		userID := base64.URLEncoding.EncodeToString([]byte(email))
 		getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, userID)
 		getQuery := CassUserSession.Query(getQueryStr, nil)
 		if err := getQuery.SelectRelease(&users); err != nil {

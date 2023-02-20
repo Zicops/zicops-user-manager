@@ -737,14 +737,33 @@ type PaginatedVendors {
 }
 
 input SMEInput {
-  description: String!
+  vendor_id: String
+  sme_id: String
+  description: String
   is_applicable: Boolean!
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
-  profiles: [String]!
-	Status: String!
+  profiles: [String]
+	Status: String
+}
+
+type SME {
+  vendor_id: String
+  sme_id: String
+  description: String
+  is_applicable: Boolean!
+  expertise: [String]
+  languages: [String]
+  output_deliveries: [String]
+  sample_files: [String]
+  profiles: [String]
+  created_at: String
+  created_by: String
+  updated_at: String
+  updated_by: String
+	Status: String
 }
 
 input VendorProfileInput {
@@ -1033,4 +1052,5 @@ type Mutation {
   updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
   uploadSampleFile(input: SampleFileInput): SampleFile
   updateProfileVendor(input: VendorProfileInput): VendorProfile
+  createSubjectMatterExpertise(input:SMEInput): SME
 }

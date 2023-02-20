@@ -279,15 +279,34 @@ type PaginatedVendors struct {
 	PageSize   *int      `json:"pageSize"`
 }
 
-type SMEInput struct {
-	Description      string    `json:"description"`
+type Sme struct {
+	VendorID         *string   `json:"vendor_id"`
+	SmeID            *string   `json:"sme_id"`
+	Description      *string   `json:"description"`
 	IsApplicable     bool      `json:"is_applicable"`
 	Expertise        []*string `json:"expertise"`
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
 	SampleFiles      []*string `json:"sample_files"`
 	Profiles         []*string `json:"profiles"`
-	Status           string    `json:"Status"`
+	CreatedAt        *string   `json:"created_at"`
+	CreatedBy        *string   `json:"created_by"`
+	UpdatedAt        *string   `json:"updated_at"`
+	UpdatedBy        *string   `json:"updated_by"`
+	Status           *string   `json:"Status"`
+}
+
+type SMEInput struct {
+	VendorID         *string   `json:"vendor_id"`
+	SmeID            *string   `json:"sme_id"`
+	Description      *string   `json:"description"`
+	IsApplicable     bool      `json:"is_applicable"`
+	Expertise        []*string `json:"expertise"`
+	Languages        []*string `json:"languages"`
+	OutputDeliveries []*string `json:"output_deliveries"`
+	SampleFiles      []*string `json:"sample_files"`
+	Profiles         []*string `json:"profiles"`
+	Status           *string   `json:"Status"`
 }
 
 type SampleFile struct {

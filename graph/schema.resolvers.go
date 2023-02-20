@@ -455,6 +455,7 @@ func (r *mutationResolver) CreateProfileVendor(ctx context.Context, input *model
 	resp, err := handlers.CreateProfileVendor(ctx, input)
 	if err != nil {
 		log.Println("Got error while creating profiles of vendor: %v", err)
+		return nil, err
 	}
 	return resp, err
 }
@@ -464,7 +465,7 @@ func (r *mutationResolver) CreateExperienceVendor(ctx context.Context, input mod
 	resp, err := handlers.CreateExperienceVendor(ctx, input)
 	if err != nil {
 		log.Println("Got error while creating experience of vendor: %v", err)
-		return nil, nil
+		return nil, err
 	}
 	return resp, nil
 }
@@ -497,6 +498,16 @@ func (r *mutationResolver) UpdateProfileVendor(ctx context.Context, input *model
 		return nil, err
 	}
 	return res, nil
+}
+
+// CreateSubjectMatterExpertise is the resolver for the createSubjectMatterExpertise field.
+func (r *mutationResolver) CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*model.Sme, error) {
+	resp, err := handlers.CreateSubjectMatterExpertise(ctx, input)
+	if err != nil {
+		log.Println("Got error while creating experience of vendor: %v", err)
+		return nil, err
+	}
+	return resp, nil
 }
 
 // Logout is the resolver for the logout field.
