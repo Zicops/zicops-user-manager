@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/contracts/vendorz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
@@ -482,7 +482,13 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		profile.IsSpeaker = *input.IsSpeaker
 	}
 	if input.Status != nil {
-		profile.IsSpeaker = *input.IsSpeaker
+		profile.Status = *input.Status
+	}
+	if input.ExperienceYears != nil {
+		profile.ExperienceYears = *input.ExperienceYears
+	}
+	if input.Phone != nil {
+		profile.Phone = *input.Phone
 	}
 	profile.CreatedAt = time.Now().Unix()
 	profile.CreatedBy = createdBy
@@ -1877,5 +1883,214 @@ func GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*mode
 }
 
 func CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*model.Sme, error) {
-	return nil, nil
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+	}
+	email := claims["email"].(string)
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Errorf("Error while getting session: %v", err)
+	}
+	CassSession := session
+	smeId := uuid.New().String()
+
+	ca := time.Now().Unix()
+	sme := vendorz.SME{
+		SMEId:     smeId,
+		VendorId:  input.VendorID,
+		CreatedAt: ca,
+		CreatedBy: email,
+	}
+	if input.IsApplicable != nil {
+		sme.IsApplicable = *input.IsApplicable
+	}
+	if input.Description != nil {
+		sme.Description = *input.Description
+	}
+	if input.Expertise != nil {
+		tmp := ChangesStringType(input.Expertise)
+		sme.Expertise = tmp
+	}
+	if input.Languages != nil {
+		tmp := ChangesStringType(input.Languages)
+		sme.Languages = tmp
+	}
+	if input.OutputDeliveries != nil {
+		tmp := ChangesStringType(input.OutputDeliveries)
+		sme.OutputDeliveries = tmp
+	}
+	if input.Status != nil {
+		sme.Status = *input.Status
+	}
+	insertQuery := CassSession.Query(vendorz.SMETable.Insert()).BindStruct(sme)
+	if err = insertQuery.Exec(); err != nil {
+		return nil, err
+	}
+
+	createdAt := strconv.Itoa(int(ca))
+	res := model.Sme{
+		VendorID:         &input.VendorID,
+		SmeID:            &smeId,
+		Description:      input.Description,
+		IsApplicable:     input.IsApplicable,
+		Expertise:        input.Expertise,
+		Languages:        input.Languages,
+		OutputDeliveries: input.OutputDeliveries,
+		CreatedAt:        &createdAt,
+		CreatedBy:        &email,
+		Status:           input.Status,
+	}
+
+	return &res, nil
+}
+
+func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*model.Sme, error) {
+	if input.VendorID == "" || input.SmeID == nil {
+		log.Errorf("Please pass both vendor id and sme Id")
+	}
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+	}
+	email := claims["email"].(string)
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Errorf("Error while getting session: %v", err)
+	}
+	CassSession := session
+
+	//vendor_id, sme_id
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.sme WHERE vendor_id = '%s' AND sme_id = '%s' ALLOW FILTERING`, input.VendorID, *input.SmeID)
+	getSmeData := func() (smeData []vendorz.SME, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return smeData, iter.Select(&smeData)
+	}
+	smeDatas, err := getSmeData()
+	if err != nil {
+		return nil, err
+	}
+	if len(smeDatas) == 0 {
+		return nil, nil
+	}
+
+	smeData := smeDatas[0]
+	updatedCols := []string{}
+
+	if input.Description != nil {
+		smeData.Description = *input.Description
+		updatedCols = append(updatedCols, "expertise")
+	}
+	if input.Expertise != nil {
+		tmp := ChangesStringType(input.Expertise)
+		smeData.Expertise = tmp
+		updatedCols = append(updatedCols, "expertise")
+	}
+	if input.IsApplicable != nil {
+		smeData.IsApplicable = *input.IsApplicable
+		updatedCols = append(updatedCols, "is_applicable")
+	}
+	if input.Languages != nil {
+		tmp := ChangesStringType(input.Languages)
+		smeData.Languages = tmp
+		updatedCols = append(updatedCols, "languages")
+	}
+	if input.OutputDeliveries != nil {
+		tmp := ChangesStringType(input.OutputDeliveries)
+		smeData.OutputDeliveries = tmp
+		updatedCols = append(updatedCols, "output_deliveries")
+	}
+	if input.Status != nil {
+		smeData.Status = *input.Status
+		updatedCols = append(updatedCols, "status")
+	}
+	ua := time.Now().Unix()
+	if len(updatedCols) > 0 {
+		smeData.UpdatedAt = ua
+		smeData.UpdatedBy = email
+
+		utStms, uNames := vendorz.SMETable.Update(updatedCols...)
+		updateQuery := CassSession.Query(utStms, uNames).BindStruct(&smeData)
+		if err = updateQuery.ExecRelease(); err != nil {
+			log.Errorf("Error while updating SME")
+			return nil, err
+		}
+	}
+
+	expertise := ChangeToPointerArray(smeData.Expertise)
+	lan := ChangeToPointerArray(smeData.Languages)
+	od := ChangeToPointerArray(smeData.OutputDeliveries)
+	ca := strconv.Itoa(int(smeData.CreatedAt))
+	updatedAt := strconv.Itoa(int(ua))
+	res := model.Sme{
+		VendorID:         &input.VendorID,
+		SmeID:            input.SmeID,
+		Description:      &smeData.Description,
+		IsApplicable:     &smeData.IsApplicable,
+		Expertise:        expertise,
+		Languages:        lan,
+		OutputDeliveries: od,
+		CreatedAt:        &ca,
+		CreatedBy:        &smeData.CreatedBy,
+		UpdatedAt:        &updatedAt,
+		UpdatedBy:        &smeData.UpdatedBy,
+		Status:           &smeData.Status,
+	}
+
+	return &res, nil
+}
+
+func GetSmeDetails(ctx context.Context, vendorID string) (*model.Sme, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+	}
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Errorf("Error while getting session: %v", err)
+	}
+	CassSession := session
+
+	//vendor_id, sme_id
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.sme WHERE vendor_id = '%s' ALLOW FILTERING`, vendorID)
+	getSmeData := func() (smeData []vendorz.SME, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return smeData, iter.Select(&smeData)
+	}
+	smeDatas, err := getSmeData()
+	if err != nil {
+		return nil, err
+	}
+	if len(smeDatas) == 0 {
+		return nil, nil
+	}
+
+	smeData := smeDatas[0]
+	expertise := ChangeToPointerArray(smeData.Expertise)
+	lan := ChangeToPointerArray(smeData.Languages)
+	od := ChangeToPointerArray(smeData.OutputDeliveries)
+	ca := strconv.Itoa(int(smeData.CreatedAt))
+	ua := strconv.Itoa(int(smeData.UpdatedAt))
+	res := model.Sme{
+		VendorID:         &vendorID,
+		SmeID:            &smeData.SMEId,
+		Description:      &smeData.Description,
+		IsApplicable:     &smeData.IsApplicable,
+		Expertise:        expertise,
+		Languages:        lan,
+		OutputDeliveries: od,
+		CreatedAt:        &ca,
+		CreatedBy:        &smeData.CreatedBy,
+		UpdatedAt:        &ua,
+		UpdatedBy:        &smeData.UpdatedBy,
+		Status:           &smeData.Status,
+	}
+	return &res, nil
 }

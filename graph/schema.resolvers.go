@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -510,6 +511,21 @@ func (r *mutationResolver) CreateSubjectMatterExpertise(ctx context.Context, inp
 	return resp, nil
 }
 
+// UpdateSubjectMatterExpertise is the resolver for the updateSubjectMatterExpertise field.
+func (r *mutationResolver) UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*model.Sme, error) {
+	resp, err := handlers.UpdateSubjectMatterExpertise(ctx, input)
+	if err != nil {
+		log.Println("Got error while creating experience of vendor: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+// CreateClassRoomTraining is the resolver for the createClassRoomTraining field.
+func (r *mutationResolver) CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model.Crt, error) {
+	panic(fmt.Errorf("not implemented: CreateClassRoomTraining - createClassRoomTraining"))
+}
+
 // Logout is the resolver for the logout field.
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
@@ -943,6 +959,16 @@ func (r *queryResolver) ViewAllProfiles(ctx context.Context, vendorID string, pT
 // GetSampleFiles is the resolver for the getSampleFiles field.
 func (r *queryResolver) GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*model.SampleFile, error) {
 	res, err := handlers.GetSampleFiles(ctx, vendorID, pType)
+	if err != nil {
+		log.Printf("error while getting sample files for vendor: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetSmeDetails is the resolver for the getSmeDetails field.
+func (r *queryResolver) GetSmeDetails(ctx context.Context, vendorID string) (*model.Sme, error) {
+	res, err := handlers.GetSmeDetails(ctx, vendorID)
 	if err != nil {
 		log.Printf("error while getting sample files for vendor: %v", err)
 		return nil, err
