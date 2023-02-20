@@ -226,7 +226,6 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 	}
 
 	if input.Users != nil {
-		updatedCols = append(updatedCols, "users")
 		users := ChangesStringType(input.Users)
 		resp, err := MapVendorUser(ctx, *input.VendorID, users, email)
 		if err != nil {
@@ -341,8 +340,14 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 	//get all the emails already mapped with that vendor
 	var mappedUsers []vendorz.VendorUserMap
 	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' ALLOW FILTERING`, vendorId)
-	query := CassUserSession.Query(queryStr, nil)
-	if err = query.SelectRelease(&mappedUsers); err != nil {
+	getUsers := func() (users []vendorz.VendorUserMap, err error) {
+		q := CassUserSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return users, iter.Select(&users)
+	}
+	mappedUsers, err = getUsers()
+	if err != nil {
 		return nil, err
 	}
 	var resp []string
@@ -1869,4 +1874,8 @@ func GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*mode
 		res = append(res, &file)
 	}
 	return res, nil
+}
+
+func CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*model.Sme, error) {
+	return nil, nil
 }
