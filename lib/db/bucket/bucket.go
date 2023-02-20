@@ -81,8 +81,8 @@ func (sc *Client) GetSignedURLForObject(object string) string {
 	return url
 }
 
-func (sc *Client) DeleteObjectsFromBucket(ctx context.Context, fileName string) string {
-	o := sc.bucket.Object(fileName)
+func (sc *Client) DeleteObjectsFromBucket(ctx context.Context, bucketPath string) string {
+	o := sc.bucket.Object(bucketPath)
 
 	if err := o.Delete(ctx); err != nil {
 		return err.Error()

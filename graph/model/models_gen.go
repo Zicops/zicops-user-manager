@@ -6,6 +6,34 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+type Crt struct {
+	CrtID             *string   `json:"crt_id"`
+	VendorID          string    `json:"vendor_id"`
+	Description       *string   `json:"description"`
+	IsApplicable      *string   `json:"is_applicable"`
+	Expertise         []*string `json:"expertise"`
+	Languages         []*string `json:"languages"`
+	OutputDeliveries  []*string `json:"output_deliveries"`
+	IsExpertiseOnline *bool     `json:"is_expertise_online"`
+	CreatedAt         *string   `json:"created_at"`
+	CreatedBy         *string   `json:"created_by"`
+	UpdatedAt         *string   `json:"updated_at"`
+	UpdatedBy         *string   `json:"updated_by"`
+	Status            *string   `json:"status"`
+}
+
+type CRTInput struct {
+	CrtID             *string   `json:"crt_id"`
+	VendorID          string    `json:"vendor_id"`
+	Description       *string   `json:"description"`
+	IsApplicable      *string   `json:"is_applicable"`
+	Expertise         []*string `json:"expertise"`
+	Languages         []*string `json:"languages"`
+	OutputDeliveries  []*string `json:"output_deliveries"`
+	IsExpertiseOnline *bool     `json:"is_expertise_online"`
+	Status            *string   `json:"status"`
+}
+
 type CohortMain struct {
 	CohortID    *string `json:"cohort_id"`
 	Name        string  `json:"name"`
@@ -283,29 +311,25 @@ type Sme struct {
 	VendorID         *string   `json:"vendor_id"`
 	SmeID            *string   `json:"sme_id"`
 	Description      *string   `json:"description"`
-	IsApplicable     bool      `json:"is_applicable"`
+	IsApplicable     *bool     `json:"is_applicable"`
 	Expertise        []*string `json:"expertise"`
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
-	SampleFiles      []*string `json:"sample_files"`
-	Profiles         []*string `json:"profiles"`
 	CreatedAt        *string   `json:"created_at"`
 	CreatedBy        *string   `json:"created_by"`
 	UpdatedAt        *string   `json:"updated_at"`
 	UpdatedBy        *string   `json:"updated_by"`
-	Status           *string   `json:"Status"`
+	Status           *string   `json:"status"`
 }
 
 type SMEInput struct {
-	VendorID         *string   `json:"vendor_id"`
+	VendorID         string    `json:"vendor_id"`
 	SmeID            *string   `json:"sme_id"`
 	Description      *string   `json:"description"`
-	IsApplicable     bool      `json:"is_applicable"`
+	IsApplicable     *bool     `json:"is_applicable"`
 	Expertise        []*string `json:"expertise"`
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
-	SampleFiles      []*string `json:"sample_files"`
-	Profiles         []*string `json:"profiles"`
 	Status           *string   `json:"Status"`
 }
 
