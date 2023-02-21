@@ -3,6 +3,7 @@ package queries
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"sync"
@@ -10,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -36,14 +38,14 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	}
 	email_creator := claims["email"].(string)
 	emailCreatorID := base64.URLEncoding.EncodeToString([]byte(email_creator))
-	//key := "GetUsersForAdmin" + emailCreatorID + string(newPage)
-	// result, err := redis.GetRedisValue(key)
-	// if err == nil {
-	// 	err = json.Unmarshal([]byte(result), &users)
-	// 	if err != nil {
-	// 		log.Errorf("error while unmarshalling redis value: %v", err)
-	// 	}
-	// }
+	key := fmt.Sprintf("users_%s", emailCreatorID)
+	result, err := redis.GetRedisValue(ctx, key)
+	if err == nil {
+		err = json.Unmarshal([]byte(result), &users)
+		if err != nil {
+			log.Errorf("error while unmarshalling redis value: %v", err)
+		}
+	}
 	var newCursor string
 	if len(users) <= 0 {
 		userAdmin := userz.User{
@@ -168,11 +170,11 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
-	// redisBytes, err := json.Marshal(users)
-	// if err == nil {
-	// 	redis.SetTTL(key, 3600)
-	// 	redis.SetRedisValue(key, string(redisBytes))
-	// }
+	redisBytes, err := json.Marshal(users)
+	if err == nil {
+		redis.SetRedisValue(ctx, key, string(redisBytes))
+		redis.SetTTL(ctx, key, 60)
+	}
 	return &outputResponse, nil
 }
 
@@ -194,12 +196,11 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 		go func(i int, copyID string) {
 			defer wg.Done()
 			userCopy := userz.User{}
-			//key := "GetUserDetails" + *userID
-			//result, err := redis.GetRedisValue(key)
-			//if err == nil {
-			//	json.Unmarshal([]byte(result), &userCopy)
-
-			//}
+			key := fmt.Sprintf("user_%s", copyID)
+			result, err := redis.GetRedisValue(ctx, key)
+			if err == nil {
+				json.Unmarshal([]byte(result), &userCopy)
+			}
 			storageC := bucket.NewStorageHandler()
 			gproject := googleprojectlib.GetGoogleProjectID()
 			err = storageC.InitializeStorageClient(ctx, gproject)
@@ -264,12 +265,13 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 				Phone:      phone,
 			}
 			outputResponse[i] = outputUser
+			redisBytes, err := json.Marshal(userCopy)
+			if err == nil {
+				redis.SetRedisValue(ctx, key, string(redisBytes))
+				redis.SetTTL(ctx, key, 3600)
+			}
 		}(i, copiedID)
-		//redisBytes, err := json.Marshal(userCopy)
-		//if err == nil {
-		//	redis.SetTTL(key, 3600)
-		//	redis.SetRedisValue(key, string(redisBytes))
-		//}
+
 	}
 	wg.Wait()
 	// get clean user details and remove nulls

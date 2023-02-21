@@ -3,6 +3,7 @@ package queries
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"sync"
@@ -10,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -407,15 +409,15 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 	if err != nil {
 		return nil, err
 	}
-	//key := "GetUserExamProgress" + userEaID + userID
-	//result, err := redis.GetRedisValue(key)
-	//var outputResponse []*model.UserExamProgress
-	//if err == nil {
-	//	err = json.Unmarshal([]byte(result), &outputResponse)
-	//	if err == nil {
-	//		return outputResponse, nil
-	//	}
-	//}
+	key := fmt.Sprintf("zic_user_exam_progress_%s_%s", userID, userEaID)
+	result, err := redis.GetRedisValue(ctx, key)
+	var outputResponse []*model.UserExamProgress
+	if err == nil {
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return outputResponse, nil
+		}
+	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
@@ -472,11 +474,11 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 		}(i, cc)
 	}
 	wg.Wait()
-	//redisBytes, err := json.Marshal(userOrgs)
-	//if err == nil {
-	//	redis.SetTTL(key, 60)
-	//	redis.SetRedisValue(key, string(redisBytes))
-	//}
+	redisBytes, err := json.Marshal(userOrgs)
+	if err == nil {
+		redis.SetRedisValue(ctx, key, string(redisBytes))
+		redis.SetTTL(ctx, key, 30)
+	}
 	return userOrgs, nil
 }
 
@@ -485,15 +487,15 @@ func GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]
 	if err != nil {
 		return nil, err
 	}
-	//key := "GetUserQuizAttempts" + topicID + userID
-	//result, err := redis.GetRedisValue(key)
-	//var outputResponse []*model.UserQuizAttempt
-	//if err == nil {
-	//	err = json.Unmarshal([]byte(result), &outputResponse)
-	//	if err == nil {
-	//		return outputResponse, nil
-	//	}
-	//}
+	key := fmt.Sprintf("zic_user_quiz_attempts_%s_%s", userID, topicID)
+	result, err := redis.GetRedisValue(ctx, key)
+	var outputResponse []*model.UserQuizAttempt
+	if err == nil {
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return outputResponse, nil
+		}
+	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
@@ -536,10 +538,10 @@ func GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]
 		}
 		userOrgs = append(userOrgs, currentUserOrg)
 	}
-	//redisBytes, err := json.Marshal(userOrgs)
-	//if err == nil {
-	//	redis.SetTTL(key, 60)
-	//	redis.SetRedisValue(key, string(redisBytes))
-	//}
+	redisBytes, err := json.Marshal(userOrgs)
+	if err == nil {
+		redis.SetRedisValue(ctx, key, string(redisBytes))
+		redis.SetTTL(ctx, key, 30)
+	}
 	return userOrgs, nil
 }

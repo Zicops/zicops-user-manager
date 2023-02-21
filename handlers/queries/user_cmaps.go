@@ -3,6 +3,7 @@ package queries
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"sync"
@@ -10,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -41,15 +43,15 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 		}
 		newPage = page
 	}
-	//key := "GetUserCourseMaps" + emailCreatorID + string(newPage)
-	//result, err := redis.GetRedisValue(key)
-	//if err == nil {
-	//	var outputResponse model.PaginatedCourseMaps
-	//	err = json.Unmarshal([]byte(result), &outputResponse)
-	//	if err == nil {
-	//		return &outputResponse, nil
-	//	}
-	//}
+	key := base64.URLEncoding.EncodeToString([]byte(fmt.Sprintf("zicops_user_course_map_%s_%s_%d", userId, string(newPage), *pageSize)))
+	result, err := redis.GetRedisValue(ctx, key)
+	if err == nil {
+		var outputResponse model.PaginatedCourseMaps
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return &outputResponse, nil
+		}
+	}
 	if pageSize == nil {
 		pageSizeInt = 10
 	} else {
@@ -140,11 +142,11 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
-	//redisBytes, err := json.Marshal(outputResponse)
-	//if err == nil {
-	//	redis.SetTTL(key, 90)
-	//	redis.SetRedisValue(key, string(redisBytes))
-	//}
+	redisBytes, err := json.Marshal(outputResponse)
+	if err == nil {
+		redis.SetRedisValue(ctx, key, string(redisBytes))
+		redis.SetTTL(ctx, key, 3600)
+	}
 	return &outputResponse, nil
 }
 
@@ -158,15 +160,15 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 	if userId != "" {
 		emailCreatorID = userId
 	}
-	//key := "GetUserCourseMapByCourseID" + emailCreatorID + courseID
-	//result, err := redis.GetRedisValue(key)
-	//if err == nil {
-	//	var outputResponse []*model.UserCourse
-	//	err = json.Unmarshal([]byte(result), &outputResponse)
-	//	if err == nil {
-	//		return outputResponse, nil
-	//	}
-	//}
+	key := fmt.Sprintf("user_course_map_%s_%s", emailCreatorID, courseID)
+	result, err := redis.GetRedisValue(ctx, key)
+	if err == nil {
+		var outputResponse []*model.UserCourse
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return outputResponse, nil
+		}
+	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
@@ -210,11 +212,11 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 		}
 		allCourses = append(allCourses, currentCourse)
 	}
-	//redisBytes, err := json.Marshal(allCourses)
-	//if err == nil {
-	//	redis.SetTTL(key, 90)
-	//	redis.SetRedisValue(key, string(redisBytes))
-	//}
+	redisBytes, err := json.Marshal(allCourses)
+	if err == nil {
+		redis.SetRedisValue(ctx, key, string(redisBytes))
+		redis.SetTTL(ctx, key, 3600)
+	}
 	return allCourses, nil
 }
 
@@ -257,92 +259,147 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 	statsStatus := make([]*model.Count, 0)
 	if !filteringRequired && input.CourseStatus != nil && len(input.CourseStatus) > 0 {
 		statsStatus = make([]*model.Count, len(input.CourseStatus))
-		for i, s := range input.CourseStatus {
-			wg.Add(1)
-			ss := *s
-			tt := whereClause
-			go func(i int, status string, tempClause string) {
-				if i == 0 && tempClause == "" {
-					tempClause = fmt.Sprintf(`where course_status='%s'`, status)
-				} else {
-					tempClause = whereClause + fmt.Sprintf(` AND course_status='%s'`, status)
-				}
-				qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, tempClause)
-				getCSCount := func() (count int, success bool) {
-					q := CassUserSession.Query(qryStr, nil)
-					defer q.Release()
-					iter := q.Iter()
-					return count, iter.Scan(&count)
-				}
-				count, success := getCSCount()
-				if !success {
-					return
-				}
-				currentStatus := &model.Count{
-					Name:  status,
-					Count: count,
-				}
-				statsStatus[i] = currentStatus
-				wg.Done()
-			}(i, ss, tt)
+		courseStatusStr := ""
+		for s := range input.CourseStatus {
+			courseStatusStr = courseStatusStr + fmt.Sprintf(`'%s',`, *input.CourseStatus[s])
+		}
+
+		key_str := fmt.Sprintf("user_course_map_stats_%s_%s", courseStatusStr, whereClause)
+		redisValue, err := redis.GetRedisValue(ctx, key_str)
+		if err == nil {
+			json.Unmarshal([]byte(redisValue), &statsStatus)
+		}
+		if statsStatus == nil || len(statsStatus) <= 0 {
+			for i, s := range input.CourseStatus {
+				wg.Add(1)
+				ss := *s
+				tt := whereClause
+				go func(i int, status string, tempClause string) {
+					if i == 0 && tempClause == "" {
+						tempClause = fmt.Sprintf(`where course_status='%s'`, status)
+					} else {
+						tempClause = whereClause + fmt.Sprintf(` AND course_status='%s'`, status)
+					}
+					qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, tempClause)
+					getCSCount := func() (count int, success bool) {
+						q := CassUserSession.Query(qryStr, nil)
+						defer q.Release()
+						iter := q.Iter()
+						return count, iter.Scan(&count)
+					}
+					count, success := getCSCount()
+					if !success {
+						return
+					}
+					currentStatus := &model.Count{
+						Name:  status,
+						Count: count,
+					}
+					statsStatus[i] = currentStatus
+					wg.Done()
+				}(i, ss, tt)
+			}
+			wg.Wait()
+			redisBytes, err := json.Marshal(statsStatus)
+			if err != nil {
+				return nil, err
+			}
+			redis.SetRedisValue(ctx, key_str, string(redisBytes))
+			redis.SetTTL(ctx, key_str, 100)
 		}
 	}
 	statsType := make([]*model.Count, 0)
 	if !filteringRequired && input.CourseType != nil && len(input.CourseType) > 0 {
 		statsType = make([]*model.Count, len(input.CourseType))
-		for i, s := range input.CourseType {
-			wg.Add(1)
-			tt := whereClause
-			ss := *s
-			go func(i int, status string, tempClause string) {
-				if i == 0 && tempClause == "" {
-					tempClause = fmt.Sprintf(`where course_type='%s'`, status)
-				} else {
-					tempClause = whereClause + fmt.Sprintf(` AND course_type='%s'`, status)
-				}
-				qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, tempClause)
-				getCSCount := func() (count int, success bool) {
-					q := CassUserSession.Query(qryStr, nil)
-					defer q.Release()
-					iter := q.Iter()
-					return count, iter.Scan(&count)
-				}
-				count, success := getCSCount()
-				if !success {
-					return
-				}
-				currentStatus := &model.Count{
-					Name:  status,
-					Count: count,
-				}
-				statsType[i] = currentStatus
-				wg.Done()
-			}(i, ss, tt)
+		courseTypeStr := ""
+		for s := range input.CourseType {
+			courseTypeStr = courseTypeStr + fmt.Sprintf(`'%s',`, *input.CourseType[s])
+		}
+		key_str := fmt.Sprintf("user_course_map_stats_%s_%s", courseTypeStr, whereClause)
+		redisValue, err := redis.GetRedisValue(ctx, key_str)
+		if err == nil {
+			json.Unmarshal([]byte(redisValue), &statsType)
+		}
+		if statsType == nil || len(statsType) <= 0 {
+			for i, s := range input.CourseType {
+				wg.Add(1)
+				tt := whereClause
+				ss := *s
+				go func(i int, status string, tempClause string) {
+					if i == 0 && tempClause == "" {
+						tempClause = fmt.Sprintf(`where course_type='%s'`, status)
+					} else {
+						tempClause = whereClause + fmt.Sprintf(` AND course_type='%s'`, status)
+					}
+					qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, tempClause)
+					getCSCount := func() (count int, success bool) {
+						q := CassUserSession.Query(qryStr, nil)
+						defer q.Release()
+						iter := q.Iter()
+						return count, iter.Scan(&count)
+					}
+					count, success := getCSCount()
+					if !success {
+						return
+					}
+					currentStatus := &model.Count{
+						Name:  status,
+						Count: count,
+					}
+					statsType[i] = currentStatus
+					wg.Done()
+				}(i, ss, tt)
+			}
+			wg.Wait()
+			redisBytes, err := json.Marshal(statsType)
+			if err != nil {
+				return nil, err
+			}
+			redis.SetRedisValue(ctx, key_str, string(redisBytes))
+			redis.SetTTL(ctx, key_str, 100)
 		}
 	}
-	wg.Wait()
 	if filteringRequired {
-		qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, whereClause)
-		getCSCount := func() (count int, success bool) {
-			q := CassUserSession.Query(qryStr, nil)
-			defer q.Release()
-			iter := q.Iter()
-			return count, iter.Scan(&count)
+		key_str_status := fmt.Sprintf("user_course_map_stats_%s", whereClause)
+		redisValue, err := redis.GetRedisValue(ctx, key_str_status)
+		if err == nil {
+			json.Unmarshal([]byte(redisValue), &statsStatus)
 		}
-		count, success := getCSCount()
-		if !success {
-			return nil, fmt.Errorf("error while getting count for course type %s", *input.CourseType[0])
+
+		key_str_type := fmt.Sprintf("user_course_map_type_%s", whereClause)
+		redisValue, err = redis.GetRedisValue(ctx, key_str_type)
+		if err == nil {
+			json.Unmarshal([]byte(redisValue), &statsType)
 		}
-		currentStatus := &model.Count{
-			Name:  *input.CourseStatus[0],
-			Count: count,
+		if statsStatus == nil || len(statsStatus) <= 0 || statsType == nil || len(statsType) <= 0 {
+			qryStr := fmt.Sprintf(`SELECT count(*) from userz.user_course_map %s ALLOW FILTERING`, whereClause)
+			getCSCount := func() (count int, success bool) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return count, iter.Scan(&count)
+			}
+			count, success := getCSCount()
+			if !success {
+				return nil, fmt.Errorf("error while getting count for course type %s", *input.CourseType[0])
+			}
+			currentStatus := &model.Count{
+				Name:  *input.CourseStatus[0],
+				Count: count,
+			}
+			statsStatus = append(statsStatus, currentStatus)
+			currentType := &model.Count{
+				Name:  *input.CourseType[0],
+				Count: count,
+			}
+			statsType = append(statsType, currentType)
+			redisBytes, err := json.Marshal(statsStatus)
+			if err != nil {
+				return nil, err
+			}
+			redis.SetRedisValue(ctx, key_str_status, string(redisBytes))
+			redis.SetTTL(ctx, key_str_status, 100)
 		}
-		statsStatus = append(statsStatus, currentStatus)
-		currentType := &model.Count{
-			Name:  *input.CourseType[0],
-			Count: count,
-		}
-		statsType = append(statsType, currentType)
 	}
 	var currentOutput model.UserCourseMapStats
 	currentOutput.LspID = input.LspID

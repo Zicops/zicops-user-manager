@@ -444,8 +444,8 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	}
 	userBytes, err := json.Marshal(user)
 	if err == nil {
-		redis.SetRedisValue(*user.ID, string(userBytes))
-		redis.SetTTL(*user.ID, 3600)
+		redis.SetRedisValue(ctx, *user.ID, string(userBytes))
+		redis.SetTTL(ctx, *user.ID, 3600)
 	}
 	return &responseUser, nil
 }
@@ -475,16 +475,24 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		ID: userID,
 	}
 	users := []userz.User{}
-
-	getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, userID)
-	getQuery := CassUserSession.Query(getQueryStr, nil)
-	if err := getQuery.SelectRelease(&users); err != nil {
-		return nil, err
+	redisValue, err := redis.GetRedisValue(ctx, userID)
+	if err == nil && redisValue != "" {
+		err = json.Unmarshal([]byte(redisValue), &userCass)
+		if err != nil {
+			log.Errorf("error unmarshalling user from redis: %v", err)
+		}
 	}
-	if len(users) == 0 {
-		return nil, fmt.Errorf("user not found")
+	if userCass.ID == "" {
+		getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, userID)
+		getQuery := CassUserSession.Query(getQueryStr, nil)
+		if err := getQuery.SelectRelease(&users); err != nil {
+			return nil, err
+		}
+		if len(users) == 0 {
+			return nil, fmt.Errorf("user not found")
+		}
+		userCass = users[0]
 	}
-	userCass = users[0]
 	photoURL := userCass.PhotoURL
 	if userCass.PhotoBucket != "" {
 		storageC := bucket.NewStorageHandler()
@@ -515,8 +523,8 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 
 	userBytes, err := json.Marshal(userCass)
 	if err == nil {
-		redis.SetRedisValue(userCass.ID, string(userBytes))
-		redis.SetTTL(userCass.ID, 7200)
+		redis.SetRedisValue(ctx, userCass.ID, string(userBytes))
+		redis.SetTTL(ctx, userCass.ID, 7200)
 		log.Infof("user logged in: %v", userCass.ID)
 	}
 	return &currentUser, nil
@@ -530,6 +538,6 @@ func Logout(ctx context.Context) (*bool, error) {
 		return &logoutSuccess, err
 	}
 	emailLower := strings.ToLower(email)
-	redis.DeleteRedisValue(base64.URLEncoding.EncodeToString([]byte(emailLower)))
+	redis.SetRedisValue(ctx, base64.URLEncoding.EncodeToString([]byte(emailLower)), "")
 	return &logoutSuccess, nil
 }

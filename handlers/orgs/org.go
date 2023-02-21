@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
 	"github.com/zicops/zicops-user-manager/lib/db/bucket"
@@ -432,28 +434,36 @@ func GetOrganizationsByDomain(ctx context.Context, domain string) ([]*model.Orga
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("userz")
-	if err != nil {
-		return nil, err
+	var orgCass userz.Organization
+	key := fmt.Sprintf("orgs:%s", domain)
+	redisValue, err := redis.GetRedisValue(ctx, key)
+	if err == nil {
+		json.Unmarshal([]byte(redisValue), &orgCass)
 	}
-	CassUserSession := session
 	outputOrgs := make([]*model.Organization, 1)
-	log.Errorf("domain: %v", domain)
-	qryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain='%s' ALLOW FILTERING`, domain)
-	getOrgs := func() (users []userz.Organization, err error) {
-		q := CassUserSession.Query(qryStr, nil)
-		defer q.Release()
-		iter := q.Iter()
-		return users, iter.Select(&users)
+	if orgCass.ID == "" {
+		session, err := cassandra.GetCassSession("userz")
+		if err != nil {
+			return nil, err
+		}
+		CassUserSession := session
+		log.Errorf("domain: %v", domain)
+		qryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain='%s' ALLOW FILTERING`, domain)
+		getOrgs := func() (users []userz.Organization, err error) {
+			q := CassUserSession.Query(qryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return users, iter.Select(&users)
+		}
+		orgs, err := getOrgs()
+		if err != nil {
+			return nil, err
+		}
+		if len(orgs) == 0 {
+			return nil, fmt.Errorf("no organization found")
+		}
+		orgCass = orgs[0]
 	}
-	orgs, err := getOrgs()
-	if err != nil {
-		return nil, err
-	}
-	if len(orgs) == 0 {
-		return nil, fmt.Errorf("no organization found")
-	}
-	orgCass := orgs[0]
 	created := strconv.FormatInt(orgCass.CreatedAt, 10)
 	updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
 	emptCnt, _ := strconv.Atoi(orgCass.EmpCount)
@@ -486,6 +496,9 @@ func GetOrganizationsByDomain(ctx context.Context, domain string) ([]*model.Orga
 		UpdatedBy:     &orgCass.UpdatedBy,
 		Type:          orgCass.Type,
 	}
+
+	redisBytes, _ := json.Marshal(orgCass)
+	redis.SetRedisValue(ctx, key, string(redisBytes))
 	outputOrgs[0] = result
 	return outputOrgs, nil
 }

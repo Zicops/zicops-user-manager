@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -152,15 +154,15 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 		}
 		newPage = page
 	}
-	//key := "GetCohortUsers" + cohortID + string(newPage)
-	//result, err := redis.GetRedisValue(key)
-	//if err == nil {
-	//	var outputResponse model.PaginatedCohorts
-	//	err = json.Unmarshal([]byte(result), &outputResponse)
-	//	if err == nil {
-	//		return &outputResponse, nil
-	//	}
-	//}
+	key := fmt.Sprintf("zicops_cohort_users_%s_%s", cohortID, string(newPage))
+	result, err := redis.GetRedisValue(ctx, key)
+	if err == nil {
+		var outputResponse model.PaginatedCohorts
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return &outputResponse, nil
+		}
+	}
 
 	if pageSize == nil {
 		pageSizeInt = 10
@@ -233,11 +235,11 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
-	//redisBytes, err := json.Marshal(outputResponse)
-	//if err == nil {
-	//	redis.SetTTL(key, 3600)
-	//	redis.SetRedisValue(key, string(redisBytes))
-	//}
+	redisBytes, err := json.Marshal(outputResponse)
+	if err == nil {
+		redis.SetRedisValue(ctx, key, string(redisBytes))
+		redis.SetTTL(ctx, key, 3600)
+	}
 	return &outputResponse, nil
 }
 
@@ -482,12 +484,12 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 		return nil, err
 	}
 	lspID := claims["lsp_id"].(string)
-	//key := "GetCohortDetails" + cohortID
-	//result, err := redis.GetRedisValue(key)
+	key := fmt.Sprintf("cohort_%s_%s", lspID, cohortID)
+	result, err := redis.GetRedisValue(ctx, key)
 	cohort := userz.Cohort{}
-	//if err == nil {
-	//	json.Unmarshal([]byte(result), &cohort)
-	//}
+	if err == nil {
+		json.Unmarshal([]byte(result), &cohort)
+	}
 	var photoBucket string
 	var photoUrl string
 	if cohort.ID == "" {
@@ -536,11 +538,11 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 		LspID:       cohort.LspId,
 		Size:        cohort.Size,
 	}
-	//redisBytes, err := json.Marshal(cohort)
-	//if err == nil {
-	//	redis.SetTTL(key, 3600)
-	//	redis.SetRedisValue(key, string(redisBytes))
-	//}
+	redisBytes, err := json.Marshal(cohort)
+	if err == nil {
+		redis.SetRedisValue(ctx, key, string(redisBytes))
+		redis.SetTTL(ctx, key, 3600)
+	}
 	return outputCohort, nil
 }
 
@@ -565,6 +567,12 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	//if err == nil {
 	//	json.Unmarshal([]byte(result), &cohorts)
 	//}
+	key := fmt.Sprintf("cohort_%s_%s", lspID, string(newPage))
+	result, err := redis.GetRedisValue(ctx, key)
+	if err == nil {
+		json.Unmarshal([]byte(result), &cohorts)
+	}
+
 	var newCursor string
 
 	if len(cohorts) <= 0 {
@@ -660,11 +668,11 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	outputResponse.PageCursor = &newCursor
 	outputResponse.PageSize = &pageSizeInt
 	outputResponse.Direction = direction
-	//redisBytes, err := json.Marshal(cohorts)
-	//if err == nil {
-	//	redis.SetTTL(key, 3600)
-	//	redis.SetRedisValue(key, string(redisBytes))
-	//}
+	redisBytes, err := json.Marshal(cohorts)
+	if err == nil {
+		redis.SetRedisValue(ctx, key, string(redisBytes))
+		redis.SetTTL(ctx, key, 3600)
+	}
 	return &outputResponse, nil
 }
 

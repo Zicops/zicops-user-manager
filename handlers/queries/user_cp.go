@@ -3,12 +3,14 @@ package queries
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"sync"
 
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
 )
@@ -23,15 +25,15 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 	if userId != "" {
 		emailCreatorID = userId
 	}
-	//key := "GetUserCourseProgressByMapID" + emailCreatorID + userCourseID
-	//result, err := redis.GetRedisValue(key)
-	//if err == nil {
-	//	var outputResponse []*model.UserCourseProgress
-	//	err = json.Unmarshal([]byte(result), &outputResponse)
-	//	if err == nil {
-	//		return outputResponse, nil
-	//	}
-	//}
+	key := fmt.Sprintf("user_course_progress_%s", userId)
+	result, err := redis.GetRedisValue(ctx, key)
+	if err == nil {
+		var outputResponse []*model.UserCourseProgress
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return outputResponse, nil
+		}
+	}
 
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
@@ -84,11 +86,11 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 		wg.Wait()
 		userCPsMap = append(userCPsMap, userCPsMapCurrent...)
 	}
-	//redisBytes, err := json.Marshal(userCPsMap)
-	//if err == nil {
-	//	redis.SetTTL(key, 300)
-	//	redis.SetRedisValue(key, string(redisBytes))
-	//}
+	redisBytes, err := json.Marshal(userCPsMap)
+	if err == nil {
+		redis.SetRedisValue(ctx, key, string(redisBytes))
+		redis.SetTTL(ctx, key, 30)
+	}
 	return userCPsMap, nil
 }
 
@@ -102,15 +104,15 @@ func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID 
 	if userId != "" {
 		emailCreatorID = userId
 	}
-	//key := "GetUserCourseProgressByTopicID" + emailCreatorID + topicID
-	//result, err := redis.GetRedisValue(key)
-	//if err == nil {
-	//	var outputResponse []*model.UserCourseProgress
-	//	err = json.Unmarshal([]byte(result), &outputResponse)
-	//	if err == nil {
-	//		return outputResponse, nil
-	//	}
-	//}
+	key := fmt.Sprintf("user_course_progress_%s", userId)
+	result, err := redis.GetRedisValue(ctx, key)
+	if err == nil {
+		var outputResponse []*model.UserCourseProgress
+		err = json.Unmarshal([]byte(result), &outputResponse)
+		if err == nil {
+			return outputResponse, nil
+		}
+	}
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
@@ -159,10 +161,10 @@ func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID 
 		}(i, ucp)
 	}
 	wg.Wait()
-	//redisBytes, err := json.Marshal(userCPsMap)
-	//if err == nil {
-	//	redis.SetTTL(key, 300)
-	//	redis.SetRedisValue(key, string(redisBytes))
-	//}
+	redisBytes, err := json.Marshal(userCPsMap)
+	if err == nil {
+		redis.SetRedisValue(ctx, key, string(redisBytes))
+		redis.SetTTL(ctx, key, 30)
+	}
 	return userCPsMap, nil
 }
