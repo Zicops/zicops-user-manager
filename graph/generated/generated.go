@@ -76,6 +76,21 @@ type ComplexityRoot struct {
 		UpdatedBy   func(childComplexity int) int
 	}
 
+	ContentDevelopment struct {
+		CdID             func(childComplexity int) int
+		CreatedAt        func(childComplexity int) int
+		CreatedBy        func(childComplexity int) int
+		Description      func(childComplexity int) int
+		Expertise        func(childComplexity int) int
+		IsApplicable     func(childComplexity int) int
+		Languages        func(childComplexity int) int
+		OutputDeliveries func(childComplexity int) int
+		Status           func(childComplexity int) int
+		UpdatedAt        func(childComplexity int) int
+		UpdatedBy        func(childComplexity int) int
+		VendorID         func(childComplexity int) int
+	}
+
 	Count struct {
 		Count func(childComplexity int) int
 		Name  func(childComplexity int) int
@@ -170,6 +185,7 @@ type ComplexityRoot struct {
 		AddUserRoles                 func(childComplexity int, input []*model.UserRoleInput) int
 		AddVendor                    func(childComplexity int, input *model.VendorInput) int
 		CreateClassRoomTraining      func(childComplexity int, input *model.CRTInput) int
+		CreateContentDevelopment     func(childComplexity int, input *model.ContentDevelopmentInput) int
 		CreateExperienceVendor       func(childComplexity int, input model.ExperienceInput) int
 		CreateProfileVendor          func(childComplexity int, input *model.VendorProfileInput) int
 		CreateSubjectMatterExpertise func(childComplexity int, input *model.SMEInput) int
@@ -178,7 +194,9 @@ type ComplexityRoot struct {
 		InviteUsersWithRole          func(childComplexity int, emails []string, lspID *string, role *string) int
 		Login                        func(childComplexity int) int
 		RegisterUsers                func(childComplexity int, input []*model.UserInput) int
+		UpdateClassRoomTraining      func(childComplexity int, input *model.CRTInput) int
 		UpdateCohortMain             func(childComplexity int, input model.CohortMainInput) int
+		UpdateContentDevelopment     func(childComplexity int, input *model.ContentDevelopmentInput) int
 		UpdateExperienceVendor       func(childComplexity int, input model.ExperienceInput) int
 		UpdateLearningSpace          func(childComplexity int, input model.LearningSpaceInput) int
 		UpdateOrganization           func(childComplexity int, input model.OrganizationInput) int
@@ -302,9 +320,11 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		GetClassRoomTraining           func(childComplexity int, vendorID string) int
 		GetCohortDetails               func(childComplexity int, cohortID string) int
 		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) int
 		GetCohortUsers                 func(childComplexity int, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
+		GetContentDevelopment          func(childComplexity int, vendorID string) int
 		GetCourseConsumptionStats      func(childComplexity int, lspID string, pageCursor *string, direction *string, pageSize *int) int
 		GetCourseViews                 func(childComplexity int, lspIds []string, startTime *string, endTime *string) int
 		GetLatestCohorts               func(childComplexity int, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
@@ -715,6 +735,9 @@ type MutationResolver interface {
 	CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*model.Sme, error)
 	UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*model.Sme, error)
 	CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model.Crt, error)
+	UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model.Crt, error)
+	CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopmentInput) (*model.ContentDevelopment, error)
+	UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopmentInput) (*model.ContentDevelopment, error)
 }
 type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
@@ -762,6 +785,8 @@ type QueryResolver interface {
 	ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*model.VendorProfile, error)
 	GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*model.SampleFile, error)
 	GetSmeDetails(ctx context.Context, vendorID string) (*model.Sme, error)
+	GetClassRoomTraining(ctx context.Context, vendorID string) (*model.Crt, error)
+	GetContentDevelopment(ctx context.Context, vendorID string) (*model.ContentDevelopment, error)
 }
 
 type executableSchema struct {
@@ -967,6 +992,90 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CohortMain.UpdatedBy(childComplexity), true
+
+	case "ContentDevelopment.cd_id":
+		if e.complexity.ContentDevelopment.CdID == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.CdID(childComplexity), true
+
+	case "ContentDevelopment.created_at":
+		if e.complexity.ContentDevelopment.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.CreatedAt(childComplexity), true
+
+	case "ContentDevelopment.created_by":
+		if e.complexity.ContentDevelopment.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.CreatedBy(childComplexity), true
+
+	case "ContentDevelopment.description":
+		if e.complexity.ContentDevelopment.Description == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.Description(childComplexity), true
+
+	case "ContentDevelopment.expertise":
+		if e.complexity.ContentDevelopment.Expertise == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.Expertise(childComplexity), true
+
+	case "ContentDevelopment.is_applicable":
+		if e.complexity.ContentDevelopment.IsApplicable == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.IsApplicable(childComplexity), true
+
+	case "ContentDevelopment.languages":
+		if e.complexity.ContentDevelopment.Languages == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.Languages(childComplexity), true
+
+	case "ContentDevelopment.output_deliveries":
+		if e.complexity.ContentDevelopment.OutputDeliveries == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.OutputDeliveries(childComplexity), true
+
+	case "ContentDevelopment.status":
+		if e.complexity.ContentDevelopment.Status == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.Status(childComplexity), true
+
+	case "ContentDevelopment.updated_at":
+		if e.complexity.ContentDevelopment.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.UpdatedAt(childComplexity), true
+
+	case "ContentDevelopment.updated_by":
+		if e.complexity.ContentDevelopment.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.UpdatedBy(childComplexity), true
+
+	case "ContentDevelopment.vendor_id":
+		if e.complexity.ContentDevelopment.VendorID == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.VendorID(childComplexity), true
 
 	case "Count.count":
 		if e.complexity.Count.Count == nil {
@@ -1593,6 +1702,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateClassRoomTraining(childComplexity, args["input"].(*model.CRTInput)), true
 
+	case "Mutation.createContentDevelopment":
+		if e.complexity.Mutation.CreateContentDevelopment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createContentDevelopment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateContentDevelopment(childComplexity, args["input"].(*model.ContentDevelopmentInput)), true
+
 	case "Mutation.createExperienceVendor":
 		if e.complexity.Mutation.CreateExperienceVendor == nil {
 			break
@@ -1684,6 +1805,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RegisterUsers(childComplexity, args["input"].([]*model.UserInput)), true
 
+	case "Mutation.updateClassRoomTraining":
+		if e.complexity.Mutation.UpdateClassRoomTraining == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateClassRoomTraining_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateClassRoomTraining(childComplexity, args["input"].(*model.CRTInput)), true
+
 	case "Mutation.updateCohortMain":
 		if e.complexity.Mutation.UpdateCohortMain == nil {
 			break
@@ -1695,6 +1828,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateCohortMain(childComplexity, args["input"].(model.CohortMainInput)), true
+
+	case "Mutation.updateContentDevelopment":
+		if e.complexity.Mutation.UpdateContentDevelopment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateContentDevelopment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateContentDevelopment(childComplexity, args["input"].(*model.ContentDevelopmentInput)), true
 
 	case "Mutation.updateExperienceVendor":
 		if e.complexity.Mutation.UpdateExperienceVendor == nil {
@@ -2415,6 +2560,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PaginatedVendors.Vendors(childComplexity), true
 
+	case "Query.getClassRoomTraining":
+		if e.complexity.Query.GetClassRoomTraining == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getClassRoomTraining_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetClassRoomTraining(childComplexity, args["vendor_id"].(string)), true
+
 	case "Query.getCohortDetails":
 		if e.complexity.Query.GetCohortDetails == nil {
 			break
@@ -2450,6 +2607,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetCohortUsers(childComplexity, args["cohort_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+
+	case "Query.getContentDevelopment":
+		if e.complexity.Query.GetContentDevelopment == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getContentDevelopment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetContentDevelopment(childComplexity, args["vendor_id"].(string)), true
 
 	case "Query.getCourseConsumptionStats":
 		if e.complexity.Query.GetCourseConsumptionStats == nil {
@@ -4710,6 +4879,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputCRTInput,
 		ec.unmarshalInputCohortMainInput,
+		ec.unmarshalInputContentDevelopmentInput,
 		ec.unmarshalInputCourseMapFilters,
 		ec.unmarshalInputExperienceInput,
 		ec.unmarshalInputLearningSpaceInput,
@@ -5667,7 +5837,7 @@ input CRTInput {
   crt_id: String
   vendor_id: String!
   description: String
-  is_applicable: String
+  is_applicable: Boolean
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
@@ -5679,11 +5849,37 @@ type CRT {
   crt_id: String
   vendor_id: String!
   description: String
-  is_applicable: String
+  is_applicable: Boolean
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
   is_expertise_online: Boolean
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+  status: String
+}
+
+input ContentDevelopmentInput {
+  cd_id: String
+  vendor_id: String!
+  description: String
+  is_applicable: Boolean
+  expertise: [String]
+  languages: [String]
+  output_deliveries: [String]
+  status: String
+}
+
+type ContentDevelopment {
+  cd_id: String
+  vendor_id: String
+  description: String
+  is_applicable: Boolean
+  expertise: [String]
+  languages: [String]
+  output_deliveries: [String]
   created_at: String
 	created_by: String
 	updated_at: String
@@ -5820,6 +6016,8 @@ type Query {
   viewAllProfiles(vendor_id: String!, p_type: String!): [VendorProfile]
   getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
   getSmeDetails(vendor_id: String!): SME
+  getClassRoomTraining(vendor_id: String!): CRT
+  getContentDevelopment(vendor_id: String!): ContentDevelopment
 }
 
 type Mutation {
@@ -5879,6 +6077,9 @@ type Mutation {
   createSubjectMatterExpertise(input:SMEInput): SME
   updateSubjectMatterExpertise(input:SMEInput): SME
   createClassRoomTraining(input:CRTInput): CRT
+  updateClassRoomTraining(input:CRTInput): CRT
+  createContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
+  updateContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
 }
 `, BuiltIn: false},
 }
@@ -6188,6 +6389,21 @@ func (ec *executionContext) field_Mutation_createClassRoomTraining_args(ctx cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createContentDevelopment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.ContentDevelopmentInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOContentDevelopmentInput2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐContentDevelopmentInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createExperienceVendor_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -6329,6 +6545,21 @@ func (ec *executionContext) field_Mutation_registerUsers_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateClassRoomTraining_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.CRTInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOCRTInput2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCRTInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateCohortMain_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -6336,6 +6567,21 @@ func (ec *executionContext) field_Mutation_updateCohortMain_args(ctx context.Con
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNCohortMainInput2githubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCohortMainInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateContentDevelopment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.ContentDevelopmentInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOContentDevelopmentInput2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐContentDevelopmentInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -6689,6 +6935,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getClassRoomTraining_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["vendor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getCohortDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -6812,6 +7073,21 @@ func (ec *executionContext) field_Query_getCohortUsers_args(ctx context.Context,
 		}
 	}
 	args["pageSize"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getContentDevelopment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["vendor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_id"] = arg0
 	return args, nil
 }
 
@@ -8139,9 +8415,9 @@ func (ec *executionContext) _CRT_is_applicable(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_CRT_is_applicable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -8151,7 +8427,7 @@ func (ec *executionContext) fieldContext_CRT_is_applicable(ctx context.Context, 
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -9120,6 +9396,498 @@ func (ec *executionContext) _CohortMain_imageUrl(ctx context.Context, field grap
 func (ec *executionContext) fieldContext_CohortMain_imageUrl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CohortMain",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_cd_id(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_cd_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CdID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_cd_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_vendor_id(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_vendor_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VendorID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_vendor_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_description(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_is_applicable(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_is_applicable(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsApplicable, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_is_applicable(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_expertise(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_expertise(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Expertise, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_expertise(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_languages(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_languages(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Languages, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_languages(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_output_deliveries(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OutputDeliveries, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_output_deliveries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_created_at(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_created_by(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_created_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_created_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_updated_by(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_updated_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_updated_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_status(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -15440,6 +16208,242 @@ func (ec *executionContext) fieldContext_Mutation_createClassRoomTraining(ctx co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_createClassRoomTraining_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateClassRoomTraining(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateClassRoomTraining(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateClassRoomTraining(rctx, fc.Args["input"].(*model.CRTInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Crt)
+	fc.Result = res
+	return ec.marshalOCRT2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCrt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateClassRoomTraining(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "crt_id":
+				return ec.fieldContext_CRT_crt_id(ctx, field)
+			case "vendor_id":
+				return ec.fieldContext_CRT_vendor_id(ctx, field)
+			case "description":
+				return ec.fieldContext_CRT_description(ctx, field)
+			case "is_applicable":
+				return ec.fieldContext_CRT_is_applicable(ctx, field)
+			case "expertise":
+				return ec.fieldContext_CRT_expertise(ctx, field)
+			case "languages":
+				return ec.fieldContext_CRT_languages(ctx, field)
+			case "output_deliveries":
+				return ec.fieldContext_CRT_output_deliveries(ctx, field)
+			case "is_expertise_online":
+				return ec.fieldContext_CRT_is_expertise_online(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CRT_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CRT_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CRT_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_CRT_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_CRT_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CRT", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateClassRoomTraining_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createContentDevelopment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createContentDevelopment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateContentDevelopment(rctx, fc.Args["input"].(*model.ContentDevelopmentInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ContentDevelopment)
+	fc.Result = res
+	return ec.marshalOContentDevelopment2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐContentDevelopment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createContentDevelopment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cd_id":
+				return ec.fieldContext_ContentDevelopment_cd_id(ctx, field)
+			case "vendor_id":
+				return ec.fieldContext_ContentDevelopment_vendor_id(ctx, field)
+			case "description":
+				return ec.fieldContext_ContentDevelopment_description(ctx, field)
+			case "is_applicable":
+				return ec.fieldContext_ContentDevelopment_is_applicable(ctx, field)
+			case "expertise":
+				return ec.fieldContext_ContentDevelopment_expertise(ctx, field)
+			case "languages":
+				return ec.fieldContext_ContentDevelopment_languages(ctx, field)
+			case "output_deliveries":
+				return ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
+			case "created_at":
+				return ec.fieldContext_ContentDevelopment_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_ContentDevelopment_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_ContentDevelopment_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_ContentDevelopment_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_ContentDevelopment_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ContentDevelopment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createContentDevelopment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateContentDevelopment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateContentDevelopment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateContentDevelopment(rctx, fc.Args["input"].(*model.ContentDevelopmentInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ContentDevelopment)
+	fc.Result = res
+	return ec.marshalOContentDevelopment2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐContentDevelopment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateContentDevelopment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cd_id":
+				return ec.fieldContext_ContentDevelopment_cd_id(ctx, field)
+			case "vendor_id":
+				return ec.fieldContext_ContentDevelopment_vendor_id(ctx, field)
+			case "description":
+				return ec.fieldContext_ContentDevelopment_description(ctx, field)
+			case "is_applicable":
+				return ec.fieldContext_ContentDevelopment_is_applicable(ctx, field)
+			case "expertise":
+				return ec.fieldContext_ContentDevelopment_expertise(ctx, field)
+			case "languages":
+				return ec.fieldContext_ContentDevelopment_languages(ctx, field)
+			case "output_deliveries":
+				return ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
+			case "created_at":
+				return ec.fieldContext_ContentDevelopment_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_ContentDevelopment_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_ContentDevelopment_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_ContentDevelopment_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_ContentDevelopment_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ContentDevelopment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateContentDevelopment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -21793,6 +22797,164 @@ func (ec *executionContext) fieldContext_Query_getSmeDetails(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getSmeDetails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getClassRoomTraining(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getClassRoomTraining(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetClassRoomTraining(rctx, fc.Args["vendor_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Crt)
+	fc.Result = res
+	return ec.marshalOCRT2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCrt(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getClassRoomTraining(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "crt_id":
+				return ec.fieldContext_CRT_crt_id(ctx, field)
+			case "vendor_id":
+				return ec.fieldContext_CRT_vendor_id(ctx, field)
+			case "description":
+				return ec.fieldContext_CRT_description(ctx, field)
+			case "is_applicable":
+				return ec.fieldContext_CRT_is_applicable(ctx, field)
+			case "expertise":
+				return ec.fieldContext_CRT_expertise(ctx, field)
+			case "languages":
+				return ec.fieldContext_CRT_languages(ctx, field)
+			case "output_deliveries":
+				return ec.fieldContext_CRT_output_deliveries(ctx, field)
+			case "is_expertise_online":
+				return ec.fieldContext_CRT_is_expertise_online(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CRT_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CRT_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CRT_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_CRT_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_CRT_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CRT", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getClassRoomTraining_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getContentDevelopment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getContentDevelopment(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetContentDevelopment(rctx, fc.Args["vendor_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.ContentDevelopment)
+	fc.Result = res
+	return ec.marshalOContentDevelopment2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐContentDevelopment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getContentDevelopment(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cd_id":
+				return ec.fieldContext_ContentDevelopment_cd_id(ctx, field)
+			case "vendor_id":
+				return ec.fieldContext_ContentDevelopment_vendor_id(ctx, field)
+			case "description":
+				return ec.fieldContext_ContentDevelopment_description(ctx, field)
+			case "is_applicable":
+				return ec.fieldContext_ContentDevelopment_is_applicable(ctx, field)
+			case "expertise":
+				return ec.fieldContext_ContentDevelopment_expertise(ctx, field)
+			case "languages":
+				return ec.fieldContext_ContentDevelopment_languages(ctx, field)
+			case "output_deliveries":
+				return ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
+			case "created_at":
+				return ec.fieldContext_ContentDevelopment_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_ContentDevelopment_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_ContentDevelopment_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_ContentDevelopment_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_ContentDevelopment_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ContentDevelopment", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getContentDevelopment_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -34455,7 +35617,7 @@ func (ec *executionContext) unmarshalInputCRTInput(ctx context.Context, obj inte
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_applicable"))
-			it.IsApplicable, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.IsApplicable, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34620,6 +35782,90 @@ func (ec *executionContext) unmarshalInputCohortMainInput(ctx context.Context, o
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageUrl"))
 			it.ImageURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputContentDevelopmentInput(ctx context.Context, obj interface{}) (model.ContentDevelopmentInput, error) {
+	var it model.ContentDevelopmentInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"cd_id", "vendor_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "status"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "cd_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cd_id"))
+			it.CdID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "vendor_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+			it.VendorID, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "is_applicable":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_applicable"))
+			it.IsApplicable, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "expertise":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("expertise"))
+			it.Expertise, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "languages":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("languages"))
+			it.Languages, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "output_deliveries":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("output_deliveries"))
+			it.OutputDeliveries, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			it.Status, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37472,6 +38718,75 @@ func (ec *executionContext) _CohortMain(ctx context.Context, sel ast.SelectionSe
 	return out
 }
 
+var contentDevelopmentImplementors = []string{"ContentDevelopment"}
+
+func (ec *executionContext) _ContentDevelopment(ctx context.Context, sel ast.SelectionSet, obj *model.ContentDevelopment) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, contentDevelopmentImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ContentDevelopment")
+		case "cd_id":
+
+			out.Values[i] = ec._ContentDevelopment_cd_id(ctx, field, obj)
+
+		case "vendor_id":
+
+			out.Values[i] = ec._ContentDevelopment_vendor_id(ctx, field, obj)
+
+		case "description":
+
+			out.Values[i] = ec._ContentDevelopment_description(ctx, field, obj)
+
+		case "is_applicable":
+
+			out.Values[i] = ec._ContentDevelopment_is_applicable(ctx, field, obj)
+
+		case "expertise":
+
+			out.Values[i] = ec._ContentDevelopment_expertise(ctx, field, obj)
+
+		case "languages":
+
+			out.Values[i] = ec._ContentDevelopment_languages(ctx, field, obj)
+
+		case "output_deliveries":
+
+			out.Values[i] = ec._ContentDevelopment_output_deliveries(ctx, field, obj)
+
+		case "created_at":
+
+			out.Values[i] = ec._ContentDevelopment_created_at(ctx, field, obj)
+
+		case "created_by":
+
+			out.Values[i] = ec._ContentDevelopment_created_by(ctx, field, obj)
+
+		case "updated_at":
+
+			out.Values[i] = ec._ContentDevelopment_updated_at(ctx, field, obj)
+
+		case "updated_by":
+
+			out.Values[i] = ec._ContentDevelopment_updated_by(ctx, field, obj)
+
+		case "status":
+
+			out.Values[i] = ec._ContentDevelopment_status(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var countImplementors = []string{"Count"}
 
 func (ec *executionContext) _Count(ctx context.Context, sel ast.SelectionSet, obj *model.Count) graphql.Marshaler {
@@ -38183,6 +39498,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_createClassRoomTraining(ctx, field)
+			})
+
+		case "updateClassRoomTraining":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateClassRoomTraining(ctx, field)
+			})
+
+		case "createContentDevelopment":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createContentDevelopment(ctx, field)
+			})
+
+		case "updateContentDevelopment":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateContentDevelopment(ctx, field)
 			})
 
 		default:
@@ -39653,6 +40986,46 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getSmeDetails(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getClassRoomTraining":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getClassRoomTraining(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getContentDevelopment":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getContentDevelopment(ctx, field)
 				return res
 			}
 
@@ -42695,6 +44068,21 @@ func (ec *executionContext) marshalOCohortMain2ᚖgithubᚗcomᚋzicopsᚋzicops
 		return graphql.Null
 	}
 	return ec._CohortMain(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOContentDevelopment2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐContentDevelopment(ctx context.Context, sel ast.SelectionSet, v *model.ContentDevelopment) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ContentDevelopment(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOContentDevelopmentInput2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐContentDevelopmentInput(ctx context.Context, v interface{}) (*model.ContentDevelopmentInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputContentDevelopmentInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOCount2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCount(ctx context.Context, sel ast.SelectionSet, v []*model.Count) graphql.Marshaler {

@@ -737,14 +737,29 @@ type PaginatedVendors {
 }
 
 input SMEInput {
-  description: String!
-  is_applicable: Boolean!
+  vendor_id: String!
+  sme_id: String
+  description: String
+  is_applicable: Boolean
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
-  sample_files: [String]
-  profiles: [String]!
-	Status: String!
+	Status: String
+}
+
+type SME {
+  vendor_id: String
+  sme_id: String
+  description: String
+  is_applicable: Boolean
+  expertise: [String]
+  languages: [String]
+  output_deliveries: [String]
+  created_at: String
+  created_by: String
+  updated_at: String
+  updated_by: String
+	status: String
 }
 
 input VendorProfileInput {
@@ -752,7 +767,7 @@ input VendorProfileInput {
   first_name: String
   type: String!
   last_name: String
-  email: String
+  email: String!
   phone: String
   photo: Upload
   description: String
@@ -760,6 +775,7 @@ input VendorProfileInput {
   SME_expertise: [String]
   Classroom_expertise: [String]
   experience: [String]
+  experience_years: String
   is_speaker: Boolean
 	status: String
 }
@@ -778,6 +794,7 @@ type VendorProfile {
   sme_expertise: [String]
   classroom_expertise: [String]
   experience: [String]
+  experience_years: String
   is_speaker: Boolean
   created_at: String
 	created_by: String
@@ -789,7 +806,7 @@ type VendorProfile {
 input ExperienceInput {
   exp_id: String
   vendor_id: String
-  email: String
+  email: String!
   title: String
   company_name: String
   employement_type: String
@@ -823,13 +840,82 @@ type InviteResponse {
   message: String!
 }
 
-input SampleFile {
-  File: Upload!
-  Name: String!
-  Description: String!
-  Pricing: String!
-  FileType: String
-	Status: String!
+input SampleFileInput {
+  file: Upload!
+  name: String!
+  description: String
+  pricing: String!
+  fileType: String
+	status: String
+  vendorId: String!
+  p_type: String!
+}
+
+type SampleFile {
+  sf_id: String!
+  name: String
+  fileType: String
+  price: String
+  file_url: String
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+	status: String
+}
+
+input CRTInput {
+  crt_id: String
+  vendor_id: String!
+  description: String
+  is_applicable: Boolean
+  expertise: [String]
+  languages: [String]
+  output_deliveries: [String]
+  is_expertise_online: Boolean
+	status: String
+}
+
+type CRT {
+  crt_id: String
+  vendor_id: String!
+  description: String
+  is_applicable: Boolean
+  expertise: [String]
+  languages: [String]
+  output_deliveries: [String]
+  is_expertise_online: Boolean
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+  status: String
+}
+
+input ContentDevelopmentInput {
+  cd_id: String
+  vendor_id: String!
+  description: String
+  is_applicable: Boolean
+  expertise: [String]
+  languages: [String]
+  output_deliveries: [String]
+  status: String
+}
+
+type ContentDevelopment {
+  cd_id: String
+  vendor_id: String
+  description: String
+  is_applicable: Boolean
+  expertise: [String]
+  languages: [String]
+  output_deliveries: [String]
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+  status: String
 }
 
 type Query {
@@ -945,6 +1031,7 @@ type Query {
     Direction: String
     pageSize: Int
   ): PaginatedCCStats
+  #total learner - assigned  =  asc, des
   getCourseViews(
     lsp_ids: [String!]!
     start_time: String
@@ -958,6 +1045,10 @@ type Query {
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!, p_type: String!): VendorProfile
   viewAllProfiles(vendor_id: String!, p_type: String!): [VendorProfile]
+  getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
+  getSmeDetails(vendor_id: String!): SME
+  getClassRoomTraining(vendor_id: String!): CRT
+  getContentDevelopment(vendor_id: String!): ContentDevelopment
 }
 
 type Mutation {
@@ -1012,6 +1103,12 @@ type Mutation {
   createProfileVendor(input: VendorProfileInput): VendorProfile
   createExperienceVendor(input: ExperienceInput!): ExperienceVendor
   updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
-  uploadSampleFile(input: SampleFile): String!
-  #createVendorServices(VendorId: String!, SME: SMEInput, CRT: CRTInput, CD: CDInput): Boolean
+  uploadSampleFile(input: SampleFileInput): SampleFile
+  updateProfileVendor(input: VendorProfileInput): VendorProfile
+  createSubjectMatterExpertise(input:SMEInput): SME
+  updateSubjectMatterExpertise(input:SMEInput): SME
+  createClassRoomTraining(input:CRTInput): CRT
+  updateClassRoomTraining(input:CRTInput): CRT
+  createContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
+  updateContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
 }

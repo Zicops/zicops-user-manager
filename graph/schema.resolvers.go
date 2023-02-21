@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -485,7 +484,7 @@ func (r *mutationResolver) UpdateExperienceVendor(ctx context.Context, input mod
 func (r *mutationResolver) UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model.SampleFile, error) {
 	res, err := handlers.UploadSampleFile(ctx, input)
 	if err != nil {
-		log.Printf("Error updating experience of the vendor: %v", err)
+		log.Printf("Error uploading sample file: %v", err)
 		return nil, err
 	}
 	return res, nil
@@ -495,7 +494,7 @@ func (r *mutationResolver) UploadSampleFile(ctx context.Context, input *model.Sa
 func (r *mutationResolver) UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error) {
 	res, err := handlers.UpdateProfileVendor(ctx, input)
 	if err != nil {
-		log.Printf("Error updating experience of the vendor: %v", err)
+		log.Printf("Error updating profile of the vendor: %v", err)
 		return nil, err
 	}
 	return res, nil
@@ -505,7 +504,7 @@ func (r *mutationResolver) UpdateProfileVendor(ctx context.Context, input *model
 func (r *mutationResolver) CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*model.Sme, error) {
 	resp, err := handlers.CreateSubjectMatterExpertise(ctx, input)
 	if err != nil {
-		log.Println("Got error while creating experience of vendor: %v", err)
+		log.Printf("Got error while creating subject matter expertise: %v", err)
 		return nil, err
 	}
 	return resp, nil
@@ -515,7 +514,7 @@ func (r *mutationResolver) CreateSubjectMatterExpertise(ctx context.Context, inp
 func (r *mutationResolver) UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*model.Sme, error) {
 	resp, err := handlers.UpdateSubjectMatterExpertise(ctx, input)
 	if err != nil {
-		log.Println("Got error while creating experience of vendor: %v", err)
+		log.Printf("Got error while updating subject matter expertise: %v", err)
 		return nil, err
 	}
 	return resp, nil
@@ -523,7 +522,42 @@ func (r *mutationResolver) UpdateSubjectMatterExpertise(ctx context.Context, inp
 
 // CreateClassRoomTraining is the resolver for the createClassRoomTraining field.
 func (r *mutationResolver) CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model.Crt, error) {
-	panic(fmt.Errorf("not implemented: CreateClassRoomTraining - createClassRoomTraining"))
+	resp, err := handlers.CreateClassRoomTraining(ctx, input)
+	if err != nil {
+		log.Printf("Got error while creating classroom training: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+// UpdateClassRoomTraining is the resolver for the updateClassRoomTraining field.
+func (r *mutationResolver) UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model.Crt, error) {
+	resp, err := handlers.UpdateClassRoomTraining(ctx, input)
+	if err != nil {
+		log.Printf("Got error while updating classroom training: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+// CreateContentDevelopment is the resolver for the createContentDevelopment field.
+func (r *mutationResolver) CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopmentInput) (*model.ContentDevelopment, error) {
+	resp, err := handlers.CreateContentDevelopment(ctx, input)
+	if err != nil {
+		log.Printf("Got error while creating content development: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+// UpdateContentDevelopment is the resolver for the updateContentDevelopment field.
+func (r *mutationResolver) UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopmentInput) (*model.ContentDevelopment, error) {
+	resp, err := handlers.UpdateContentDevelopment(ctx, input)
+	if err != nil {
+		log.Printf("Got error while updating content development: %v", err)
+		return nil, err
+	}
+	return resp, nil
 }
 
 // Logout is the resolver for the logout field.
@@ -969,6 +1003,26 @@ func (r *queryResolver) GetSampleFiles(ctx context.Context, vendorID string, pTy
 // GetSmeDetails is the resolver for the getSmeDetails field.
 func (r *queryResolver) GetSmeDetails(ctx context.Context, vendorID string) (*model.Sme, error) {
 	res, err := handlers.GetSmeDetails(ctx, vendorID)
+	if err != nil {
+		log.Printf("error while getting SME details for vendor: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetClassRoomTraining is the resolver for the getClassRoomTraining field.
+func (r *queryResolver) GetClassRoomTraining(ctx context.Context, vendorID string) (*model.Crt, error) {
+	res, err := handlers.GetClassRoomTraining(ctx, vendorID)
+	if err != nil {
+		log.Printf("error while getting classroom training data vendor: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetContentDevelopment is the resolver for the getContentDevelopment field.
+func (r *queryResolver) GetContentDevelopment(ctx context.Context, vendorID string) (*model.ContentDevelopment, error) {
+	res, err := handlers.GetContentDevelopment(ctx, vendorID)
 	if err != nil {
 		log.Printf("error while getting sample files for vendor: %v", err)
 		return nil, err

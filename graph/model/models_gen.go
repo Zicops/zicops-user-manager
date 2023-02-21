@@ -10,7 +10,7 @@ type Crt struct {
 	CrtID             *string   `json:"crt_id"`
 	VendorID          string    `json:"vendor_id"`
 	Description       *string   `json:"description"`
-	IsApplicable      *string   `json:"is_applicable"`
+	IsApplicable      *bool     `json:"is_applicable"`
 	Expertise         []*string `json:"expertise"`
 	Languages         []*string `json:"languages"`
 	OutputDeliveries  []*string `json:"output_deliveries"`
@@ -26,7 +26,7 @@ type CRTInput struct {
 	CrtID             *string   `json:"crt_id"`
 	VendorID          string    `json:"vendor_id"`
 	Description       *string   `json:"description"`
-	IsApplicable      *string   `json:"is_applicable"`
+	IsApplicable      *bool     `json:"is_applicable"`
 	Expertise         []*string `json:"expertise"`
 	Languages         []*string `json:"languages"`
 	OutputDeliveries  []*string `json:"output_deliveries"`
@@ -65,6 +65,32 @@ type CohortMainInput struct {
 	Size        int             `json:"size"`
 	Image       *graphql.Upload `json:"image"`
 	ImageURL    *string         `json:"imageUrl"`
+}
+
+type ContentDevelopment struct {
+	CdID             *string   `json:"cd_id"`
+	VendorID         *string   `json:"vendor_id"`
+	Description      *string   `json:"description"`
+	IsApplicable     *bool     `json:"is_applicable"`
+	Expertise        []*string `json:"expertise"`
+	Languages        []*string `json:"languages"`
+	OutputDeliveries []*string `json:"output_deliveries"`
+	CreatedAt        *string   `json:"created_at"`
+	CreatedBy        *string   `json:"created_by"`
+	UpdatedAt        *string   `json:"updated_at"`
+	UpdatedBy        *string   `json:"updated_by"`
+	Status           *string   `json:"status"`
+}
+
+type ContentDevelopmentInput struct {
+	CdID             *string   `json:"cd_id"`
+	VendorID         string    `json:"vendor_id"`
+	Description      *string   `json:"description"`
+	IsApplicable     *bool     `json:"is_applicable"`
+	Expertise        []*string `json:"expertise"`
+	Languages        []*string `json:"languages"`
+	OutputDeliveries []*string `json:"output_deliveries"`
+	Status           *string   `json:"status"`
 }
 
 type Count struct {
