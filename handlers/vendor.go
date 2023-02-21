@@ -2094,3 +2094,444 @@ func GetSmeDetails(ctx context.Context, vendorID string) (*model.Sme, error) {
 	}
 	return &res, nil
 }
+
+func CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model.Crt, error) {
+
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+	}
+	email := claims["email"].(string)
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Errorf("Error while getting session: %v", err)
+	}
+	CassSession := session
+
+	crtId := uuid.New().String()
+	createdAt := time.Now().Unix()
+	crt := vendorz.CRT{
+		CtId:      crtId,
+		VendorId:  input.VendorID,
+		CreatedAt: createdAt,
+		CreatedBy: email,
+	}
+	if input.Description != nil {
+		crt.Description = *input.Description
+	}
+	if input.Expertise != nil {
+		tmp := ChangesStringType(input.Expertise)
+		crt.Expertise = tmp
+	}
+	if input.IsApplicable != nil {
+		crt.IsApplicable = *input.IsApplicable
+	}
+	if input.Languages != nil {
+		tmp := ChangesStringType(input.Languages)
+		crt.Languages = tmp
+	}
+	if input.OutputDeliveries != nil {
+		tmp := ChangesStringType(input.OutputDeliveries)
+		crt.OutputDeliveries = tmp
+	}
+	if input.IsExpertiseOnline != nil {
+		crt.IsExpertiseOnline = *input.IsExpertiseOnline
+	}
+	if input.Status != nil {
+		crt.Status = *input.Status
+	}
+
+	insertQuery := CassSession.Query(vendorz.ClassRoomTrainingTable.Insert()).BindStruct(crt)
+	if err = insertQuery.Exec(); err != nil {
+		return nil, err
+	}
+
+	ca := strconv.Itoa(int(createdAt))
+	res := model.Crt{
+		CrtID:             &crtId,
+		VendorID:          input.VendorID,
+		Description:       input.Description,
+		IsApplicable:      input.IsApplicable,
+		Expertise:         input.Expertise,
+		Languages:         input.Languages,
+		OutputDeliveries:  input.OutputDeliveries,
+		IsExpertiseOnline: input.IsExpertiseOnline,
+		CreatedAt:         &email,
+		CreatedBy:         &ca,
+		Status:            input.Status,
+	}
+
+	return &res, nil
+}
+
+func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model.Crt, error) {
+	if input.VendorID == "" || input.CrtID != nil {
+		return nil, fmt.Errorf("please provide both vendorId and CrtId")
+	}
+
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+	}
+	email := claims["email"].(string)
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Errorf("Error while getting session: %v", err)
+	}
+	CassSession := session
+
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.classroom_training WHERE vendor_id = '%s' ALLOW FILTERING`, input.VendorID)
+	getCRT := func() (crtData []vendorz.CRT, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return crtData, iter.Select(&crtData)
+	}
+	crtDatas, err := getCRT()
+	if err != nil {
+		return nil, err
+	}
+	if len(crtDatas) == 0 {
+		return nil, nil
+	}
+
+	crt := crtDatas[0]
+	updatedCols := []string{}
+
+	if input.Description != nil {
+		crt.Description = *input.Description
+		updatedCols = append(updatedCols, "description")
+	}
+	if input.Expertise != nil {
+		tmp := ChangesStringType(input.Expertise)
+		crt.Expertise = tmp
+		updatedCols = append(updatedCols, "expertise")
+	}
+	if input.IsApplicable != nil {
+		crt.IsApplicable = *input.IsApplicable
+		updatedCols = append(updatedCols, "is_applicable")
+	}
+	if input.IsExpertiseOnline != nil {
+		crt.IsExpertiseOnline = *input.IsExpertiseOnline
+		updatedCols = append(updatedCols, "is_expertise_online")
+	}
+	if input.Languages != nil {
+		tmp := ChangesStringType(input.Languages)
+		crt.Languages = tmp
+		updatedCols = append(updatedCols, "languages")
+	}
+	if input.OutputDeliveries != nil {
+		tmp := ChangesStringType(input.OutputDeliveries)
+		crt.OutputDeliveries = tmp
+		updatedCols = append(updatedCols, "output_deliveries")
+	}
+	if input.Status != nil {
+		crt.Status = *input.Status
+		updatedCols = append(updatedCols, "status")
+	}
+	updatedAt := time.Now().Unix()
+	if len(updatedCols) > 0 {
+		crt.UpdatedBy = email
+		crt.UpdatedAt = updatedAt
+
+		utStms, uNames := vendorz.ClassRoomTrainingTable.Update(updatedCols...)
+		updateQuery := CassSession.Query(utStms, uNames).BindStruct(&crt)
+		if err = updateQuery.ExecRelease(); err != nil {
+			log.Errorf("Error while updating CRT")
+			return nil, err
+		}
+	}
+
+	exp := ChangeToPointerArray(crt.Expertise)
+	lan := ChangeToPointerArray(crt.Languages)
+	od := ChangeToPointerArray(crt.OutputDeliveries)
+	ca := strconv.Itoa(int(crt.CreatedAt))
+	ua := strconv.Itoa(int(crt.UpdatedAt))
+	res := model.Crt{
+		CrtID:             &crt.CtId,
+		VendorID:          crt.VendorId,
+		Description:       &crt.Description,
+		IsApplicable:      &crt.IsApplicable,
+		Expertise:         exp,
+		Languages:         lan,
+		OutputDeliveries:  od,
+		IsExpertiseOnline: &crt.IsExpertiseOnline,
+		CreatedAt:         &ca,
+		CreatedBy:         &crt.CreatedBy,
+		UpdatedAt:         &ua,
+		UpdatedBy:         &email,
+		Status:            &crt.Status,
+	}
+
+	return &res, nil
+}
+
+func GetClassRoomTraining(ctx context.Context, vendorID string) (*model.Crt, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+	}
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Errorf("Error while getting session: %v", err)
+	}
+	CassSession := session
+
+	//vendor_id, sme_id
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.classroom_training WHERE vendor_id = '%s' ALLOW FILTERING`, vendorID)
+	getCrtData := func() (crtData []vendorz.CRT, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return crtData, iter.Select(&crtData)
+	}
+	crtDatas, err := getCrtData()
+	if err != nil {
+		return nil, err
+	}
+	if len(crtDatas) == 0 {
+		return nil, nil
+	}
+
+	crt := crtDatas[0]
+
+	exp := ChangeToPointerArray(crt.Expertise)
+	lan := ChangeToPointerArray(crt.Languages)
+	od := ChangeToPointerArray(crt.OutputDeliveries)
+	ca := strconv.Itoa(int(crt.CreatedAt))
+	ua := strconv.Itoa(int(crt.UpdatedAt))
+	res := model.Crt{
+		CrtID:             &crt.CtId,
+		VendorID:          crt.VendorId,
+		Description:       &crt.Description,
+		IsApplicable:      &crt.IsApplicable,
+		Expertise:         exp,
+		Languages:         lan,
+		OutputDeliveries:  od,
+		IsExpertiseOnline: &crt.IsExpertiseOnline,
+		CreatedAt:         &ca,
+		CreatedBy:         &crt.CreatedBy,
+		UpdatedAt:         &ua,
+		UpdatedBy:         &crt.UpdatedBy,
+		Status:            &crt.Status,
+	}
+	return &res, nil
+}
+
+func CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopmentInput) (*model.ContentDevelopment, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+	}
+	email := claims["email"].(string)
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Errorf("Error while getting session: %v", err)
+	}
+	CassSession := session
+
+	cdId := uuid.New().String()
+	createdAt := time.Now().Unix()
+
+	cd := vendorz.ContentDevelopment{
+		CdId:      cdId,
+		VendorId:  input.VendorID,
+		CreatedAt: createdAt,
+		CreatedBy: email,
+	}
+	if input.Description != nil {
+		cd.Description = *input.Description
+	}
+	if input.Expertise != nil {
+		tmp := ChangesStringType(input.Expertise)
+		cd.Expertise = tmp
+	}
+	if input.IsApplicable != nil {
+		cd.IsApplicable = *input.IsApplicable
+	}
+	if input.Languages != nil {
+		tmp := ChangesStringType(input.Languages)
+		cd.Languages = tmp
+	}
+	if input.OutputDeliveries != nil {
+		tmp := ChangesStringType(input.OutputDeliveries)
+		cd.OutputDeliveries = tmp
+	}
+	if input.Status != nil {
+		cd.Status = *input.Status
+	}
+	insertQuery := CassSession.Query(vendorz.ContentDevelopmentTable.Insert()).BindStruct(cd)
+	if err = insertQuery.Exec(); err != nil {
+		return nil, err
+	}
+	ca := strconv.Itoa(int(createdAt))
+	exp := ChangeToPointerArray(cd.Expertise)
+	lan := ChangeToPointerArray(cd.Languages)
+	od := ChangeToPointerArray(cd.OutputDeliveries)
+	res := model.ContentDevelopment{
+		CdID:             &cdId,
+		VendorID:         &cd.VendorId,
+		Description:      &cd.Description,
+		IsApplicable:     &cd.IsApplicable,
+		Expertise:        exp,
+		Languages:        lan,
+		OutputDeliveries: od,
+		CreatedAt:        &ca,
+		CreatedBy:        &email,
+		Status:           &cd.Status,
+	}
+
+	return &res, nil
+}
+
+func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopmentInput) (*model.ContentDevelopment, error) {
+	if input.VendorID == "" || input.CdID == nil {
+		return nil, fmt.Errorf("please provide both vendorId and CrtId")
+	}
+
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+	}
+	email := claims["email"].(string)
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Errorf("Error while getting session: %v", err)
+	}
+	CassSession := session
+
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.content_development WHERE vendor_id = '%s' ALLOW FILTERING`, input.VendorID)
+	getContentDevelopment := func() (cdData []vendorz.ContentDevelopment, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return cdData, iter.Select(&cdData)
+	}
+	cdDatas, err := getContentDevelopment()
+	if err != nil {
+		return nil, err
+	}
+	if len(cdDatas) == 0 {
+		return nil, nil
+	}
+	cd := cdDatas[0]
+	updatedCols := []string{}
+
+	if input.Description != nil {
+		cd.Description = *input.Description
+		updatedCols = append(updatedCols, "description")
+	}
+	if input.Expertise != nil {
+		tmp := ChangesStringType(input.Expertise)
+		cd.Expertise = tmp
+		updatedCols = append(updatedCols, "expertise")
+	}
+	if input.IsApplicable != nil {
+		cd.IsApplicable = *input.IsApplicable
+		updatedCols = append(updatedCols, "is_applicable")
+	}
+	if input.Languages != nil {
+		tmp := ChangesStringType(input.Languages)
+		cd.Languages = tmp
+		updatedCols = append(updatedCols, "languages")
+	}
+	if input.OutputDeliveries != nil {
+		tmp := ChangesStringType(input.Languages)
+		cd.OutputDeliveries = tmp
+		updatedCols = append(updatedCols, "output_deliveries")
+	}
+	if input.Status != nil {
+		cd.Status = *input.Status
+		updatedCols = append(updatedCols, "status")
+	}
+
+	updatedAt := time.Now().Unix()
+	if len(updatedCols) > 0 {
+		cd.UpdatedAt = updatedAt
+		cd.UpdatedBy = email
+
+		utStms, uNames := vendorz.ContentDevelopmentTable.Update(updatedCols...)
+		updateQuery := CassSession.Query(utStms, uNames).BindStruct(&cd)
+		if err = updateQuery.ExecRelease(); err != nil {
+			log.Errorf("Got error while updating content development: %v", err)
+			return nil, err
+		}
+	}
+
+	exp := ChangeToPointerArray(cd.Expertise)
+	lan := ChangeToPointerArray(cd.Languages)
+	od := ChangeToPointerArray(cd.OutputDeliveries)
+	ca := strconv.Itoa(int(cd.CreatedAt))
+	ua := strconv.Itoa(int(updatedAt))
+	res := &model.ContentDevelopment{
+		CdID:             &cd.CdId,
+		VendorID:         &cd.VendorId,
+		Description:      &cd.Description,
+		IsApplicable:     &cd.IsApplicable,
+		Expertise:        exp,
+		Languages:        lan,
+		OutputDeliveries: od,
+		CreatedAt:        &ca,
+		CreatedBy:        &cd.CreatedBy,
+		UpdatedAt:        &ua,
+		UpdatedBy:        &email,
+		Status:           &cd.Status,
+	}
+	return res, nil
+}
+
+func GetContentDevelopment(ctx context.Context, vendorID string) (*model.ContentDevelopment, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+	}
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Errorf("Error while getting session: %v", err)
+	}
+	CassSession := session
+
+	//vendor_id, sme_id
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.content_development WHERE vendor_id = '%s' ALLOW FILTERING`, vendorID)
+	getContentDevelopmentData := func() (cdData []vendorz.ContentDevelopment, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return cdData, iter.Select(&cdData)
+	}
+	cdDatas, err := getContentDevelopmentData()
+	if err != nil {
+		return nil, err
+	}
+	if len(cdDatas) == 0 {
+		return nil, nil
+	}
+
+	cd := cdDatas[0]
+	exp := ChangeToPointerArray(cd.Expertise)
+	lan := ChangeToPointerArray(cd.Languages)
+	od := ChangeToPointerArray(cd.OutputDeliveries)
+	ua := strconv.Itoa(int(cd.UpdatedAt))
+	ca := strconv.Itoa(int(cd.CreatedAt))
+	res := &model.ContentDevelopment{
+		CdID:             &cd.CdId,
+		VendorID:         &cd.VendorId,
+		Description:      &cd.Description,
+		IsApplicable:     &cd.IsApplicable,
+		Expertise:        exp,
+		Languages:        lan,
+		OutputDeliveries: od,
+		CreatedAt:        &ca,
+		CreatedBy:        &cd.CreatedBy,
+		UpdatedAt:        &ua,
+		UpdatedBy:        &cd.UpdatedBy,
+		Status:           &cd.Status,
+	}
+	return res, nil
+}

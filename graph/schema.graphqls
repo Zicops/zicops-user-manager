@@ -868,7 +868,7 @@ input CRTInput {
   crt_id: String
   vendor_id: String!
   description: String
-  is_applicable: String
+  is_applicable: Boolean
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
@@ -880,11 +880,37 @@ type CRT {
   crt_id: String
   vendor_id: String!
   description: String
-  is_applicable: String
+  is_applicable: Boolean
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
   is_expertise_online: Boolean
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+  status: String
+}
+
+input ContentDevelopmentInput {
+  cd_id: String
+  vendor_id: String!
+  description: String
+  is_applicable: Boolean
+  expertise: [String]
+  languages: [String]
+  output_deliveries: [String]
+  status: String
+}
+
+type ContentDevelopment {
+  cd_id: String
+  vendor_id: String
+  description: String
+  is_applicable: Boolean
+  expertise: [String]
+  languages: [String]
+  output_deliveries: [String]
   created_at: String
 	created_by: String
 	updated_at: String
@@ -1021,6 +1047,8 @@ type Query {
   viewAllProfiles(vendor_id: String!, p_type: String!): [VendorProfile]
   getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
   getSmeDetails(vendor_id: String!): SME
+  getClassRoomTraining(vendor_id: String!): CRT
+  getContentDevelopment(vendor_id: String!): ContentDevelopment
 }
 
 type Mutation {
@@ -1080,4 +1108,7 @@ type Mutation {
   createSubjectMatterExpertise(input:SMEInput): SME
   updateSubjectMatterExpertise(input:SMEInput): SME
   createClassRoomTraining(input:CRTInput): CRT
+  updateClassRoomTraining(input:CRTInput): CRT
+  createContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
+  updateContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
 }
