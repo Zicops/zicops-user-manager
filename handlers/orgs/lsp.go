@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/handlers"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -330,6 +332,11 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 		LogoURL:    &lspYay.LogoURL,
 		ProfileURL: &lspYay.ProfilePictureURL,
 	}
+	redisBytes, err := json.Marshal(orgLsp)
+	if err != nil {
+		redis.SetRedisValue(ctx, lspYay.ID, string(redisBytes))
+		redis.SetTTL(ctx, lspYay.ID, 3600)
+	}
 	return orgLsp, nil
 }
 
@@ -352,22 +359,29 @@ func GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.Le
 			if orgID == nil {
 				return
 			}
-			qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where id='%s' ALLOW FILTERING `, *orgID)
-			getOrgs := func() (users []userz.Lsp, err error) {
-				q := CassUserSession.Query(qryStr, nil)
-				defer q.Release()
-				iter := q.Iter()
-				return users, iter.Select(&users)
+			var orgCass userz.Lsp
+			cres, err := redis.GetRedisValue(ctx, *orgID)
+			if err == nil {
+				json.Unmarshal([]byte(cres), &orgCass)
 			}
-			orgs, err := getOrgs()
-			if err != nil {
-				log.Errorf("error getting orgs: %v", err)
-				return
+			if orgCass.ID == "" {
+				qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where id='%s' ALLOW FILTERING `, *orgID)
+				getOrgs := func() (users []userz.Lsp, err error) {
+					q := CassUserSession.Query(qryStr, nil)
+					defer q.Release()
+					iter := q.Iter()
+					return users, iter.Select(&users)
+				}
+				orgs, err := getOrgs()
+				if err != nil {
+					log.Errorf("error getting orgs: %v", err)
+					return
+				}
+				if len(orgs) == 0 {
+					return
+				}
+				orgCass = orgs[0]
 			}
-			if len(orgs) == 0 {
-				return
-			}
-			orgCass := orgs[0]
 			created := strconv.FormatInt(orgCass.CreatedAt, 10)
 			updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
 			emptCnt := int(orgCass.NoOfUsers)
@@ -407,6 +421,11 @@ func GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.Le
 				ProfileURL: &profileUrl,
 			}
 			outputOrgs[i] = result
+			redisBytes, err := json.Marshal(orgCass)
+			if err != nil {
+				redis.SetRedisValue(ctx, orgCass.ID, string(redisBytes))
+				redis.SetTTL(ctx, orgCass.ID, 3600)
+			}
 			wg.Done()
 		}(i, id)
 	}
