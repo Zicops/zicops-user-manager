@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
@@ -90,7 +91,10 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput, isAdmin 
 			Status:    userLspMap.Status,
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
+		key := fmt.Sprintf("zicops_user_lsp_%s", userLspMap.UserID)
+		redis.SetRedisValue(ctx, key, "")
 	}
+
 	return userLspMaps, nil
 }
 

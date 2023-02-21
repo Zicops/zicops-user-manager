@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
@@ -140,6 +141,8 @@ func AddUserPreference(ctx context.Context, input []*model.UserPreferenceInput) 
 			UpdatedBy:        &userLspMap.UpdatedBy,
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
+		key := fmt.Sprintf("zicops_user_preference_%s_%s", userLspOutput.UserID, userLspOutput.UserLspID)
+		redis.SetRedisValue(ctx, key, "")
 	}
 	return userLspMaps, nil
 }
@@ -229,5 +232,7 @@ func UpdateUserPreference(ctx context.Context, input model.UserPreferenceInput) 
 		CreatedBy:        &userLspMap.CreatedBy,
 		UpdatedBy:        &userLspMap.UpdatedBy,
 	}
+	key := fmt.Sprintf("zicops_user_preference_%s_%s", userLspOutput.UserID, userLspOutput.UserLspID)
+	redis.SetRedisValue(ctx, key, "")
 	return userLspOutput, nil
 }

@@ -444,47 +444,55 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 	}
 	userBytes, err := json.Marshal(user)
 	if err == nil {
-		redis.SetRedisValue(*user.ID, string(userBytes))
-		redis.SetTTL(*user.ID, 3600)
+		redis.SetRedisValue(ctx, *user.ID, string(userBytes))
+		redis.SetTTL(ctx, *user.ID, 3600)
 	}
 	return &responseUser, nil
 }
 
 func LoginUser(ctx context.Context) (*model.User, error) {
+
 	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("userz")
-	if err != nil {
-		return nil, err
-	}
-	CassUserSession := session
-
 	userEmail := claims["email"].(string)
 	if userEmail == "puneet@zicops.com" {
 		return nil, fmt.Errorf("user is not allowed to proceed with zicops apis")
 	}
 	emailLower := strings.ToLower(userEmail)
-	currentUserIT, err := global.IDP.GetUserByEmail(ctx, emailLower)
-	if err != nil {
-		return nil, err
-	}
 	userID := base64.URLEncoding.EncodeToString([]byte(emailLower))
 	userCass := userz.User{
 		ID: userID,
 	}
-	users := []userz.User{}
+	result, err := redis.GetRedisValue(ctx, userID)
+	if err == nil {
+		err = json.Unmarshal([]byte(result), &userCass)
+	}
+	phone := ""
+	if err == nil && userCass.ID != "" {
+		session, err := cassandra.GetCassSession("userz")
+		if err != nil {
+			return nil, err
+		}
+		CassUserSession := session
+		currentUserIT, err := global.IDP.GetUserByEmail(ctx, emailLower)
+		if err != nil {
+			return nil, err
+		}
+		phone = currentUserIT.PhoneNumber
+		users := []userz.User{}
 
-	getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, userID)
-	getQuery := CassUserSession.Query(getQueryStr, nil)
-	if err := getQuery.SelectRelease(&users); err != nil {
-		return nil, err
+		getQueryStr := fmt.Sprintf(`SELECT * from userz.users where id='%s' `, userID)
+		getQuery := CassUserSession.Query(getQueryStr, nil)
+		if err := getQuery.SelectRelease(&users); err != nil {
+			return nil, err
+		}
+		if len(users) == 0 {
+			return nil, fmt.Errorf("user not found")
+		}
+		userCass = users[0]
 	}
-	if len(users) == 0 {
-		return nil, fmt.Errorf("user not found")
-	}
-	userCass = users[0]
 	photoURL := userCass.PhotoURL
 	if userCass.PhotoBucket != "" {
 		storageC := bucket.NewStorageHandler()
@@ -510,13 +518,13 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		IsVerified: userCass.IsVerified,
 		IsActive:   userCass.IsActive,
 		PhotoURL:   &photoURL,
-		Phone:      currentUserIT.PhoneNumber,
+		Phone:      phone,
 	}
 
 	userBytes, err := json.Marshal(userCass)
 	if err == nil {
-		redis.SetRedisValue(userCass.ID, string(userBytes))
-		redis.SetTTL(userCass.ID, 7200)
+		redis.SetRedisValue(ctx, userCass.ID, string(userBytes))
+		redis.SetTTL(ctx, userCass.ID, 7200)
 		log.Infof("user logged in: %v", userCass.ID)
 	}
 	return &currentUser, nil
@@ -530,6 +538,6 @@ func Logout(ctx context.Context) (*bool, error) {
 		return &logoutSuccess, err
 	}
 	emailLower := strings.ToLower(email)
-	redis.DeleteRedisValue(base64.URLEncoding.EncodeToString([]byte(emailLower)))
+	redis.SetRedisValue(ctx, base64.URLEncoding.EncodeToString([]byte(emailLower)), "")
 	return &logoutSuccess, nil
 }
