@@ -3,6 +3,7 @@ package queries
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"sync"
@@ -10,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
@@ -194,12 +196,16 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 		go func(i int, copyID string) {
 			defer wg.Done()
 			userCopy := userz.User{}
-			//key := "GetUserDetails" + *userID
-			//result, err := redis.GetRedisValue(key)
-			//if err == nil {
-			//	json.Unmarshal([]byte(result), &userCopy)
-
-			//}
+			userModel := model.User{}
+			key := copyID
+			result, err := redis.GetRedisValue(ctx, key)
+			if err == nil && result != ""{
+				err = json.Unmarshal([]byte(result), &userModel)
+				if err == nil && userModel.ID != nil && *userModel.ID == copyID {
+					outputResponse[i] = &userModel
+					return
+				}
+			}
 			storageC := bucket.NewStorageHandler()
 			gproject := googleprojectlib.GetGoogleProjectID()
 			err = storageC.InitializeStorageClient(ctx, gproject)
@@ -263,13 +269,13 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 				Gender:     userCopy.Gender,
 				Phone:      phone,
 			}
+			redisBytes, err := json.Marshal(outputUser)
+			if err == nil {
+				redis.SetRedisValue(ctx, key, string(redisBytes))
+				redis.SetTTL(ctx, key, 3600)
+			}
 			outputResponse[i] = outputUser
 		}(i, copiedID)
-		//redisBytes, err := json.Marshal(userCopy)
-		//if err == nil {
-		//	redis.SetTTL(key, 3600)
-		//	redis.SetRedisValue(key, string(redisBytes))
-		//}
 	}
 	wg.Wait()
 	// get clean user details and remove nulls

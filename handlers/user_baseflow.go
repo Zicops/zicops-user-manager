@@ -466,7 +466,7 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		ID: userID,
 	}
 	result, err := redis.GetRedisValue(ctx, userID)
-	if err == nil {
+	if err == nil && result != "" {
 		err = json.Unmarshal([]byte(result), &userCass)
 	}
 	phone := ""

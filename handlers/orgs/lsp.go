@@ -173,6 +173,8 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 		LogoURL:    &lspYay.LogoURL,
 		ProfileURL: &photoUrl,
 	}
+	key := fmt.Sprintf("org_lsps:%s", lspYay.OrgID)
+	redis.SetRedisValue(ctx, key, "")
 	return org, nil
 }
 
@@ -361,7 +363,7 @@ func GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.Le
 			}
 			var orgCass userz.Lsp
 			cres, err := redis.GetRedisValue(ctx, *orgID)
-			if err == nil {
+			if err == nil && cres != "" {
 				json.Unmarshal([]byte(cres), &orgCass)
 			}
 			if orgCass.ID == "" {
@@ -444,20 +446,28 @@ func GetLearningSpacesByOrgID(ctx context.Context, orgID string) ([]*model.Learn
 	}
 	CassUserSession := session
 	var outputOrgs []*model.LearningSpace
-	qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where org_id='%s' ALLOW FILTERING `, orgID)
-	getOrgs := func() (users []userz.Lsp, err error) {
-		q := CassUserSession.Query(qryStr, nil)
-		defer q.Release()
-		iter := q.Iter()
-		return users, iter.Select(&users)
-	}
-	orgs, err := getOrgs()
-	if err != nil {
-		log.Errorf("error getting orgs: %v", err)
-		return nil, err
+	var orgs []userz.Lsp
+	key := fmt.Sprintf("org_lsps:%s", orgID)
+	res, err := redis.GetRedisValue(ctx, key)
+	if err == nil && res != "" {
+		json.Unmarshal([]byte(res), &orgs)
 	}
 	if len(orgs) == 0 {
-		return nil, fmt.Errorf("no lsps found")
+		qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where org_id='%s' ALLOW FILTERING `, orgID)
+		getOrgs := func() (users []userz.Lsp, err error) {
+			q := CassUserSession.Query(qryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return users, iter.Select(&users)
+		}
+		orgs, err = getOrgs()
+		if err != nil {
+			log.Errorf("error getting orgs: %v", err)
+			return nil, err
+		}
+		if len(orgs) == 0 {
+			return nil, fmt.Errorf("no lsps found")
+		}
 	}
 	outputOrgs = make([]*model.LearningSpace, len(orgs))
 	if len(orgs) == 0 {
@@ -511,6 +521,11 @@ func GetLearningSpacesByOrgID(ctx context.Context, orgID string) ([]*model.Learn
 		}(i, orgCass)
 	}
 	wg.Wait()
+	redisBytes, err := json.Marshal(orgs)
+	if err == nil {
+		redis.SetRedisValue(ctx, key, string(redisBytes))
+		redis.SetTTL(ctx, key, 3600)
+	}
 	return outputOrgs, nil
 }
 

@@ -288,21 +288,29 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 			if orgID == nil {
 				return
 			}
-			qryStr := fmt.Sprintf(`SELECT * from userz.organization where id='%s' ALLOW FILTERING`, *orgID)
-			getOrgs := func() (users []userz.Organization, err error) {
-				q := CassUserSession.Query(qryStr, nil)
-				defer q.Release()
-				iter := q.Iter()
-				return users, iter.Select(&users)
+			orgCass := userz.Organization{}
+			key := fmt.Sprintf("org_%s", *orgID)
+			res, err := redis.GetRedisValue(ctx, key)
+			if err == nil && res != "" {
+				json.Unmarshal([]byte(res), &orgCass)
 			}
-			orgs, err := getOrgs()
-			if err != nil {
-				return
+			if orgCass.ID == "" {
+				qryStr := fmt.Sprintf(`SELECT * from userz.organization where id='%s' ALLOW FILTERING`, *orgID)
+				getOrgs := func() (users []userz.Organization, err error) {
+					q := CassUserSession.Query(qryStr, nil)
+					defer q.Release()
+					iter := q.Iter()
+					return users, iter.Select(&users)
+				}
+				orgs, err := getOrgs()
+				if err != nil {
+					return
+				}
+				if len(orgs) == 0 {
+					return
+				}
+				orgCass = orgs[0]
 			}
-			if len(orgs) == 0 {
-				return
-			}
-			orgCass := orgs[0]
 			created := strconv.FormatInt(orgCass.CreatedAt, 10)
 			updated := strconv.FormatInt(orgCass.UpdatedAt, 10)
 			emptCnt, _ := strconv.Atoi(orgCass.EmpCount)
@@ -336,6 +344,11 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 				Type:          orgCass.Type,
 			}
 			outputOrgs[i] = result
+			redisBytes, err := json.Marshal(orgCass)
+			if err == nil {
+				redis.SetRedisValue(ctx, key, string(redisBytes))
+				redis.SetTTL(ctx, key, 3600)
+			}
 			wg.Done()
 		}(i, orgIDInput)
 	}
@@ -361,7 +374,7 @@ func GetOrganizationsByName(ctx context.Context, name *string, prevPageSnapShot 
 
 	var qryStr string
 	if name == nil || *name == "" {
-		qryStr = fmt.Sprint(`SELECT * from userz.organization`)
+		qryStr = `SELECT * from userz.organization`
 	} else {
 		n := strings.ToLower(*name)
 		qryStr = fmt.Sprintf(`SELECT * from userz.organization where name='%s' `, n)
@@ -444,7 +457,7 @@ func GetOrganizationsByDomain(ctx context.Context, domain string) ([]*model.Orga
 	orgCass := userz.Organization{}
 	key := fmt.Sprintf("org_%s", domain)
 	res, err := redis.GetRedisValue(ctx, key)
-	if err == nil {
+	if err == nil && res != ""{
 		json.Unmarshal([]byte(res), &orgCass)
 	}
 	if orgCass.ID == "" {
