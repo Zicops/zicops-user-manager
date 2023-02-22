@@ -677,7 +677,6 @@ type ComplexityRoot struct {
 		PhotoURL           func(childComplexity int) int
 		SmeExpertise       func(childComplexity int) int
 		Status             func(childComplexity int) int
-		Type               func(childComplexity int) int
 		UpdatedAt          func(childComplexity int) int
 		UpdatedBy          func(childComplexity int) int
 		VendorID           func(childComplexity int) int
@@ -4855,13 +4854,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.VendorProfile.Status(childComplexity), true
 
-	case "VendorProfile.type":
-		if e.complexity.VendorProfile.Type == nil {
-			break
-		}
-
-		return e.complexity.VendorProfile.Type(childComplexity), true
-
 	case "VendorProfile.updated_at":
 		if e.complexity.VendorProfile.UpdatedAt == nil {
 			break
@@ -5748,7 +5740,6 @@ type SME {
 input VendorProfileInput {
   vendor_id: String!
   first_name: String
-  type: String!
   last_name: String
   email: String!
   phone: String
@@ -5766,7 +5757,6 @@ input VendorProfileInput {
 type VendorProfile {
   pf_id: String
   vendor_id: String
-  type: String
   first_name: String
   last_name: String
   email: String
@@ -15618,8 +15608,6 @@ func (ec *executionContext) fieldContext_Mutation_createProfileVendor(ctx contex
 				return ec.fieldContext_VendorProfile_pf_id(ctx, field)
 			case "vendor_id":
 				return ec.fieldContext_VendorProfile_vendor_id(ctx, field)
-			case "type":
-				return ec.fieldContext_VendorProfile_type(ctx, field)
 			case "first_name":
 				return ec.fieldContext_VendorProfile_first_name(ctx, field)
 			case "last_name":
@@ -16006,8 +15994,6 @@ func (ec *executionContext) fieldContext_Mutation_updateProfileVendor(ctx contex
 				return ec.fieldContext_VendorProfile_pf_id(ctx, field)
 			case "vendor_id":
 				return ec.fieldContext_VendorProfile_vendor_id(ctx, field)
-			case "type":
-				return ec.fieldContext_VendorProfile_type(ctx, field)
 			case "first_name":
 				return ec.fieldContext_VendorProfile_first_name(ctx, field)
 			case "last_name":
@@ -22585,8 +22571,6 @@ func (ec *executionContext) fieldContext_Query_viewProfileVendorDetails(ctx cont
 				return ec.fieldContext_VendorProfile_pf_id(ctx, field)
 			case "vendor_id":
 				return ec.fieldContext_VendorProfile_vendor_id(ctx, field)
-			case "type":
-				return ec.fieldContext_VendorProfile_type(ctx, field)
 			case "first_name":
 				return ec.fieldContext_VendorProfile_first_name(ctx, field)
 			case "last_name":
@@ -22679,8 +22663,6 @@ func (ec *executionContext) fieldContext_Query_viewAllProfiles(ctx context.Conte
 				return ec.fieldContext_VendorProfile_pf_id(ctx, field)
 			case "vendor_id":
 				return ec.fieldContext_VendorProfile_vendor_id(ctx, field)
-			case "type":
-				return ec.fieldContext_VendorProfile_type(ctx, field)
 			case "first_name":
 				return ec.fieldContext_VendorProfile_first_name(ctx, field)
 			case "last_name":
@@ -33146,47 +33128,6 @@ func (ec *executionContext) fieldContext_VendorProfile_vendor_id(ctx context.Con
 	return fc, nil
 }
 
-func (ec *executionContext) _VendorProfile_type(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_VendorProfile_type(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_VendorProfile_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "VendorProfile",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _VendorProfile_first_name(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_VendorProfile_first_name(ctx, field)
 	if err != nil {
@@ -38476,7 +38417,7 @@ func (ec *executionContext) unmarshalInputVendorProfileInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"vendor_id", "first_name", "type", "last_name", "email", "phone", "photo", "description", "languages", "SME_expertise", "Classroom_expertise", "experience", "experience_years", "is_speaker", "status"}
+	fieldsInOrder := [...]string{"vendor_id", "first_name", "last_name", "email", "phone", "photo", "description", "languages", "SME_expertise", "Classroom_expertise", "experience", "experience_years", "is_speaker", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38496,14 +38437,6 @@ func (ec *executionContext) unmarshalInputVendorProfileInput(ctx context.Context
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first_name"))
 			it.FirstName, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "type":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-			it.Type, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -42930,10 +42863,6 @@ func (ec *executionContext) _VendorProfile(ctx context.Context, sel ast.Selectio
 		case "vendor_id":
 
 			out.Values[i] = ec._VendorProfile_vendor_id(ctx, field, obj)
-
-		case "type":
-
-			out.Values[i] = ec._VendorProfile_type(ctx, field, obj)
 
 		case "first_name":
 

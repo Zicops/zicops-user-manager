@@ -765,7 +765,6 @@ type SME {
 input VendorProfileInput {
   vendor_id: String!
   first_name: String
-  type: String!
   last_name: String
   email: String!
   phone: String
@@ -783,7 +782,6 @@ input VendorProfileInput {
 type VendorProfile {
   pf_id: String
   vendor_id: String
-  type: String
   first_name: String
   last_name: String
   email: String

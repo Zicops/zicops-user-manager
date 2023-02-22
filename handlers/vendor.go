@@ -418,6 +418,24 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	CassSession := session
 
 	pfId := base64.URLEncoding.EncodeToString([]byte(input.Email))
+
+	verifyingQuery := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE pf_id = '%s' AND vendor_id = '%s' ALLOW FILTERING`, pfId, input.VendorID)
+	getProfileDetail := func() (exp []vendorz.VendorProfile, err error) {
+		q := CassSession.Query(verifyingQuery, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return exp, iter.Select(&exp)
+	}
+
+	profileDetails, err := getProfileDetail()
+
+	if err != nil {
+		log.Printf("Got error while getting data from profile experience: %v", err)
+	}
+	if len(profileDetails) != 0 {
+		return nil, fmt.Errorf("email already in use")
+	}
+
 	profile := vendorz.VendorProfile{
 		PfId:     pfId,
 		VendorId: input.VendorID,
@@ -1594,7 +1612,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	}
 	email := claims["email"].(string)
 	pfId := base64.URLEncoding.EncodeToString([]byte(input.Email))
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE pf_id = '%s' AND vendor_id = '%s' AND type = '%s' ALLOW FILTERING`, pfId, input.VendorID, input.Type)
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE pf_id = '%s' AND vendor_id = '%s' ALLOW FILTERING`, pfId, input.VendorID)
 	session, err := cassandra.GetCassSession("vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session of vendor: %v", err)
