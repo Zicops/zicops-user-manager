@@ -421,7 +421,7 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	profile := vendorz.VendorProfile{
 		PfId:     pfId,
 		VendorId: input.VendorID,
-		Type:     input.Type,
+		//Type:     input.Type,
 		Email:    input.Email,
 	}
 	if input.FirstName != nil {
@@ -504,7 +504,7 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	res := model.VendorProfile{
 		PfID:               &profile.PfId,
 		VendorID:           &profile.VendorId,
-		Type:               &profile.Type,
+		//Type:               &profile.Type,
 		FirstName:          &profile.FirstName,
 		LastName:           &profile.LastName,
 		Email:              &profile.Email,
@@ -1470,7 +1470,7 @@ func ViewProfileVendorDetails(ctx context.Context, vendorID string, email string
 	res := model.VendorProfile{
 		PfID:               &pfId,
 		VendorID:           &vendorID,
-		Type:               &profile.Type,
+		//Type:               &profile.Type,
 		FirstName:          &profile.FirstName,
 		LastName:           &profile.LastName,
 		Email:              &profile.Email,
@@ -1563,7 +1563,7 @@ func ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*mod
 			tmp := model.VendorProfile{
 				PfID:               &v.PfId,
 				VendorID:           &v.VendorId,
-				Type:               &v.Type,
+				//Type:               &v.Type,
 				FirstName:          &v.FirstName,
 				LastName:           &v.LastName,
 				Email:              &v.Email,
@@ -1709,7 +1709,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	res := model.VendorProfile{
 		PfID:               &profile.PfId,
 		VendorID:           &profile.VendorId,
-		Type:               &profile.Type,
+		//Type:               &profile.Type,
 		FirstName:          &profile.FirstName,
 		LastName:           &profile.LastName,
 		Email:              &profile.Email,
