@@ -163,7 +163,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 	res, err := redis.GetRedisValue(ctx, key)
 	if err == nil && res != ""{
 		err = json.Unmarshal([]byte(res), &userOrgs)
-		if err == nil {
+		if err == nil  || len (userOrgs) > 0 {
 			return userOrgs, nil
 		}
 	}
