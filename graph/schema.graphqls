@@ -765,7 +765,6 @@ type SME {
 input VendorProfileInput {
   vendor_id: String!
   first_name: String
-  type: String!
   last_name: String
   email: String!
   phone: String
@@ -783,7 +782,6 @@ input VendorProfileInput {
 type VendorProfile {
   pf_id: String
   vendor_id: String
-  type: String
   first_name: String
   last_name: String
   email: String
@@ -1043,8 +1041,8 @@ type Query {
   getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
-  viewProfileVendorDetails(vendor_id: String!, email: String!, p_type: String!): VendorProfile
-  viewAllProfiles(vendor_id: String!, p_type: String!): [VendorProfile]
+  viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
+  viewAllProfiles(vendor_id: String!): [VendorProfile]
   getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
   getSmeDetails(vendor_id: String!): SME
   getClassRoomTraining(vendor_id: String!): CRT
@@ -1104,6 +1102,7 @@ type Mutation {
   createExperienceVendor(input: ExperienceInput!): ExperienceVendor
   updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
   uploadSampleFile(input: SampleFileInput): SampleFile
+  deleteSampleFile(sfId: String!, vendor_id: String!, p_type: String!): Boolean
   updateProfileVendor(input: VendorProfileInput): VendorProfile
   createSubjectMatterExpertise(input:SMEInput): SME
   updateSubjectMatterExpertise(input:SMEInput): SME

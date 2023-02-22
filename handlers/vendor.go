@@ -418,10 +418,27 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	CassSession := session
 
 	pfId := base64.URLEncoding.EncodeToString([]byte(input.Email))
+
+	verifyingQuery := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE pf_id = '%s' AND vendor_id = '%s' ALLOW FILTERING`, pfId, input.VendorID)
+	getProfileDetail := func() (exp []vendorz.VendorProfile, err error) {
+		q := CassSession.Query(verifyingQuery, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return exp, iter.Select(&exp)
+	}
+
+	profileDetails, err := getProfileDetail()
+
+	if err != nil {
+		log.Printf("Got error while getting data from profile experience: %v", err)
+	}
+	if len(profileDetails) != 0 {
+		return nil, fmt.Errorf("email already in use")
+	}
+
 	profile := vendorz.VendorProfile{
 		PfId:     pfId,
 		VendorId: input.VendorID,
-		//Type:     input.Type,
 		Email:    input.Email,
 	}
 	if input.FirstName != nil {
@@ -504,7 +521,6 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	res := model.VendorProfile{
 		PfID:               &profile.PfId,
 		VendorID:           &profile.VendorId,
-		//Type:               &profile.Type,
 		FirstName:          &profile.FirstName,
 		LastName:           &profile.LastName,
 		Email:              &profile.Email,
@@ -1415,14 +1431,14 @@ func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 	return &res, nil
 }
 
-func ViewProfileVendorDetails(ctx context.Context, vendorID string, email string, pType string) (*model.VendorProfile, error) {
+func ViewProfileVendorDetails(ctx context.Context, vendorID string, email string) (*model.VendorProfile, error) {
 	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
 		return nil, err
 	}
 	pfId := base64.URLEncoding.EncodeToString([]byte(email))
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE pf_id = '%s' AND vendor_id = '%s' AND type = '%s' ALLOW FILTERING`, pfId, vendorID, pType)
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE pf_id = '%s' AND vendor_id = '%s' ALLOW FILTERING`, pfId, vendorID)
 	session, err := cassandra.GetCassSession("vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session of vendor: %v", err)
@@ -1470,7 +1486,6 @@ func ViewProfileVendorDetails(ctx context.Context, vendorID string, email string
 	res := model.VendorProfile{
 		PfID:               &pfId,
 		VendorID:           &vendorID,
-		//Type:               &profile.Type,
 		FirstName:          &profile.FirstName,
 		LastName:           &profile.LastName,
 		Email:              &profile.Email,
@@ -1503,13 +1518,13 @@ func ChangeToPointerArray(input []string) []*string {
 	return res
 }
 
-func ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*model.VendorProfile, error) {
+func ViewAllProfiles(ctx context.Context, vendorID string) ([]*model.VendorProfile, error) {
 	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
 		return nil, err
 	}
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE vendor_id = '%s' AND type = '%s' ALLOW FILTERING`, vendorID, pType)
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE vendor_id = '%s' ALLOW FILTERING`, vendorID)
 	session, err := cassandra.GetCassSession("vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session of vendor: %v", err)
@@ -1563,7 +1578,6 @@ func ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*mod
 			tmp := model.VendorProfile{
 				PfID:               &v.PfId,
 				VendorID:           &v.VendorId,
-				//Type:               &v.Type,
 				FirstName:          &v.FirstName,
 				LastName:           &v.LastName,
 				Email:              &v.Email,
@@ -1598,7 +1612,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	}
 	email := claims["email"].(string)
 	pfId := base64.URLEncoding.EncodeToString([]byte(input.Email))
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE pf_id = '%s' AND vendor_id = '%s' AND type = '%s' ALLOW FILTERING`, pfId, input.VendorID, input.Type)
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE pf_id = '%s' AND vendor_id = '%s' ALLOW FILTERING`, pfId, input.VendorID)
 	session, err := cassandra.GetCassSession("vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session of vendor: %v", err)
@@ -1709,7 +1723,6 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	res := model.VendorProfile{
 		PfID:               &profile.PfId,
 		VendorID:           &profile.VendorId,
-		//Type:               &profile.Type,
 		FirstName:          &profile.FirstName,
 		LastName:           &profile.LastName,
 		Email:              &profile.Email,
@@ -2012,6 +2025,7 @@ func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 	if len(updatedCols) > 0 {
 		smeData.UpdatedAt = ua
 		smeData.UpdatedBy = email
+		updatedCols = append(updatedCols, "updated_at", "updated_by")
 
 		utStms, uNames := vendorz.SMETable.Update(updatedCols...)
 		updateQuery := CassSession.Query(utStms, uNames).BindStruct(&smeData)
@@ -2235,6 +2249,7 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 	if len(updatedCols) > 0 {
 		crt.UpdatedBy = email
 		crt.UpdatedAt = updatedAt
+		updatedCols = append(updatedCols, "updated_at", "updated_by")
 
 		utStms, uNames := vendorz.ClassRoomTrainingTable.Update(updatedCols...)
 		updateQuery := CassSession.Query(utStms, uNames).BindStruct(&crt)
@@ -2454,6 +2469,7 @@ func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 	if len(updatedCols) > 0 {
 		cd.UpdatedAt = updatedAt
 		cd.UpdatedBy = email
+		updatedCols = append(updatedCols, "updated_at", "updated_by")
 
 		utStms, uNames := vendorz.ContentDevelopmentTable.Update(updatedCols...)
 		updateQuery := CassSession.Query(utStms, uNames).BindStruct(&cd)
@@ -2534,4 +2550,49 @@ func GetContentDevelopment(ctx context.Context, vendorID string) (*model.Content
 		Status:           &cd.Status,
 	}
 	return res, nil
+}
+
+func DeleteSampleFile(ctx context.Context, sfID string, vendorID string, pType string) (*bool, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+		return nil, err
+	}
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Errorf("Got error while getting session: %v", err)
+		return nil, err
+	}
+	CassSession := session
+
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.sample_file WHERE sf_id = '%s' AND vendor_id = '%s' AND p_type = '%s'  ALLOW FILTERING`, sfID, vendorID, pType)
+	getSampleFile := func() (files []vendorz.SampleFile, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return files, iter.Select(&files)
+	}
+	filesData, err := getSampleFile()
+	if err != nil {
+		return nil, err
+	}
+	if len(filesData) == 0 {
+		return nil, nil
+	}
+	file := filesData[0]
+
+	storageC := bucket.NewStorageHandler()
+	gproject := googleprojectlib.GetGoogleProjectID()
+	err = storageC.InitializeStorageClient(ctx, gproject)
+	if err != nil {
+		log.Printf("Failed to view sample files of course: %v", err.Error())
+		return nil, err
+	}
+	fileBucket := ""
+	if file.FileBucket != "" {
+		fileBucket = file.FileBucket
+	}
+	storageC.DeleteObjectsFromBucket(ctx, fileBucket)
+	return nil, nil
 }

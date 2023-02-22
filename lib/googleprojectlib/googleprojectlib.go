@@ -34,7 +34,7 @@ func GetGoogleProjectDefaultID() string {
 	return id
 }
 
-//GetInstanceID current meta instance
+// GetInstanceID current meta instance
 func GetInstanceID() string {
 
 	instanceID, err := metadata.InstanceID()
@@ -45,7 +45,7 @@ func GetInstanceID() string {
 
 }
 
-//GetZone Project Zone
+// GetZone Project Zone
 func GetZone() string {
 
 	zone, err := metadata.Zone()

@@ -490,6 +490,16 @@ func (r *mutationResolver) UploadSampleFile(ctx context.Context, input *model.Sa
 	return res, nil
 }
 
+// DeleteSampleFile is the resolver for the deleteSampleFile field.
+func (r *mutationResolver) DeleteSampleFile(ctx context.Context, sfID string, vendorID string, pType string) (*bool, error) {
+	res, err := handlers.DeleteSampleFile(ctx, sfID, vendorID, pType)
+	if err != nil {
+		log.Printf("Error deleting sample files: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
 // UpdateProfileVendor is the resolver for the updateProfileVendor field.
 func (r *mutationResolver) UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error) {
 	res, err := handlers.UpdateProfileVendor(ctx, input)
@@ -971,8 +981,8 @@ func (r *queryResolver) GetVendorDetails(ctx context.Context, vendorID string) (
 }
 
 // ViewProfileVendorDetails is the resolver for the viewProfileVendorDetails field.
-func (r *queryResolver) ViewProfileVendorDetails(ctx context.Context, vendorID string, email string, pType string) (*model.VendorProfile, error) {
-	res, err := handlers.ViewProfileVendorDetails(ctx, vendorID, email, pType)
+func (r *queryResolver) ViewProfileVendorDetails(ctx context.Context, vendorID string, email string) (*model.VendorProfile, error) {
+	res, err := handlers.ViewProfileVendorDetails(ctx, vendorID, email)
 	if err != nil {
 		log.Printf("Got error while getting details of the vendor: %v", err)
 		return nil, err
@@ -981,8 +991,8 @@ func (r *queryResolver) ViewProfileVendorDetails(ctx context.Context, vendorID s
 }
 
 // ViewAllProfiles is the resolver for the viewAllProfiles field.
-func (r *queryResolver) ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*model.VendorProfile, error) {
-	res, err := handlers.ViewAllProfiles(ctx, vendorID, pType)
+func (r *queryResolver) ViewAllProfiles(ctx context.Context, vendorID string) ([]*model.VendorProfile, error) {
+	res, err := handlers.ViewAllProfiles(ctx, vendorID)
 	if err != nil {
 		log.Printf("Got error while getting details of the vendor: %v", err)
 		return nil, err

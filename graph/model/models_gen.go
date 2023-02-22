@@ -884,7 +884,6 @@ type VendorInput struct {
 type VendorProfile struct {
 	PfID               *string   `json:"pf_id"`
 	VendorID           *string   `json:"vendor_id"`
-	Type               *string   `json:"type"`
 	FirstName          *string   `json:"first_name"`
 	LastName           *string   `json:"last_name"`
 	Email              *string   `json:"email"`
@@ -907,7 +906,6 @@ type VendorProfile struct {
 type VendorProfileInput struct {
 	VendorID           string          `json:"vendor_id"`
 	FirstName          *string         `json:"first_name"`
-	Type               string          `json:"type"`
 	LastName           *string         `json:"last_name"`
 	Email              string          `json:"email"`
 	Phone              *string         `json:"phone"`
