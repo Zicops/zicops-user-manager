@@ -165,5 +165,7 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 		UpdatedBy: &userLspMap.UpdatedBy,
 		Status:    userLspMap.Status,
 	}
+	key := fmt.Sprintf("zicops_user_lsp_%s", userLspMap.UserID)
+	redis.SetRedisValue(ctx, key, "")
 	return userLspOutput, nil
 }

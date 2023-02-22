@@ -363,7 +363,7 @@ func GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.Le
 			}
 			var orgCass userz.Lsp
 			cres, err := redis.GetRedisValue(ctx, *orgID)
-			if err == nil {
+			if err == nil && cres != ""{
 				json.Unmarshal([]byte(cres), &orgCass)
 			}
 			if orgCass.ID == "" {
@@ -449,7 +449,7 @@ func GetLearningSpacesByOrgID(ctx context.Context, orgID string) ([]*model.Learn
 	var orgs []userz.Lsp
 	key := fmt.Sprintf("org_lsps:%s", orgID)
 	res, err := redis.GetRedisValue(ctx, key)
-	if err == nil {
+	if err == nil  && res != ""{
 		json.Unmarshal([]byte(res), &orgs)
 		return outputOrgs, nil
 	}

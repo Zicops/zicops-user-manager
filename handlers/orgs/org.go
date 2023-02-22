@@ -457,7 +457,7 @@ func GetOrganizationsByDomain(ctx context.Context, domain string) ([]*model.Orga
 	orgCass := userz.Organization{}
 	key := fmt.Sprintf("org_%s", domain)
 	res, err := redis.GetRedisValue(ctx, key)
-	if err == nil {
+	if err == nil && res != ""{
 		json.Unmarshal([]byte(res), &orgCass)
 	}
 	if orgCass.ID == "" {

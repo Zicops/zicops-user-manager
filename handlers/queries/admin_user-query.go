@@ -199,7 +199,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			userModel := model.User{}
 			key := copyID
 			result, err := redis.GetRedisValue(ctx, key)
-			if err == nil {
+			if err == nil && result != ""{
 				err = json.Unmarshal([]byte(result), &userModel)
 				if err == nil && userModel.ID != nil && *userModel.ID == copyID {
 					outputResponse[i] = &userModel
