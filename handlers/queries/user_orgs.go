@@ -160,11 +160,10 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 	userOrgs := make([]*model.UserLspMap, 0)
 
 	key := fmt.Sprintf("zicops_user_lsp_%s", userId)
-	redis.SetRedisValue(ctx, key, "")
 	res, err := redis.GetRedisValue(ctx, key)
-	if err == nil && res != ""{
+	if err == nil && res != "" {
 		err = json.Unmarshal([]byte(res), &userOrgs)
-		if err == nil  || len (userOrgs) > 0 {
+		if err == nil || len(userOrgs) > 0 {
 			return userOrgs, nil
 		}
 	}
