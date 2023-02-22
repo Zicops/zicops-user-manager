@@ -190,6 +190,7 @@ type ComplexityRoot struct {
 		CreateProfileVendor          func(childComplexity int, input *model.VendorProfileInput) int
 		CreateSubjectMatterExpertise func(childComplexity int, input *model.SMEInput) int
 		DeleteCohortImage            func(childComplexity int, cohortID string, filename string) int
+		DeleteSampleFile             func(childComplexity int, sfID string, vendorID string, pType string) int
 		InviteUsers                  func(childComplexity int, emails []string, lspID *string) int
 		InviteUsersWithRole          func(childComplexity int, emails []string, lspID *string, role *string) int
 		Login                        func(childComplexity int) int
@@ -365,8 +366,8 @@ type ComplexityRoot struct {
 		GetVendorExperienceDetails     func(childComplexity int, vendorID string, pfID string, expID string) int
 		GetVendors                     func(childComplexity int, lspID *string) int
 		Logout                         func(childComplexity int) int
-		ViewAllProfiles                func(childComplexity int, vendorID string, pType string) int
-		ViewProfileVendorDetails       func(childComplexity int, vendorID string, email string, pType string) int
+		ViewAllProfiles                func(childComplexity int, vendorID string) int
+		ViewProfileVendorDetails       func(childComplexity int, vendorID string, email string) int
 	}
 
 	SME struct {
@@ -731,6 +732,7 @@ type MutationResolver interface {
 	CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error)
 	UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error)
 	UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model.SampleFile, error)
+	DeleteSampleFile(ctx context.Context, sfID string, vendorID string, pType string) (*bool, error)
 	UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error)
 	CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*model.Sme, error)
 	UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*model.Sme, error)
@@ -781,8 +783,8 @@ type QueryResolver interface {
 	GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendors, error)
 	GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error)
 	GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, error)
-	ViewProfileVendorDetails(ctx context.Context, vendorID string, email string, pType string) (*model.VendorProfile, error)
-	ViewAllProfiles(ctx context.Context, vendorID string, pType string) ([]*model.VendorProfile, error)
+	ViewProfileVendorDetails(ctx context.Context, vendorID string, email string) (*model.VendorProfile, error)
+	ViewAllProfiles(ctx context.Context, vendorID string) ([]*model.VendorProfile, error)
 	GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*model.SampleFile, error)
 	GetSmeDetails(ctx context.Context, vendorID string) (*model.Sme, error)
 	GetClassRoomTraining(ctx context.Context, vendorID string) (*model.Crt, error)
@@ -1761,6 +1763,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteCohortImage(childComplexity, args["cohort_id"].(string), args["filename"].(string)), true
+
+	case "Mutation.deleteSampleFile":
+		if e.complexity.Mutation.DeleteSampleFile == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteSampleFile_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteSampleFile(childComplexity, args["sfId"].(string), args["vendor_id"].(string), args["p_type"].(string)), true
 
 	case "Mutation.inviteUsers":
 		if e.complexity.Mutation.InviteUsers == nil {
@@ -3105,7 +3119,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ViewAllProfiles(childComplexity, args["vendor_id"].(string), args["p_type"].(string)), true
+		return e.complexity.Query.ViewAllProfiles(childComplexity, args["vendor_id"].(string)), true
 
 	case "Query.viewProfileVendorDetails":
 		if e.complexity.Query.ViewProfileVendorDetails == nil {
@@ -3117,7 +3131,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ViewProfileVendorDetails(childComplexity, args["vendor_id"].(string), args["email"].(string), args["p_type"].(string)), true
+		return e.complexity.Query.ViewProfileVendorDetails(childComplexity, args["vendor_id"].(string), args["email"].(string)), true
 
 	case "SME.created_at":
 		if e.complexity.SME.CreatedAt == nil {
@@ -6012,8 +6026,8 @@ type Query {
   getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
-  viewProfileVendorDetails(vendor_id: String!, email: String!, p_type: String!): VendorProfile
-  viewAllProfiles(vendor_id: String!, p_type: String!): [VendorProfile]
+  viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
+  viewAllProfiles(vendor_id: String!): [VendorProfile]
   getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
   getSmeDetails(vendor_id: String!): SME
   getClassRoomTraining(vendor_id: String!): CRT
@@ -6073,6 +6087,7 @@ type Mutation {
   createExperienceVendor(input: ExperienceInput!): ExperienceVendor
   updateExperienceVendor(input: ExperienceInput!): ExperienceVendor
   uploadSampleFile(input: SampleFileInput): SampleFile
+  deleteSampleFile(sfId: String!, vendor_id: String!, p_type: String!): Boolean
   updateProfileVendor(input: VendorProfileInput): VendorProfile
   createSubjectMatterExpertise(input:SMEInput): SME
   updateSubjectMatterExpertise(input:SMEInput): SME
@@ -6470,6 +6485,39 @@ func (ec *executionContext) field_Mutation_deleteCohortImage_args(ctx context.Co
 		}
 	}
 	args["filename"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteSampleFile_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["sfId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sfId"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sfId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["vendor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_id"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["p_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("p_type"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["p_type"] = arg2
 	return args, nil
 }
 
@@ -8183,15 +8231,6 @@ func (ec *executionContext) field_Query_viewAllProfiles_args(ctx context.Context
 		}
 	}
 	args["vendor_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["p_type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("p_type"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["p_type"] = arg1
 	return args, nil
 }
 
@@ -8216,15 +8255,6 @@ func (ec *executionContext) field_Query_viewProfileVendorDetails_args(ctx contex
 		}
 	}
 	args["email"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["p_type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("p_type"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["p_type"] = arg2
 	return args, nil
 }
 
@@ -15884,6 +15914,58 @@ func (ec *executionContext) fieldContext_Mutation_uploadSampleFile(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_deleteSampleFile(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteSampleFile(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteSampleFile(rctx, fc.Args["sfId"].(string), fc.Args["vendor_id"].(string), fc.Args["p_type"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteSampleFile(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteSampleFile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_updateProfileVendor(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_updateProfileVendor(ctx, field)
 	if err != nil {
@@ -22477,7 +22559,7 @@ func (ec *executionContext) _Query_viewProfileVendorDetails(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ViewProfileVendorDetails(rctx, fc.Args["vendor_id"].(string), fc.Args["email"].(string), fc.Args["p_type"].(string))
+		return ec.resolvers.Query().ViewProfileVendorDetails(rctx, fc.Args["vendor_id"].(string), fc.Args["email"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22571,7 +22653,7 @@ func (ec *executionContext) _Query_viewAllProfiles(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ViewAllProfiles(rctx, fc.Args["vendor_id"].(string), fc.Args["p_type"].(string))
+		return ec.resolvers.Query().ViewAllProfiles(rctx, fc.Args["vendor_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -39474,6 +39556,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_uploadSampleFile(ctx, field)
+			})
+
+		case "deleteSampleFile":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteSampleFile(ctx, field)
 			})
 
 		case "updateProfileVendor":
