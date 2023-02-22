@@ -451,9 +451,6 @@ func GetLearningSpacesByOrgID(ctx context.Context, orgID string) ([]*model.Learn
 	res, err := redis.GetRedisValue(ctx, key)
 	if err == nil && res != "" {
 		json.Unmarshal([]byte(res), &orgs)
-		if len(orgs) > 0 {
-			return outputOrgs, nil
-		}
 	}
 	if len(orgs) == 0 {
 		qryStr := fmt.Sprintf(`SELECT * from userz.learning_space where org_id='%s' ALLOW FILTERING `, orgID)
