@@ -381,12 +381,16 @@ github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 github.com/zicops/contracts v0.0.0-20230218180426-bd9f51357a03 h1:0l0lw2+pWCrPbO7Yqp27RqiGSk53rS81HWNpg7O+IEo=
 github.com/zicops/contracts v0.0.0-20230218180426-bd9f51357a03/go.mod h1:jt0EYQwy9NemS+9GgiVeF71y+kDE1NIx7B/uQLOMGPM=
+github.com/zicops/contracts v0.0.0-20230222142610-b460f0bc2561 h1:+FzHjOq5X7XSBN06i+WRDcV4084JR8u/oLf2gI/0D9k=
+github.com/zicops/contracts v0.0.0-20230222142610-b460f0bc2561/go.mod h1:jt0EYQwy9NemS+9GgiVeF71y+kDE1NIx7B/uQLOMGPM=
 github.com/zicops/zicops-cass-pool v0.0.0-20221216180317-e591441b40ab h1:XMk7jfux+52wNg7fCGPgDl8ZwgspMd3SVNMj5CZajCU=
 github.com/zicops/zicops-cass-pool v0.0.0-20221216180317-e591441b40ab/go.mod h1:BvnF7bZHQIIEi3xgB2tz9FMCBPhOF7u5xqvNNO45TLQ=
 github.com/zicops/zicops-cass-pool v0.0.0-20230218183053-1fd5b39d3e34 h1:9aWtGv9Q1cKphiv2tr1XAL0IxLEcld84BUsIUgftMGE=
 github.com/zicops/zicops-cass-pool v0.0.0-20230218183053-1fd5b39d3e34/go.mod h1:/7lRQKtG+l+1WOe7MqcQo6FXDL08hz8kEFOegwDlHNM=
 github.com/zicops/zicops-cass-pool v0.0.0-20230222142307-3c8a3db86c2a h1:nHNIEBP7oMA5rU+vbktXWrQpfA8GLLhxYQVNzwTLVxU=
 github.com/zicops/zicops-cass-pool v0.0.0-20230222142307-3c8a3db86c2a/go.mod h1:/7lRQKtG+l+1WOe7MqcQo6FXDL08hz8kEFOegwDlHNM=
+github.com/zicops/zicops-cass-pool v0.0.0-20230222144124-a93e5bb7a533 h1:9RjnefXvDXVCQcw+++EQWxuqNSAIWiZnd4J2xtWxIm0=
+github.com/zicops/zicops-cass-pool v0.0.0-20230222144124-a93e5bb7a533/go.mod h1:/7lRQKtG+l+1WOe7MqcQo6FXDL08hz8kEFOegwDlHNM=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=
