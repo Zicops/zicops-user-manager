@@ -744,6 +744,8 @@ input SMEInput {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
+  sample_files:[String]
+  profiles:[String]
 	Status: String
 }
 
@@ -755,6 +757,8 @@ type SME {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
+  sample_files:[String]
+  profiles:[String]
   created_at: String
   created_by: String
   updated_at: String
@@ -870,6 +874,8 @@ input CRTInput {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
+  sample_files:[String]
+  profiles:[String]
   is_expertise_online: Boolean
 	status: String
 }
@@ -882,6 +888,8 @@ type CRT {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
+  sample_files:[String]
+  profiles:[String]
   is_expertise_online: Boolean
   created_at: String
 	created_by: String
@@ -898,6 +906,7 @@ input ContentDevelopmentInput {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
+  sample_files: [String]
   status: String
 }
 
@@ -909,6 +918,7 @@ type ContentDevelopment {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
+  sample_files: [String]
   created_at: String
 	created_by: String
 	updated_at: String

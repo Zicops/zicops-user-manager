@@ -14,6 +14,8 @@ type Crt struct {
 	Expertise         []*string `json:"expertise"`
 	Languages         []*string `json:"languages"`
 	OutputDeliveries  []*string `json:"output_deliveries"`
+	SampleFiles       []*string `json:"sample_files"`
+	Profiles          []*string `json:"profiles"`
 	IsExpertiseOnline *bool     `json:"is_expertise_online"`
 	CreatedAt         *string   `json:"created_at"`
 	CreatedBy         *string   `json:"created_by"`
@@ -30,6 +32,8 @@ type CRTInput struct {
 	Expertise         []*string `json:"expertise"`
 	Languages         []*string `json:"languages"`
 	OutputDeliveries  []*string `json:"output_deliveries"`
+	SampleFiles       []*string `json:"sample_files"`
+	Profiles          []*string `json:"profiles"`
 	IsExpertiseOnline *bool     `json:"is_expertise_online"`
 	Status            *string   `json:"status"`
 }
@@ -75,6 +79,7 @@ type ContentDevelopment struct {
 	Expertise        []*string `json:"expertise"`
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
+	SampleFiles      []*string `json:"sample_files"`
 	CreatedAt        *string   `json:"created_at"`
 	CreatedBy        *string   `json:"created_by"`
 	UpdatedAt        *string   `json:"updated_at"`
@@ -90,6 +95,7 @@ type ContentDevelopmentInput struct {
 	Expertise        []*string `json:"expertise"`
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
+	SampleFiles      []*string `json:"sample_files"`
 	Status           *string   `json:"status"`
 }
 
@@ -341,6 +347,8 @@ type Sme struct {
 	Expertise        []*string `json:"expertise"`
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
+	SampleFiles      []*string `json:"sample_files"`
+	Profiles         []*string `json:"profiles"`
 	CreatedAt        *string   `json:"created_at"`
 	CreatedBy        *string   `json:"created_by"`
 	UpdatedAt        *string   `json:"updated_at"`
@@ -356,6 +364,8 @@ type SMEInput struct {
 	Expertise        []*string `json:"expertise"`
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
+	SampleFiles      []*string `json:"sample_files"`
+	Profiles         []*string `json:"profiles"`
 	Status           *string   `json:"Status"`
 }
 

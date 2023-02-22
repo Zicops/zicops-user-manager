@@ -53,6 +53,8 @@ type ComplexityRoot struct {
 		IsExpertiseOnline func(childComplexity int) int
 		Languages         func(childComplexity int) int
 		OutputDeliveries  func(childComplexity int) int
+		Profiles          func(childComplexity int) int
+		SampleFiles       func(childComplexity int) int
 		Status            func(childComplexity int) int
 		UpdatedAt         func(childComplexity int) int
 		UpdatedBy         func(childComplexity int) int
@@ -85,6 +87,7 @@ type ComplexityRoot struct {
 		IsApplicable     func(childComplexity int) int
 		Languages        func(childComplexity int) int
 		OutputDeliveries func(childComplexity int) int
+		SampleFiles      func(childComplexity int) int
 		Status           func(childComplexity int) int
 		UpdatedAt        func(childComplexity int) int
 		UpdatedBy        func(childComplexity int) int
@@ -378,6 +381,8 @@ type ComplexityRoot struct {
 		IsApplicable     func(childComplexity int) int
 		Languages        func(childComplexity int) int
 		OutputDeliveries func(childComplexity int) int
+		Profiles         func(childComplexity int) int
+		SampleFiles      func(childComplexity int) int
 		SmeID            func(childComplexity int) int
 		Status           func(childComplexity int) int
 		UpdatedAt        func(childComplexity int) int
@@ -868,6 +873,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.CRT.OutputDeliveries(childComplexity), true
 
+	case "CRT.profiles":
+		if e.complexity.CRT.Profiles == nil {
+			break
+		}
+
+		return e.complexity.CRT.Profiles(childComplexity), true
+
+	case "CRT.sample_files":
+		if e.complexity.CRT.SampleFiles == nil {
+			break
+		}
+
+		return e.complexity.CRT.SampleFiles(childComplexity), true
+
 	case "CRT.status":
 		if e.complexity.CRT.Status == nil {
 			break
@@ -1049,6 +1068,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ContentDevelopment.OutputDeliveries(childComplexity), true
+
+	case "ContentDevelopment.sample_files":
+		if e.complexity.ContentDevelopment.SampleFiles == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.SampleFiles(childComplexity), true
 
 	case "ContentDevelopment.status":
 		if e.complexity.ContentDevelopment.Status == nil {
@@ -3180,6 +3206,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SME.OutputDeliveries(childComplexity), true
+
+	case "SME.profiles":
+		if e.complexity.SME.Profiles == nil {
+			break
+		}
+
+		return e.complexity.SME.Profiles(childComplexity), true
+
+	case "SME.sample_files":
+		if e.complexity.SME.SampleFiles == nil {
+			break
+		}
+
+		return e.complexity.SME.SampleFiles(childComplexity), true
 
 	case "SME.sme_id":
 		if e.complexity.SME.SmeID == nil {
@@ -5719,6 +5759,8 @@ input SMEInput {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
+  sample_files:[String]
+  profiles:[String]
 	Status: String
 }
 
@@ -5730,6 +5772,8 @@ type SME {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
+  sample_files:[String]
+  profiles:[String]
   created_at: String
   created_by: String
   updated_at: String
@@ -5845,6 +5889,8 @@ input CRTInput {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
+  sample_files:[String]
+  profiles:[String]
   is_expertise_online: Boolean
 	status: String
 }
@@ -5857,6 +5903,8 @@ type CRT {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
+  sample_files:[String]
+  profiles:[String]
   is_expertise_online: Boolean
   created_at: String
 	created_by: String
@@ -5873,6 +5921,7 @@ input ContentDevelopmentInput {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
+  sample_files: [String]
   status: String
 }
 
@@ -5884,6 +5933,7 @@ type ContentDevelopment {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
+  sample_files: [String]
   created_at: String
 	created_by: String
 	updated_at: String
@@ -8576,6 +8626,88 @@ func (ec *executionContext) fieldContext_CRT_output_deliveries(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _CRT_sample_files(ctx context.Context, field graphql.CollectedField, obj *model.Crt) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CRT_sample_files(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SampleFiles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CRT_sample_files(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CRT",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CRT_profiles(ctx context.Context, field graphql.CollectedField, obj *model.Crt) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CRT_profiles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Profiles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CRT_profiles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CRT",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CRT_is_expertise_online(ctx context.Context, field graphql.CollectedField, obj *model.Crt) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CRT_is_expertise_online(ctx, field)
 	if err != nil {
@@ -9701,6 +9833,47 @@ func (ec *executionContext) _ContentDevelopment_output_deliveries(ctx context.Co
 }
 
 func (ec *executionContext) fieldContext_ContentDevelopment_output_deliveries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_sample_files(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_sample_files(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SampleFiles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_sample_files(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ContentDevelopment",
 		Field:      field,
@@ -16096,6 +16269,10 @@ func (ec *executionContext) fieldContext_Mutation_createSubjectMatterExpertise(c
 				return ec.fieldContext_SME_languages(ctx, field)
 			case "output_deliveries":
 				return ec.fieldContext_SME_output_deliveries(ctx, field)
+			case "sample_files":
+				return ec.fieldContext_SME_sample_files(ctx, field)
+			case "profiles":
+				return ec.fieldContext_SME_profiles(ctx, field)
 			case "created_at":
 				return ec.fieldContext_SME_created_at(ctx, field)
 			case "created_by":
@@ -16174,6 +16351,10 @@ func (ec *executionContext) fieldContext_Mutation_updateSubjectMatterExpertise(c
 				return ec.fieldContext_SME_languages(ctx, field)
 			case "output_deliveries":
 				return ec.fieldContext_SME_output_deliveries(ctx, field)
+			case "sample_files":
+				return ec.fieldContext_SME_sample_files(ctx, field)
+			case "profiles":
+				return ec.fieldContext_SME_profiles(ctx, field)
 			case "created_at":
 				return ec.fieldContext_SME_created_at(ctx, field)
 			case "created_by":
@@ -16252,6 +16433,10 @@ func (ec *executionContext) fieldContext_Mutation_createClassRoomTraining(ctx co
 				return ec.fieldContext_CRT_languages(ctx, field)
 			case "output_deliveries":
 				return ec.fieldContext_CRT_output_deliveries(ctx, field)
+			case "sample_files":
+				return ec.fieldContext_CRT_sample_files(ctx, field)
+			case "profiles":
+				return ec.fieldContext_CRT_profiles(ctx, field)
 			case "is_expertise_online":
 				return ec.fieldContext_CRT_is_expertise_online(ctx, field)
 			case "created_at":
@@ -16332,6 +16517,10 @@ func (ec *executionContext) fieldContext_Mutation_updateClassRoomTraining(ctx co
 				return ec.fieldContext_CRT_languages(ctx, field)
 			case "output_deliveries":
 				return ec.fieldContext_CRT_output_deliveries(ctx, field)
+			case "sample_files":
+				return ec.fieldContext_CRT_sample_files(ctx, field)
+			case "profiles":
+				return ec.fieldContext_CRT_profiles(ctx, field)
 			case "is_expertise_online":
 				return ec.fieldContext_CRT_is_expertise_online(ctx, field)
 			case "created_at":
@@ -16412,6 +16601,8 @@ func (ec *executionContext) fieldContext_Mutation_createContentDevelopment(ctx c
 				return ec.fieldContext_ContentDevelopment_languages(ctx, field)
 			case "output_deliveries":
 				return ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
+			case "sample_files":
+				return ec.fieldContext_ContentDevelopment_sample_files(ctx, field)
 			case "created_at":
 				return ec.fieldContext_ContentDevelopment_created_at(ctx, field)
 			case "created_by":
@@ -16490,6 +16681,8 @@ func (ec *executionContext) fieldContext_Mutation_updateContentDevelopment(ctx c
 				return ec.fieldContext_ContentDevelopment_languages(ctx, field)
 			case "output_deliveries":
 				return ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
+			case "sample_files":
+				return ec.fieldContext_ContentDevelopment_sample_files(ctx, field)
 			case "created_at":
 				return ec.fieldContext_ContentDevelopment_created_at(ctx, field)
 			case "created_by":
@@ -22839,6 +23032,10 @@ func (ec *executionContext) fieldContext_Query_getSmeDetails(ctx context.Context
 				return ec.fieldContext_SME_languages(ctx, field)
 			case "output_deliveries":
 				return ec.fieldContext_SME_output_deliveries(ctx, field)
+			case "sample_files":
+				return ec.fieldContext_SME_sample_files(ctx, field)
+			case "profiles":
+				return ec.fieldContext_SME_profiles(ctx, field)
 			case "created_at":
 				return ec.fieldContext_SME_created_at(ctx, field)
 			case "created_by":
@@ -22917,6 +23114,10 @@ func (ec *executionContext) fieldContext_Query_getClassRoomTraining(ctx context.
 				return ec.fieldContext_CRT_languages(ctx, field)
 			case "output_deliveries":
 				return ec.fieldContext_CRT_output_deliveries(ctx, field)
+			case "sample_files":
+				return ec.fieldContext_CRT_sample_files(ctx, field)
+			case "profiles":
+				return ec.fieldContext_CRT_profiles(ctx, field)
 			case "is_expertise_online":
 				return ec.fieldContext_CRT_is_expertise_online(ctx, field)
 			case "created_at":
@@ -22997,6 +23198,8 @@ func (ec *executionContext) fieldContext_Query_getContentDevelopment(ctx context
 				return ec.fieldContext_ContentDevelopment_languages(ctx, field)
 			case "output_deliveries":
 				return ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
+			case "sample_files":
+				return ec.fieldContext_ContentDevelopment_sample_files(ctx, field)
 			case "created_at":
 				return ec.fieldContext_ContentDevelopment_created_at(ctx, field)
 			case "created_by":
@@ -23429,6 +23632,88 @@ func (ec *executionContext) _SME_output_deliveries(ctx context.Context, field gr
 }
 
 func (ec *executionContext) fieldContext_SME_output_deliveries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SME",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SME_sample_files(ctx context.Context, field graphql.CollectedField, obj *model.Sme) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SME_sample_files(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SampleFiles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SME_sample_files(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SME",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SME_profiles(ctx context.Context, field graphql.CollectedField, obj *model.Sme) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SME_profiles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Profiles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SME_profiles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SME",
 		Field:      field,
@@ -35605,7 +35890,7 @@ func (ec *executionContext) unmarshalInputCRTInput(ctx context.Context, obj inte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"crt_id", "vendor_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "is_expertise_online", "status"}
+	fieldsInOrder := [...]string{"crt_id", "vendor_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "sample_files", "profiles", "is_expertise_online", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -35665,6 +35950,22 @@ func (ec *executionContext) unmarshalInputCRTInput(ctx context.Context, obj inte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("output_deliveries"))
 			it.OutputDeliveries, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sample_files":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sample_files"))
+			it.SampleFiles, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "profiles":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profiles"))
+			it.Profiles, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35821,7 +36122,7 @@ func (ec *executionContext) unmarshalInputContentDevelopmentInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"cd_id", "vendor_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "status"}
+	fieldsInOrder := [...]string{"cd_id", "vendor_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "sample_files", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -35881,6 +36182,14 @@ func (ec *executionContext) unmarshalInputContentDevelopmentInput(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("output_deliveries"))
 			it.OutputDeliveries, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sample_files":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sample_files"))
+			it.SampleFiles, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -36437,7 +36746,7 @@ func (ec *executionContext) unmarshalInputSMEInput(ctx context.Context, obj inte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"vendor_id", "sme_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "Status"}
+	fieldsInOrder := [...]string{"vendor_id", "sme_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "sample_files", "profiles", "Status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -36497,6 +36806,22 @@ func (ec *executionContext) unmarshalInputSMEInput(ctx context.Context, obj inte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("output_deliveries"))
 			it.OutputDeliveries, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "sample_files":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sample_files"))
+			it.SampleFiles, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "profiles":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profiles"))
+			it.Profiles, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38591,6 +38916,14 @@ func (ec *executionContext) _CRT(ctx context.Context, sel ast.SelectionSet, obj 
 
 			out.Values[i] = ec._CRT_output_deliveries(ctx, field, obj)
 
+		case "sample_files":
+
+			out.Values[i] = ec._CRT_sample_files(ctx, field, obj)
+
+		case "profiles":
+
+			out.Values[i] = ec._CRT_profiles(ctx, field, obj)
+
 		case "is_expertise_online":
 
 			out.Values[i] = ec._CRT_is_expertise_online(ctx, field, obj)
@@ -38770,6 +39103,10 @@ func (ec *executionContext) _ContentDevelopment(ctx context.Context, sel ast.Sel
 		case "output_deliveries":
 
 			out.Values[i] = ec._ContentDevelopment_output_deliveries(ctx, field, obj)
+
+		case "sample_files":
+
+			out.Values[i] = ec._ContentDevelopment_sample_files(ctx, field, obj)
 
 		case "created_at":
 
@@ -41117,6 +41454,14 @@ func (ec *executionContext) _SME(ctx context.Context, sel ast.SelectionSet, obj 
 		case "output_deliveries":
 
 			out.Values[i] = ec._SME_output_deliveries(ctx, field, obj)
+
+		case "sample_files":
+
+			out.Values[i] = ec._SME_sample_files(ctx, field, obj)
+
+		case "profiles":
+
+			out.Values[i] = ec._SME_profiles(ctx, field, obj)
 
 		case "created_at":
 
