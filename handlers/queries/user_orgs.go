@@ -252,8 +252,8 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 	}
 	redisBytes, err := json.Marshal(userOrgs)
 	if err == nil {
-		redis.SetTTL(ctx, key, 3600)
 		redis.SetRedisValue(ctx, key, string(redisBytes))
+		redis.SetTTL(ctx, key, 3600)
 	}
 	return userOrgs, nil
 }
