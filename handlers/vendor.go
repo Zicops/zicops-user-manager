@@ -1086,6 +1086,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 		return nil, err
 	}
 	lsp := claims["lsp_id"].(string)
+	email := claims["email"].(string)
 	if lspID != nil {
 		lsp = *lspID
 	}
@@ -1183,6 +1184,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 				Level:        vendor.Level,
 				Name:         vendor.Name,
 				PhotoURL:     &vendor.PhotoUrl,
+				Description:  &vendor.Description,
 				Website:      &vendor.Website,
 				Address:      &vendor.Address,
 				Users:        usersEmail,
@@ -1193,6 +1195,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 				CreatedAt:    &createdAt,
 				CreatedBy:    &vendor.CreatedBy,
 				UpdatedAt:    &updatedAt,
+				UpdatedBy:    &email,
 				Status:       &vendor.Status,
 			}
 			res[k] = vendorData
@@ -2457,17 +2460,15 @@ func CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		return nil, err
 	}
 	ca := strconv.Itoa(int(createdAt))
-	exp := ChangeToPointerArray(cd.Expertise)
-	lan := ChangeToPointerArray(cd.Languages)
-	od := ChangeToPointerArray(cd.OutputDeliveries)
 	res := model.ContentDevelopment{
 		CdID:             &cdId,
 		VendorID:         &cd.VendorId,
 		Description:      &cd.Description,
 		IsApplicable:     &cd.IsApplicable,
-		Expertise:        exp,
-		Languages:        lan,
-		OutputDeliveries: od,
+		Expertise:        input.Expertise,
+		Languages:        input.Languages,
+		OutputDeliveries: input.OutputDeliveries,
+		SampleFiles:      input.SampleFiles,
 		CreatedAt:        &ca,
 		CreatedBy:        &email,
 		Status:           &cd.Status,
@@ -2529,7 +2530,7 @@ func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		updatedCols = append(updatedCols, "languages")
 	}
 	if input.OutputDeliveries != nil {
-		tmp := ChangesStringType(input.Languages)
+		tmp := ChangesStringType(input.OutputDeliveries)
 		cd.OutputDeliveries = tmp
 		updatedCols = append(updatedCols, "output_deliveries")
 	}
