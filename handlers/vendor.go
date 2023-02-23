@@ -2019,7 +2019,7 @@ func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 
 	if input.Description != nil {
 		smeData.Description = *input.Description
-		updatedCols = append(updatedCols, "expertise")
+		updatedCols = append(updatedCols, "description")
 	}
 	if input.Expertise != nil {
 		tmp := ChangesStringType(input.Expertise)
@@ -2677,7 +2677,7 @@ func DeleteSampleFile(ctx context.Context, sfID string, vendorID string, pType s
 		fileBucket = file.FileBucket
 	}
 
-	deleteStr := fmt.Sprintf(`DELETE FROM vendorz.sample_file WHERE sf_id = '%s' AND vendor_id = '%s' AND p_type = '%s'  ALLOW FILTERING`, sfID, vendorID, pType)
+	deleteStr := fmt.Sprintf(`DELETE FROM vendorz.sample_file WHERE sf_id = '%s' `, sfID)
 	if err = CassSession.Query(deleteStr, nil).Exec(); err != nil {
 		return &val, err
 	}
