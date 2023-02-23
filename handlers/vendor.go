@@ -2231,7 +2231,7 @@ func CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 }
 
 func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model.Crt, error) {
-	if input.VendorID == "" || input.CrtID != nil {
+	if input.VendorID == "" || input.CrtID == nil {
 		return nil, fmt.Errorf("please provide both vendorId and CrtId")
 	}
 
