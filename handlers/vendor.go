@@ -1639,7 +1639,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		log.Printf("Got error while getting profile data: %v", err)
 		return nil, err
 	}
-	if len(profiles) > 0 {
+	if len(profiles) == 0 {
 		return nil, nil
 	}
 	profile := profiles[0]
