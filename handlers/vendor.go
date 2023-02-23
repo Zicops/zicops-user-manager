@@ -1675,7 +1675,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	}
 	if input.Phone != nil {
 		profile.Phone = *input.Phone
-		updatedCols = append(updatedCols, "phone")
+		updatedCols = append(updatedCols, "phone_number")
 	}
 	storageC := bucket.NewStorageHandler()
 	gproject := googleprojectlib.GetGoogleProjectID()
