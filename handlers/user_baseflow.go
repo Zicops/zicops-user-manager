@@ -172,14 +172,14 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 		if shouldSendEmail {
 			if isZAdmin && !userExists {
 				passwordReset, err := global.IDP.GetResetPasswordURL(ctx, responseUser.Email, origin, origin)
-				log.Println("origin in new admin", origin)
+				//log.Println("origin in new admin", origin)
 				if err != nil {
 					return nil, nil, err
 				}
 				global.SGClient.SendJoinEmail(responseUser.Email, passwordReset, responseUser.FirstName+" "+responseUser.LastName, lspToAdd.Name, lspToAdd.Name)
 			} else if isZAdmin && userExists {
 				err := global.SGClient.SendInviteToLspEmail(responseUser.Email, origin+"/login", lspToAdd.Name, lspToAdd.Name)
-				log.Println(origin)
+				//log.Println(origin)
 				if err != nil {
 					log.Printf("Got error while sending invite to lsp: %v", err)
 				}

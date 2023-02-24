@@ -639,7 +639,7 @@ func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role
 	if err != nil {
 		return nil, err
 	}
-	log.Println(claims["origin"].(string))
+	//log.Println(claims["origin"].(string))
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
