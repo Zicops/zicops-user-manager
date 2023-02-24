@@ -193,6 +193,7 @@ func graphqlHandler() gin.HandlerFunc {
 		mobileHeader := c.Request.Header.Get("zmobile")
 		ctxValue["origin"] = origin
 		ctxValue["mobile"] = mobileHeader
+		ctxValue["role"] = c.Request.Header.Get("role")
 		request := c.Request
 		requestWithValue := request.WithContext(context.WithValue(request.Context(), "zclaims", ctxValue))
 		h.ServeHTTP(c.Writer, requestWithValue)

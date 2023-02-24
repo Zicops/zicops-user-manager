@@ -373,10 +373,6 @@ github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
-github.com/zicops/contracts v0.0.0-20230222142610-b460f0bc2561 h1:+FzHjOq5X7XSBN06i+WRDcV4084JR8u/oLf2gI/0D9k=
-github.com/zicops/contracts v0.0.0-20230222142610-b460f0bc2561/go.mod h1:jt0EYQwy9NemS+9GgiVeF71y+kDE1NIx7B/uQLOMGPM=
-github.com/zicops/contracts v0.0.0-20230223111527-c9ba07eca359 h1:1AB7ui3oKgNu1pXkd+dxXLo5+HI6+7nUTMyhxkP1rAo=
-github.com/zicops/contracts v0.0.0-20230223111527-c9ba07eca359/go.mod h1:jt0EYQwy9NemS+9GgiVeF71y+kDE1NIx7B/uQLOMGPM=
 github.com/zicops/contracts v0.0.0-20230223143954-97b151337c07 h1:q3wSLi3hDvt4n1Vuuo1nihrb1qEp5NCMlSn6pvLjQlY=
 github.com/zicops/contracts v0.0.0-20230223143954-97b151337c07/go.mod h1:jt0EYQwy9NemS+9GgiVeF71y+kDE1NIx7B/uQLOMGPM=
 github.com/zicops/zicops-cass-pool v0.0.0-20230222144124-a93e5bb7a533 h1:9RjnefXvDXVCQcw+++EQWxuqNSAIWiZnd4J2xtWxIm0=
@@ -658,8 +654,6 @@ google.golang.org/genproto v0.0.0-20200618031413-b414f8b61790/go.mod h1:jDfRM7Fc
 google.golang.org/genproto v0.0.0-20200729003335-053ba62fc06f/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20200804131852-c06518451d9c/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20200825200019-8632dd797987/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
-google.golang.org/genproto v0.0.0-20230221151758-ace64dc21148 h1:muK+gVBJBfFb4SejshDBlN2/UgxCCOKH9Y34ljqEGOc=
-google.golang.org/genproto v0.0.0-20230221151758-ace64dc21148/go.mod h1:3Dl5ZL0q0isWJt+FVcfpQyirqemEuLAK/iFvg1UP1Hw=
 google.golang.org/genproto v0.0.0-20230222225845-10f96fb3dbec h1:6rwgChOSUfpzJF2/KnLgo+gMaxGpujStSkPWrbhXArU=
 google.golang.org/genproto v0.0.0-20230222225845-10f96fb3dbec/go.mod h1:3Dl5ZL0q0isWJt+FVcfpQyirqemEuLAK/iFvg1UP1Hw=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
