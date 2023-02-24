@@ -38,6 +38,9 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 	//name := claims["name"].(string)
 	lspId := claims["lsp_id"].(string)
 	origin := claims["origin"].(string)
+	if origin == "" {
+		origin = "demo.zicops.com"
+	}
 	if !isZAdmin {
 		if strings.ToLower(roleValue.(string)) != "puneet@zicops.com" {
 			return nil, nil, fmt.Errorf("user is a not an admin: Unauthorized")

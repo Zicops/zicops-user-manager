@@ -768,7 +768,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 			gproject := googleprojectlib.GetGoogleProjectID()
 			err = storageC.InitializeStorageClient(ctx, gproject)
 			if err != nil {
-				log.Printf("Failed to upload image to course: %v", err.Error())
+				log.Printf("Failed to get images of vendors: %v", err.Error())
 				return
 			}
 
@@ -1570,7 +1570,7 @@ func ViewAllProfiles(ctx context.Context, vendorID string) ([]*model.VendorProfi
 			gproject := googleprojectlib.GetGoogleProjectID()
 			err = storageC.InitializeStorageClient(ctx, gproject)
 			if err != nil {
-				log.Printf("Failed to upload image to course: %v", err.Error())
+				log.Printf("Failed to view all profiles: %v", err.Error())
 				return
 			}
 			photoUrl := ""
@@ -2691,4 +2691,106 @@ func DeleteSampleFile(ctx context.Context, sfID string, vendorID string, pType s
 	}
 
 	return &val, fmt.Errorf(res)
+}
+
+func GetUserVendors(ctx context.Context, userID *string) ([]*model.Vendor, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+		return nil, err
+	}
+
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		log.Errorf("Got error while getting session: %v", err)
+		return nil, err
+	}
+	CassSession := session
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE user_id = '%s' ALLOW FILTERING`, *userID)
+	getVendorMap := func() (vendorUserMap []vendorz.VendorUserMap, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return vendorUserMap, iter.Select(&vendorUserMap)
+	}
+
+	data, err := getVendorMap()
+	if err != nil {
+		log.Printf("Got error while getting vendor user map: %v", err)
+		return nil, err
+	}
+	if len(data) == 0 {
+		return nil, nil
+	}
+
+	res := make([]*model.Vendor, len(data))
+	var wg sync.WaitGroup
+	for kk, vvv := range data {
+		vv := vvv
+		wg.Add(1)
+		go func(k int, v string) {
+
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				log.Printf("Failed to view all profiles: %v", err.Error())
+				return
+			}
+			photoUrl := ""
+
+			query := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s'`, v)
+			getVendor := func() (vendorData []vendorz.Vendor, err error) {
+				qq := CassSession.Query(query, nil)
+				defer qq.Release()
+				iter := qq.Iter()
+				return vendorData, iter.Select(&vendorData)
+			}
+			vendors, err := getVendor()
+			if err != nil {
+				log.Printf("Got error while getting vendors data: %v", err)
+				return
+			}
+			if len(vendors) == 0 {
+				return
+			}
+
+			vendor := vendors[0]
+
+			if vendor.PhotoBucket != "" {
+				photoUrl = storageC.GetSignedURLForObject(vendor.PhotoBucket)
+			} else {
+				photoUrl = ""
+			}
+			users := ChangeToPointerArray(vendor.Users)
+			ca := strconv.Itoa(int(vendor.CreatedAt))
+			ua := strconv.Itoa(int(vendor.UpdatedAt))
+			tmp := model.Vendor{
+				VendorID:     vendor.VendorId,
+				Type:         vendor.Type,
+				Level:        vendor.Level,
+				Name:         vendor.Name,
+				Description:  &vendor.Description,
+				PhotoURL:     &photoUrl,
+				Address:      &vendor.Address,
+				Users:        users,
+				Website:      &vendor.Website,
+				FacebookURL:  &vendor.Facebook,
+				InstagramURL: &vendor.Instagram,
+				TwitterURL:   &vendor.Twitter,
+				LinkedinURL:  &vendor.LinkedIn,
+				CreatedAt:    &ca,
+				CreatedBy:    &vendor.CreatedBy,
+				UpdatedAt:    &ua,
+				UpdatedBy:    &vendor.UpdatedBy,
+				Status:       &vendor.Status,
+			}
+			res[k] = &tmp
+
+			wg.Done()
+		}(kk, vv.VendorId)
+	}
+	wg.Wait()
+
+	return res, nil
 }

@@ -1040,6 +1040,16 @@ func (r *queryResolver) GetContentDevelopment(ctx context.Context, vendorID stri
 	return res, nil
 }
 
+// GetUserVendor is the resolver for the getUserVendor field.
+func (r *queryResolver) GetUserVendor(ctx context.Context, userID *string) ([]*model.Vendor, error) {
+	res, err := handlers.GetUserVendors(ctx, userID)
+	if err != nil {
+		log.Printf("error while getting sample files for vendor: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

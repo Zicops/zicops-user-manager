@@ -1057,6 +1057,7 @@ type Query {
   getSmeDetails(vendor_id: String!): SME
   getClassRoomTraining(vendor_id: String!): CRT
   getContentDevelopment(vendor_id: String!): ContentDevelopment
+  getUserVendor(user_id: String): [Vendor]
 }
 
 type Mutation {
