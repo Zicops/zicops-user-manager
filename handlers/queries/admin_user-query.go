@@ -190,7 +190,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	CassUserSession := session
 	outputResponse := make([]*model.User, len(userIds))
 	var wg sync.WaitGroup
-	for i, id := range userIds {
+	for ii, id := range userIds {
 		copiedID := *id
 		wg.Add(1)
 		go func(i int, copyID string) {
@@ -275,7 +275,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 				redis.SetTTL(ctx, key, 3600)
 			}
 			outputResponse[i] = outputUser
-		}(i, copiedID)
+		}(ii, copiedID)
 	}
 	wg.Wait()
 	// get clean user details and remove nulls
