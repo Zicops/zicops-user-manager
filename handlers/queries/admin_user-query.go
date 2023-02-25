@@ -269,7 +269,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 				Gender:     userCopy.Gender,
 				Phone:      phone,
 			}
-			redisBytes, err := json.Marshal(userCopy)
+			redisBytes, err := json.Marshal(outputUser)
 			if err == nil {
 				redis.SetRedisValue(ctx, key, string(redisBytes))
 				redis.SetTTL(ctx, key, 3600)
