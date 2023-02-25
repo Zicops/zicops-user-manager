@@ -158,8 +158,8 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 		emailCreatorID = userId
 	}
 	userOrgs := make([]*model.UserLspMap, 0)
-
-	key := fmt.Sprintf("zicops_user_lsp_%s", userId)
+	origin := claims["origin"].(string)
+	key := fmt.Sprintf("zicops_user_lsp_%s_%s", userId, origin)
 	res, err := redis.GetRedisValue(ctx, key)
 	if err == nil && res != "" {
 		err = json.Unmarshal([]byte(res), &userOrgs)
@@ -172,7 +172,6 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 		return nil, err
 	}
 	CassUserSession := session
-	origin := claims["origin"].(string)
 	mobile := claims["mobile"].(string)
 	// remove https://
 	origin = strings.Replace(origin, "https://", "", 1)

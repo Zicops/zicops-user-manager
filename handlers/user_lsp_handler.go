@@ -13,6 +13,7 @@ import (
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/helpers"
 )
 
 func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput, isAdmin *bool) ([]*model.UserLspMap, error) {
@@ -20,6 +21,7 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput, isAdmin 
 	if err != nil && isAdmin == nil {
 		return nil, fmt.Errorf("user not found")
 	}
+	claims, err := helpers.GetClaimsFromContext(ctx)
 	isAllowed := false
 	if isAdmin != nil && *isAdmin {
 		isAllowed = *isAdmin
@@ -91,7 +93,8 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput, isAdmin 
 			Status:    userLspMap.Status,
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
-		key := fmt.Sprintf("zicops_user_lsp_%s", userLspMap.UserID)
+		origin := claims["origin"].(string)
+		key := fmt.Sprintf("zicops_user_lsp_%s_%s", userLspMap.UserID, origin)
 		redis.SetRedisValue(ctx, key, "")
 	}
 
@@ -102,6 +105,10 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 	userCass, err := GetUserFromCass(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
+	}
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
 	}
 	if input.UserLspID == nil {
 		return nil, fmt.Errorf("user lsp id is required")
@@ -165,7 +172,8 @@ func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.
 		UpdatedBy: &userLspMap.UpdatedBy,
 		Status:    userLspMap.Status,
 	}
-	key := fmt.Sprintf("zicops_user_lsp_%s", userLspMap.UserID)
+	origin := claims["origin"].(string)
+	key := fmt.Sprintf("zicops_user_lsp_%s_%s", userLspMap.UserID, origin)
 	redis.SetRedisValue(ctx, key, "")
 	return userLspOutput, nil
 }
