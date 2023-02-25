@@ -132,7 +132,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 				log.Errorf("Failed to upload image to course: %v", err.Error())
 			}
 			if userCopy.PhotoBucket != "" {
-				photoUrl = storageC.GetSignedURLForObject(userCopy.PhotoBucket)
+				photoUrl = storageC.GetSignedURLForObject(ctx, userCopy.PhotoBucket)
 			} else {
 				photoUrl = userCopy.PhotoURL
 			}
@@ -199,7 +199,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			userModel := model.User{}
 			key := copyID
 			result, err := redis.GetRedisValue(ctx, key)
-			if err == nil && result != ""{
+			if err == nil && result != "" {
 				err = json.Unmarshal([]byte(result), &userModel)
 				if err == nil && userModel.ID != nil && *userModel.ID == copyID {
 					outputResponse[i] = &userModel
@@ -239,7 +239,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			updatedAt := strconv.FormatInt(userCopy.UpdatedAt, 10)
 			photoUrl := ""
 			if userCopy.PhotoBucket != "" {
-				photoUrl = storageC.GetSignedURLForObject(userCopy.PhotoBucket)
+				photoUrl = storageC.GetSignedURLForObject(ctx, userCopy.PhotoBucket)
 			} else {
 				photoUrl = userCopy.PhotoURL
 			}

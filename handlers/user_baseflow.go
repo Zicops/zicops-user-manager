@@ -92,7 +92,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 				return nil, nil, err
 			}
 			photoBucket = bucketPath
-			photoUrl = storageC.GetSignedURLForObject(bucketPath)
+			photoUrl = storageC.GetSignedURLForObject(ctx, bucketPath)
 		} else {
 			photoBucket = ""
 			if user.PhotoURL != nil {
@@ -346,7 +346,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 			return nil, err
 		}
 		photoBucket = bucketPath
-		photoUrl = storageC.GetSignedURLForObject(bucketPath)
+		photoUrl = storageC.GetSignedURLForObject(ctx, bucketPath)
 	} else {
 		photoBucket = ""
 		if user.PhotoURL != nil {
@@ -506,7 +506,7 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 		if err != nil {
 			return nil, err
 		}
-		photoURL = storageC.GetSignedURLForObject(userCass.PhotoBucket)
+		photoURL = storageC.GetSignedURLForObject(ctx, userCass.PhotoBucket)
 	}
 	currentUser := model.User{
 		ID:         &userCass.ID,

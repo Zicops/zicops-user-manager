@@ -280,7 +280,7 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 			return nil, err
 		}
 		photoBucket = bucketPath
-		photoUrl = storageC.GetSignedURLForObject(bucketPath)
+		photoUrl = storageC.GetSignedURLForObject(ctx, bucketPath)
 	} else {
 		photoBucket = ""
 		if input.ImageURL != nil {
@@ -393,7 +393,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 			return nil, err
 		}
 		photoBucket = bucketPath
-		photoUrl = storageC.GetSignedURLForObject(bucketPath)
+		photoUrl = storageC.GetSignedURLForObject(ctx, bucketPath)
 	} else {
 		photoBucket = ""
 		if input.ImageURL != nil {
@@ -516,7 +516,7 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 		return nil, err
 	}
 	if photoBucket != "" {
-		photoUrl = storageC.GetSignedURLForObject(photoBucket)
+		photoUrl = storageC.GetSignedURLForObject(ctx, photoBucket)
 	}
 	created := strconv.FormatInt(cohort.CreatedAt, 10)
 	updated := strconv.FormatInt(cohort.UpdatedAt, 10)
@@ -633,7 +633,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 				if err != nil {
 					log.Errorf("error initializing storage client: %v", err)
 				}
-				photoUrl = storageC.GetSignedURLForObject(imageBucket)
+				photoUrl = storageC.GetSignedURLForObject(ctx, imageBucket)
 			}
 			userCohort := &model.CohortMain{
 				LspID:       cohortCopy.LspId,

@@ -87,7 +87,7 @@ func sendOriginInfo(ctx context.Context, domain string) *model.Organization {
 	// get the logo url
 	logoUrl := orgDetails.LogoURL
 	if orgDetails.LogoBucket != "" {
-		logoUrl = storageC.GetSignedURLForObject(orgDetails.LogoBucket)
+		logoUrl = storageC.GetSignedURLForObject(ctx, orgDetails.LogoBucket)
 	}
 	res := &model.Organization{
 		OrgID:         &orgDetails.ID,

@@ -73,7 +73,7 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 			return nil, err
 		}
 		logoBucket = bucketPath
-		logoUrl = storageC.GetSignedURLForObject(bucketPath)
+		logoUrl = storageC.GetSignedURLForObject(ctx, bucketPath)
 	} else {
 		logoBucket = ""
 		if input.LogoURL != nil {
@@ -99,7 +99,7 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 			return nil, err
 		}
 		photoBucket = bucketPath
-		photoUrl = storageC.GetSignedURLForObject(bucketPath)
+		photoUrl = storageC.GetSignedURLForObject(ctx, bucketPath)
 	} else {
 		photoBucket = ""
 		if input.ProfileURL != nil {
@@ -275,7 +275,7 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 		if err != nil {
 			return nil, err
 		}
-		url := storageC.GetSignedURLForObject(bucketPath)
+		url := storageC.GetSignedURLForObject(ctx, bucketPath)
 		orgCass.LogoBucket = bucketPath
 		orgCass.LogoURL = url
 		updatedCols = append(updatedCols, "logo_bucket")
@@ -297,7 +297,7 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 		if err != nil {
 			return nil, err
 		}
-		url := storageC.GetSignedURLForObject(bucketPath)
+		url := storageC.GetSignedURLForObject(ctx, bucketPath)
 		orgCass.ProfilePictureBucket = bucketPath
 		orgCass.ProfilePictureURL = url
 		updatedCols = append(updatedCols, "profile_picture_bucket")
@@ -400,10 +400,10 @@ func GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.Le
 				return
 			}
 			if orgCass.LogoBucket != "" {
-				logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
+				logoUrl = storageC.GetSignedURLForObject(ctx, orgCass.LogoBucket)
 			}
 			if orgCass.ProfilePictureBucket != "" {
-				profileUrl = storageC.GetSignedURLForObject(orgCass.ProfilePictureBucket)
+				profileUrl = storageC.GetSignedURLForObject(ctx, orgCass.ProfilePictureBucket)
 			}
 
 			result := &model.LearningSpace{
@@ -495,10 +495,10 @@ func GetLearningSpacesByOrgID(ctx context.Context, orgID string) ([]*model.Learn
 			}
 			if orgLsp.LogoBucket != "" {
 
-				logoUrl = storageC.GetSignedURLForObject(orgLsp.LogoBucket)
+				logoUrl = storageC.GetSignedURLForObject(ctx, orgLsp.LogoBucket)
 			}
 			if orgLsp.ProfilePictureBucket != "" {
-				profileUrl = storageC.GetSignedURLForObject(orgLsp.ProfilePictureBucket)
+				profileUrl = storageC.GetSignedURLForObject(ctx, orgLsp.ProfilePictureBucket)
 			}
 			result := &model.LearningSpace{
 				LspID:      &orgLsp.ID,
@@ -578,10 +578,10 @@ func GetLearningSpacesByOuID(ctx context.Context, ouID string, orgID string) ([]
 				return
 			}
 			if orgCass.LogoBucket != "" {
-				logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
+				logoUrl = storageC.GetSignedURLForObject(ctx, orgCass.LogoBucket)
 			}
 			if orgCass.ProfilePictureBucket != "" {
-				profileUrl = storageC.GetSignedURLForObject(orgCass.ProfilePictureBucket)
+				profileUrl = storageC.GetSignedURLForObject(ctx, orgCass.ProfilePictureBucket)
 			}
 
 			result := &model.LearningSpace{

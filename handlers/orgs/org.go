@@ -66,7 +66,7 @@ func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model
 			return nil, err
 		}
 		logoBucket = bucketPath
-		logoUrl = storageC.GetSignedURLForObject(bucketPath)
+		logoUrl = storageC.GetSignedURLForObject(ctx, bucketPath)
 	} else {
 		logoBucket = ""
 		if input.LogoURL != nil {
@@ -197,7 +197,7 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 			return nil, err
 		}
 		orgCass.LogoBucket = bucketPath
-		orgCass.LogoURL = storageC.GetSignedURLForObject(bucketPath)
+		orgCass.LogoURL = storageC.GetSignedURLForObject(ctx, bucketPath)
 		updatedCols = append(updatedCols, "logo_url")
 		updatedCols = append(updatedCols, "logo_bucket")
 	}
@@ -322,7 +322,7 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 				return
 			}
 			if orgCass.LogoBucket != "" {
-				logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
+				logoUrl = storageC.GetSignedURLForObject(ctx, orgCass.LogoBucket)
 			}
 
 			result := &model.Organization{
@@ -416,7 +416,7 @@ func GetOrganizationsByName(ctx context.Context, name *string, prevPageSnapShot 
 			return nil, nil
 		}
 		if v.LogoBucket != "" {
-			logoUrl = storageC.GetSignedURLForObject(v.LogoBucket)
+			logoUrl = storageC.GetSignedURLForObject(ctx, v.LogoBucket)
 		}
 
 		temp := &model.Organization{
@@ -457,7 +457,7 @@ func GetOrganizationsByDomain(ctx context.Context, domain string) ([]*model.Orga
 	orgCass := userz.Organization{}
 	key := fmt.Sprintf("org_%s", domain)
 	res, err := redis.GetRedisValue(ctx, key)
-	if err == nil && res != ""{
+	if err == nil && res != "" {
 		json.Unmarshal([]byte(res), &orgCass)
 	}
 	if orgCass.ID == "" {
@@ -488,7 +488,7 @@ func GetOrganizationsByDomain(ctx context.Context, domain string) ([]*model.Orga
 		return nil, err
 	}
 	if orgCass.LogoBucket != "" {
-		logoUrl = storageC.GetSignedURLForObject(orgCass.LogoBucket)
+		logoUrl = storageC.GetSignedURLForObject(ctx, orgCass.LogoBucket)
 	}
 
 	result := &model.Organization{

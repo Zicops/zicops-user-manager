@@ -98,7 +98,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		if err != nil {
 			return nil, err
 		}
-		url := storageC.GetSignedURLForObject(bucketPath)
+		url := storageC.GetSignedURLForObject(ctx, bucketPath)
 		vendor.PhotoBucket = bucketPath
 		vendor.PhotoUrl = url
 	}
@@ -261,7 +261,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		if err != nil {
 			return nil, err
 		}
-		url := storageC.GetSignedURLForObject(bucketPath)
+		url := storageC.GetSignedURLForObject(ctx, bucketPath)
 		vendor.PhotoBucket = bucketPath
 		vendor.PhotoUrl = url
 		updatedCols = append(updatedCols, "photo_bucket")
@@ -472,7 +472,7 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		if err != nil {
 			return nil, err
 		}
-		url := storageC.GetSignedURLForObject(bucketPath)
+		url := storageC.GetSignedURLForObject(ctx, bucketPath)
 		profile.PhotoBucket = bucketPath
 		profile.PhotoURL = url
 	}
@@ -804,7 +804,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 			//photo
 			photoUrl := ""
 			if vendor.PhotoBucket != "" {
-				photoUrl = storageC.GetSignedURLForObject(vendor.PhotoBucket)
+				photoUrl = storageC.GetSignedURLForObject(ctx, vendor.PhotoBucket)
 			} else {
 				photoUrl = vendor.PhotoUrl
 			}
@@ -1052,7 +1052,7 @@ func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, erro
 	//photo
 	photoUrl := ""
 	if vendor.PhotoBucket != "" {
-		photoUrl = storageC.GetSignedURLForObject(vendor.PhotoBucket)
+		photoUrl = storageC.GetSignedURLForObject(ctx, vendor.PhotoBucket)
 	} else {
 		photoUrl = vendor.PhotoUrl
 	}
@@ -1482,7 +1482,7 @@ func ViewProfileVendorDetails(ctx context.Context, vendorID string, email string
 	}
 	photoUrl := ""
 	if profile.PhotoBucket != "" {
-		photoUrl = storageC.GetSignedURLForObject(profile.PhotoBucket)
+		photoUrl = storageC.GetSignedURLForObject(ctx, profile.PhotoBucket)
 	} else {
 		photoUrl = profile.PhotoURL
 	}
@@ -1575,7 +1575,7 @@ func ViewAllProfiles(ctx context.Context, vendorID string) ([]*model.VendorProfi
 			}
 			photoUrl := ""
 			if v.PhotoBucket != "" {
-				photoUrl = storageC.GetSignedURLForObject(v.PhotoBucket)
+				photoUrl = storageC.GetSignedURLForObject(ctx, v.PhotoBucket)
 			} else {
 				photoUrl = v.PhotoURL
 			}
@@ -1700,7 +1700,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		if err != nil {
 			return nil, err
 		}
-		url := storageC.GetSignedURLForObject(bucketPath)
+		url := storageC.GetSignedURLForObject(ctx, bucketPath)
 		profile.PhotoBucket = bucketPath
 		profile.PhotoURL = url
 		updatedCols = append(updatedCols, "photo_bucket", "photo_url")
@@ -1798,7 +1798,7 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 	if err != nil {
 		return &res, nil
 	}
-	getUrl := storageC.GetSignedURLForObject(bucketPath)
+	getUrl := storageC.GetSignedURLForObject(ctx, bucketPath)
 	if getUrl == "" {
 		return &res, fmt.Errorf("failed to upload sample file: %v", errors.New("failed to get URL"))
 	}
@@ -1901,7 +1901,7 @@ func GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*mode
 			Status:    &v.Status,
 		}
 		if v.FileBucket != "" {
-			photoUrl = storageC.GetSignedURLForObject(v.FileBucket)
+			photoUrl = storageC.GetSignedURLForObject(ctx, v.FileBucket)
 		} else {
 			photoUrl = v.FileUrl
 		}
@@ -2758,7 +2758,7 @@ func GetUserVendors(ctx context.Context, userID *string) ([]*model.Vendor, error
 			vendor := vendors[0]
 
 			if vendor.PhotoBucket != "" {
-				photoUrl = storageC.GetSignedURLForObject(vendor.PhotoBucket)
+				photoUrl = storageC.GetSignedURLForObject(ctx, vendor.PhotoBucket)
 			} else {
 				photoUrl = ""
 			}

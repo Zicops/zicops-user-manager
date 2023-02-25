@@ -2,11 +2,13 @@ package bucket
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"os"
 	"time"
 
 	"cloud.google.com/go/storage"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/constants"
 	"github.com/zicops/zicops-user-manager/helpers"
 	"google.golang.org/api/option"
@@ -67,7 +69,12 @@ func (sc *Client) UploadToGCS(ctx context.Context, fileName string) (*storage.Wr
 	return bucketWriter, nil
 }
 
-func (sc *Client) GetSignedURLForObject(object string) string {
+func (sc *Client) GetSignedURLForObject(ctx context.Context, object string) string {
+	key := base64.StdEncoding.EncodeToString([]byte(object))
+	res, err := redis.GetRedisValue(ctx, key)
+	if err == nil && res != "" {
+		return res
+	}
 	opts := &storage.SignedURLOptions{
 		Scheme:  storage.SigningSchemeV4,
 		Method:  "GET",
@@ -77,7 +84,8 @@ func (sc *Client) GetSignedURLForObject(object string) string {
 	if err != nil {
 		return ""
 	}
-
+	redis.SetRedisValue(ctx, key, url)
+	redis.SetTTL(ctx, key, 3000)
 	return url
 }
 
