@@ -39,7 +39,7 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 	lspId := claims["lsp_id"].(string)
 	origin := claims["origin"].(string)
 	if origin == "" {
-		origin = "demo.zicops.com"
+		origin = "https://demo.zicops.com"
 	}
 	if !isZAdmin {
 		if strings.ToLower(roleValue.(string)) != "puneet@zicops.com" {
