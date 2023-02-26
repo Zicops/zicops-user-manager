@@ -22,6 +22,9 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput, isAdmin 
 		return nil, fmt.Errorf("user not found")
 	}
 	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
 	isAllowed := false
 	if isAdmin != nil && *isAdmin {
 		isAllowed = *isAdmin

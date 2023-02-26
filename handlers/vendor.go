@@ -709,18 +709,33 @@ func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role
 		if err != nil {
 			return nil, err
 		}
-		userRoleMap := &model.UserRoleInput{
-			UserID:    userID,
-			Role:      *role,
-			UserLspID: *lspMaps[0].UserLspID,
-			IsActive:  true,
-			CreatedBy: &email_creator,
-			UpdatedBy: &email_creator,
+
+		//check if map exists, if yes, check is active, if false - update to true
+		queryStr := fmt.Sprintf(`SELECT * FROM userz.user_role WHERE user_id = '%s' AND user_lsp_id = '%s' and role = '%s' ALLOW FILTERING`, userID, *lspMaps[0].UserLspID, *role)
+		getUserRole := func() (userRoles []userz.UserRole, err error) {
+			q := CassUserSession.Query(queryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return userRoles, iter.Select(&userRoles)
 		}
-		if lspMaps[0].Status == "" {
-			_, err = AddUserRoles(ctx, []*model.UserRoleInput{userRoleMap})
-			if err != nil {
-				return nil, err
+		res, err := getUserRole()
+		if err != nil {
+			log.Printf("Got error while getting user roles: %v", err)
+		}
+		if len(res) == 0 {
+			userRoleMap := &model.UserRoleInput{
+				UserID:    userID,
+				Role:      *role,
+				UserLspID: *lspMaps[0].UserLspID,
+				IsActive:  true,
+				CreatedBy: &email_creator,
+				UpdatedBy: &email_creator,
+			}
+			if lspMaps[0].Status == "" {
+				_, err = AddUserRoles(ctx, []*model.UserRoleInput{userRoleMap})
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 	}
