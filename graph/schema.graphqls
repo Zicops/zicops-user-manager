@@ -1121,4 +1121,5 @@ type Mutation {
   updateClassRoomTraining(input:CRTInput): CRT
   createContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
   updateContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
+  #addOrder()
 }
