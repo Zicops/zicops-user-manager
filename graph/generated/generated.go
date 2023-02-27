@@ -87,6 +87,7 @@ type ComplexityRoot struct {
 		IsApplicable     func(childComplexity int) int
 		Languages        func(childComplexity int) int
 		OutputDeliveries func(childComplexity int) int
+		Profiles         func(childComplexity int) int
 		SampleFiles      func(childComplexity int) int
 		Status           func(childComplexity int) int
 		UpdatedAt        func(childComplexity int) int
@@ -668,6 +669,7 @@ type ComplexityRoot struct {
 
 	VendorProfile struct {
 		ClassroomExpertise func(childComplexity int) int
+		ContentDevelopment func(childComplexity int) int
 		CreatedAt          func(childComplexity int) int
 		CreatedBy          func(childComplexity int) int
 		Description        func(childComplexity int) int
@@ -1070,6 +1072,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ContentDevelopment.OutputDeliveries(childComplexity), true
+
+	case "ContentDevelopment.profiles":
+		if e.complexity.ContentDevelopment.Profiles == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.Profiles(childComplexity), true
 
 	case "ContentDevelopment.sample_files":
 		if e.complexity.ContentDevelopment.SampleFiles == nil {
@@ -4803,6 +4812,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.VendorProfile.ClassroomExpertise(childComplexity), true
 
+	case "VendorProfile.content_development":
+		if e.complexity.VendorProfile.ContentDevelopment == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.ContentDevelopment(childComplexity), true
+
 	case "VendorProfile.created_at":
 		if e.complexity.VendorProfile.CreatedAt == nil {
 			break
@@ -5804,8 +5820,9 @@ input VendorProfileInput {
   photo: Upload
   description: String
   languages: [String]
-  SME_expertise: [String]
-  Classroom_expertise: [String]
+  sme_expertise: [String]
+  classroom_expertise: [String]
+  content_development: [String]
   experience: [String]
   experience_years: String
   is_speaker: Boolean
@@ -5824,6 +5841,7 @@ type VendorProfile {
   language: [String]
   sme_expertise: [String]
   classroom_expertise: [String]
+  content_development: [String]
   experience: [String]
   experience_years: String
   is_speaker: Boolean
@@ -5936,6 +5954,7 @@ input ContentDevelopmentInput {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
+  profiles: [String]
   status: String
 }
 
@@ -5948,6 +5967,7 @@ type ContentDevelopment {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
+  profiles: [String]
   created_at: String
 	created_by: String
 	updated_at: String
@@ -6150,6 +6170,7 @@ type Mutation {
   updateClassRoomTraining(input:CRTInput): CRT
   createContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
   updateContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
+  #addOrder()
 }
 `, BuiltIn: false},
 }
@@ -9904,6 +9925,47 @@ func (ec *executionContext) _ContentDevelopment_sample_files(ctx context.Context
 }
 
 func (ec *executionContext) fieldContext_ContentDevelopment_sample_files(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_profiles(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_profiles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Profiles, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_profiles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ContentDevelopment",
 		Field:      field,
@@ -15829,6 +15891,8 @@ func (ec *executionContext) fieldContext_Mutation_createProfileVendor(ctx contex
 				return ec.fieldContext_VendorProfile_sme_expertise(ctx, field)
 			case "classroom_expertise":
 				return ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
+			case "content_development":
+				return ec.fieldContext_VendorProfile_content_development(ctx, field)
 			case "experience":
 				return ec.fieldContext_VendorProfile_experience(ctx, field)
 			case "experience_years":
@@ -16215,6 +16279,8 @@ func (ec *executionContext) fieldContext_Mutation_updateProfileVendor(ctx contex
 				return ec.fieldContext_VendorProfile_sme_expertise(ctx, field)
 			case "classroom_expertise":
 				return ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
+			case "content_development":
+				return ec.fieldContext_VendorProfile_content_development(ctx, field)
 			case "experience":
 				return ec.fieldContext_VendorProfile_experience(ctx, field)
 			case "experience_years":
@@ -16633,6 +16699,8 @@ func (ec *executionContext) fieldContext_Mutation_createContentDevelopment(ctx c
 				return ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
 			case "sample_files":
 				return ec.fieldContext_ContentDevelopment_sample_files(ctx, field)
+			case "profiles":
+				return ec.fieldContext_ContentDevelopment_profiles(ctx, field)
 			case "created_at":
 				return ec.fieldContext_ContentDevelopment_created_at(ctx, field)
 			case "created_by":
@@ -16713,6 +16781,8 @@ func (ec *executionContext) fieldContext_Mutation_updateContentDevelopment(ctx c
 				return ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
 			case "sample_files":
 				return ec.fieldContext_ContentDevelopment_sample_files(ctx, field)
+			case "profiles":
+				return ec.fieldContext_ContentDevelopment_profiles(ctx, field)
 			case "created_at":
 				return ec.fieldContext_ContentDevelopment_created_at(ctx, field)
 			case "created_by":
@@ -22812,6 +22882,8 @@ func (ec *executionContext) fieldContext_Query_viewProfileVendorDetails(ctx cont
 				return ec.fieldContext_VendorProfile_sme_expertise(ctx, field)
 			case "classroom_expertise":
 				return ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
+			case "content_development":
+				return ec.fieldContext_VendorProfile_content_development(ctx, field)
 			case "experience":
 				return ec.fieldContext_VendorProfile_experience(ctx, field)
 			case "experience_years":
@@ -22904,6 +22976,8 @@ func (ec *executionContext) fieldContext_Query_viewAllProfiles(ctx context.Conte
 				return ec.fieldContext_VendorProfile_sme_expertise(ctx, field)
 			case "classroom_expertise":
 				return ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
+			case "content_development":
+				return ec.fieldContext_VendorProfile_content_development(ctx, field)
 			case "experience":
 				return ec.fieldContext_VendorProfile_experience(ctx, field)
 			case "experience_years":
@@ -23230,6 +23304,8 @@ func (ec *executionContext) fieldContext_Query_getContentDevelopment(ctx context
 				return ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
 			case "sample_files":
 				return ec.fieldContext_ContentDevelopment_sample_files(ctx, field)
+			case "profiles":
+				return ec.fieldContext_ContentDevelopment_profiles(ctx, field)
 			case "created_at":
 				return ec.fieldContext_ContentDevelopment_created_at(ctx, field)
 			case "created_by":
@@ -33902,6 +33978,47 @@ func (ec *executionContext) fieldContext_VendorProfile_classroom_expertise(ctx c
 	return fc, nil
 }
 
+func (ec *executionContext) _VendorProfile_content_development(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_content_development(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ContentDevelopment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_content_development(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _VendorProfile_experience(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_VendorProfile_experience(ctx, field)
 	if err != nil {
@@ -36242,7 +36359,7 @@ func (ec *executionContext) unmarshalInputContentDevelopmentInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"cd_id", "vendor_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "sample_files", "status"}
+	fieldsInOrder := [...]string{"cd_id", "vendor_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "sample_files", "profiles", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -36310,6 +36427,14 @@ func (ec *executionContext) unmarshalInputContentDevelopmentInput(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sample_files"))
 			it.SampleFiles, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "profiles":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("profiles"))
+			it.Profiles, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38862,7 +38987,7 @@ func (ec *executionContext) unmarshalInputVendorProfileInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"vendor_id", "first_name", "last_name", "email", "phone", "photo", "description", "languages", "SME_expertise", "Classroom_expertise", "experience", "experience_years", "is_speaker", "status"}
+	fieldsInOrder := [...]string{"vendor_id", "first_name", "last_name", "email", "phone", "photo", "description", "languages", "sme_expertise", "classroom_expertise", "content_development", "experience", "experience_years", "is_speaker", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -38933,19 +39058,27 @@ func (ec *executionContext) unmarshalInputVendorProfileInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
-		case "SME_expertise":
+		case "sme_expertise":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("SME_expertise"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sme_expertise"))
 			it.SmeExpertise, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Classroom_expertise":
+		case "classroom_expertise":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Classroom_expertise"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("classroom_expertise"))
 			it.ClassroomExpertise, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "content_development":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("content_development"))
+			it.ContentDevelopment, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -39227,6 +39360,10 @@ func (ec *executionContext) _ContentDevelopment(ctx context.Context, sel ast.Sel
 		case "sample_files":
 
 			out.Values[i] = ec._ContentDevelopment_sample_files(ctx, field, obj)
+
+		case "profiles":
+
+			out.Values[i] = ec._ContentDevelopment_profiles(ctx, field, obj)
 
 		case "created_at":
 
@@ -43384,6 +43521,10 @@ func (ec *executionContext) _VendorProfile(ctx context.Context, sel ast.Selectio
 		case "classroom_expertise":
 
 			out.Values[i] = ec._VendorProfile_classroom_expertise(ctx, field, obj)
+
+		case "content_development":
+
+			out.Values[i] = ec._VendorProfile_content_development(ctx, field, obj)
 
 		case "experience":
 

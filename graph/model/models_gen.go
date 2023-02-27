@@ -80,6 +80,7 @@ type ContentDevelopment struct {
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
 	SampleFiles      []*string `json:"sample_files"`
+	Profiles         []*string `json:"profiles"`
 	CreatedAt        *string   `json:"created_at"`
 	CreatedBy        *string   `json:"created_by"`
 	UpdatedAt        *string   `json:"updated_at"`
@@ -96,6 +97,7 @@ type ContentDevelopmentInput struct {
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
 	SampleFiles      []*string `json:"sample_files"`
+	Profiles         []*string `json:"profiles"`
 	Status           *string   `json:"status"`
 }
 
@@ -903,6 +905,7 @@ type VendorProfile struct {
 	Language           []*string `json:"language"`
 	SmeExpertise       []*string `json:"sme_expertise"`
 	ClassroomExpertise []*string `json:"classroom_expertise"`
+	ContentDevelopment []*string `json:"content_development"`
 	Experience         []*string `json:"experience"`
 	ExperienceYears    *string   `json:"experience_years"`
 	IsSpeaker          *bool     `json:"is_speaker"`
@@ -922,8 +925,9 @@ type VendorProfileInput struct {
 	Photo              *graphql.Upload `json:"photo"`
 	Description        *string         `json:"description"`
 	Languages          []*string       `json:"languages"`
-	SmeExpertise       []*string       `json:"SME_expertise"`
-	ClassroomExpertise []*string       `json:"Classroom_expertise"`
+	SmeExpertise       []*string       `json:"sme_expertise"`
+	ClassroomExpertise []*string       `json:"classroom_expertise"`
+	ContentDevelopment []*string       `json:"content_development"`
 	Experience         []*string       `json:"experience"`
 	ExperienceYears    *string         `json:"experience_years"`
 	IsSpeaker          *bool           `json:"is_speaker"`
