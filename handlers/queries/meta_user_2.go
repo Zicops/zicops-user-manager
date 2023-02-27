@@ -544,6 +544,84 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 	return outputCohort, nil
 }
 
+func GetCohorts(ctx context.Context, cohortIds []*string) ([]*model.CohortMain, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	lspId := claims["lsp_id"].(string)
+
+	res := make([]*model.CohortMain, len(cohortIds))
+	var wg sync.WaitGroup
+	for kk, vvv := range cohortIds {
+		vv := *vvv
+		wg.Add(1)
+		go func(k int, v string, lsp string) {
+
+			session, err := cassandra.GetCassSession("userz")
+			if err != nil {
+				return
+			}
+			CassUserSession := session
+			queryStr := fmt.Sprintf(`SELECT * FROM userz.cohort_main WHERE id = '%s' AND lsp_id = '%s' ALLOW FILTERING`, v, lsp)
+			getCohort := func() (cohort []userz.Cohort, err error) {
+				q := CassUserSession.Query(queryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return cohort, iter.Select(&cohort)
+			}
+
+			cohorts, err := getCohort()
+			if err != nil {
+				log.Printf("Error while getting cohorts: %v", err)
+				return
+			}
+			if len(cohorts) == 0 {
+				return
+			}
+
+			cohort := cohorts[0]
+
+			var photoUrl string
+
+			photoBucket := cohort.ImageBucket
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				log.Errorf("Got error : %v", err)
+				return
+			}
+			if photoBucket != "" {
+				photoUrl = storageC.GetSignedURLForObject(ctx, photoBucket)
+			}
+			created := strconv.FormatInt(cohort.CreatedAt, 10)
+			updated := strconv.FormatInt(cohort.UpdatedAt, 10)
+			outputCohort := &model.CohortMain{
+				CohortID:    &v,
+				Name:        cohort.Name,
+				Description: cohort.Description,
+				ImageURL:    &photoUrl,
+				CreatedAt:   created,
+				UpdatedAt:   updated,
+				CreatedBy:   &cohort.CreatedBy,
+				UpdatedBy:   &cohort.UpdatedBy,
+				Code:        cohort.Code,
+				Type:        cohort.Type,
+				IsActive:    cohort.IsActive,
+				Status:      cohort.Status,
+				LspID:       cohort.LspId,
+				Size:        cohort.Size,
+			}
+			res[k] = outputCohort
+			wg.Done()
+		}(kk, vv, lspId)
+	}
+	wg.Wait()
+
+	return res, nil
+}
+
 func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) (*model.PaginatedCohortsMain, error) {
 	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {

@@ -1017,6 +1017,7 @@ type Query {
   ): PaginatedCohorts
   getUserQuizAttempts(user_id: String!, topic_id: String!): [UserQuizAttempt]
   getCohortDetails(cohort_id: String!): CohortMain
+  getCohorts(cohort_ids: [String]!): [CohortMain]
   getCohortMains(
     lsp_id: String!
     publish_time: Int
