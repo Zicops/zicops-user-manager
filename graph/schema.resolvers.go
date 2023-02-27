@@ -810,6 +810,16 @@ func (r *queryResolver) GetCohortDetails(ctx context.Context, cohortID string) (
 	return result, nil
 }
 
+// GetCohorts is the resolver for the getCohorts field.
+func (r *queryResolver) GetCohorts(ctx context.Context, cohortIds []*string) ([]*model.CohortMain, error) {
+	result, err := queries.GetCohorts(ctx, cohortIds)
+	if err != nil {
+		log.Errorf("Error getting cohort main : %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 // GetCohortMains is the resolver for the getCohortMains field.
 func (r *queryResolver) GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) (*model.PaginatedCohortsMain, error) {
 	result, err := queries.GetCohortMains(ctx, lspID, publishTime, pageCursor, direction, pageSize, searchText)

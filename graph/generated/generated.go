@@ -329,6 +329,7 @@ type ComplexityRoot struct {
 		GetCohortDetails               func(childComplexity int, cohortID string) int
 		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) int
 		GetCohortUsers                 func(childComplexity int, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
+		GetCohorts                     func(childComplexity int, cohortIds []*string) int
 		GetContentDevelopment          func(childComplexity int, vendorID string) int
 		GetCourseConsumptionStats      func(childComplexity int, lspID string, pageCursor *string, direction *string, pageSize *int) int
 		GetCourseViews                 func(childComplexity int, lspIds []string, startTime *string, endTime *string) int
@@ -773,6 +774,7 @@ type QueryResolver interface {
 	GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error)
 	GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]*model.UserQuizAttempt, error)
 	GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, error)
+	GetCohorts(ctx context.Context, cohortIds []*string) ([]*model.CohortMain, error)
 	GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) (*model.PaginatedCohortsMain, error)
 	GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organization, error)
 	GetOrganizationsByName(ctx context.Context, name *string, prevPageSnapShot string, pageSize int) ([]*model.Organization, error)
@@ -2657,6 +2659,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetCohortUsers(childComplexity, args["cohort_id"].(string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+
+	case "Query.getCohorts":
+		if e.complexity.Query.GetCohorts == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getCohorts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCohorts(childComplexity, args["cohort_ids"].([]*string)), true
 
 	case "Query.getContentDevelopment":
 		if e.complexity.Query.GetContentDevelopment == nil {
@@ -6062,6 +6076,7 @@ type Query {
   ): PaginatedCohorts
   getUserQuizAttempts(user_id: String!, topic_id: String!): [UserQuizAttempt]
   getCohortDetails(cohort_id: String!): CohortMain
+  getCohorts(cohort_ids: [String]!): [CohortMain]
   getCohortMains(
     lsp_id: String!
     publish_time: Int
@@ -7197,6 +7212,21 @@ func (ec *executionContext) field_Query_getCohortUsers_args(ctx context.Context,
 		}
 	}
 	args["pageSize"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getCohorts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*string
+	if tmp, ok := rawArgs["cohort_ids"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cohort_ids"))
+		arg0, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["cohort_ids"] = arg0
 	return args, nil
 }
 
@@ -21486,6 +21516,88 @@ func (ec *executionContext) fieldContext_Query_getCohortDetails(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getCohortDetails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getCohorts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getCohorts(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCohorts(rctx, fc.Args["cohort_ids"].([]*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.CohortMain)
+	fc.Result = res
+	return ec.marshalOCohortMain2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCohortMain(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getCohorts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cohort_id":
+				return ec.fieldContext_CohortMain_cohort_id(ctx, field)
+			case "name":
+				return ec.fieldContext_CohortMain_name(ctx, field)
+			case "description":
+				return ec.fieldContext_CohortMain_description(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_CohortMain_lsp_id(ctx, field)
+			case "code":
+				return ec.fieldContext_CohortMain_code(ctx, field)
+			case "status":
+				return ec.fieldContext_CohortMain_status(ctx, field)
+			case "type":
+				return ec.fieldContext_CohortMain_type(ctx, field)
+			case "is_active":
+				return ec.fieldContext_CohortMain_is_active(ctx, field)
+			case "created_by":
+				return ec.fieldContext_CohortMain_created_by(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_CohortMain_updated_by(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CohortMain_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CohortMain_updated_at(ctx, field)
+			case "size":
+				return ec.fieldContext_CohortMain_size(ctx, field)
+			case "imageUrl":
+				return ec.fieldContext_CohortMain_imageUrl(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CohortMain", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getCohorts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -41191,6 +41303,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getCohorts":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getCohorts(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "getCohortMains":
 			field := field
 
@@ -43999,6 +44131,32 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 		if e == graphql.Null {
 			return graphql.Null
 		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNString2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOString2ᚖstring(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNString2ᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOString2ᚖstring(ctx, sel, v[i])
 	}
 
 	return ret
