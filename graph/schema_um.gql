@@ -775,8 +775,9 @@ input VendorProfileInput {
   photo: Upload
   description: String
   languages: [String]
-  SME_expertise: [String]
-  Classroom_expertise: [String]
+  sme_expertise: [String]
+  classroom_expertise: [String]
+  content_development: [String]
   experience: [String]
   experience_years: String
   is_speaker: Boolean
@@ -795,6 +796,7 @@ type VendorProfile {
   language: [String]
   sme_expertise: [String]
   classroom_expertise: [String]
+  content_development: [String]
   experience: [String]
   experience_years: String
   is_speaker: Boolean
@@ -907,6 +909,7 @@ input ContentDevelopmentInput {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
+  profiles: [String]
   status: String
 }
 
@@ -919,6 +922,7 @@ type ContentDevelopment {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
+  profiles: [String]
   created_at: String
 	created_by: String
 	updated_at: String
@@ -1121,4 +1125,5 @@ type Mutation {
   updateClassRoomTraining(input:CRTInput): CRT
   createContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
   updateContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
+  #addOrder()
 }
