@@ -41,6 +41,21 @@ func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*mode
 	userLspMaps := make([]*model.UserCourse, 0)
 	for _, input := range input {
 
+		queryStr := fmt.Sprintf(`SELECT * FROM user_course_map WHERE user_id='%s' AND course_id='%s' AND user_lsp_id='%s' ALLOW FILTERING`, input.UserID, input.CourseID, input.UserLspID)
+		getUserCourseMap := func() (maps []userz.UserCourse, err error) {
+			q := CassUserSession.Query(queryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return maps, iter.Select(&maps)
+		}
+		userCourseMap, err := getUserCourseMap()
+		if err != nil {
+			return nil, err
+		}
+		if len(userCourseMap) > 0 {
+			return nil, nil
+		}
+
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
