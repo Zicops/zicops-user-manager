@@ -323,6 +323,81 @@ func GetUserExamAttempts(ctx context.Context, userID *string, examID string) ([]
 	return userOrgs, nil
 }
 
+func GetUserExamAttemptsByExamIds(ctx context.Context, userID string, examIds []*string, filters *model.ExamAttemptsFilters) ([]*model.UserExamAttempts, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims : %v", err)
+		return nil, err
+	}
+
+	examAttempts := []userz.UserExamAttempts{}
+
+	session, err := cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+	for _, vv := range examIds {
+		v := *vv
+		queryStr := fmt.Sprintf(`SELECT * FROM userz.user_exam_attempts where user_id='%s' AND exam_id='%s'`, userID, v)
+		if filters != nil {
+			queryStr = queryStr + fmt.Sprintf(` AND attempt_status='%s'`, *filters.AttemptStatus)
+		}
+		queryStr = queryStr + "  ALLOW FILTERING"
+		getExamAttempts := func() (attempts []userz.UserExamAttempts, err error) {
+			q := CassUserSession.Query(queryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return attempts, iter.Select(&attempts)
+		}
+
+		attempts, err := getExamAttempts()
+		if err != nil {
+			log.Println("Got error while getting user exam attempts: ", err.Error())
+			return nil, err
+		}
+		if len(attempts) == 0 {
+			continue
+		}
+
+		examAttempts = append(examAttempts, attempts...)
+	}
+
+	res := make([]*model.UserExamAttempts, len(examAttempts))
+	var wg sync.WaitGroup
+	for kk, vvv := range examAttempts {
+		vv := vvv
+		wg.Add(1)
+		go func(k int, v userz.UserExamAttempts) {
+
+			attemptStartTime := strconv.FormatInt(v.AttemptStartTime, 10)
+			createdAt := strconv.FormatInt(v.CreatedAt, 10)
+			updatedAt := strconv.FormatInt(v.UpdatedAt, 10)
+			currentAttempt := &model.UserExamAttempts{
+				UserEaID:         &v.ID,
+				UserID:           v.UserID,
+				UserLspID:        v.UserLspID,
+				UserCpID:         v.UserCpID,
+				UserCourseID:     v.UserCmID,
+				ExamID:           v.ExamID,
+				AttemptNo:        int(v.AttemptNo),
+				AttemptDuration:  v.AttemptDuration,
+				AttemptStatus:    v.AttemptStatus,
+				AttemptStartTime: attemptStartTime,
+				CreatedAt:        createdAt,
+				CreatedBy:        &v.CreatedBy,
+				UpdatedAt:        updatedAt,
+				UpdatedBy:        &v.UpdatedBy,
+			}
+			res[k] = currentAttempt
+			wg.Done()
+		}(kk, vv)
+	}
+	wg.Wait()
+
+	return res, nil
+}
+
 func GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResultDetails) ([]*model.UserExamResultInfo, error) {
 	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
