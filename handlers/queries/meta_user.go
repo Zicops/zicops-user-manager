@@ -340,7 +340,7 @@ func GetUserExamAttemptsByExamIds(ctx context.Context, userID string, examIds []
 	for _, vv := range examIds {
 		v := *vv
 		queryStr := fmt.Sprintf(`SELECT * FROM userz.user_exam_attempts where user_id='%s' AND exam_id='%s'`, userID, v)
-		if filters != nil {
+		if filters.AttemptStatus != nil {
 			queryStr = queryStr + fmt.Sprintf(` AND attempt_status='%s'`, *filters.AttemptStatus)
 		}
 		queryStr = queryStr + "  ALLOW FILTERING"
