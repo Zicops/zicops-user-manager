@@ -574,9 +574,12 @@ func GetCohorts(ctx context.Context, cohortIds []*string) ([]*model.CohortMain, 
 			cohorts, err := getCohort()
 			if err != nil {
 				log.Printf("Error while getting cohorts: %v", err)
+				wg.Done()
 				return
 			}
 			if len(cohorts) == 0 {
+				log.Println("Cohort not found")
+				wg.Done()
 				return
 			}
 
@@ -614,6 +617,7 @@ func GetCohorts(ctx context.Context, cohortIds []*string) ([]*model.CohortMain, 
 				Size:        cohort.Size,
 			}
 			res[k] = outputCohort
+
 			wg.Done()
 		}(kk, vv, lspId)
 	}
