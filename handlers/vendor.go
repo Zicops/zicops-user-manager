@@ -1511,6 +1511,7 @@ func ViewProfileVendorDetails(ctx context.Context, vendorID string, email string
 	sme := ChangeToPointerArray(profile.SMEExpertise)
 	crt := ChangeToPointerArray(profile.ClassroomExpertise)
 	exp := ChangeToPointerArray(profile.Experience)
+	cd := ChangeToPointerArray(profile.ContentDevelopment)
 	createdAt := strconv.Itoa(int(profile.CreatedAt))
 	updatedAt := strconv.Itoa(int(profile.UpdatedAt))
 
@@ -1526,6 +1527,7 @@ func ViewProfileVendorDetails(ctx context.Context, vendorID string, email string
 		Language:           languages,
 		SmeExpertise:       sme,
 		ClassroomExpertise: crt,
+		ContentDevelopment: cd,
 		Experience:         exp,
 		ExperienceYears:    &profile.ExperienceYears,
 		IsSpeaker:          &profile.IsSpeaker,
@@ -1784,6 +1786,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		CreatedAt:          &ca,
 		CreatedBy:          &profile.CreatedBy,
 		UpdatedAt:          &ua,
+		UpdatedBy:          &email,
 		Status:             &profile.Status,
 	}
 	return &res, nil
@@ -1852,6 +1855,7 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 	res.CreatedAt = &createdAt
 	res.CreatedBy = &email
 	res.FileURL = &getUrl
+	res.PType = &input.PType
 
 	if input.Description != nil {
 		file.Description = *input.Description
@@ -2332,7 +2336,7 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 	}
 	if input.Profiles != nil {
 		tmp := ChangesStringType(input.Profiles)
-		crt.SampleFiles = tmp
+		crt.Profiles = tmp
 		updatedCols = append(updatedCols, "profiles")
 	}
 	if input.Status != nil {

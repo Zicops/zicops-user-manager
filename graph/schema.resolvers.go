@@ -750,6 +750,16 @@ func (r *queryResolver) GetUserExamAttempts(ctx context.Context, userID *string,
 	return result, nil
 }
 
+// GetUserExamAttemptsByExamIds is the resolver for the getUserExamAttemptsByExamIds field.
+func (r *queryResolver) GetUserExamAttemptsByExamIds(ctx context.Context, userID string, examIds []*string, filters *model.ExamAttemptsFilters) ([]*model.UserExamAttempts, error) {
+	result, err := queries.GetUserExamAttemptsByExamIds(ctx, userID, examIds, filters)
+	if err != nil {
+		log.Errorf("Error getting exam attempts of a user : %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 // GetUserExamResults is the resolver for the getUserExamResults field.
 func (r *queryResolver) GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResultDetails) ([]*model.UserExamResultInfo, error) {
 	result, err := queries.GetUserExamResults(ctx, userEaDetails)

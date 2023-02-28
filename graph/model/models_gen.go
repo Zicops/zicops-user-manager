@@ -141,6 +141,10 @@ type CourseViews struct {
 	DateString *string   `json:"date_string"`
 }
 
+type ExamAttemptsFilters struct {
+	AttemptStatus *string `json:"attempt_status"`
+}
+
 type ExperienceInput struct {
 	ExpID           *string `json:"exp_id"`
 	VendorID        *string `json:"vendor_id"`
@@ -376,6 +380,7 @@ type SampleFile struct {
 	Name      *string `json:"name"`
 	FileType  *string `json:"fileType"`
 	Price     *string `json:"price"`
+	PType     *string `json:"p_type"`
 	FileURL   *string `json:"file_url"`
 	CreatedAt *string `json:"created_at"`
 	CreatedBy *string `json:"created_by"`

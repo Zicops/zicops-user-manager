@@ -35,6 +35,20 @@ func AddUserOrganizationMap(ctx context.Context, input []*model.UserOrganization
 
 	userLspMaps := make([]*model.UserOrganizationMap, 0)
 	for _, input := range input {
+		queryStr := fmt.Sprintf(`SELECT * FROM user_org_map WHERE user_id='%s' AND org_id='%s' AND user_lsp_id='%s' ALLOW FILTERING`, input.UserID, input.OrganizationID, input.UserLspID)
+		getUserOrgMap := func() (maps []userz.UserOrg, err error) {
+			q := CassUserSession.Query(queryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return maps, iter.Select(&maps)
+		}
+		userOrgMaps, err := getUserOrgMap()
+		if err != nil {
+			log.Println("Got error while getting user org maps: ", err.Error())
+		}
+		if len(userOrgMaps) > 0 {
+			continue
+		}
 
 		createdBy := userCass.Email
 		updatedBy := userCass.Email

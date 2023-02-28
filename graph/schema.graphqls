@@ -860,6 +860,7 @@ type SampleFile {
   name: String
   fileType: String
   price: String
+  p_type: String
   file_url: String
   created_at: String
 	created_by: String
@@ -930,6 +931,10 @@ type ContentDevelopment {
   status: String
 }
 
+input ExamAttemptsFilters {
+  attempt_status: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -996,6 +1001,7 @@ type Query {
     pageSize: Int
   ): PaginatedBookmarks
   getUserExamAttempts(user_id: String, exam_id: String!): [UserExamAttempts]
+  getUserExamAttemptsByExamIds(user_id: String!, exam_ids: [String]!, filters:ExamAttemptsFilters): [UserExamAttempts]
   getUserExamResults(
     user_ea_details: [UserExamResultDetails!]!
   ): [UserExamResultInfo]
