@@ -2841,3 +2841,68 @@ func GetUserVendors(ctx context.Context, userID *string) ([]*model.Vendor, error
 
 	return res, nil
 }
+
+func GetVendorServices(ctx context.Context, vendorID *string) ([]*string, error) {
+	_, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+		return nil, err
+	}
+	session, err := cassandra.GetCassSession("vendorz")
+	if err != nil {
+		return nil, err
+	}
+	CassSession := session
+	res := []string{}
+
+	//check for sme data
+	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.sme WHERE vendor_id='%s' ALLOW FILTERING`, *vendorID)
+	getSmeData := func() (smeData []vendorz.SME, err error) {
+		q := CassSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return smeData, iter.Select(&smeData)
+	}
+	smeData, err := getSmeData()
+	if err != nil {
+		return nil, err
+	}
+	if len(smeData) > 0 {
+		res = append(res, "Subject Matter Expertise")
+	}
+
+	//check for crt data
+	qryStr = fmt.Sprintf(`SELECT * FROM vendorz.classroom_training WHERE vendor_id='%s' ALLOW FILTERING`, *vendorID)
+	getCrtData := func() (crtData []vendorz.CRT, err error) {
+		q := CassSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return crtData, iter.Select(&crtData)
+	}
+	crtData, err := getCrtData()
+	if err != nil {
+		return nil, err
+	}
+	if len(crtData) > 0 {
+		res = append(res, "Classroom training")
+	}
+
+	//check for content development data
+	qryStr = fmt.Sprintf(`SELECT * FROM vendorz.content_development WHERE vendor_id='%s' ALLOW FILTERING`, *vendorID)
+	getContentDevelopmentData := func() (cdData []vendorz.ContentDevelopment, err error) {
+		q := CassSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return cdData, iter.Select(&cdData)
+	}
+	cdData, err := getContentDevelopmentData()
+	if err != nil {
+		return nil, err
+	}
+	if len(cdData) > 0 {
+		res = append(res, "Content Development")
+	}
+	tmp := ChangeToPointerArray(res)
+
+	return tmp, nil
+}

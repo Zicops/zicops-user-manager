@@ -1069,6 +1069,7 @@ type Query {
   getClassRoomTraining(vendor_id: String!): CRT
   getContentDevelopment(vendor_id: String!): ContentDevelopment
   getUserVendor(user_id: String): [Vendor]
+  getVendorServices(vendor_id: String): [String]
 }
 
 type Mutation {
