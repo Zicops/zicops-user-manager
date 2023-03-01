@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 
 	log "github.com/sirupsen/logrus"
@@ -179,10 +180,12 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 }
 
 func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
+	roleRaw := claims["role"].(string)
+	role := strings.ToLower(roleRaw)
 	session, err := cassandra.GetCassSession("userz")
 	if err != nil {
 		return nil, err
@@ -199,7 +202,7 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 			userModel := model.User{}
 			key := copyID
 			result, err := redis.GetRedisValue(ctx, key)
-			if err == nil && result != "" {
+			if err == nil && result != "" && role != "admin" {
 				err = json.Unmarshal([]byte(result), &userModel)
 				if err == nil && userModel.ID != nil && *userModel.ID == copyID {
 					outputResponse[i] = &userModel

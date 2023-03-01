@@ -371,6 +371,7 @@ type ComplexityRoot struct {
 		GetVendorDetails               func(childComplexity int, vendorID string) int
 		GetVendorExperience            func(childComplexity int, vendorID string, pfID string) int
 		GetVendorExperienceDetails     func(childComplexity int, vendorID string, pfID string, expID string) int
+		GetVendorServices              func(childComplexity int, vendorID *string) int
 		GetVendors                     func(childComplexity int, lspID *string) int
 		Logout                         func(childComplexity int) int
 		ViewAllProfiles                func(childComplexity int, vendorID string) int
@@ -802,6 +803,7 @@ type QueryResolver interface {
 	GetClassRoomTraining(ctx context.Context, vendorID string) (*model.Crt, error)
 	GetContentDevelopment(ctx context.Context, vendorID string) (*model.ContentDevelopment, error)
 	GetUserVendor(ctx context.Context, userID *string) ([]*model.Vendor, error)
+	GetVendorServices(ctx context.Context, vendorID *string) ([]*string, error)
 }
 
 type executableSchema struct {
@@ -3166,6 +3168,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetVendorExperienceDetails(childComplexity, args["vendor_id"].(string), args["pf_id"].(string), args["exp_id"].(string)), true
+
+	case "Query.getVendorServices":
+		if e.complexity.Query.GetVendorServices == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getVendorServices_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetVendorServices(childComplexity, args["vendor_id"].(*string)), true
 
 	case "Query.getVendors":
 		if e.complexity.Query.GetVendors == nil {
@@ -6151,6 +6165,7 @@ type Query {
   getClassRoomTraining(vendor_id: String!): CRT
   getContentDevelopment(vendor_id: String!): ContentDevelopment
   getUserVendor(user_id: String): [Vendor]
+  getVendorServices(vendor_id: String): [String]
 }
 
 type Mutation {
@@ -8384,6 +8399,21 @@ func (ec *executionContext) field_Query_getVendorExperience_args(ctx context.Con
 		}
 	}
 	args["pf_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getVendorServices_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["vendor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_id"] = arg0
 	return args, nil
 }
 
@@ -23678,6 +23708,58 @@ func (ec *executionContext) fieldContext_Query_getUserVendor(ctx context.Context
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getUserVendor_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getVendorServices(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getVendorServices(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetVendorServices(rctx, fc.Args["vendor_id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getVendorServices(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getVendorServices_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -42030,6 +42112,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getUserVendor(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getVendorServices":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getVendorServices(ctx, field)
 				return res
 			}
 

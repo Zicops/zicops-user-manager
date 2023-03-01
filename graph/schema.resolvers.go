@@ -1054,7 +1054,7 @@ func (r *queryResolver) GetClassRoomTraining(ctx context.Context, vendorID strin
 func (r *queryResolver) GetContentDevelopment(ctx context.Context, vendorID string) (*model.ContentDevelopment, error) {
 	res, err := handlers.GetContentDevelopment(ctx, vendorID)
 	if err != nil {
-		log.Printf("error while getting sample files for vendor: %v", err)
+		log.Printf("error while getting content development for vendor: %v", err)
 		return nil, err
 	}
 	return res, nil
@@ -1064,7 +1064,17 @@ func (r *queryResolver) GetContentDevelopment(ctx context.Context, vendorID stri
 func (r *queryResolver) GetUserVendor(ctx context.Context, userID *string) ([]*model.Vendor, error) {
 	res, err := handlers.GetUserVendors(ctx, userID)
 	if err != nil {
-		log.Printf("error while getting sample files for vendor: %v", err)
+		log.Printf("error while getting users for vendor: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetVendorServices is the resolver for the getVendorServices field.
+func (r *queryResolver) GetVendorServices(ctx context.Context, vendorID *string) ([]*string, error) {
+	res, err := handlers.GetVendorServices(ctx, vendorID)
+	if err != nil {
+		log.Printf("error while getting services of vendor: %v", err)
 		return nil, err
 	}
 	return res, nil
