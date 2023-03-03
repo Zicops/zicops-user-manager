@@ -14,7 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -60,7 +59,7 @@ func sendOriginInfo(ctx context.Context, domain string) *model.Organization {
 	if domain == "demo.zicops.com" || domain == "https://demo.zicops.com" {
 		return nil
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		log.Println("Got error while creating session ", err)
 	}

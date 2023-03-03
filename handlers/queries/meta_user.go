@@ -9,14 +9,13 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/helpers"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 func GetUserNotes(ctx context.Context, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedNotes, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +24,7 @@ func GetUserNotes(ctx context.Context, userID string, userLspID *string, courseI
 	if userID != "" {
 		emailCreatorID = userID
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +128,7 @@ func GetUserNotes(ctx context.Context, userID string, userLspID *string, courseI
 }
 
 func GetUserBookmarks(ctx context.Context, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedBookmarks, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +137,7 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID *string, cou
 	if userID != "" {
 		emailCreatorID = userID
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +245,7 @@ func GetUserBookmarks(ctx context.Context, userID string, userLspID *string, cou
 }
 
 func GetUserExamAttempts(ctx context.Context, userID *string, examID string) ([]*model.UserExamAttempts, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +258,7 @@ func GetUserExamAttempts(ctx context.Context, userID *string, examID string) ([]
 	//		return outputResponse, nil
 	//	}
 	//}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +323,7 @@ func GetUserExamAttempts(ctx context.Context, userID *string, examID string) ([]
 }
 
 func GetUserExamAttemptsByExamIds(ctx context.Context, userID string, examIds []*string, filters *model.ExamAttemptsFilters) ([]*model.UserExamAttempts, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims : %v", err)
 		return nil, err
@@ -332,7 +331,7 @@ func GetUserExamAttemptsByExamIds(ctx context.Context, userID string, examIds []
 
 	examAttempts := []userz.UserExamAttempts{}
 
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -399,7 +398,7 @@ func GetUserExamAttemptsByExamIds(ctx context.Context, userID string, examIds []
 }
 
 func GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResultDetails) ([]*model.UserExamResultInfo, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -413,7 +412,7 @@ func GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResu
 	//	}
 	//}
 
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -478,7 +477,7 @@ func GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResu
 }
 
 func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([]*model.UserExamProgress, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -491,7 +490,7 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 	//		return outputResponse, nil
 	//	}
 	//}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -556,7 +555,7 @@ func GetUserExamProgress(ctx context.Context, userID string, userEaID string) ([
 }
 
 func GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]*model.UserQuizAttempt, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -569,7 +568,7 @@ func GetUserQuizAttempts(ctx context.Context, userID string, topicID string) ([]
 	//		return outputResponse, nil
 	//	}
 	//}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}

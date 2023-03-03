@@ -8,13 +8,13 @@ import (
 	"sync"
 
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/helpers"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourseIDs []string) ([]*model.UserCourseProgress, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 	//	}
 	//}
 
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func GetUserCourseProgressByMapID(ctx context.Context, userId string, userCourse
 }
 
 func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID string) ([]*model.UserCourseProgress, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func GetUserCourseProgressByTopicID(ctx context.Context, userId string, topicID 
 	//		return outputResponse, nil
 	//	}
 	//}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}

@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
@@ -27,7 +27,7 @@ func AddUserQuizAttempt(ctx context.Context, input []*model.UserQuizAttemptInput
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func UpdateUserQuizAttempt(ctx context.Context, input model.UserQuizAttemptInput
 	if input.UserQaID == nil {
 		return nil, fmt.Errorf("user qa id is required")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}

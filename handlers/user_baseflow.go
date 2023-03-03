@@ -14,21 +14,20 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/helpers"
 	"github.com/zicops/zicops-user-manager/lib/db/bucket"
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool, userExists bool) ([]*model.User, []*model.UserLspMap, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -194,11 +193,11 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 }
 
 func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -271,14 +270,14 @@ func InviteUsers(ctx context.Context, emails []string, lspID string) (*bool, err
 }
 
 func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if user.ID == nil {
 		return nil, fmt.Errorf("user id is required")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -457,7 +456,7 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 
 func LoginUser(ctx context.Context) (*model.User, error) {
 
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -476,7 +475,7 @@ func LoginUser(ctx context.Context) (*model.User, error) {
 	}
 	phone := ""
 	if err == nil && userCass.ID != "" {
-		session, err := cassandra.GetCassSession("userz")
+		session, err := global.CassPool.GetSession(ctx, "userz")
 		if err != nil {
 			return nil, err
 		}

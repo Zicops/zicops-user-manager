@@ -15,20 +15,20 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-cass-pool/redis"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/helpers"
 	"github.com/zicops/zicops-user-manager/lib/db/bucket"
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model.Organization, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -133,14 +133,14 @@ func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model
 }
 
 func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*model.Organization, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if input.OrgID == nil {
 		return nil, fmt.Errorf("org id is required")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -270,11 +270,11 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 }
 
 func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organization, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -357,7 +357,7 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 }
 
 func GetOrganizationsByName(ctx context.Context, name *string, prevPageSnapShot string, pageSize int) ([]*model.Organization, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -365,7 +365,7 @@ func GetOrganizationsByName(ctx context.Context, name *string, prevPageSnapShot 
 	if strings.ToLower(email) != "puneet@zicops.com" {
 		return nil, fmt.Errorf("user is a not zicops admin: Unauthorized")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -443,11 +443,11 @@ func GetOrganizationsByName(ctx context.Context, name *string, prevPageSnapShot 
 }
 
 func GetOrganizationsByDomain(ctx context.Context, domain string) ([]*model.Organization, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}

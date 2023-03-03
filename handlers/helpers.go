@@ -6,16 +6,16 @@ import (
 	"fmt"
 
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
-	"github.com/zicops/zicops-user-manager/helpers"
+	"github.com/zicops/zicops-user-manager/global"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 func GetUserFromCass(ctx context.Context) (*userz.User, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -36,11 +36,11 @@ func GetUserFromCass(ctx context.Context) (*userz.User, error) {
 }
 
 func GetUserFromCassWithLsp(ctx context.Context) (*userz.User, *string, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, nil, err
 	}

@@ -9,18 +9,17 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/helpers"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pageCursor *string, direction *string, pageSize *int, filters *model.CourseMapFilters) (*model.PaginatedCourseMaps, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +148,7 @@ func GetUserCourseMaps(ctx context.Context, userId string, publishTime *int, pag
 }
 
 func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID string) ([]*model.UserCourse, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +166,7 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 	//		return outputResponse, nil
 	//	}
 	//}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -219,11 +218,11 @@ func GetUserCourseMapByCourseID(ctx context.Context, userId string, courseID str
 }
 
 func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsInput) (*model.UserCourseMapStats, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -353,7 +352,7 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 }
 
 func GetCourseConsumptionStats(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCCStats, error) {
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}

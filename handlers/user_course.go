@@ -12,9 +12,10 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/helpers"
+	"github.com/zicops/zicops-user-manager/lib/identity"
+	"github.com/zicops/zicops-user-manager/lib/stats"
 )
 
 func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*model.UserCourse, error) {
@@ -22,7 +23,7 @@ func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*mode
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +109,7 @@ func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*mode
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
 		// create or update course consumption stats
-		go helpers.UpdateCCStats(ctx, CassUserSession, *input.LspID, userLspOutput.CourseID, userLspOutput.UserID, userLspOutput.CourseStatus, true, userLspMap.UpdatedAt-userLspMap.CreatedAt, *userLspOutput.EndDate)
+		go stats.UpdateCCStats(ctx, CassUserSession, *input.LspID, userLspOutput.CourseID, userLspOutput.UserID, userLspOutput.CourseStatus, true, userLspMap.UpdatedAt-userLspMap.CreatedAt, *userLspOutput.EndDate)
 
 	}
 	return userLspMaps, nil
@@ -133,7 +134,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 	if input.UserID == "" {
 		return nil, fmt.Errorf("user id is required")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +233,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 		UpdatedBy:    &userLspMap.UpdatedBy,
 	}
 	// create or update course consumption stats
-	go helpers.UpdateCCStats(ctx, CassUserSession, userLspMap.LspID, userLspOutput.CourseID, userLspOutput.UserID, userLspOutput.CourseStatus, false, userLspMap.UpdatedAt-userLspMap.CreatedAt, *userLspOutput.EndDate)
+	go stats.UpdateCCStats(ctx, CassUserSession, userLspMap.LspID, userLspOutput.CourseID, userLspOutput.UserID, userLspOutput.CourseStatus, false, userLspMap.UpdatedAt-userLspMap.CreatedAt, *userLspOutput.EndDate)
 	return userLspOutput, nil
 }
 
@@ -254,7 +255,7 @@ func checkStatusOfEachTopic(ctx context.Context, userId string, userCourseId str
 }
 
 func getUserCourseProgressByUserCourseID(ctx context.Context, userId string, userCourseID string) ([]*model.UserCourseProgress, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +265,7 @@ func getUserCourseProgressByUserCourseID(ctx context.Context, userId string, use
 		emailCreatorID = userId
 	}
 
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}

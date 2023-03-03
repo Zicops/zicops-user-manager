@@ -12,9 +12,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/coursez"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/helpers"
+	"github.com/zicops/zicops-user-manager/lib/stats"
 )
 
 func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgressInput) ([]*model.UserCourseProgress, error) {
@@ -22,7 +22,7 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 			UpdatedBy:     &userLspMap.UpdatedBy,
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
-		go helpers.AddUpdateCourseViews(*lspID, userLspOutput.UserID, 0, 0)
+		go stats.AddUpdateCourseViews(*lspID, userLspOutput.UserID, 0, 0)
 
 	}
 	return userLspMaps, nil
@@ -109,7 +109,7 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 	if input.UserCpID == nil {
 		return nil, fmt.Errorf("user cp id is required")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 		updatedCols = append(updatedCols, "time_stamp")
 		diff := userLspMap.TimeStamp - oldTimeStamp
 		if diff > 0 {
-			go helpers.AddUpdateCourseViews(*lspID, userLspMap.UserID, diff, 0)
+			go stats.AddUpdateCourseViews(*lspID, userLspMap.UserID, diff, 0)
 		}
 	}
 	if input.UpdatedBy != nil {
@@ -212,7 +212,7 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 }
 
 func GetCourseViews(ctx context.Context, lspIds []string, startTime *string, endTime *string) ([]*model.CourseViews, error) {
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := global.CassPool.GetSession(ctx, "coursez")
 	if err != nil {
 		return nil, err
 	}

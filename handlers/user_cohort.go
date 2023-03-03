@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
@@ -19,7 +19,7 @@ func AddUserCohort(ctx context.Context, input []*model.UserCohortInput) ([]*mode
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,7 @@ func UpdateUserCohort(ctx context.Context, input model.UserCohortInput) (*model.
 	if input.UserCohortID == nil {
 		return nil, fmt.Errorf("user cohort id is required")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}

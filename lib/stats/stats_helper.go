@@ -1,4 +1,4 @@
-package helpers
+package stats
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/coursez"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-user-manager/global"
 )
 
 func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, courseId string, userId string, status string, newAdd bool, completionTime int64, expectedCompletion string) {
-	cSessionLocal, err := cassandra.GetCassSession("coursez")
+	cSessionLocal, err := global.CassPool.GetSession(ctx, "coursez")
 	if err != nil {
 		fmt.Println("error getting cass session", err)
 		return
@@ -111,7 +111,8 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 }
 
 func AddUpdateCourseViews(lspId string, userId string, secs int64, oldSecs int64) {
-	cSessionLocal, err := cassandra.GetCassSession("coursez")
+	ctx := context.Background()
+	cSessionLocal, err := global.CassPool.GetSession(ctx, "coursez")
 	if err != nil {
 		logrus.Error("error getting cass session", err)
 		return
