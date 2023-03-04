@@ -301,6 +301,7 @@ func GetUserLspMapsByLspIDOne(ctx context.Context, lspID string, userID string) 
 	return userLspMap, nil
 }
 
+// filter - admin, learner
 func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserLspMaps, error) {
 	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {

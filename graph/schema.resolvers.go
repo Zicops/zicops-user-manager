@@ -190,6 +190,16 @@ func (r *mutationResolver) AddUserCourse(ctx context.Context, input []*model.Use
 	return result, nil
 }
 
+// AddUserCohortCourses is the resolver for the addUserCohortCourses field.
+func (r *mutationResolver) AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string) (*bool, error) {
+	result, err := handlers.AddUserCohortCourses(ctx, userIds, cohortID)
+	if err != nil {
+		log.Errorf("Error adding course map for all the users: %v", err)
+		return nil, err
+	}
+	return result, nil
+}
+
 // UpdateUserCourse is the resolver for the updateUserCourse field.
 func (r *mutationResolver) UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.UserCourse, error) {
 	result, err := handlers.UpdateUserCourse(ctx, input)
@@ -1011,8 +1021,8 @@ func (r *queryResolver) ViewProfileVendorDetails(ctx context.Context, vendorID s
 }
 
 // ViewAllProfiles is the resolver for the viewAllProfiles field.
-func (r *queryResolver) ViewAllProfiles(ctx context.Context, vendorID string) ([]*model.VendorProfile, error) {
-	res, err := handlers.ViewAllProfiles(ctx, vendorID)
+func (r *queryResolver) ViewAllProfiles(ctx context.Context, vendorID string, filter *string) ([]*model.VendorProfile, error) {
+	res, err := handlers.ViewAllProfiles(ctx, vendorID, filter)
 	if err != nil {
 		log.Printf("Got error while getting details of the vendor: %v", err)
 		return nil, err
@@ -1075,6 +1085,16 @@ func (r *queryResolver) GetVendorServices(ctx context.Context, vendorID *string)
 	res, err := handlers.GetVendorServices(ctx, vendorID)
 	if err != nil {
 		log.Printf("error while getting services of vendor: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetLspUsersRoles is the resolver for the getLspUsersRoles field.
+func (r *queryResolver) GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*model.UserDetailsRole, error) {
+	res, err := handlers.GetLspUsersRoles(ctx, lspID, role)
+	if err != nil {
+		log.Printf("error getting user details with roles: %v", err)
 		return nil, err
 	}
 	return res, nil

@@ -93,6 +93,7 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 	return userLspMaps, nil
 }
 
+// if all topic status is complete and course status != complete then course status- complete
 func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgressInput) (*model.UserCourseProgress, error) {
 	userCass, lspID, err := GetUserFromCassWithLsp(ctx)
 	if err != nil {
@@ -145,6 +146,20 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 
 		if input.Status == "in-progress" && userLspMap.Status == "open" {
 			userLspMap.Status = "started"
+		} else if input.Status == "completed" && userLspMap.Status != "completed" {
+			res := checkStatusOfEachTopic(ctx, input.UserID, input.UserCourseID)
+			if res {
+				//update course to be completed
+				_, err = UpdateUserCourse(ctx, model.UserCourseInput{
+					UserCourseID: &userLspMap.UserCmID,
+					UserID:       userLspMap.UserID,
+					CourseStatus: "completed",
+				})
+
+				if err != nil {
+					return nil, err
+				}
+			}
 		} else {
 			userLspMap.Status = input.Status
 		}
