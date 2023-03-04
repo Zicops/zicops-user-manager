@@ -745,7 +745,6 @@ input SMEInput {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
-  profiles:[String]
 	Status: String
 }
 
@@ -758,7 +757,6 @@ type SME {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
-  profiles:[String]
   created_at: String
   created_by: String
   updated_at: String
@@ -799,6 +797,9 @@ type VendorProfile {
   content_development: [String]
   experience: [String]
   experience_years: String
+  sme: Boolean
+  crt: Boolean
+  cd: Boolean
   is_speaker: Boolean
   created_at: String
 	created_by: String
@@ -878,7 +879,6 @@ input CRTInput {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
-  profiles:[String]
   is_expertise_online: Boolean
 	status: String
 }
@@ -892,7 +892,6 @@ type CRT {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
-  profiles:[String]
   is_expertise_online: Boolean
   created_at: String
 	created_by: String
@@ -910,7 +909,6 @@ input ContentDevelopmentInput {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
-  profiles: [String]
   status: String
 }
 
@@ -923,7 +921,6 @@ type ContentDevelopment {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
-  profiles: [String]
   created_at: String
 	created_by: String
 	updated_at: String
@@ -1063,7 +1060,7 @@ type Query {
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
-  viewAllProfiles(vendor_id: String!): [VendorProfile]
+  viewAllProfiles(vendor_id: String!, filter: String): [VendorProfile]
   getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
   getSmeDetails(vendor_id: String!): SME
   getClassRoomTraining(vendor_id: String!): CRT
@@ -1094,6 +1091,7 @@ type Mutation {
   addUserCohort(input: [UserCohortInput]!): [UserCohort]
   updateUserCohort(input: UserCohortInput!): UserCohort
   addUserCourse(input: [UserCourseInput]!): [UserCourse]
+  addUserCohortCourses(user_ids: [String!], cohort_id: String!): Boolean
   updateUserCourse(input: UserCourseInput!): UserCourse
   addUserCourseProgress(input: [UserCourseProgressInput]!): [UserCourseProgress]
   updateUserCourseProgress(input: UserCourseProgressInput!): UserCourseProgress

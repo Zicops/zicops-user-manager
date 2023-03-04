@@ -486,14 +486,17 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	if input.SmeExpertise != nil {
 		tmp := ChangesStringType(input.SmeExpertise)
 		profile.SMEExpertise = tmp
+		profile.Sme = true
 	}
 	if input.ClassroomExpertise != nil {
 		tmp := ChangesStringType(input.ClassroomExpertise)
 		profile.ClassroomExpertise = tmp
+		profile.Crt = true
 	}
 	if input.ContentDevelopment != nil {
 		tmp := ChangesStringType(input.ContentDevelopment)
 		profile.ContentDevelopment = tmp
+		profile.Cd = true
 	}
 	if input.Experience != nil {
 		tmp := ChangesStringType(input.Experience)
@@ -524,6 +527,9 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	}
 
 	createdAt := strconv.Itoa(int(time.Now().Unix()))
+	sme := len(input.SmeExpertise) > 0
+	cd := len(input.ContentDevelopment) > 0
+	crt := len(input.ClassroomExpertise) > 0
 
 	res := model.VendorProfile{
 		PfID:               &profile.PfId,
@@ -538,6 +544,9 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		SmeExpertise:       input.SmeExpertise,
 		ClassroomExpertise: input.ClassroomExpertise,
 		ContentDevelopment: input.ContentDevelopment,
+		Sme:                &sme,
+		Crt:                &crt,
+		Cd:                 &cd,
 		Experience:         input.Experience,
 		ExperienceYears:    input.ExperienceYears,
 		IsSpeaker:          &profile.IsSpeaker,
@@ -1551,13 +1560,18 @@ func ChangeToPointerArray(input []string) []*string {
 	return res
 }
 
-func ViewAllProfiles(ctx context.Context, vendorID string) ([]*model.VendorProfile, error) {
+func ViewAllProfiles(ctx context.Context, vendorID string, filter *string) ([]*model.VendorProfile, error) {
 	_, err := helpers.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
 		return nil, err
 	}
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE vendor_id = '%s' ALLOW FILTERING`, vendorID)
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE vendor_id = '%s' `, vendorID)
+	if filter != nil && *filter != "" {
+		queryStr = queryStr + fmt.Sprintf(`AND '%s' = true `, *filter)
+	}
+	queryStr = queryStr + "ALLOW FILTERING"
+
 	session, err := cassandra.GetCassSession("vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session of vendor: %v", err)
@@ -1672,10 +1686,16 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	}
 	profile := profiles[0]
 	updatedCols := []string{}
+
+	var crt bool
 	if input.ClassroomExpertise != nil {
 		tmp := ChangesStringType(input.ClassroomExpertise)
 		profile.ClassroomExpertise = tmp
 		updatedCols = append(updatedCols, "classroom_expertise")
+
+		crt = len(input.ClassroomExpertise) > 0
+		profile.Crt = crt
+		updatedCols = append(updatedCols, "crt")
 	}
 	if input.Description != nil {
 		profile.Description = *input.Description
@@ -1729,15 +1749,25 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		profile.PhotoURL = url
 		updatedCols = append(updatedCols, "photo_bucket", "photo_url")
 	}
+	var sme bool
 	if input.SmeExpertise != nil {
 		tmp := ChangesStringType(input.SmeExpertise)
 		profile.SMEExpertise = tmp
 		updatedCols = append(updatedCols, "sme_expertise")
+
+		sme = len(input.SmeExpertise) > 0
+		profile.Sme = sme
+		updatedCols = append(updatedCols, "sme")
 	}
+	var cd bool
 	if input.ContentDevelopment != nil {
 		tmp := ChangesStringType(input.ContentDevelopment)
 		profile.ContentDevelopment = tmp
 		updatedCols = append(updatedCols, "content_development")
+
+		cd = len(input.ContentDevelopment) > 0
+		profile.Cd = cd
+		updatedCols = append(updatedCols, "cd")
 	}
 	if input.Status != nil {
 		profile.Status = *input.Status
@@ -1760,10 +1790,10 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		}
 	}
 	lang := ChangeToPointerArray(profile.Languages)
-	sme := ChangeToPointerArray(profile.SMEExpertise)
-	cre := ChangeToPointerArray(profile.ClassroomExpertise)
+	smeExpertise := ChangeToPointerArray(profile.SMEExpertise)
+	crtExpertise := ChangeToPointerArray(profile.ClassroomExpertise)
 	exp := ChangeToPointerArray(profile.Experience)
-	cd := ChangeToPointerArray(profile.ContentDevelopment)
+	cdExpertise := ChangeToPointerArray(profile.ContentDevelopment)
 	ca := strconv.Itoa(int(profile.CreatedAt))
 	ua := strconv.Itoa(int(profile.UpdatedAt))
 
@@ -1777,9 +1807,12 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		PhotoURL:           &profile.PhotoURL,
 		Description:        &profile.Description,
 		Language:           lang,
-		SmeExpertise:       sme,
-		ClassroomExpertise: cre,
-		ContentDevelopment: cd,
+		SmeExpertise:       smeExpertise,
+		ClassroomExpertise: crtExpertise,
+		ContentDevelopment: cdExpertise,
+		Sme:                &sme,
+		Crt:                &crt,
+		Cd:                 &cd,
 		Experience:         exp,
 		ExperienceYears:    &profile.ExperienceYears,
 		IsSpeaker:          &profile.IsSpeaker,
@@ -1988,10 +2021,6 @@ func CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 		tmp := ChangesStringType(input.SampleFiles)
 		sme.SampleFiles = tmp
 	}
-	if input.Profiles != nil {
-		tmp := ChangesStringType(input.Profiles)
-		sme.Profiles = tmp
-	}
 	if input.Status != nil {
 		sme.Status = *input.Status
 	}
@@ -2010,7 +2039,6 @@ func CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 		Languages:        input.Languages,
 		OutputDeliveries: input.OutputDeliveries,
 		SampleFiles:      input.SampleFiles,
-		Profiles:         input.Profiles,
 		CreatedAt:        &createdAt,
 		CreatedBy:        &email,
 		Status:           input.Status,
@@ -2082,11 +2110,6 @@ func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 		smeData.SampleFiles = tmp
 		updatedCols = append(updatedCols, "sample_files")
 	}
-	if input.Profiles != nil {
-		tmp := ChangesStringType(input.Profiles)
-		smeData.Profiles = tmp
-		updatedCols = append(updatedCols, "profiles")
-	}
 	if input.Status != nil {
 		smeData.Status = *input.Status
 		updatedCols = append(updatedCols, "status")
@@ -2109,7 +2132,6 @@ func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 	lan := ChangeToPointerArray(smeData.Languages)
 	od := ChangeToPointerArray(smeData.OutputDeliveries)
 	sf := ChangeToPointerArray(smeData.SampleFiles)
-	profile := ChangeToPointerArray(smeData.Profiles)
 	ca := strconv.Itoa(int(smeData.CreatedAt))
 	updatedAt := strconv.Itoa(int(ua))
 	res := model.Sme{
@@ -2121,7 +2143,6 @@ func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 		Languages:        lan,
 		OutputDeliveries: od,
 		SampleFiles:      sf,
-		Profiles:         profile,
 		CreatedAt:        &ca,
 		CreatedBy:        &smeData.CreatedBy,
 		UpdatedAt:        &updatedAt,
@@ -2165,7 +2186,6 @@ func GetSmeDetails(ctx context.Context, vendorID string) (*model.Sme, error) {
 	lan := ChangeToPointerArray(smeData.Languages)
 	od := ChangeToPointerArray(smeData.OutputDeliveries)
 	sf := ChangeToPointerArray(smeData.SampleFiles)
-	profile := ChangeToPointerArray(smeData.Profiles)
 	ca := strconv.Itoa(int(smeData.CreatedAt))
 	ua := strconv.Itoa(int(smeData.UpdatedAt))
 	res := model.Sme{
@@ -2176,7 +2196,6 @@ func GetSmeDetails(ctx context.Context, vendorID string) (*model.Sme, error) {
 		Expertise:        expertise,
 		Languages:        lan,
 		OutputDeliveries: od,
-		Profiles:         profile,
 		SampleFiles:      sf,
 		CreatedAt:        &ca,
 		CreatedBy:        &smeData.CreatedBy,
@@ -2231,10 +2250,6 @@ func CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		tmp := ChangesStringType(input.SampleFiles)
 		crt.SampleFiles = tmp
 	}
-	if input.Profiles != nil {
-		tmp := ChangesStringType(input.Profiles)
-		crt.Profiles = tmp
-	}
 	if input.IsExpertiseOnline != nil {
 		crt.IsExpertiseOnline = *input.IsExpertiseOnline
 	}
@@ -2256,7 +2271,6 @@ func CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		Expertise:         input.Expertise,
 		Languages:         input.Languages,
 		SampleFiles:       input.SampleFiles,
-		Profiles:          input.Profiles,
 		OutputDeliveries:  input.OutputDeliveries,
 		IsExpertiseOnline: input.IsExpertiseOnline,
 		CreatedAt:         &email,
@@ -2334,11 +2348,6 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		crt.SampleFiles = tmp
 		updatedCols = append(updatedCols, "sample_files")
 	}
-	if input.Profiles != nil {
-		tmp := ChangesStringType(input.Profiles)
-		crt.Profiles = tmp
-		updatedCols = append(updatedCols, "profiles")
-	}
 	if input.Status != nil {
 		crt.Status = *input.Status
 		updatedCols = append(updatedCols, "status")
@@ -2361,7 +2370,6 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 	lan := ChangeToPointerArray(crt.Languages)
 	od := ChangeToPointerArray(crt.OutputDeliveries)
 	sf := ChangeToPointerArray(crt.SampleFiles)
-	profile := ChangeToPointerArray(crt.Profiles)
 	ca := strconv.Itoa(int(crt.CreatedAt))
 	ua := strconv.Itoa(int(crt.UpdatedAt))
 	res := model.Crt{
@@ -2373,7 +2381,6 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		Languages:         lan,
 		OutputDeliveries:  od,
 		SampleFiles:       sf,
-		Profiles:          profile,
 		IsExpertiseOnline: &crt.IsExpertiseOnline,
 		CreatedAt:         &ca,
 		CreatedBy:         &crt.CreatedBy,
@@ -2419,7 +2426,6 @@ func GetClassRoomTraining(ctx context.Context, vendorID string) (*model.Crt, err
 	lan := ChangeToPointerArray(crt.Languages)
 	od := ChangeToPointerArray(crt.OutputDeliveries)
 	sf := ChangeToPointerArray(crt.SampleFiles)
-	profile := ChangeToPointerArray(crt.Profiles)
 	ca := strconv.Itoa(int(crt.CreatedAt))
 	ua := strconv.Itoa(int(crt.UpdatedAt))
 	res := model.Crt{
@@ -2431,7 +2437,6 @@ func GetClassRoomTraining(ctx context.Context, vendorID string) (*model.Crt, err
 		Languages:         lan,
 		OutputDeliveries:  od,
 		SampleFiles:       sf,
-		Profiles:          profile,
 		IsExpertiseOnline: &crt.IsExpertiseOnline,
 		CreatedAt:         &ca,
 		CreatedBy:         &crt.CreatedBy,
@@ -2486,10 +2491,6 @@ func CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		tmp := ChangesStringType(input.SampleFiles)
 		cd.SampleFiles = tmp
 	}
-	if input.Profiles != nil {
-		tmp := ChangesStringType(input.Profiles)
-		cd.Profiles = tmp
-	}
 	if input.Status != nil {
 		cd.Status = *input.Status
 	}
@@ -2507,7 +2508,6 @@ func CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		Languages:        input.Languages,
 		OutputDeliveries: input.OutputDeliveries,
 		SampleFiles:      input.SampleFiles,
-		Profiles:         input.Profiles,
 		CreatedAt:        &ca,
 		CreatedBy:        &email,
 		Status:           &cd.Status,
@@ -2582,12 +2582,6 @@ func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		cd.SampleFiles = tmp
 		updatedCols = append(updatedCols, "sample_files")
 	}
-	if input.Profiles != nil {
-		tmp := ChangesStringType(input.Profiles)
-		cd.Profiles = tmp
-		updatedCols = append(updatedCols, "profiles")
-	}
-
 	updatedAt := time.Now().Unix()
 	if len(updatedCols) > 0 {
 		cd.UpdatedAt = updatedAt
@@ -2606,7 +2600,6 @@ func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 	lan := ChangeToPointerArray(cd.Languages)
 	od := ChangeToPointerArray(cd.OutputDeliveries)
 	sf := ChangeToPointerArray(cd.SampleFiles)
-	profiles := ChangeToPointerArray(cd.Profiles)
 	ca := strconv.Itoa(int(cd.CreatedAt))
 	ua := strconv.Itoa(int(updatedAt))
 	res := &model.ContentDevelopment{
@@ -2618,7 +2611,6 @@ func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		Languages:        lan,
 		OutputDeliveries: od,
 		SampleFiles:      sf,
-		Profiles:         profiles,
 		CreatedAt:        &ca,
 		CreatedBy:        &cd.CreatedBy,
 		UpdatedAt:        &ua,
@@ -2661,7 +2653,6 @@ func GetContentDevelopment(ctx context.Context, vendorID string) (*model.Content
 	lan := ChangeToPointerArray(cd.Languages)
 	od := ChangeToPointerArray(cd.OutputDeliveries)
 	sf := ChangeToPointerArray(cd.SampleFiles)
-	profiles := ChangeToPointerArray(cd.Profiles)
 	ua := strconv.Itoa(int(cd.UpdatedAt))
 	ca := strconv.Itoa(int(cd.CreatedAt))
 	res := &model.ContentDevelopment{
@@ -2673,7 +2664,6 @@ func GetContentDevelopment(ctx context.Context, vendorID string) (*model.Content
 		Languages:        lan,
 		OutputDeliveries: od,
 		SampleFiles:      sf,
-		Profiles:         profiles,
 		CreatedAt:        &ca,
 		CreatedBy:        &cd.CreatedBy,
 		UpdatedAt:        &ua,

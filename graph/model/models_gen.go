@@ -15,7 +15,6 @@ type Crt struct {
 	Languages         []*string `json:"languages"`
 	OutputDeliveries  []*string `json:"output_deliveries"`
 	SampleFiles       []*string `json:"sample_files"`
-	Profiles          []*string `json:"profiles"`
 	IsExpertiseOnline *bool     `json:"is_expertise_online"`
 	CreatedAt         *string   `json:"created_at"`
 	CreatedBy         *string   `json:"created_by"`
@@ -33,7 +32,6 @@ type CRTInput struct {
 	Languages         []*string `json:"languages"`
 	OutputDeliveries  []*string `json:"output_deliveries"`
 	SampleFiles       []*string `json:"sample_files"`
-	Profiles          []*string `json:"profiles"`
 	IsExpertiseOnline *bool     `json:"is_expertise_online"`
 	Status            *string   `json:"status"`
 }
@@ -80,7 +78,6 @@ type ContentDevelopment struct {
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
 	SampleFiles      []*string `json:"sample_files"`
-	Profiles         []*string `json:"profiles"`
 	CreatedAt        *string   `json:"created_at"`
 	CreatedBy        *string   `json:"created_by"`
 	UpdatedAt        *string   `json:"updated_at"`
@@ -97,7 +94,6 @@ type ContentDevelopmentInput struct {
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
 	SampleFiles      []*string `json:"sample_files"`
-	Profiles         []*string `json:"profiles"`
 	Status           *string   `json:"status"`
 }
 
@@ -354,7 +350,6 @@ type Sme struct {
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
 	SampleFiles      []*string `json:"sample_files"`
-	Profiles         []*string `json:"profiles"`
 	CreatedAt        *string   `json:"created_at"`
 	CreatedBy        *string   `json:"created_by"`
 	UpdatedAt        *string   `json:"updated_at"`
@@ -371,7 +366,6 @@ type SMEInput struct {
 	Languages        []*string `json:"languages"`
 	OutputDeliveries []*string `json:"output_deliveries"`
 	SampleFiles      []*string `json:"sample_files"`
-	Profiles         []*string `json:"profiles"`
 	Status           *string   `json:"Status"`
 }
 
@@ -913,6 +907,9 @@ type VendorProfile struct {
 	ContentDevelopment []*string `json:"content_development"`
 	Experience         []*string `json:"experience"`
 	ExperienceYears    *string   `json:"experience_years"`
+	Sme                *bool     `json:"sme"`
+	Crt                *bool     `json:"crt"`
+	Cd                 *bool     `json:"cd"`
 	IsSpeaker          *bool     `json:"is_speaker"`
 	CreatedAt          *string   `json:"created_at"`
 	CreatedBy          *string   `json:"created_by"`

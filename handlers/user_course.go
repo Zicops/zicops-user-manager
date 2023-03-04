@@ -3,6 +3,8 @@ package handlers
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -11,11 +13,17 @@ import (
 
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
+	"github.com/zicops/contracts/coursez"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/helpers"
 )
+
+type AddedBy struct {
+	UserId string `json:"userId"`
+	Role   string `json:"role"`
+}
 
 func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*model.UserCourse, error) {
 	userCass, err := GetUserFromCass(ctx)
@@ -315,3 +323,177 @@ func getUserCourseProgressByUserCourseID(ctx context.Context, userId string, use
 	userCPsMap = append(userCPsMap, userCPsMapCurrent...)
 	return userCPsMap, nil
 }
+
+func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string) (*bool, error) {
+	claims, err := helpers.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+		return nil, err
+	}
+	email := claims["email"].(string)
+	id := base64.URLEncoding.EncodeToString([]byte(email))
+
+	session, err := cassandra.GetCassSession("coursez")
+	if err != nil {
+		return nil, err
+	}
+	CassSession := session
+	qryStr := fmt.Sprintf(`SELECT * FROM coursez.course_cohort_mapping WHERE cohortid='%s' ALLOW FILTERING`, cohortID)
+	getCCourses := func() (maps []coursez.CourseCohortMapping, err error) {
+		q := CassSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return maps, iter.Select(&maps)
+	}
+
+	cohortCourses, err := getCCourses()
+	if err != nil {
+		log.Println("Got error in getting cohort courses: ", err)
+		return nil, err
+	}
+	if len(cohortCourses) == 0 {
+		return nil, nil
+	}
+
+	session, err = cassandra.GetCassSession("userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+
+	//we have list of courses to be mapped, and list of users with whom we have to map them
+	//double loop, pass the parameters, send to goroutines
+	//user course map - if exists check role in added by, if cohort/admin leave, if self, change to cohort, change the completion day in user course map
+	// to course_cohort_map.expected time + user_course_map.time
+	// not then create accordingly
+
+	//if completed, then status = completed, leave as it is
+	var res error
+	var wg sync.WaitGroup
+	for _, cccourses := range cohortCourses {
+		ccourse := cccourses
+		for _, uuusers := range userIds {
+			uuser := uuusers
+			//check for map
+
+			wg.Add(1)
+			go func(course coursez.CourseCohortMapping, userId string) {
+				//if map does not exist, or added by role is self, then call course_
+				queryStr := fmt.Sprintf(`SELECT * FROM userz.user_course_map WHERE user_id='%s' AND course_id='%s' ALLOW FILTERING`, userId, course.CourseID)
+				getUserCourseMap := func() (maps []userz.UserCourse, err error) {
+					q := CassUserSession.Query(queryStr, nil)
+					defer q.Release()
+					iter := q.Iter()
+					return maps, iter.Select(&maps)
+				}
+				ucMaps, err := getUserCourseMap()
+				if err != nil {
+					log.Println("Got error while getting user course map: ", err.Error())
+					res = err
+					wg.Done()
+					return
+				}
+				if len(ucMaps) == 0 {
+					//create map
+
+					qry := fmt.Sprintf(`SELECT * from userz.user_lsp_map where user_id='%s' and lsp_id='%s'  ALLOW FILTERING`, userId, course.LspId)
+					getUsersOrgs := func() (users []userz.UserLsp, err error) {
+						q := CassUserSession.Query(qry, nil)
+						defer q.Release()
+						iter := q.Iter()
+						return users, iter.Select(&users)
+					}
+					usersOrgs, err := getUsersOrgs()
+					if err != nil {
+						res = err
+						wg.Done()
+						return
+					}
+					if len(usersOrgs) == 0 {
+						res = errors.New("no user lsp map found")
+						wg.Done()
+						return
+					}
+					userLspId := usersOrgs[0].ID
+
+					added := AddedBy{
+						UserId: id,
+						Role:   "cohort",
+					}
+					addedString, err := json.Marshal(added)
+					if err != nil {
+						res = err
+						wg.Done()
+						return
+					}
+					end := int64(course.ExpectedCompletionDays) * 24 * 60 * 60
+					endString := strconv.Itoa(int(end))
+					input := &model.UserCourseInput{
+						UserID:       userId,
+						LspID:        &course.LspId,
+						UserLspID:    userLspId,
+						CourseID:     course.CourseID,
+						CourseType:   course.CourseType,
+						AddedBy:      string(addedString),
+						IsMandatory:  course.IsMandatory,
+						EndDate:      &endString,
+						CourseStatus: "open",
+						CreatedBy:    &id,
+						UpdatedBy:    &id,
+					}
+
+					inp := []*model.UserCourseInput{input}
+					_, err = AddUserCourse(ctx, inp)
+					if err != nil {
+						res = err
+						wg.Done()
+						return
+					}
+
+				}
+				ucMap := ucMaps[0]
+				added := AddedBy{}
+				err = json.Unmarshal([]byte(ucMap.AddedBy), &added)
+				if err != nil {
+					log.Printf("Got error while unmarshalling: %v", err)
+					wg.Done()
+					return
+				}
+
+				if added.Role == "self" {
+					//change role to cohort
+					added.Role = "cohort"
+					addedString, _ := json.Marshal(added)
+					ucMap.AddedBy = string(addedString)
+
+					//change the expected completion day to
+					ucMap.EndDate = int64(course.ExpectedCompletionDays)*24*60*60 + ucMap.EndDate
+
+					ucMap.UpdatedAt = time.Now().Unix()
+					ucMap.UpdatedBy = id
+					updatedCols := []string{"added_by", "end_date", "updated_at", "updated_by"}
+
+					upStms, uNames := userz.UserCourseTable.Update(updatedCols...)
+					updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&ucMap)
+					if err := updateQuery.ExecRelease(); err != nil {
+						log.Errorf("error updating courses: %v", err)
+						return
+					}
+
+				}
+			}(ccourse, uuser)
+		}
+	}
+	tmp := false
+	if res != nil {
+		return &tmp, res
+	}
+	tmp = true
+
+	return &tmp, nil
+}
+
+//lsp_id - array of user details, with roles,
+//filter optional - role
+//pagination
+//array of roles, iterate - check for roles
