@@ -70,7 +70,7 @@ func (sc *Client) UploadToGCS(ctx context.Context, fileName string) (*storage.Wr
 }
 
 func (sc *Client) GetSignedURLForObject(ctx context.Context, object string) string {
-	key := base64.StdEncoding.EncodeToString([]byte(object))
+	key := "signed_url_" + base64.StdEncoding.EncodeToString([]byte(object))
 	res, err := redis.GetRedisValue(ctx, key)
 	if err == nil && res != "" {
 		return res
