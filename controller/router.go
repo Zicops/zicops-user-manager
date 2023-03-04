@@ -53,17 +53,16 @@ func org(c *gin.Context) {
 	d := c.Request.Host
 	redisKey := fmt.Sprintf("org:%s", d)
 	res, err := redis.GetRedisValue(ctx, redisKey)
-	var outputInt model.Organization
+	var outputInt userz.Organization
 	if err == nil && res != "" {
 		json.Unmarshal([]byte(res), &outputInt)
 	} else {
-		tmp := sendOriginInfo(c.Request.Context(), d)
-		if tmp == nil {
+		outputInt, tmp := sendOriginInfo(c.Request.Context(), d, outputInt)
+		if outputInt == nil || outputInt.OrgID == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
 			return
 		}
-		outputInt = *tmp
-		redisBytes, err := json.Marshal(outputInt)
+		redisBytes, err := json.Marshal(tmp)
 		if err == nil {
 			redis.SetRedisValue(ctx, redisKey, string(redisBytes))
 		}
@@ -74,31 +73,33 @@ func org(c *gin.Context) {
 	})
 }
 
-func sendOriginInfo(ctx context.Context, domain string) *model.Organization {
+func sendOriginInfo(ctx context.Context, domain string, orgDetails userz.Organization) (*model.Organization, *userz.Organization) {
 	if domain == "demo.zicops.com" || domain == "https://demo.zicops.com" {
-		return nil
+		return nil, nil
 	}
-	session, err := global.CassPool.GetSession(ctx, "userz")
-	if err != nil {
-		log.Println("Got error while creating session ", err)
-	}
-	CassUserSession := session
-	queryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain='%s' ALLOW FILTERING`, domain)
-	getOrgs := func() (orgDomain []userz.Organization, err error) {
-		q := CassUserSession.Query(queryStr, nil)
-		defer q.Release()
-		iter := q.Iter()
-		return orgDomain, iter.Select(&orgDomain)
-	}
-	details, err := getOrgs()
-	orgDetails := details[0]
-	if err != nil {
-		return nil
+	if orgDetails.ID == "" {
+		session, err := global.CassPool.GetSession(ctx, "userz")
+		if err != nil {
+			log.Println("Got error while creating session ", err)
+		}
+		CassUserSession := session
+		queryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain='%s' ALLOW FILTERING`, domain)
+		getOrgs := func() (orgDomain []userz.Organization, err error) {
+			q := CassUserSession.Query(queryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return orgDomain, iter.Select(&orgDomain)
+		}
+		details, err := getOrgs()
+		orgDetails = details[0]
+		if err != nil {
+			return nil, nil
+		}
 	}
 	eCount, _ := strconv.Atoi(orgDetails.EmpCount)
 	storageC := bucket.NewStorageHandler()
 	projectID := googleprojectlib.GetGoogleProjectID()
-	err = storageC.InitializeStorageClient(ctx, projectID)
+	err := storageC.InitializeStorageClient(ctx, projectID)
 	if err != nil {
 		log.Error(err)
 	}
@@ -125,7 +126,7 @@ func sendOriginInfo(ctx context.Context, domain string) *model.Organization {
 		CreatedBy:     &orgDetails.CreatedBy,
 		UpdatedBy:     &orgDetails.UpdatedBy,
 	}
-	return res
+	return res, &orgDetails
 }
 
 type ResetPasswordRequest struct {
