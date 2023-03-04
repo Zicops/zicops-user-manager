@@ -17,17 +17,16 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/contracts/vendorz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/helpers"
 	"github.com/zicops/zicops-user-manager/lib/db/bucket"
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error) {
 	//create vendor, map it to lsp id, thats all
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
 		return nil, err
@@ -43,7 +42,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	email := claims["email"].(string)
 	createdAt := time.Now().Unix()
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +165,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 	if input.VendorID == nil {
 		return nil, errors.New("please pass vendor id")
 	}
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims from context: %v", err)
 		return nil, nil
@@ -174,7 +173,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 	email := claims["email"].(string)
 	v_id := *input.VendorID
 	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s'`, v_id)
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
 	}
@@ -331,7 +330,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 
 func MapVendorUser(ctx context.Context, vendorId string, users []string, creator string) ([]string, error) {
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
 	}
@@ -405,14 +404,14 @@ func ChangesStringType(input []*string) []string {
 }
 
 func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
 		return nil, err
 	}
 	createdBy := claims["email"].(string)
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session: %v", err)
 		return nil, err
@@ -561,14 +560,14 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 
 func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*model.ExperienceVendor, error) {
 
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
 		return nil, err
 	}
 	email_creator := claims["email"].(string)
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
 	}
@@ -649,12 +648,12 @@ func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role
 		l := "learner"
 		role = &l
 	}
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	//log.Println(claims["origin"].(string))
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -757,7 +756,7 @@ func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role
 }
 
 func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error getting claims from context: %v", err)
 		return nil, err
@@ -768,7 +767,7 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 	}
 	var res []*model.Vendor
 	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map WHERE lsp_id = '%s' ALLOW FILTERING`, lsp)
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
 	}
@@ -868,13 +867,13 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 }
 
 func GetVendorAdminsEmails(ctx context.Context, vendorID string) ([]string, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	var userIds []vendorz.VendorUserMap
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
 	}
@@ -916,13 +915,13 @@ func GetVendorAdminsEmails(ctx context.Context, vendorID string) ([]string, erro
 }
 
 func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	var userIds []vendorz.VendorUserMap
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
 	}
@@ -963,7 +962,7 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 				return
 			}
 
-			usersession, err := cassandra.GetCassSession("userz")
+			usersession, err := global.CassPool.GetSession(ctx, "userz")
 			if err != nil {
 				return
 			}
@@ -1031,11 +1030,11 @@ func IsEmailValid(e string) bool {
 }
 
 func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
 	}
@@ -1110,7 +1109,7 @@ func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, erro
 }
 
 func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendors, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting context: %v", err)
 		return nil, err
@@ -1122,7 +1121,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 	}
 	var newPage []byte
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
 	}
@@ -1241,13 +1240,13 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 }
 
 func GetVendorExperience(ctx context.Context, vendorID string, pfID string) ([]*model.ExperienceVendor, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
 		return nil, err
 	}
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Printf("Got error while creating session: %v", err)
 		return nil, err
@@ -1302,13 +1301,13 @@ func GetVendorExperience(ctx context.Context, vendorID string, pfID string) ([]*
 }
 
 func GetVendorExperienceDetails(ctx context.Context, vendorID string, pfID string, expID string) (*model.ExperienceVendor, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
 		return nil, err
 	}
 	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.experience WHERE vendor_id = '%s' AND pf_id = '%s' AND exp_id = '%s' ALLOW FILTERING`, vendorID, pfID, expID)
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session of vendor: %v", err)
 	}
@@ -1359,14 +1358,14 @@ func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 	if input.VendorID == nil || input.ExpID == nil {
 		return nil, errors.New("please pass all of the following fields, vendorId, email, expId")
 	}
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims : %v", err)
 		return nil, nil
 	}
 	updatedBy := claims["email"].(string)
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session: %v", err)
 		return nil, err
@@ -1471,7 +1470,7 @@ func UpdateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 }
 
 func ViewProfileVendorDetails(ctx context.Context, vendorID string, email string) (*model.VendorProfile, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
 		return nil, err
@@ -1479,7 +1478,7 @@ func ViewProfileVendorDetails(ctx context.Context, vendorID string, email string
 	email = strings.ToLower(email)
 	pfId := base64.URLEncoding.EncodeToString([]byte(email))
 	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE pf_id = '%s' AND vendor_id = '%s' ALLOW FILTERING`, pfId, vendorID)
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session of vendor: %v", err)
 	}
@@ -1561,7 +1560,7 @@ func ChangeToPointerArray(input []string) []*string {
 }
 
 func ViewAllProfiles(ctx context.Context, vendorID string, filter *string) ([]*model.VendorProfile, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
 		return nil, err
@@ -1572,7 +1571,7 @@ func ViewAllProfiles(ctx context.Context, vendorID string, filter *string) ([]*m
 	}
 	queryStr = queryStr + "ALLOW FILTERING"
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session of vendor: %v", err)
 	}
@@ -1654,7 +1653,7 @@ func ViewAllProfiles(ctx context.Context, vendorID string, filter *string) ([]*m
 }
 
 func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
 		return nil, err
@@ -1664,7 +1663,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	mail := strings.ToLower(input.Email)
 	pfId := base64.URLEncoding.EncodeToString([]byte(mail))
 	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE pf_id = '%s' AND vendor_id = '%s' ALLOW FILTERING`, pfId, input.VendorID)
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session of vendor: %v", err)
 	}
@@ -1826,7 +1825,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 }
 
 func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model.SampleFile, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error in getting claims: %v", err)
 	}
@@ -1834,7 +1833,7 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 	log.Println("Upload Sample File called")
 
 	res := model.SampleFile{}
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session of vendor: %v", err)
 	}
@@ -1913,7 +1912,7 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 }
 
 func GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*model.SampleFile, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims of the user: %v", err)
 		return nil, err
@@ -1921,7 +1920,7 @@ func GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*mode
 
 	var res []*model.SampleFile
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Printf("Got error while getting session: %v", err)
 		return nil, err
@@ -1979,13 +1978,13 @@ func GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*mode
 }
 
 func CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*model.Sme, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 	email := claims["email"].(string)
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Errorf("Error while getting session: %v", err)
 	}
@@ -2051,13 +2050,13 @@ func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 	if input.VendorID == "" || input.SmeID == nil {
 		log.Errorf("Please pass both vendor id and sme Id")
 	}
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 	email := claims["email"].(string)
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Errorf("Error while getting session: %v", err)
 	}
@@ -2154,12 +2153,12 @@ func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 }
 
 func GetSmeDetails(ctx context.Context, vendorID string) (*model.Sme, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Errorf("Error while getting session: %v", err)
 	}
@@ -2208,13 +2207,13 @@ func GetSmeDetails(ctx context.Context, vendorID string) (*model.Sme, error) {
 
 func CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model.Crt, error) {
 
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 	email := claims["email"].(string)
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Errorf("Error while getting session: %v", err)
 	}
@@ -2286,13 +2285,13 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		return nil, fmt.Errorf("please provide both vendorId and CrtId")
 	}
 
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 	email := claims["email"].(string)
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Errorf("Error while getting session: %v", err)
 	}
@@ -2393,12 +2392,12 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 }
 
 func GetClassRoomTraining(ctx context.Context, vendorID string) (*model.Crt, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Errorf("Error while getting session: %v", err)
 	}
@@ -2448,13 +2447,13 @@ func GetClassRoomTraining(ctx context.Context, vendorID string) (*model.Crt, err
 }
 
 func CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopmentInput) (*model.ContentDevelopment, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 	email := claims["email"].(string)
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Errorf("Error while getting session: %v", err)
 	}
@@ -2521,13 +2520,13 @@ func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		return nil, fmt.Errorf("please provide both vendorId and CrtId")
 	}
 
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 	email := claims["email"].(string)
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Errorf("Error while getting session: %v", err)
 	}
@@ -2621,12 +2620,12 @@ func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 }
 
 func GetContentDevelopment(ctx context.Context, vendorID string) (*model.ContentDevelopment, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Errorf("Error while getting session: %v", err)
 	}
@@ -2674,14 +2673,14 @@ func GetContentDevelopment(ctx context.Context, vendorID string) (*model.Content
 }
 
 func DeleteSampleFile(ctx context.Context, sfID string, vendorID string, pType string) (*bool, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 		return nil, err
 	}
 	val := false
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Errorf("Got error while getting session: %v", err)
 		return nil, err
@@ -2731,13 +2730,13 @@ func DeleteSampleFile(ctx context.Context, sfID string, vendorID string, pType s
 }
 
 func GetUserVendors(ctx context.Context, userID *string) ([]*model.Vendor, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 		return nil, err
 	}
 
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		log.Errorf("Got error while getting session: %v", err)
 		return nil, err
@@ -2833,12 +2832,12 @@ func GetUserVendors(ctx context.Context, userID *string) ([]*model.Vendor, error
 }
 
 func GetVendorServices(ctx context.Context, vendorID *string) ([]*string, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 		return nil, err
 	}
-	session, err := cassandra.GetCassSession("vendorz")
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
 	}

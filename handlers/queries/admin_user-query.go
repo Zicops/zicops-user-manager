@@ -11,17 +11,16 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/helpers"
 	"github.com/zicops/zicops-user-manager/lib/db/bucket"
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string, direction *string, pageSize *int, filters *model.UserFilters) (*model.PaginatedUsers, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +51,7 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 		userAdmin := userz.User{
 			ID: emailCreatorID,
 		}
-		session, err := cassandra.GetCassSession("userz")
+		session, err := global.CassPool.GetSession(ctx, "userz")
 		if err != nil {
 			return nil, err
 		}
@@ -180,13 +179,13 @@ func GetUsersForAdmin(ctx context.Context, publishTime *int, pageCursor *string,
 }
 
 func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	roleRaw := claims["role"].(string)
 	role := strings.ToLower(roleRaw)
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}

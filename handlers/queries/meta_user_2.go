@@ -14,16 +14,15 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/helpers"
 	"github.com/zicops/zicops-user-manager/lib/db/bucket"
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +56,7 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 	//	}
 	//}
 
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +137,7 @@ func GetLatestCohorts(ctx context.Context, userID *string, userLspID *string, pu
 }
 
 func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedCohorts, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +166,7 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 	} else {
 		pageSizeInt = *pageSize
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +241,7 @@ func GetCohortUsers(ctx context.Context, cohortID string, publishTime *int, page
 }
 
 func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +251,7 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 
 	cohortID := uuid.New().String()
 	email_creator := claims["email"].(string)
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -340,7 +339,7 @@ func AddCohortMain(ctx context.Context, input model.CohortMainInput) (*model.Coh
 }
 
 func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.CohortMain, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -352,7 +351,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 	if input.CohortID == nil {
 		return nil, fmt.Errorf("cohort id is required")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -477,7 +476,7 @@ func UpdateCohortMain(ctx context.Context, input model.CohortMainInput) (*model.
 }
 
 func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -491,7 +490,7 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 	var photoBucket string
 	var photoUrl string
 	if cohort.ID == "" {
-		session, err := cassandra.GetCassSession("userz")
+		session, err := global.CassPool.GetSession(ctx, "userz")
 		if err != nil {
 			return nil, err
 		}
@@ -545,7 +544,7 @@ func GetCohortDetails(ctx context.Context, cohortID string) (*model.CohortMain, 
 }
 
 func GetCohorts(ctx context.Context, cohortIds []*string) ([]*model.CohortMain, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -558,7 +557,7 @@ func GetCohorts(ctx context.Context, cohortIds []*string) ([]*model.CohortMain, 
 		wg.Add(1)
 		go func(k int, v string, lsp string) {
 
-			session, err := cassandra.GetCassSession("userz")
+			session, err := global.CassPool.GetSession(ctx, "userz")
 			if err != nil {
 				return
 			}
@@ -627,7 +626,7 @@ func GetCohorts(ctx context.Context, cohortIds []*string) ([]*model.CohortMain, 
 }
 
 func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) (*model.PaginatedCohortsMain, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -650,7 +649,7 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 	var newCursor string
 
 	if len(cohorts) <= 0 {
-		session, err := cassandra.GetCassSession("userz")
+		session, err := global.CassPool.GetSession(ctx, "userz")
 		if err != nil {
 			return nil, err
 		}
@@ -751,14 +750,14 @@ func GetCohortMains(ctx context.Context, lspID string, publishTime *int, pageCur
 }
 
 func DeleteCohortImage(ctx context.Context, cohortID string, filename string) (*string, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting the claims: %v", err)
 		return nil, err
 	}
 	lspId := claims["lsp_id"].(string)
 
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}

@@ -5,12 +5,13 @@ package identity
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
-	"github.com/zicops/zicops-user-manager/helpers"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
 
@@ -32,7 +33,7 @@ func NewIDPEP(ctx context.Context, projectID string) (*IDP, error) {
 		"https://www.googleapis.com/auth/cloud-platform",
 		"https://www.googleapis.com/auth/userinfo.email",
 	}
-	currentCreds, _, err := helpers.ReadCredentialsFile(ctx, serviceAccountSD, targetScopes)
+	currentCreds, _, err := ReadCredentialsFile(ctx, serviceAccountSD, targetScopes)
 	opt := option.WithCredentials(currentCreds)
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
@@ -318,4 +319,25 @@ func (id *IDP) VerifyUserToken(ctx context.Context, idToken string) (*auth.Token
 		return nil, err
 	}
 	return verificationOutput, nil
+}
+
+// ReadCredentialsFile .... simply to initialize GCP credentials
+func ReadCredentialsFile(ctx context.Context, filename string, scopes []string) (*google.Credentials, []byte, error) {
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, nil, err
+	}
+	creds, err := google.CredentialsFromJSON(ctx, b, scopes...)
+	if err != nil {
+		return nil, nil, err
+	}
+	return creds, b, nil
+}
+
+func GetClaimsFromContext(ctx context.Context) (map[string]interface{}, error) {
+	customClaims := ctx.Value("zclaims").(map[string]interface{})
+	if customClaims == nil {
+		return make(map[string]interface{}), fmt.Errorf("custom claims not found. Unauthorized user")
+	}
+	return customClaims, nil
 }

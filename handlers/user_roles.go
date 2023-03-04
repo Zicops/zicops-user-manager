@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
@@ -22,7 +22,7 @@ func AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.U
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create org mapping")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func UpdateUserRole(ctx context.Context, input model.UserRoleInput) (*model.User
 	userLspMap := userz.UserRole{
 		ID: *input.UserRoleID,
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ func UpdateUserRole(ctx context.Context, input model.UserRoleInput) (*model.User
 }
 
 func GetUserLspRoles(ctx context.Context, userID string, userLspIds []string) ([]*model.UserRole, error) {
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}

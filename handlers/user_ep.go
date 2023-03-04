@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
@@ -27,7 +27,7 @@ func AddUserExamProgress(ctx context.Context, input []*model.UserExamProgressInp
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create exams mapping")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func UpdateUserExamProgress(ctx context.Context, input model.UserExamProgressInp
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}

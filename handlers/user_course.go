@@ -15,9 +15,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/coursez"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/helpers"
+	"github.com/zicops/zicops-user-manager/lib/identity"
+	"github.com/zicops/zicops-user-manager/lib/stats"
 )
 
 type AddedBy struct {
@@ -30,7 +31,7 @@ func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*mode
 	if err != nil {
 		return nil, fmt.Errorf("user not found")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +117,7 @@ func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*mode
 		}
 		userLspMaps = append(userLspMaps, userLspOutput)
 		// create or update course consumption stats
-		go helpers.UpdateCCStats(ctx, CassUserSession, *input.LspID, userLspOutput.CourseID, userLspOutput.UserID, userLspOutput.CourseStatus, true, userLspMap.UpdatedAt-userLspMap.CreatedAt, *userLspOutput.EndDate)
+		go stats.UpdateCCStats(ctx, CassUserSession, *input.LspID, userLspOutput.CourseID, userLspOutput.UserID, userLspOutput.CourseStatus, true, userLspMap.UpdatedAt-userLspMap.CreatedAt, *userLspOutput.EndDate)
 
 	}
 	return userLspMaps, nil
@@ -141,7 +142,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 	if input.UserID == "" {
 		return nil, fmt.Errorf("user id is required")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +241,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 		UpdatedBy:    &userLspMap.UpdatedBy,
 	}
 	// create or update course consumption stats
-	go helpers.UpdateCCStats(ctx, CassUserSession, userLspMap.LspID, userLspOutput.CourseID, userLspOutput.UserID, userLspOutput.CourseStatus, false, userLspMap.UpdatedAt-userLspMap.CreatedAt, *userLspOutput.EndDate)
+	go stats.UpdateCCStats(ctx, CassUserSession, userLspMap.LspID, userLspOutput.CourseID, userLspOutput.UserID, userLspOutput.CourseStatus, false, userLspMap.UpdatedAt-userLspMap.CreatedAt, *userLspOutput.EndDate)
 	return userLspOutput, nil
 }
 
@@ -262,7 +263,7 @@ func checkStatusOfEachTopic(ctx context.Context, userId string, userCourseId str
 }
 
 func getUserCourseProgressByUserCourseID(ctx context.Context, userId string, userCourseID string) ([]*model.UserCourseProgress, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +273,7 @@ func getUserCourseProgressByUserCourseID(ctx context.Context, userId string, use
 		emailCreatorID = userId
 	}
 
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -325,7 +326,7 @@ func getUserCourseProgressByUserCourseID(ctx context.Context, userId string, use
 }
 
 func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string) (*bool, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 		return nil, err
@@ -333,7 +334,7 @@ func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string
 	email := claims["email"].(string)
 	id := base64.URLEncoding.EncodeToString([]byte(email))
 
-	session, err := cassandra.GetCassSession("coursez")
+	session, err := global.CassPool.GetSession(ctx, "coursez")
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +356,7 @@ func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string
 		return nil, nil
 	}
 
-	session, err = cassandra.GetCassSession("userz")
+	session, err = global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -450,28 +451,35 @@ func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string
 						return
 					}
 
-				}
-				ucMap := ucMaps[0]
-				added := AddedBy{}
-				err = json.Unmarshal([]byte(ucMap.AddedBy), &added)
-				if err != nil {
-					log.Printf("Got error while unmarshalling: %v", err)
-					wg.Done()
-					return
-				}
+				} else {
+					ucMap := ucMaps[0]
+					added := AddedBy{}
+					err = json.Unmarshal([]byte(ucMap.AddedBy), &added)
+					if err != nil {
+						log.Printf("Got error while unmarshalling: %v", err)
+						wg.Done()
+						return
+					}
 
-				if added.Role == "self" {
-					//change role to cohort
-					added.Role = "cohort"
-					addedString, _ := json.Marshal(added)
-					ucMap.AddedBy = string(addedString)
+					var updatedCols []string
+					if added.Role == "self" {
+						//change role to cohort
+						added.Role = "cohort"
+						addedString, _ := json.Marshal(added)
+						ucMap.AddedBy = string(addedString)
 
-					//change the expected completion day to
-					ucMap.EndDate = int64(course.ExpectedCompletionDays)*24*60*60 + ucMap.EndDate
+						//change the expected completion day to
+						ucMap.EndDate = int64(course.ExpectedCompletionDays)*24*60*60 + ucMap.EndDate
 
-					ucMap.UpdatedAt = time.Now().Unix()
-					ucMap.UpdatedBy = id
-					updatedCols := []string{"added_by", "end_date", "updated_at", "updated_by"}
+						ucMap.UpdatedAt = time.Now().Unix()
+						ucMap.UpdatedBy = id
+						updatedCols = []string{"added_by", "end_date", "updated_at", "updated_by"}
+
+					}
+					if ucMap.CourseStatus == "disable" {
+						ucMap.CourseStatus = "open"
+						updatedCols = append(updatedCols, "course_status")
+					}
 
 					upStms, uNames := userz.UserCourseTable.Update(updatedCols...)
 					updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&ucMap)
@@ -479,11 +487,13 @@ func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string
 						log.Errorf("error updating courses: %v", err)
 						return
 					}
-
 				}
+				wg.Done()
+
 			}(ccourse, uuser)
 		}
 	}
+	wg.Wait()
 	tmp := false
 	if res != nil {
 		return &tmp, res

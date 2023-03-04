@@ -11,16 +11,15 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 	"github.com/zicops/zicops-user-manager/handlers/orgs"
-	"github.com/zicops/zicops-user-manager/helpers"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 func GetUserOrganizations(ctx context.Context, userId string) ([]*model.UserOrganizationMap, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +38,7 @@ func GetUserOrganizations(ctx context.Context, userId string) ([]*model.UserOrga
 	//	}
 	//}
 
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +84,7 @@ func GetUserOrganizations(ctx context.Context, userId string) ([]*model.UserOrga
 }
 
 func GetUserPreferences(ctx context.Context, userId string) ([]*model.UserPreference, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +102,7 @@ func GetUserPreferences(ctx context.Context, userId string) ([]*model.UserPrefer
 	//		return userPreferences, nil
 	//	}
 	//}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +147,7 @@ func GetUserPreferences(ctx context.Context, userId string) ([]*model.UserPrefer
 }
 
 func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error) {
-	claims, err := helpers.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +166,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 			return userOrgs, nil
 		}
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +257,7 @@ func GetUserLsps(ctx context.Context, userId string) ([]*model.UserLspMap, error
 }
 
 func GetUserLspMapsByLspIDOne(ctx context.Context, lspID string, userID string) (model.UserLspMap, error) {
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	var userLspMap model.UserLspMap
 	if err != nil {
 		return userLspMap, err
@@ -304,12 +303,12 @@ func GetUserLspMapsByLspIDOne(ctx context.Context, lspID string, userID string) 
 
 // filter - admin, learner
 func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserLspMaps, error) {
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
 	CassUserSession := session
-	_, err = helpers.GetClaimsFromContext(ctx)
+	_, err = identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -381,7 +380,7 @@ func GetUserLspMapsByLspID(ctx context.Context, lspID string, pageCursor *string
 }
 
 func GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model.UserOrganizationMap, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -395,7 +394,7 @@ func GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model
 	//	}
 	//}
 
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -445,7 +444,7 @@ func GetUserOrgDetails(ctx context.Context, userID string, lspID string) (*model
 }
 
 func GetUserPreferenceForLsp(ctx context.Context, userID string, lspID string) (*model.UserPreference, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -459,7 +458,7 @@ func GetUserPreferenceForLsp(ctx context.Context, userID string, lspID string) (
 		}
 	}
 
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -507,7 +506,7 @@ func GetUserPreferenceForLsp(ctx context.Context, userID string, lspID string) (
 }
 
 func GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model.UserLspMap, error) {
-	_, err := helpers.GetClaimsFromContext(ctx)
+	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -521,7 +520,7 @@ func GetUserLspByLspID(ctx context.Context, userID string, lspID string) (*model
 	//	}
 	//}
 
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}

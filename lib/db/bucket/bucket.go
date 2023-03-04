@@ -10,7 +10,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/constants"
-	"github.com/zicops/zicops-user-manager/helpers"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 	"google.golang.org/api/option"
 )
 
@@ -36,7 +36,7 @@ func (sc *Client) InitializeStorageClient(ctx context.Context, projectID string)
 		"https://www.googleapis.com/auth/cloud-platform",
 		"https://www.googleapis.com/auth/userinfo.email",
 	}
-	currentCreds, _, err := helpers.ReadCredentialsFile(ctx, serviceAccountZicops, targetScopes)
+	currentCreds, _, err := identity.ReadCredentialsFile(ctx, serviceAccountZicops, targetScopes)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (sc *Client) UploadToGCS(ctx context.Context, fileName string) (*storage.Wr
 }
 
 func (sc *Client) GetSignedURLForObject(ctx context.Context, object string) string {
-	key := base64.StdEncoding.EncodeToString([]byte(object))
+	key := "signed_url_" + base64.StdEncoding.EncodeToString([]byte(object))
 	res, err := redis.GetRedisValue(ctx, key)
 	if err == nil && res != "" {
 		return res

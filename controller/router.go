@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -49,38 +49,56 @@ func CCRouter(restRouter *gin.Engine) (*gin.Engine, error) {
 }
 
 func org(c *gin.Context) {
+	ctx := c.Request.Context()
 	d := c.Request.Host
-	res := sendOriginInfo(c.Request.Context(), d)
+	redisKey := fmt.Sprintf("org:%s", d)
+	res, err := redis.GetRedisValue(ctx, redisKey)
+	var outputInt userz.Organization
+	if err == nil && res != "" {
+		json.Unmarshal([]byte(res), &outputInt)
+	}
+	modelUser, tmp := sendOriginInfo(c.Request.Context(), d, outputInt)
+	if modelUser == nil || modelUser.OrgID == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
+		return
+	}
+	redisBytes, err := json.Marshal(tmp)
+	if err == nil {
+		redis.SetRedisValue(ctx, redisKey, string(redisBytes))
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"data": res,
+		"data": modelUser,
 	})
 }
 
-func sendOriginInfo(ctx context.Context, domain string) *model.Organization {
+func sendOriginInfo(ctx context.Context, domain string, orgDetails userz.Organization) (*model.Organization, *userz.Organization) {
 	if domain == "demo.zicops.com" || domain == "https://demo.zicops.com" {
-		return nil
+		return nil, nil
 	}
-	session, err := cassandra.GetCassSession("userz")
-	if err != nil {
-		log.Println("Got error while creating session ", err)
-	}
-	CassUserSession := session
-	queryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain='%s' ALLOW FILTERING`, domain)
-	getOrgs := func() (orgDomain []userz.Organization, err error) {
-		q := CassUserSession.Query(queryStr, nil)
-		defer q.Release()
-		iter := q.Iter()
-		return orgDomain, iter.Select(&orgDomain)
-	}
-	details, err := getOrgs()
-	orgDetails := details[0]
-	if err != nil {
-		return nil
+	if orgDetails.ID == "" {
+		session, err := global.CassPool.GetSession(ctx, "userz")
+		if err != nil {
+			log.Println("Got error while creating session ", err)
+		}
+		CassUserSession := session
+		queryStr := fmt.Sprintf(`SELECT * from userz.organization where zicops_subdomain='%s' ALLOW FILTERING`, domain)
+		getOrgs := func() (orgDomain []userz.Organization, err error) {
+			q := CassUserSession.Query(queryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return orgDomain, iter.Select(&orgDomain)
+		}
+		details, err := getOrgs()
+		orgDetails = details[0]
+		if err != nil {
+			return nil, nil
+		}
 	}
 	eCount, _ := strconv.Atoi(orgDetails.EmpCount)
 	storageC := bucket.NewStorageHandler()
 	projectID := googleprojectlib.GetGoogleProjectID()
-	err = storageC.InitializeStorageClient(ctx, projectID)
+	err := storageC.InitializeStorageClient(ctx, projectID)
 	if err != nil {
 		log.Error(err)
 	}
@@ -107,7 +125,7 @@ func sendOriginInfo(ctx context.Context, domain string) *model.Organization {
 		CreatedBy:     &orgDetails.CreatedBy,
 		UpdatedBy:     &orgDetails.UpdatedBy,
 	}
-	return res
+	return res, &orgDetails
 }
 
 type ResetPasswordRequest struct {

@@ -10,8 +10,8 @@ import (
 	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
-	"github.com/zicops/zicops-cass-pool/cassandra"
 	"github.com/zicops/zicops-cass-pool/redis"
+	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
 )
 
@@ -28,7 +28,7 @@ func AddUserLanguageMap(ctx context.Context, input []*model.UserLanguageMapInput
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create lang mapping")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func AddUserPreference(ctx context.Context, input []*model.UserPreferenceInput) 
 	if !isAllowed {
 		return nil, fmt.Errorf("user not allowed to create lang mapping")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func UpdateUserPreference(ctx context.Context, input model.UserPreferenceInput) 
 	if input.UserPreferenceID == nil {
 		return nil, fmt.Errorf("user preference id is required")
 	}
-	session, err := cassandra.GetCassSession("userz")
+	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
