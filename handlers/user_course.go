@@ -379,6 +379,7 @@ func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string
 
 			wg.Add(1)
 			go func(course coursez.CourseCohortMapping, userId string) {
+				defer wg.Done()
 				//if map does not exist, or added by role is self, then call course_
 				queryStr := fmt.Sprintf(`SELECT * FROM userz.user_course_map WHERE user_id='%s' AND course_id='%s' ALLOW FILTERING`, userId, course.CourseID)
 				getUserCourseMap := func() (maps []userz.UserCourse, err error) {
@@ -391,7 +392,6 @@ func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string
 				if err != nil {
 					log.Println("Got error while getting user course map: ", err.Error())
 					res = err
-					wg.Done()
 					return
 				}
 				if len(ucMaps) == 0 {
@@ -407,12 +407,10 @@ func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string
 					usersOrgs, err := getUsersOrgs()
 					if err != nil {
 						res = err
-						wg.Done()
 						return
 					}
 					if len(usersOrgs) == 0 {
 						res = errors.New("no user lsp map found")
-						wg.Done()
 						return
 					}
 					userLspId := usersOrgs[0].ID
@@ -424,7 +422,6 @@ func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string
 					addedString, err := json.Marshal(added)
 					if err != nil {
 						res = err
-						wg.Done()
 						return
 					}
 					end := int64(course.ExpectedCompletionDays) * 24 * 60 * 60
@@ -447,7 +444,6 @@ func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string
 					_, err = AddUserCourse(ctx, inp)
 					if err != nil {
 						res = err
-						wg.Done()
 						return
 					}
 
@@ -457,7 +453,6 @@ func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string
 					err = json.Unmarshal([]byte(ucMap.AddedBy), &added)
 					if err != nil {
 						log.Printf("Got error while unmarshalling: %v", err)
-						wg.Done()
 						return
 					}
 
@@ -488,7 +483,6 @@ func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string
 						return
 					}
 				}
-				wg.Done()
 
 			}(ccourse, uuser)
 		}
@@ -502,8 +496,3 @@ func AddUserCohortCourses(ctx context.Context, userIds []string, cohortID string
 
 	return &tmp, nil
 }
-
-//lsp_id - array of user details, with roles,
-//filter optional - role
-//pagination
-//array of roles, iterate - check for roles

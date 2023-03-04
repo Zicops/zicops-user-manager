@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,6 +12,9 @@ import (
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/lib/db/bucket"
+	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 func AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.UserRole, error) {
@@ -191,4 +195,142 @@ func GetUserLspRoles(ctx context.Context, userID string, userLspIds []string) ([
 		}
 	}
 	return userLspMaps, nil
+}
+
+func GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*model.UserDetailsRole, error) {
+	_, err := identity.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error while getting context: %v", err)
+		return nil, err
+	}
+	var res []*model.UserDetailsRole
+	session, err := global.CassPool.GetSession(ctx, "userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+	queryStr := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE lsp_id = '%s' ALLOW FILTERING`, lspID)
+	getLspUsers := func() (maps []userz.UserLsp, err error) {
+		q := CassUserSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return maps, iter.Select(&maps)
+	}
+	userLspMaps, err := getLspUsers()
+	if err != nil {
+		log.Printf("Got error getting users of a lsp: %v", err)
+		return nil, err
+	}
+	if len(userLspMaps) == 0 {
+		return nil, nil
+	}
+
+	var wg sync.WaitGroup
+	for _, vvv := range userLspMaps {
+		vv := vvv
+		wg.Add(1)
+		go func(v userz.UserLsp) {
+			defer wg.Done()
+
+			//got all roles information for a user, with filter of a role
+			qryStr := fmt.Sprintf(`SELECT * FROM userz.user_role WHERE user_id='%s' AND user_lsp_id='%s' `, v.UserID, v.ID)
+			if role != nil {
+				qryStr = qryStr + " and role in ("
+				for _, r := range role {
+					qryStr = qryStr + fmt.Sprintf(`'%s', `, *r)
+				}
+				//remove the extra comma and space which we have, plus add the bracket
+				qryStr = qryStr[:len(qryStr)-2] + ")"
+			}
+
+			qryStr = qryStr + " ALLOW FILTERING"
+			getUserRoles := func() (roles []userz.UserRole, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return roles, iter.Select(&roles)
+			}
+			userRoles, err := getUserRoles()
+			if err != nil {
+				return
+			}
+			if len(userRoles) == 0 {
+				return
+			}
+
+			//got user data
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				log.Errorf("Failed to upload image to course: %v", err.Error())
+				return
+			}
+
+			qryStr = fmt.Sprintf(`SELECT * FROM userz.users WHERE id='%s' ALLOW FILTERING`, v.UserID)
+			getUsers := func() (users []userz.User, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return users, iter.Select(&users)
+			}
+			users, err := getUsers()
+			if err != nil {
+				return
+			}
+			if len(users) == 0 {
+				return
+			}
+			user := users[0]
+
+			ca := strconv.Itoa(int(user.CreatedAt))
+			ua := strconv.Itoa(int(user.UpdatedAt))
+			photoUrl := ""
+			if user.PhotoBucket != "" {
+				photoUrl = storageC.GetSignedURLForObject(ctx, user.PhotoBucket)
+			} else {
+				photoUrl = user.PhotoURL
+			}
+			fireBaseUser, err := global.IDP.GetUserByEmail(ctx, user.Email)
+			if err != nil {
+				log.Errorf("Failed to get user from firebase: %v", err.Error())
+				return
+			}
+			phone := ""
+			if fireBaseUser != nil {
+				phone = fireBaseUser.PhoneNumber
+			}
+			userData := model.User{
+				ID:         &user.ID,
+				FirstName:  user.FirstName,
+				LastName:   user.LastName,
+				Status:     user.Status,
+				Role:       user.Role,
+				IsVerified: user.IsVerified,
+				IsActive:   user.IsActive,
+				Gender:     user.Gender,
+				CreatedBy:  &user.CreatedBy,
+				UpdatedBy:  &user.UpdatedBy,
+				CreatedAt:  ca,
+				UpdatedAt:  ua,
+				Phone:      phone,
+				PhotoURL:   &photoUrl,
+			}
+
+			for _, vv := range userRoles {
+				v := vv
+				data := model.UserDetailsRole{
+					User: &userData,
+					Role: &v.Role,
+				}
+
+				res = append(res, &data)
+			}
+
+			wg.Done()
+		}(vv)
+
+	}
+	wg.Wait()
+	return res, nil
 }

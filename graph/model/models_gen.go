@@ -545,6 +545,11 @@ type UserCourseProgressInput struct {
 	UpdatedBy     *string `json:"updated_by"`
 }
 
+type UserDetailsRole struct {
+	User *User   `json:"user"`
+	Role *string `json:"role"`
+}
+
 type UserExamAttempts struct {
 	UserEaID         *string `json:"user_ea_id"`
 	UserID           string  `json:"user_id"`

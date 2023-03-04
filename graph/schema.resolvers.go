@@ -1090,6 +1090,16 @@ func (r *queryResolver) GetVendorServices(ctx context.Context, vendorID *string)
 	return res, nil
 }
 
+// GetLspUsersRoles is the resolver for the getLspUsersRoles field.
+func (r *queryResolver) GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*model.UserDetailsRole, error) {
+	res, err := handlers.GetLspUsersRoles(ctx, lspID, role)
+	if err != nil {
+		log.Printf("error getting user details with roles: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

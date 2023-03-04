@@ -336,6 +336,7 @@ type ComplexityRoot struct {
 		GetLearningSpaceDetails        func(childComplexity int, lspIds []*string) int
 		GetLearningSpacesByOrgID       func(childComplexity int, orgID string) int
 		GetLearningSpacesByOuID        func(childComplexity int, ouID string, orgID string) int
+		GetLspUsersRoles               func(childComplexity int, lspID string, role []*string) int
 		GetOrganizationUnits           func(childComplexity int, ouIds []*string) int
 		GetOrganizations               func(childComplexity int, orgIds []*string) int
 		GetOrganizationsByName         func(childComplexity int, name *string, prevPageSnapShot string, pageSize int) int
@@ -493,6 +494,11 @@ type ComplexityRoot struct {
 		UserCpID      func(childComplexity int) int
 		UserID        func(childComplexity int) int
 		VideoProgress func(childComplexity int) int
+	}
+
+	UserDetailsRole struct {
+		Role func(childComplexity int) int
+		User func(childComplexity int) int
 	}
 
 	UserExamAttempts struct {
@@ -806,6 +812,7 @@ type QueryResolver interface {
 	GetContentDevelopment(ctx context.Context, vendorID string) (*model.ContentDevelopment, error)
 	GetUserVendor(ctx context.Context, userID *string) ([]*model.Vendor, error)
 	GetVendorServices(ctx context.Context, vendorID *string) ([]*string, error)
+	GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*model.UserDetailsRole, error)
 }
 
 type executableSchema struct {
@@ -2761,6 +2768,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetLearningSpacesByOuID(childComplexity, args["ou_id"].(string), args["org_id"].(string)), true
 
+	case "Query.getLspUsersRoles":
+		if e.complexity.Query.GetLspUsersRoles == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getLspUsersRoles_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetLspUsersRoles(childComplexity, args["lsp_id"].(string), args["role"].([]*string)), true
+
 	case "Query.getOrganizationUnits":
 		if e.complexity.Query.GetOrganizationUnits == nil {
 			break
@@ -3881,6 +3900,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserCourseProgress.VideoProgress(childComplexity), true
+
+	case "UserDetailsRole.role":
+		if e.complexity.UserDetailsRole.Role == nil {
+			break
+		}
+
+		return e.complexity.UserDetailsRole.Role(childComplexity), true
+
+	case "UserDetailsRole.user":
+		if e.complexity.UserDetailsRole.User == nil {
+			break
+		}
+
+		return e.complexity.UserDetailsRole.User(childComplexity), true
 
 	case "UserExamAttempts.attempt_duration":
 		if e.complexity.UserExamAttempts.AttemptDuration == nil {
@@ -6042,6 +6075,11 @@ input ExamAttemptsFilters {
   attempt_status: String
 }
 
+type UserDetailsRole {
+  user: User
+  role: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -6177,6 +6215,7 @@ type Query {
   getContentDevelopment(vendor_id: String!): ContentDevelopment
   getUserVendor(user_id: String): [Vendor]
   getVendorServices(vendor_id: String): [String]
+  getLspUsersRoles(lsp_id: String!, role: [String]): [UserDetailsRole] 
 }
 
 type Mutation {
@@ -7511,6 +7550,30 @@ func (ec *executionContext) field_Query_getLearningSpacesByOuId_args(ctx context
 		}
 	}
 	args["org_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getLspUsersRoles_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lsp_id"] = arg0
+	var arg1 []*string
+	if tmp, ok := rawArgs["role"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+		arg1, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["role"] = arg1
 	return args, nil
 }
 
@@ -23787,6 +23850,64 @@ func (ec *executionContext) fieldContext_Query_getVendorServices(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getLspUsersRoles(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getLspUsersRoles(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetLspUsersRoles(rctx, fc.Args["lsp_id"].(string), fc.Args["role"].([]*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.UserDetailsRole)
+	fc.Result = res
+	return ec.marshalOUserDetailsRole2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserDetailsRole(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getLspUsersRoles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "user":
+				return ec.fieldContext_UserDetailsRole_user(ctx, field)
+			case "role":
+				return ec.fieldContext_UserDetailsRole_role(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserDetailsRole", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getLspUsersRoles_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -27919,6 +28040,120 @@ func (ec *executionContext) _UserCourseProgress_updated_at(ctx context.Context, 
 func (ec *executionContext) fieldContext_UserCourseProgress_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UserCourseProgress",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserDetailsRole_user(ctx context.Context, field graphql.CollectedField, obj *model.UserDetailsRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserDetailsRole_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserDetailsRole_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserDetailsRole",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "first_name":
+				return ec.fieldContext_User_first_name(ctx, field)
+			case "last_name":
+				return ec.fieldContext_User_last_name(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			case "role":
+				return ec.fieldContext_User_role(ctx, field)
+			case "is_verified":
+				return ec.fieldContext_User_is_verified(ctx, field)
+			case "is_active":
+				return ec.fieldContext_User_is_active(ctx, field)
+			case "gender":
+				return ec.fieldContext_User_gender(ctx, field)
+			case "created_by":
+				return ec.fieldContext_User_created_by(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_User_updated_by(ctx, field)
+			case "created_at":
+				return ec.fieldContext_User_created_at(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_User_updated_at(ctx, field)
+			case "email":
+				return ec.fieldContext_User_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_User_phone(ctx, field)
+			case "photo_url":
+				return ec.fieldContext_User_photo_url(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserDetailsRole_role(ctx context.Context, field graphql.CollectedField, obj *model.UserDetailsRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserDetailsRole_role(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserDetailsRole_role(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserDetailsRole",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -42219,6 +42454,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getLspUsersRoles":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getLspUsersRoles(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -42922,6 +43177,35 @@ func (ec *executionContext) _UserCourseProgress(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userDetailsRoleImplementors = []string{"UserDetailsRole"}
+
+func (ec *executionContext) _UserDetailsRole(ctx context.Context, sel ast.SelectionSet, obj *model.UserDetailsRole) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userDetailsRoleImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserDetailsRole")
+		case "user":
+
+			out.Values[i] = ec._UserDetailsRole_user(ctx, field, obj)
+
+		case "role":
+
+			out.Values[i] = ec._UserDetailsRole_role(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -46297,6 +46581,54 @@ func (ec *executionContext) unmarshalOUserCourseProgressInput2ᚖgithubᚗcomᚋ
 	}
 	res, err := ec.unmarshalInputUserCourseProgressInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUserDetailsRole2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserDetailsRole(ctx context.Context, sel ast.SelectionSet, v []*model.UserDetailsRole) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUserDetailsRole2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserDetailsRole(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOUserDetailsRole2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserDetailsRole(ctx context.Context, sel ast.SelectionSet, v *model.UserDetailsRole) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UserDetailsRole(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOUserExamAttempts2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserExamAttempts(ctx context.Context, sel ast.SelectionSet, v []*model.UserExamAttempts) graphql.Marshaler {

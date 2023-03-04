@@ -932,6 +932,11 @@ input ExamAttemptsFilters {
   attempt_status: String
 }
 
+type UserDetailsRole {
+  user: User
+  role: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -1067,6 +1072,7 @@ type Query {
   getContentDevelopment(vendor_id: String!): ContentDevelopment
   getUserVendor(user_id: String): [Vendor]
   getVendorServices(vendor_id: String): [String]
+  getLspUsersRoles(lsp_id: String!, role: [String]): [UserDetailsRole] 
 }
 
 type Mutation {
