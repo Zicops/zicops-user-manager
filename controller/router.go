@@ -56,20 +56,19 @@ func org(c *gin.Context) {
 	var outputInt userz.Organization
 	if err == nil && res != "" {
 		json.Unmarshal([]byte(res), &outputInt)
-	} else {
-		outputInt, tmp := sendOriginInfo(c.Request.Context(), d, outputInt)
-		if outputInt == nil || outputInt.OrgID == nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
-			return
-		}
-		redisBytes, err := json.Marshal(tmp)
-		if err == nil {
-			redis.SetRedisValue(ctx, redisKey, string(redisBytes))
-		}
+	}
+	modelUser, tmp := sendOriginInfo(c.Request.Context(), d, outputInt)
+	if modelUser == nil || modelUser.OrgID == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
+		return
+	}
+	redisBytes, err := json.Marshal(tmp)
+	if err == nil {
+		redis.SetRedisValue(ctx, redisKey, string(redisBytes))
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": outputInt,
+		"data": modelUser,
 	})
 }
 
