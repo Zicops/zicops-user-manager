@@ -14,6 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
+	"github.com/zicops/zicops-cass-pool/redis"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -48,10 +49,28 @@ func CCRouter(restRouter *gin.Engine) (*gin.Engine, error) {
 }
 
 func org(c *gin.Context) {
+	ctx := c.Request.Context()
 	d := c.Request.Host
-	res := sendOriginInfo(c.Request.Context(), d)
+	redisKey := fmt.Sprintf("org:%s", d)
+	res, err := redis.GetRedisValue(ctx, redisKey)
+	var outputInt model.Organization
+	if err == nil && res != "" {
+		json.Unmarshal([]byte(res), &outputInt)
+	} else {
+		tmp := sendOriginInfo(c.Request.Context(), d)
+		if tmp == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Not found"})
+			return
+		}
+		outputInt = *tmp
+		redisBytes, err := json.Marshal(outputInt)
+		if err == nil {
+			redis.SetRedisValue(ctx, redisKey, string(redisBytes))
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"data": res,
+		"data": outputInt,
 	})
 }
 
