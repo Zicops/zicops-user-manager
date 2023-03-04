@@ -327,7 +327,6 @@ func GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*mod
 				res = append(res, &data)
 			}
 
-			wg.Done()
 		}(vv)
 
 	}
