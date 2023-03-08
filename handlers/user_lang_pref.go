@@ -36,6 +36,9 @@ func AddUserLanguageMap(ctx context.Context, input []*model.UserLanguageMapInput
 
 	userLspMaps := make([]*model.UserLanguageMap, 0)
 	for _, input := range input {
+		if input == nil {
+			continue
+		}
 		queryStr := fmt.Sprintf(`SELECT * FROM userz.user_lang_map WHERE user_id='%s' AND user_lsp_id='%s' AND language='%s' ALLOW FILTERING`, input.UserID, input.UserLspID, input.Language)
 		getUserLang := func() (maps []userz.UserLang, err error) {
 			q := CassUserSession.Query(queryStr, nil)
@@ -117,6 +120,9 @@ func AddUserPreference(ctx context.Context, input []*model.UserPreferenceInput) 
 	userLspMaps := make([]*model.UserPreference, 0)
 	for _, input := range input {
 
+		if input == nil {
+			continue
+		}
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {

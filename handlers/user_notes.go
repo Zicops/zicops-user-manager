@@ -36,6 +36,9 @@ func AddUserNotes(ctx context.Context, input []*model.UserNotesInput) ([]*model.
 	userLspMaps := make([]*model.UserNotes, 0)
 	for _, input := range input {
 
+		if input == nil {
+			continue
+		}
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {

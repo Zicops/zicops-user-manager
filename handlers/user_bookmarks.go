@@ -35,7 +35,9 @@ func AddUserBookmark(ctx context.Context, input []*model.UserBookmarkInput) ([]*
 	}
 	userLspMaps := make([]*model.UserBookmark, 0)
 	for _, input := range input {
-
+		if input == nil {
+			continue
+		}
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {

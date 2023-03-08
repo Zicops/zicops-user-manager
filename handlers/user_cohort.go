@@ -36,6 +36,9 @@ func AddUserCohort(ctx context.Context, input []*model.UserCohortInput) ([]*mode
 	userLspMaps := make([]*model.UserCohort, 0)
 	for _, input := range input {
 
+		if input == nil {
+			continue
+		}
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {

@@ -285,6 +285,9 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 	}
 	var adminNames []*string
 	for _, v := range admins {
+		if v == nil {
+			continue
+		}
 		tmp := v.Email
 		adminNames = append(adminNames, &tmp)
 	}
@@ -397,6 +400,9 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 func ChangesStringType(input []*string) []string {
 	var res []string
 	for _, vv := range input {
+		if vv == nil {
+			continue
+		}
 		v := vv
 		res = append(res, *v)
 	}

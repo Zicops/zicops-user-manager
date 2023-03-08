@@ -72,6 +72,9 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 	}
 	lspToAdd := orgs[0]
 	for _, user := range input {
+		if user == nil {
+			continue
+		}
 		emailLower := strings.ToLower(user.Email)
 		userID := base64.URLEncoding.EncodeToString([]byte(emailLower))
 		if user.Photo != nil && user.PhotoURL == nil {
@@ -166,6 +169,9 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 		}
 		shouldSendEmail := false
 		for _, usrLsp := range usrLspMap {
+			if usrLsp == nil {
+				continue
+			}
 			if usrLsp.Status == "" {
 				shouldSendEmail = true
 			}

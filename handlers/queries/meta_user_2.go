@@ -553,6 +553,9 @@ func GetCohorts(ctx context.Context, cohortIds []*string) ([]*model.CohortMain, 
 	res := make([]*model.CohortMain, len(cohortIds))
 	var wg sync.WaitGroup
 	for kk, vvv := range cohortIds {
+		if vvv == nil {
+			continue
+		}
 		vv := *vvv
 		wg.Add(1)
 		go func(k int, v string, lsp string) {

@@ -193,6 +193,9 @@ func GetUserDetails(ctx context.Context, userIds []*string) ([]*model.User, erro
 	outputResponse := make([]*model.User, len(userIds))
 	var wg sync.WaitGroup
 	for ii, id := range userIds {
+		if id == nil {
+			continue
+		}
 		copiedID := *id
 		wg.Add(1)
 		go func(i int, copyID string) {

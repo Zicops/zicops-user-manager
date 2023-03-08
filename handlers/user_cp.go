@@ -38,6 +38,9 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 	}
 	userLspMaps := make([]*model.UserCourseProgress, 0)
 	for _, v := range input {
+		if v == nil {
+			continue
+		}
 		input := *v
 		createdBy := userCass.Email
 		updatedBy := userCass.Email

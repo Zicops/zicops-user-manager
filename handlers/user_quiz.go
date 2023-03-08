@@ -36,6 +36,9 @@ func AddUserQuizAttempt(ctx context.Context, input []*model.UserQuizAttemptInput
 	userLspMaps := make([]*model.UserQuizAttempt, 0)
 	for _, input := range input {
 
+		if input == nil {
+			continue
+		}
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {

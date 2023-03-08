@@ -50,6 +50,9 @@ func AddUserCourse(ctx context.Context, input []*model.UserCourseInput) ([]*mode
 	userLspMaps := make([]*model.UserCourse, 0)
 	for _, input := range input {
 
+		if input == nil {
+			continue
+		}
 		queryStr := fmt.Sprintf(`SELECT * FROM user_course_map WHERE user_id='%s' AND course_id='%s' AND user_lsp_id='%s' ALLOW FILTERING`, input.UserID, input.CourseID, input.UserLspID)
 		getUserCourseMap := func() (maps []userz.UserCourse, err error) {
 			q := CassUserSession.Query(queryStr, nil)
@@ -254,6 +257,9 @@ func checkStatusOfEachTopic(ctx context.Context, userId string, userCourseId str
 
 	for _, vv := range userCP {
 		v := vv
+		if v == nil {
+			continue
+		}
 		res := *v
 		if res.Status != "completed" {
 			return false

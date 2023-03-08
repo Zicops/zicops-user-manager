@@ -257,6 +257,9 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 	if !filteringRequired && input.CourseStatus != nil && len(input.CourseStatus) > 0 {
 		statsStatus = make([]*model.Count, len(input.CourseStatus))
 		for i, s := range input.CourseStatus {
+			if s == nil {
+				continue
+			}
 			wg.Add(1)
 			ss := *s
 			tt := whereClause
@@ -290,6 +293,9 @@ func GetUserCourseMapStats(ctx context.Context, input model.UserCourseMapStatsIn
 	if !filteringRequired && input.CourseType != nil && len(input.CourseType) > 0 {
 		statsType = make([]*model.Count, len(input.CourseType))
 		for i, s := range input.CourseType {
+			if s == nil {
+				continue
+			}
 			wg.Add(1)
 			tt := whereClause
 			ss := *s

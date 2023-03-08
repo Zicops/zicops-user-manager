@@ -337,6 +337,9 @@ func GetUserExamAttemptsByExamIds(ctx context.Context, userID string, examIds []
 	}
 	CassUserSession := session
 	for _, vv := range examIds {
+		if vv == nil {
+			continue
+		}
 		v := *vv
 		queryStr := fmt.Sprintf(`SELECT * FROM userz.user_exam_attempts where user_id='%s' AND exam_id='%s'`, userID, v)
 		if filters.AttemptStatus != nil {
@@ -419,6 +422,9 @@ func GetUserExamResults(ctx context.Context, userEaDetails []*model.UserExamResu
 	CassUserSession := session
 	userOrgs := make([]*model.UserExamResultInfo, 0)
 	for _, userEacopiedEADetail := range userEaDetails {
+		if userEacopiedEADetail == nil {
+			continue
+		}
 		userEaDetail := userEacopiedEADetail
 		userID := userEaDetail.UserID
 		userEaID := userEaDetail.UserEaID

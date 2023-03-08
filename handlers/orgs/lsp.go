@@ -42,6 +42,9 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	owners := []string{}
 	if input.Owners != nil {
 		for _, owner := range input.Owners {
+			if owner == nil {
+				continue
+			}
 			owners = append(owners, *owner)
 		}
 	} else {
@@ -235,6 +238,9 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 	if input.Owners != nil && len(input.Owners) > 0 {
 		for _, owner := range input.Owners {
 			// check if owner is already present
+			if owner == nil {
+				continue
+			}
 			if Contains(owners, *owner) {
 				continue
 			}
@@ -355,6 +361,9 @@ func GetLearningSpaceDetails(ctx context.Context, lspIds []*string) ([]*model.Le
 	outputOrgs := make([]*model.LearningSpace, len(lspIds))
 	var wg sync.WaitGroup
 	for i, oid := range lspIds {
+		if oid == nil {
+			continue
+		}
 		id := oid
 		wg.Add(1)
 		go func(i int, orgID *string) {
