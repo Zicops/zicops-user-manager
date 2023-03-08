@@ -282,6 +282,9 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 	outputOrgs := make([]*model.Organization, len(orgIds))
 	var wg sync.WaitGroup
 	for i, orgid := range orgIds {
+		if orgid == nil {
+			continue
+		}
 		orgIDInput := orgid
 		wg.Add(1)
 		go func(i int, orgID *string) {

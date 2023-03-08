@@ -35,6 +35,9 @@ func AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.U
 	userLspMaps := make([]*model.UserRole, 0)
 	for _, input := range input {
 
+		if input == nil {
+			continue
+		}
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
@@ -237,6 +240,9 @@ func GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*mod
 			if role != nil {
 				qryStr = qryStr + " and role in ("
 				for _, r := range role {
+					if r == nil {
+						continue
+					}
 					qryStr = qryStr + fmt.Sprintf(`'%s', `, *r)
 				}
 				//remove the extra comma and space which we have, plus add the bracket

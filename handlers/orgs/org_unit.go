@@ -182,6 +182,9 @@ func GetOrganizationUnits(ctx context.Context, ouIds []*string) ([]*model.Organi
 	outputOrgs := make([]*model.OrganizationUnit, len(ouIds))
 	var wg sync.WaitGroup
 	for i, id := range ouIds {
+		if id == nil {
+			continue
+		}
 		wg.Add(1)
 		go func(i int, orgID *string) {
 			if orgID == nil {

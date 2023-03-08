@@ -213,6 +213,36 @@ type LearningSpaceInput struct {
 	UpdatedBy  *string         `json:"updated_by"`
 }
 
+type OrderServices struct {
+	ServiceID   *string `json:"service_id"`
+	OrderID     *string `json:"order_id"`
+	ServiceType *string `json:"service_type"`
+	Description *string `json:"description"`
+	Unit        *string `json:"unit"`
+	Currency    *string `json:"currency"`
+	Rate        *int    `json:"rate"`
+	Quantity    *int    `json:"quantity"`
+	Total       *int    `json:"total"`
+	CreatedAt   *string `json:"created_at"`
+	CreatedBy   *string `json:"created_by"`
+	UpdatedAt   *string `json:"updated_at"`
+	UpdatedBy   *string `json:"updated_by"`
+	Status      *string `json:"status"`
+}
+
+type OrderServicesInput struct {
+	ServiceID   *string `json:"service_id"`
+	OrderID     *string `json:"order_id"`
+	ServiceType *string `json:"service_type"`
+	Description *string `json:"description"`
+	Unit        *string `json:"unit"`
+	Currency    *string `json:"currency"`
+	Rate        *int    `json:"rate"`
+	Quantity    *int    `json:"quantity"`
+	Total       *int    `json:"total"`
+	Status      *string `json:"status"`
+}
+
 type Organization struct {
 	OrgID         *string `json:"org_id"`
 	Name          string  `json:"name"`
@@ -318,6 +348,13 @@ type PaginatedNotes struct {
 	PageCursor *string      `json:"pageCursor"`
 	Direction  *string      `json:"direction"`
 	PageSize   *int         `json:"pageSize"`
+}
+
+type PaginatedUserDetailsWithRole struct {
+	Data       []*UserDetailsRole `json:"data"`
+	PageCursor *string            `json:"pageCursor"`
+	Direction  *string            `json:"direction"`
+	PageSize   *int               `json:"pageSize"`
 }
 
 type PaginatedUserLspMaps struct {
@@ -895,6 +932,28 @@ type VendorInput struct {
 	Users        []*string       `json:"users"`
 	Description  *string         `json:"description"`
 	Status       *string         `json:"status"`
+}
+
+type VendorOrder struct {
+	OrderID    *string `json:"order_id"`
+	VendorID   *string `json:"vendor_id"`
+	Total      *int    `json:"total"`
+	Tax        *int    `json:"tax"`
+	GrandTotal *int    `json:"grand_total"`
+	CreatedAt  *string `json:"created_at"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedAt  *string `json:"updated_at"`
+	UpdatedBy  *string `json:"updated_by"`
+	Status     *string `json:"status"`
+}
+
+type VendorOrderInput struct {
+	OrderID    *string `json:"order_id"`
+	VendorID   *string `json:"vendor_id"`
+	Total      *int    `json:"total"`
+	Tax        *int    `json:"tax"`
+	GrandTotal *int    `json:"grand_total"`
+	Status     *string `json:"status"`
 }
 
 type VendorProfile struct {

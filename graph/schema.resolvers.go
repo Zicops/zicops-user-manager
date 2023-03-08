@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -580,6 +581,46 @@ func (r *mutationResolver) UpdateContentDevelopment(ctx context.Context, input *
 	return resp, nil
 }
 
+// AddOrder is the resolver for the addOrder field.
+func (r *mutationResolver) AddOrder(ctx context.Context, input *model.VendorOrderInput) (*model.VendorOrder, error) {
+	resp, err := handlers.AddOrder(ctx, input)
+	if err != nil {
+		log.Printf("Got error while placing an order: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+// UpdateOrder is the resolver for the updateOrder field.
+func (r *mutationResolver) UpdateOrder(ctx context.Context, input *model.VendorOrderInput) (*model.VendorOrder, error) {
+	resp, err := handlers.UpdateOrder(ctx, input)
+	if err != nil {
+		log.Printf("Got error while editing an order: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+// AddOrderServies is the resolver for the addOrderServies field.
+func (r *mutationResolver) AddOrderServies(ctx context.Context, input []*model.OrderServicesInput) ([]*model.OrderServices, error) {
+	resp, err := handlers.AddOrderServies(ctx, input)
+	if err != nil {
+		log.Printf("Got error while adding services of an order: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+// UpdateOrderServices is the resolver for the updateOrderServices field.
+func (r *mutationResolver) UpdateOrderServices(ctx context.Context, input *model.OrderServicesInput) (*model.OrderServices, error) {
+	resp, err := handlers.UpdateOrderServices(ctx, input)
+	if err != nil {
+		log.Printf("Got error while adding services of an order: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Logout is the resolver for the logout field.
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
@@ -1098,6 +1139,11 @@ func (r *queryResolver) GetLspUsersRoles(ctx context.Context, lspID string, role
 		return nil, err
 	}
 	return res, nil
+}
+
+// GetPaginatedLspUsersWithRoles is the resolver for the getPaginatedLspUsersWithRoles field.
+func (r *queryResolver) GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserDetailsWithRole, error) {
+	panic(fmt.Errorf("not implemented: GetPaginatedLspUsersWithRoles - getPaginatedLspUsersWithRoles"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

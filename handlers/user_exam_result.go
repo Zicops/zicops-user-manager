@@ -35,6 +35,9 @@ func AddUserExamResult(ctx context.Context, input []*model.UserExamResultInput) 
 
 	userLspMaps := make([]*model.UserExamResult, 0)
 	for _, res := range input {
+		if res == nil {
+			continue
+		}
 		input := res
 		createdBy := userCass.Email
 		updatedBy := userCass.Email

@@ -937,6 +937,65 @@ type UserDetailsRole {
   role: String
 }
 
+type PaginatedUserDetailsWithRole {
+  data: [UserDetailsRole]
+  pageCursor: String
+  direction: String
+  pageSize: Int
+}
+
+input VendorOrderInput {
+  order_id: String
+  vendor_id: String
+  total: Int
+  tax: Int
+  grand_total: Int
+  status: String
+}
+
+type VendorOrder {
+  order_id: String
+  vendor_id: String
+  total: Int
+  tax: Int
+  grand_total: Int
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+  status: String
+}
+
+input OrderServicesInput {
+  service_id: String
+  order_id: String
+  service_type: String
+  description: String
+  unit: String
+  currency: String
+  rate: Int
+  quantity: Int
+  total: Int
+  status: String
+}
+
+type OrderServices {
+  service_id: String
+  order_id: String
+  service_type: String
+  description: String
+  unit: String
+  currency: String
+  rate: Int
+  quantity: Int
+  total: Int
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+  status: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -1073,6 +1132,7 @@ type Query {
   getUserVendor(user_id: String): [Vendor]
   getVendorServices(vendor_id: String): [String]
   getLspUsersRoles(lsp_id: String!, role: [String]): [UserDetailsRole] 
+  getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
 }
 
 type Mutation {
@@ -1137,5 +1197,8 @@ type Mutation {
   updateClassRoomTraining(input:CRTInput): CRT
   createContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
   updateContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
-  #addOrder()
+  addOrder(input: VendorOrderInput): VendorOrder
+  updateOrder(input: VendorOrderInput): VendorOrder
+  addOrderServies(input: [OrderServicesInput]): [OrderServices]
+  updateOrderServices(input: OrderServicesInput): OrderServices
 }

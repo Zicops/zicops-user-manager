@@ -36,6 +36,9 @@ func AddUserExamProgress(ctx context.Context, input []*model.UserExamProgressInp
 	userLspMaps := make([]*model.UserExamProgress, 0)
 	for _, input := range input {
 
+		if input == nil {
+			continue
+		}
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
