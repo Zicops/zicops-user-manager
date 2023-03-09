@@ -598,6 +598,7 @@ type UserExamAttempts struct {
 	AttemptStatus    string  `json:"attempt_status"`
 	AttemptStartTime string  `json:"attempt_start_time"`
 	AttemptDuration  string  `json:"attempt_duration"`
+	CourseID         *string `json:"course_id"`
 	CreatedBy        *string `json:"created_by"`
 	UpdatedBy        *string `json:"updated_by"`
 	CreatedAt        string  `json:"created_at"`

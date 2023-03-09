@@ -356,6 +356,7 @@ type UserExamAttempts {
   attempt_status: String!
   attempt_start_time: String!
   attempt_duration: String!
+  course_id: String
   created_by: String
   updated_by: String
   created_at: String!

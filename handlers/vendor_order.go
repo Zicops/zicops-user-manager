@@ -151,6 +151,7 @@ func UpdateOrder(ctx context.Context, input *model.VendorOrderInput) (*model.Ven
 	res := model.VendorOrder{
 		OrderID:    &order.OrderId,
 		VendorID:   &order.VendorId,
+		LspID:      &order.LspId,
 		Total:      &total,
 		Tax:        &tax,
 		GrandTotal: &grandTotal,
@@ -178,71 +179,69 @@ func AddOrderServies(ctx context.Context, input []*model.OrderServicesInput) ([]
 
 	var wg sync.WaitGroup
 	res := make([]*model.OrderServices, len(input))
-	for kk, vvv := range input {
+	for k, vvv := range input {
 		wg.Add(1)
-		vv := vvv
-		go func(k int, v *model.OrderServicesInput) {
-			defer wg.Done()
-			if v.OrderID == nil || v.ServiceType == nil {
-				log.Println("enter both order Id and service id")
-				return
-			}
+		v := vvv
+		if v.OrderID == nil || v.ServiceType == nil {
+			log.Println("enter both order Id and service id")
+			continue
+		}
 
-			id := uuid.New().String()
-			createdAt := time.Now().Unix()
-			service := vendorz.OrderServices{
-				ServiceId:   id,
-				OrderId:     *v.OrderID,
-				ServiceType: *v.ServiceType,
-				CreatedAt:   createdAt,
-				CreatedBy:   userEmail,
-			}
+		id := uuid.New().String()
+		createdAt := time.Now().Unix()
+		service := vendorz.OrderServices{
+			ServiceId:   id,
+			OrderId:     *v.OrderID,
+			ServiceType: *v.ServiceType,
+			CreatedAt:   createdAt,
+			CreatedBy:   userEmail,
+		}
 
-			if v.Currency != nil {
-				service.Currency = *v.Currency
-			}
-			if v.Description != nil {
-				service.Description = *v.Description
-			}
-			if v.Quantity != nil {
-				service.Quantity = int64(*v.Quantity)
-			}
-			if v.Rate != nil {
-				service.Rate = int64(*v.Rate)
-			}
-			if v.Total != nil {
-				service.Total = int64(*v.Total)
-			}
-			if v.Unit != nil {
-				service.Unit = *v.Unit
-			}
-			if v.Status != nil {
-				service.Status = *v.Status
-			}
-			insertQuery := CassSession.Query(vendorz.OrderServiesTable.Insert()).BindStruct(service)
-			if err = insertQuery.Exec(); err != nil {
-				log.Printf("Got error while entering data: %v", err)
-				return
-			}
+		if v.Currency != nil {
+			service.Currency = *v.Currency
+		}
+		if v.Description != nil {
+			service.Description = *v.Description
+		}
+		if v.Quantity != nil {
+			service.Quantity = int64(*v.Quantity)
+		}
+		if v.Rate != nil {
+			service.Rate = int64(*v.Rate)
+		}
+		if v.Total != nil {
+			service.Total = int64(*v.Total)
+		}
+		if v.Unit != nil {
+			service.Unit = *v.Unit
+		}
+		if v.Status != nil {
+			service.Status = *v.Status
+		}
+		insertQuery := CassSession.Query(vendorz.OrderServiesTable.Insert()).BindStruct(service)
+		if err = insertQuery.Exec(); err != nil {
+			log.Printf("Got error while entering data: %v", err)
+			continue
+		}
 
-			ca := strconv.Itoa(int(createdAt))
-			tmp := model.OrderServices{
-				ServiceID:   &id,
-				OrderID:     v.OrderID,
-				ServiceType: v.ServiceType,
-				Description: v.Description,
-				Unit:        v.Unit,
-				Currency:    v.Currency,
-				Rate:        v.Rate,
-				Quantity:    v.Quantity,
-				Total:       v.Total,
-				CreatedAt:   &ca,
-				CreatedBy:   &userEmail,
-				Status:      v.Status,
-			}
+		ca := strconv.Itoa(int(createdAt))
+		tmp := model.OrderServices{
+			ServiceID:   &id,
+			OrderID:     v.OrderID,
+			ServiceType: v.ServiceType,
+			Description: v.Description,
+			Unit:        v.Unit,
+			Currency:    v.Currency,
+			Rate:        v.Rate,
+			Quantity:    v.Quantity,
+			Total:       v.Total,
+			CreatedAt:   &ca,
+			CreatedBy:   &userEmail,
+			Status:      v.Status,
+		}
 
-			res[k] = &tmp
-		}(kk, vv)
+		res[k] = &tmp
+
 	}
 	return res, nil
 }
@@ -387,7 +386,6 @@ func GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, err
 		v := vv
 		wg.Add(1)
 		go func(k int, order vendorz.VendorOrder) {
-			defer wg.Done()
 			total := int(order.Total)
 			tax := int(order.Tax)
 			grandTotal := int(order.Tax)
@@ -408,8 +406,10 @@ func GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, err
 			}
 
 			res[k] = &tmp
+			wg.Done()
 		}(kk, v)
 	}
+	wg.Wait()
 	return res, nil
 }
 
