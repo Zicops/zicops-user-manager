@@ -447,36 +447,31 @@ func GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderSer
 	}
 
 	res := make([]*model.OrderServices, len(orders))
-	var wg sync.WaitGroup
-	for kk, vv := range orders {
-		v := vv
-		wg.Add(1)
-		go func(k int, order vendorz.OrderServices) {
-			defer wg.Done()
-			rate := int(order.Rate)
-			q := int(order.Quantity)
-			total := int(order.Total)
-			ca := strconv.Itoa(int(order.CreatedAt))
-			ua := strconv.Itoa(int(order.UpdatedAt))
-			tmp := model.OrderServices{
-				ServiceID:   &order.ServiceId,
-				OrderID:     &order.OrderId,
-				ServiceType: &order.ServiceType,
-				Description: &order.Description,
-				Unit:        &order.Unit,
-				Currency:    &order.Currency,
-				Rate:        &rate,
-				Quantity:    &q,
-				Total:       &total,
-				CreatedAt:   &ca,
-				CreatedBy:   &order.CreatedBy,
-				UpdatedAt:   &ua,
-				UpdatedBy:   &order.UpdatedBy,
-				Status:      &order.Status,
-			}
+	for k, vv := range orders {
+		order := vv
+		rate := int(order.Rate)
+		q := int(order.Quantity)
+		total := int(order.Total)
+		ca := strconv.Itoa(int(order.CreatedAt))
+		ua := strconv.Itoa(int(order.UpdatedAt))
+		tmp := model.OrderServices{
+			ServiceID:   &order.ServiceId,
+			OrderID:     &order.OrderId,
+			ServiceType: &order.ServiceType,
+			Description: &order.Description,
+			Unit:        &order.Unit,
+			Currency:    &order.Currency,
+			Rate:        &rate,
+			Quantity:    &q,
+			Total:       &total,
+			CreatedAt:   &ca,
+			CreatedBy:   &order.CreatedBy,
+			UpdatedAt:   &ua,
+			UpdatedBy:   &order.UpdatedBy,
+			Status:      &order.Status,
+		}
 
-			res[k] = &tmp
-		}(kk, v)
+		res[k] = &tmp
 	}
 
 	return res, nil
