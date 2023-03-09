@@ -351,10 +351,10 @@ type PaginatedNotes struct {
 }
 
 type PaginatedUserDetailsWithRole struct {
-	Data       *UserDetailsRole `json:"data"`
-	PageCursor *string          `json:"pageCursor"`
-	Direction  *string          `json:"direction"`
-	PageSize   *int             `json:"pageSize"`
+	Data       []*UserDetailsRole `json:"data"`
+	PageCursor *string            `json:"pageCursor"`
+	Direction  *string            `json:"direction"`
+	PageSize   *int               `json:"pageSize"`
 }
 
 type PaginatedUserLspMaps struct {

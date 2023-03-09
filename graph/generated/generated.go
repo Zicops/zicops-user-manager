@@ -6393,7 +6393,7 @@ type UserDetailsRole {
 }
 
 type PaginatedUserDetailsWithRole {
-  data: UserDetailsRole
+  data: [UserDetailsRole]
   pageCursor: String
   direction: String
   pageSize: Int
@@ -16845,9 +16845,9 @@ func (ec *executionContext) _PaginatedUserDetailsWithRole_data(ctx context.Conte
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.UserDetailsRole)
+	res := resTmp.([]*model.UserDetailsRole)
 	fc.Result = res
-	return ec.marshalOUserDetailsRole2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserDetailsRole(ctx, field.Selections, res)
+	return ec.marshalOUserDetailsRole2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserDetailsRole(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PaginatedUserDetailsWithRole_pageCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedUserDetailsWithRole) (ret graphql.Marshaler) {

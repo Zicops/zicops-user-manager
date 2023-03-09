@@ -939,7 +939,7 @@ type UserDetailsRole {
 }
 
 type PaginatedUserDetailsWithRole {
-  data: UserDetailsRole
+  data: [UserDetailsRole]
   pageCursor: String
   direction: String
   pageSize: Int
