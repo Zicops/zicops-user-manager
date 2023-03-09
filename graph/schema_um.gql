@@ -356,6 +356,7 @@ type UserExamAttempts {
   attempt_status: String!
   attempt_start_time: String!
   attempt_duration: String!
+  course_id: String
   created_by: String
   updated_by: String
   created_at: String!
@@ -745,7 +746,6 @@ input SMEInput {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
-  profiles:[String]
 	Status: String
 }
 
@@ -758,7 +758,6 @@ type SME {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
-  profiles:[String]
   created_at: String
   created_by: String
   updated_at: String
@@ -799,6 +798,9 @@ type VendorProfile {
   content_development: [String]
   experience: [String]
   experience_years: String
+  sme: Boolean
+  crt: Boolean
+  cd: Boolean
   is_speaker: Boolean
   created_at: String
 	created_by: String
@@ -860,6 +862,7 @@ type SampleFile {
   name: String
   fileType: String
   price: String
+  p_type: String
   file_url: String
   created_at: String
 	created_by: String
@@ -877,7 +880,6 @@ input CRTInput {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
-  profiles:[String]
   is_expertise_online: Boolean
 	status: String
 }
@@ -891,7 +893,6 @@ type CRT {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
-  profiles:[String]
   is_expertise_online: Boolean
   created_at: String
 	created_by: String
@@ -909,7 +910,6 @@ input ContentDevelopmentInput {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
-  profiles: [String]
   status: String
 }
 
@@ -922,7 +922,76 @@ type ContentDevelopment {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
-  profiles: [String]
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+  status: String
+}
+
+input ExamAttemptsFilters {
+  attempt_status: String
+}
+
+type UserDetailsRole {
+  user: User
+  roles: [String]
+}
+
+type PaginatedUserDetailsWithRole {
+  data: UserDetailsRole
+  pageCursor: String
+  direction: String
+  pageSize: Int
+}
+
+input VendorOrderInput {
+  order_id: String
+  vendor_id: String
+  lsp_id: String
+  total: Int
+  tax: Int
+  grand_total: Int
+  status: String
+}
+
+type VendorOrder {
+  order_id: String
+  vendor_id: String
+  lsp_id: String
+  total: Int
+  tax: Int
+  grand_total: Int
+  created_at: String
+	created_by: String
+	updated_at: String
+	updated_by: String
+  status: String
+}
+
+input OrderServicesInput {
+  service_id: String
+  order_id: String
+  service_type: String
+  description: String
+  unit: String
+  currency: String
+  rate: Int
+  quantity: Int
+  total: Int
+  status: String
+}
+
+type OrderServices {
+  service_id: String
+  order_id: String
+  service_type: String
+  description: String
+  unit: String
+  currency: String
+  rate: Int
+  quantity: Int
+  total: Int
   created_at: String
 	created_by: String
 	updated_at: String
@@ -996,6 +1065,7 @@ type Query {
     pageSize: Int
   ): PaginatedBookmarks
   getUserExamAttempts(user_id: String, exam_id: String!): [UserExamAttempts]
+  getUserExamAttemptsByExamIds(user_id: String!, exam_ids: [String]!, filters:ExamAttemptsFilters): [UserExamAttempts]
   getUserExamResults(
     user_ea_details: [UserExamResultDetails!]!
   ): [UserExamResultInfo]
@@ -1017,6 +1087,7 @@ type Query {
   ): PaginatedCohorts
   getUserQuizAttempts(user_id: String!, topic_id: String!): [UserQuizAttempt]
   getCohortDetails(cohort_id: String!): CohortMain
+  getCohorts(cohort_ids: [String]!): [CohortMain]
   getCohortMains(
     lsp_id: String!
     publish_time: Int
@@ -1056,12 +1127,17 @@ type Query {
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
-  viewAllProfiles(vendor_id: String!): [VendorProfile]
+  viewAllProfiles(vendor_id: String!, filter: String): [VendorProfile]
   getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
   getSmeDetails(vendor_id: String!): SME
   getClassRoomTraining(vendor_id: String!): CRT
   getContentDevelopment(vendor_id: String!): ContentDevelopment
   getUserVendor(user_id: String): [Vendor]
+  getVendorServices(vendor_id: String): [String]
+  getLspUsersRoles(lsp_id: String!, role: [String]): [UserDetailsRole] 
+  getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
+  getAllOrders(lsp_id: String): [VendorOrder]
+  getOrderServices(order_id: [String]):[OrderServices]
 }
 
 type Mutation {
@@ -1086,6 +1162,7 @@ type Mutation {
   addUserCohort(input: [UserCohortInput]!): [UserCohort]
   updateUserCohort(input: UserCohortInput!): UserCohort
   addUserCourse(input: [UserCourseInput]!): [UserCourse]
+  addUserCohortCourses(user_ids: [String!], cohort_id: String!): Boolean
   updateUserCourse(input: UserCourseInput!): UserCourse
   addUserCourseProgress(input: [UserCourseProgressInput]!): [UserCourseProgress]
   updateUserCourseProgress(input: UserCourseProgressInput!): UserCourseProgress
@@ -1125,5 +1202,8 @@ type Mutation {
   updateClassRoomTraining(input:CRTInput): CRT
   createContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
   updateContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
-  #addOrder()
+  addOrder(input: VendorOrderInput): VendorOrder
+  updateOrder(input: VendorOrderInput): VendorOrder
+  addOrderServies(input: [OrderServicesInput]): [OrderServices]
+  updateOrderServices(input: OrderServicesInput): OrderServices
 }

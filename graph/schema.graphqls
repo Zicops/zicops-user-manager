@@ -935,11 +935,11 @@ input ExamAttemptsFilters {
 
 type UserDetailsRole {
   user: User
-  role: String
+  roles: [String]
 }
 
 type PaginatedUserDetailsWithRole {
-  data: [UserDetailsRole]
+  data: UserDetailsRole
   pageCursor: String
   direction: String
   pageSize: Int
