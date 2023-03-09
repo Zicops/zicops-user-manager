@@ -375,6 +375,19 @@ func GetUserExamAttemptsByExamIds(ctx context.Context, userID string, examIds []
 		wg.Add(1)
 		go func(k int, v userz.UserExamAttempts) {
 
+			qryStr := fmt.Sprintf(`SELECT * FROM userz.user_course_map WHERE id='%s' ALLOW FILTERING`, v.UserCmID)
+			getUserCourse := func() (courses []userz.UserCourse, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return courses, iter.Select(&courses)
+			}
+			courses, err := getUserCourse()
+			if err != nil {
+				log.Errorf(err.Error())
+				return
+			}
+
 			attemptStartTime := strconv.FormatInt(v.AttemptStartTime, 10)
 			createdAt := strconv.FormatInt(v.CreatedAt, 10)
 			updatedAt := strconv.FormatInt(v.UpdatedAt, 10)
@@ -384,6 +397,7 @@ func GetUserExamAttemptsByExamIds(ctx context.Context, userID string, examIds []
 				UserLspID:        v.UserLspID,
 				UserCpID:         v.UserCpID,
 				UserCourseID:     v.UserCmID,
+				CourseID:         &courses[0].CourseID,
 				ExamID:           v.ExamID,
 				AttemptNo:        int(v.AttemptNo),
 				AttemptDuration:  v.AttemptDuration,

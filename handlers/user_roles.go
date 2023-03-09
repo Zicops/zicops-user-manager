@@ -491,16 +491,18 @@ func GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*st
 				PhotoURL:   &photoUrl,
 			}
 
+			var tmp []*model.UserDetailsRole
 			for _, vv := range userRoles {
 				v := vv
 				data := model.UserDetailsRole{
 					User: &userData,
 					Role: &v.Role,
 				}
-
-				res = append(res, &data)
+				tmp = append(tmp, &data)
 			}
 
+			//array of unknown size, we dont have any idea about roles
+			res = append(res, tmp...)
 		}(vv)
 
 	}

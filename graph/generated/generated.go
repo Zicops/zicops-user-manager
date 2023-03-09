@@ -537,6 +537,7 @@ type ComplexityRoot struct {
 		AttemptNo        func(childComplexity int) int
 		AttemptStartTime func(childComplexity int) int
 		AttemptStatus    func(childComplexity int) int
+		CourseID         func(childComplexity int) int
 		CreatedAt        func(childComplexity int) int
 		CreatedBy        func(childComplexity int) int
 		ExamID           func(childComplexity int) int
@@ -4205,6 +4206,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserExamAttempts.AttemptStatus(childComplexity), true
 
+	case "UserExamAttempts.course_id":
+		if e.complexity.UserExamAttempts.CourseID == nil {
+			break
+		}
+
+		return e.complexity.UserExamAttempts.CourseID(childComplexity), true
+
 	case "UserExamAttempts.created_at":
 		if e.complexity.UserExamAttempts.CreatedAt == nil {
 			break
@@ -5840,6 +5848,7 @@ type UserExamAttempts {
   attempt_status: String!
   attempt_start_time: String!
   attempt_duration: String!
+  course_id: String
   created_by: String
   updated_by: String
   created_at: String!
@@ -15254,6 +15263,8 @@ func (ec *executionContext) fieldContext_Mutation_addUserExamAttempts(ctx contex
 				return ec.fieldContext_UserExamAttempts_attempt_start_time(ctx, field)
 			case "attempt_duration":
 				return ec.fieldContext_UserExamAttempts_attempt_duration(ctx, field)
+			case "course_id":
+				return ec.fieldContext_UserExamAttempts_course_id(ctx, field)
 			case "created_by":
 				return ec.fieldContext_UserExamAttempts_created_by(ctx, field)
 			case "updated_by":
@@ -15336,6 +15347,8 @@ func (ec *executionContext) fieldContext_Mutation_updateUserExamAttempts(ctx con
 				return ec.fieldContext_UserExamAttempts_attempt_start_time(ctx, field)
 			case "attempt_duration":
 				return ec.fieldContext_UserExamAttempts_attempt_duration(ctx, field)
+			case "course_id":
+				return ec.fieldContext_UserExamAttempts_course_id(ctx, field)
 			case "created_by":
 				return ec.fieldContext_UserExamAttempts_created_by(ctx, field)
 			case "updated_by":
@@ -22843,6 +22856,8 @@ func (ec *executionContext) fieldContext_Query_getUserExamAttempts(ctx context.C
 				return ec.fieldContext_UserExamAttempts_attempt_start_time(ctx, field)
 			case "attempt_duration":
 				return ec.fieldContext_UserExamAttempts_attempt_duration(ctx, field)
+			case "course_id":
+				return ec.fieldContext_UserExamAttempts_course_id(ctx, field)
 			case "created_by":
 				return ec.fieldContext_UserExamAttempts_created_by(ctx, field)
 			case "updated_by":
@@ -22925,6 +22940,8 @@ func (ec *executionContext) fieldContext_Query_getUserExamAttemptsByExamIds(ctx 
 				return ec.fieldContext_UserExamAttempts_attempt_start_time(ctx, field)
 			case "attempt_duration":
 				return ec.fieldContext_UserExamAttempts_attempt_duration(ctx, field)
+			case "course_id":
+				return ec.fieldContext_UserExamAttempts_course_id(ctx, field)
 			case "created_by":
 				return ec.fieldContext_UserExamAttempts_created_by(ctx, field)
 			case "updated_by":
@@ -30418,6 +30435,47 @@ func (ec *executionContext) _UserExamAttempts_attempt_duration(ctx context.Conte
 }
 
 func (ec *executionContext) fieldContext_UserExamAttempts_attempt_duration(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserExamAttempts",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserExamAttempts_course_id(ctx context.Context, field graphql.CollectedField, obj *model.UserExamAttempts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserExamAttempts_course_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CourseID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserExamAttempts_course_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UserExamAttempts",
 		Field:      field,
@@ -45948,6 +46006,10 @@ func (ec *executionContext) _UserExamAttempts(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "course_id":
+
+			out.Values[i] = ec._UserExamAttempts_course_id(ctx, field, obj)
+
 		case "created_by":
 
 			out.Values[i] = ec._UserExamAttempts_created_by(ctx, field, obj)
