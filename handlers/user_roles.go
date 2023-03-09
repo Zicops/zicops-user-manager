@@ -339,3 +339,176 @@ func GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*mod
 	wg.Wait()
 	return res, nil
 }
+
+func GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserDetailsWithRole, error) {
+	_, err := identity.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Printf("Got error while getting context: %v", err)
+		return nil, err
+	}
+
+	var res []*model.UserDetailsRole
+	var newPage []byte
+
+	session, err := global.CassPool.GetSession(ctx, "userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+
+	if pageCursor != nil && *pageCursor != "" {
+		page, err := global.CryptSession.DecryptString(*pageCursor, nil)
+		if err != nil {
+			return nil, err
+		}
+		newPage = page
+	}
+
+	var newCursor string
+	var pageSizeInt int
+	var outputResponse model.PaginatedUserDetailsWithRole
+	if pageSize != nil {
+		pageSizeInt = *pageSize
+	} else {
+		pageSizeInt = 10
+	}
+
+	queryStr := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE lsp_id = '%s' ALLOW FILTERING`, lspID)
+	getLspUsers := func(page []byte) (maps []userz.UserLsp, nextPage []byte, err error) {
+		q := CassUserSession.Query(queryStr, nil)
+		defer q.Release()
+		q.PageState(page)
+		q.PageSize(pageSizeInt)
+		iter := q.Iter()
+		return maps, iter.PageState(), iter.Select(&maps)
+	}
+	userLspMaps, newPage, err := getLspUsers(newPage)
+	if err != nil {
+		log.Printf("Got error getting users of a lsp: %v", err)
+		return nil, err
+	}
+	if len(newPage) != 0 {
+		newCursor, err = global.CryptSession.EncryptAsString(newPage, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if len(userLspMaps) == 0 {
+		return nil, nil
+	}
+	var wg sync.WaitGroup
+	for _, vvv := range userLspMaps {
+		vv := vvv
+		wg.Add(1)
+		go func(v userz.UserLsp) {
+			defer wg.Done()
+
+			//got all roles information for a user, with filter of a role
+			qryStr := fmt.Sprintf(`SELECT * FROM userz.user_role WHERE user_id='%s' AND user_lsp_id='%s' `, v.UserID, v.ID)
+			if role != nil {
+				qryStr = qryStr + " and role in ("
+				for _, r := range role {
+					if r == nil {
+						continue
+					}
+					qryStr = qryStr + fmt.Sprintf(`'%s', `, *r)
+				}
+				//remove the extra comma and space which we have, plus add the bracket
+				qryStr = qryStr[:len(qryStr)-2] + ")"
+			}
+
+			qryStr = qryStr + " ALLOW FILTERING"
+			getUserRoles := func() (roles []userz.UserRole, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return roles, iter.Select(&roles)
+			}
+			userRoles, err := getUserRoles()
+			if err != nil {
+				return
+			}
+			if len(userRoles) == 0 {
+				return
+			}
+
+			//got user data
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				log.Errorf("Failed to upload image to course: %v", err.Error())
+				return
+			}
+
+			qryStr = fmt.Sprintf(`SELECT * FROM userz.users WHERE id='%s' ALLOW FILTERING`, v.UserID)
+			getUsers := func() (users []userz.User, err error) {
+				q := CassUserSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return users, iter.Select(&users)
+			}
+			users, err := getUsers()
+			if err != nil {
+				return
+			}
+			if len(users) == 0 {
+				return
+			}
+			user := users[0]
+
+			ca := strconv.Itoa(int(user.CreatedAt))
+			ua := strconv.Itoa(int(user.UpdatedAt))
+			photoUrl := ""
+			if user.PhotoBucket != "" {
+				photoUrl = storageC.GetSignedURLForObject(ctx, user.PhotoBucket)
+			} else {
+				photoUrl = user.PhotoURL
+			}
+			fireBaseUser, err := global.IDP.GetUserByEmail(ctx, user.Email)
+			if err != nil {
+				log.Errorf("Failed to get user from firebase: %v", err.Error())
+				return
+			}
+			phone := ""
+			if fireBaseUser != nil {
+				phone = fireBaseUser.PhoneNumber
+			}
+			userData := model.User{
+				ID:         &user.ID,
+				FirstName:  user.FirstName,
+				LastName:   user.LastName,
+				Status:     user.Status,
+				Role:       user.Role,
+				IsVerified: user.IsVerified,
+				IsActive:   user.IsActive,
+				Gender:     user.Gender,
+				CreatedBy:  &user.CreatedBy,
+				UpdatedBy:  &user.UpdatedBy,
+				CreatedAt:  ca,
+				UpdatedAt:  ua,
+				Phone:      phone,
+				PhotoURL:   &photoUrl,
+			}
+
+			for _, vv := range userRoles {
+				v := vv
+				data := model.UserDetailsRole{
+					User: &userData,
+					Role: &v.Role,
+				}
+
+				res = append(res, &data)
+			}
+
+		}(vv)
+
+	}
+	wg.Wait()
+	outputResponse.Data = res
+	outputResponse.Direction = direction
+	outputResponse.PageCursor = &newCursor
+	outputResponse.PageSize = &pageSizeInt
+	return &outputResponse, nil
+
+}

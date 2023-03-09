@@ -516,9 +516,6 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	if input.Status != nil {
 		profile.Status = *input.Status
 	}
-	if input.ExperienceYears != nil {
-		profile.ExperienceYears = *input.ExperienceYears
-	}
 	if input.Phone != nil {
 		profile.Phone = *input.Phone
 	}
@@ -1698,7 +1695,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		profile.ClassroomExpertise = tmp
 		updatedCols = append(updatedCols, "classroom_expertise")
 
-		crt = len(input.ClassroomExpertise) > 0
+		crt = len(profile.ClassroomExpertise) > 0
 		profile.Crt = crt
 		updatedCols = append(updatedCols, "crt")
 	}
@@ -1760,7 +1757,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		profile.SMEExpertise = tmp
 		updatedCols = append(updatedCols, "sme_expertise")
 
-		sme = len(input.SmeExpertise) > 0
+		sme = len(profile.SMEExpertise) > 0
 		profile.Sme = sme
 		updatedCols = append(updatedCols, "sme")
 	}
@@ -1770,7 +1767,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		profile.ContentDevelopment = tmp
 		updatedCols = append(updatedCols, "content_development")
 
-		cd = len(input.ContentDevelopment) > 0
+		cd = len(profile.ContentDevelopment) > 0
 		profile.Cd = cd
 		updatedCols = append(updatedCols, "cd")
 	}
@@ -1781,6 +1778,11 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	if input.ExperienceYears != nil {
 		profile.ExperienceYears = *input.ExperienceYears
 		updatedCols = append(updatedCols, "experience_years")
+	}
+	if input.Experience != nil {
+		tmp := ChangesStringType(input.Experience)
+		profile.Experience = tmp
+		updatedCols = append(updatedCols, "experience")
 	}
 
 	if len(updatedCols) > 0 {
