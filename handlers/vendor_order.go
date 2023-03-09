@@ -25,7 +25,10 @@ func AddOrder(ctx context.Context, input *model.VendorOrderInput) (*model.Vendor
 		return nil, err
 	}
 	userEmail := claims["email"].(string)
-
+	lspId := claims["lsp_id"].(string)
+	if input.LspID != nil {
+		lspId = *input.LspID
+	}
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
@@ -36,6 +39,7 @@ func AddOrder(ctx context.Context, input *model.VendorOrderInput) (*model.Vendor
 	order := vendorz.VendorOrder{
 		OrderId:   id,
 		VendorId:  *input.VendorID,
+		LspId:     lspId,
 		CreatedAt: time.Now().Unix(),
 		CreatedBy: userEmail,
 	}
@@ -59,6 +63,7 @@ func AddOrder(ctx context.Context, input *model.VendorOrderInput) (*model.Vendor
 	res := model.VendorOrder{
 		OrderID:    &id,
 		VendorID:   input.VendorID,
+		LspID:      &lspId,
 		Total:      input.Total,
 		Tax:        input.Tax,
 		GrandTotal: input.GrandTotal,
@@ -342,4 +347,137 @@ func UpdateOrderServices(ctx context.Context, input *model.OrderServicesInput) (
 		Status:      &service.Status,
 	}
 	return &res, nil
+}
+
+func GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, error) {
+	claims, err := identity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	lsp := claims["lsp_id"].(string)
+	if lspID != nil {
+		lsp = *lspID
+	}
+
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
+	if err != nil {
+		return nil, err
+	}
+	CassSession := session
+
+	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_order WHERE lsp_id='%s' ALLOW FILTERING`, lsp)
+	getOrders := func() (vendorOrders []vendorz.VendorOrder, err error) {
+		q := CassSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return vendorOrders, iter.Select(&vendorOrders)
+	}
+
+	orders, err := getOrders()
+	if err != nil {
+		return nil, err
+	}
+	if len(orders) == 0 {
+		return nil, nil
+	}
+
+	res := make([]*model.VendorOrder, len(orders))
+	var wg sync.WaitGroup
+	for kk, vv := range orders {
+		v := vv
+		wg.Add(1)
+		go func(k int, order vendorz.VendorOrder) {
+			defer wg.Done()
+			total := int(order.Total)
+			tax := int(order.Tax)
+			grandTotal := int(order.Tax)
+			ca := strconv.Itoa(int(order.CreatedAt))
+			ua := strconv.Itoa(int(order.UpdatedAt))
+			tmp := model.VendorOrder{
+				OrderID:    &order.OrderId,
+				VendorID:   &order.VendorId,
+				LspID:      &order.LspId,
+				Total:      &total,
+				Tax:        &tax,
+				GrandTotal: &grandTotal,
+				CreatedAt:  &ca,
+				CreatedBy:  &order.CreatedBy,
+				UpdatedAt:  &ua,
+				UpdatedBy:  &order.UpdatedBy,
+				Status:     &order.Status,
+			}
+
+			res[k] = &tmp
+		}(kk, v)
+	}
+	return res, nil
+}
+
+func GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderServices, error) {
+	_, err := identity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
+	if err != nil {
+		return nil, err
+	}
+	CassSession := session
+	var orders []vendorz.OrderServices
+	for _, vv := range orderID {
+		v := *vv
+		qryStr := fmt.Sprintf(`SELECT * FROM vendorz.order_services WHERE order_id = '%s' ALLOW FILTERING`, v)
+		getServices := func() (services []vendorz.OrderServices, err error) {
+			q := CassSession.Query(qryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return services, iter.Select(&services)
+		}
+
+		orderServices, err := getServices()
+		if err != nil {
+			log.Printf("Got error while getting services of an order: %v", err)
+			return nil, err
+		}
+		if len(orderServices) == 0 {
+			continue
+		}
+		orders = append(orders, orderServices...)
+	}
+
+	res := make([]*model.OrderServices, len(orders))
+	var wg sync.WaitGroup
+	for kk, vv := range orders {
+		v := vv
+		wg.Add(1)
+		go func(k int, order vendorz.OrderServices) {
+			defer wg.Done()
+			rate := int(order.Rate)
+			q := int(order.Quantity)
+			total := int(order.Total)
+			ca := strconv.Itoa(int(order.CreatedAt))
+			ua := strconv.Itoa(int(order.UpdatedAt))
+			tmp := model.OrderServices{
+				ServiceID:   &order.ServiceId,
+				OrderID:     &order.OrderId,
+				ServiceType: &order.ServiceType,
+				Description: &order.Description,
+				Unit:        &order.Unit,
+				Currency:    &order.Currency,
+				Rate:        &rate,
+				Quantity:    &q,
+				Total:       &total,
+				CreatedAt:   &ca,
+				CreatedBy:   &order.CreatedBy,
+				UpdatedAt:   &ua,
+				UpdatedBy:   &order.UpdatedBy,
+				Status:      &order.Status,
+			}
+
+			res[k] = &tmp
+		}(kk, v)
+	}
+
+	return res, nil
 }

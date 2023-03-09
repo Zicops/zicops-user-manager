@@ -937,6 +937,7 @@ type VendorInput struct {
 type VendorOrder struct {
 	OrderID    *string `json:"order_id"`
 	VendorID   *string `json:"vendor_id"`
+	LspID      *string `json:"lsp_id"`
 	Total      *int    `json:"total"`
 	Tax        *int    `json:"tax"`
 	GrandTotal *int    `json:"grand_total"`
@@ -950,6 +951,7 @@ type VendorOrder struct {
 type VendorOrderInput struct {
 	OrderID    *string `json:"order_id"`
 	VendorID   *string `json:"vendor_id"`
+	LspID      *string `json:"lsp_id"`
 	Total      *int    `json:"total"`
 	Tax        *int    `json:"tax"`
 	GrandTotal *int    `json:"grand_total"`

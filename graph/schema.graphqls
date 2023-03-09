@@ -947,6 +947,7 @@ type PaginatedUserDetailsWithRole {
 input VendorOrderInput {
   order_id: String
   vendor_id: String
+  lsp_id: String
   total: Int
   tax: Int
   grand_total: Int
@@ -956,6 +957,7 @@ input VendorOrderInput {
 type VendorOrder {
   order_id: String
   vendor_id: String
+  lsp_id: String
   total: Int
   tax: Int
   grand_total: Int
@@ -1133,6 +1135,8 @@ type Query {
   getVendorServices(vendor_id: String): [String]
   getLspUsersRoles(lsp_id: String!, role: [String]): [UserDetailsRole] 
   getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
+  getAllOrders(lsp_id: String): [VendorOrder]
+  getOrderServices(order_id: [String]):[OrderServices]
 }
 
 type Mutation {

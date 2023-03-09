@@ -5,7 +5,6 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/zicops/zicops-user-manager/graph/generated"
@@ -1143,7 +1142,32 @@ func (r *queryResolver) GetLspUsersRoles(ctx context.Context, lspID string, role
 
 // GetPaginatedLspUsersWithRoles is the resolver for the getPaginatedLspUsersWithRoles field.
 func (r *queryResolver) GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserDetailsWithRole, error) {
-	panic(fmt.Errorf("not implemented: GetPaginatedLspUsersWithRoles - getPaginatedLspUsersWithRoles"))
+	res, err := handlers.GetPaginatedLspUsersWithRoles(ctx, lspID, role, pageCursor, direction, pageSize)
+	if err != nil {
+		log.Printf("error getting user details with roles: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetAllOrders is the resolver for the getAllOrders field.
+func (r *queryResolver) GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, error) {
+	res, err := handlers.GetAllOrders(ctx, lspID)
+	if err != nil {
+		log.Printf("error getting orders of LSP: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetOrderServices is the resolver for the getOrderServices field.
+func (r *queryResolver) GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderServices, error) {
+	res, err := handlers.GetOrderServices(ctx, orderID)
+	if err != nil {
+		log.Printf("error getting services of order: %v", err)
+		return nil, err
+	}
+	return res, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

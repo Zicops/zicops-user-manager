@@ -335,6 +335,9 @@ func GetUserExamAttemptsByExamIds(ctx context.Context, userID string, examIds []
 	if err != nil {
 		return nil, err
 	}
+	//exap attempts, filter on the basis
+	//user course map - course id
+
 	CassUserSession := session
 	for _, vv := range examIds {
 		if vv == nil {
