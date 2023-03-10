@@ -758,7 +758,7 @@ func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role
 	return res, nil
 }
 
-func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
+func GetVendors(ctx context.Context, lspID *string, filters *model.VendorFilters) ([]*model.Vendor, error) {
 	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error getting claims from context: %v", err)
@@ -803,7 +803,13 @@ func GetVendors(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 				return
 			}
 
-			queryStr = fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s' ALLOW FILTERING`, vendorId)
+			queryStr = fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s' `, vendorId)
+			if filters != nil {
+				if filters.Status != nil {
+					queryStr = queryStr + fmt.Sprintf(` and status='%s' `, *filters.Status)
+				}
+			}
+			queryStr = queryStr + ` ALLOW FILTERING`
 			getVendors := func() (vendors []vendorz.Vendor, err error) {
 				q := CassUserSession.Query(queryStr, nil)
 				defer q.Release()
@@ -1655,6 +1661,7 @@ func ViewAllProfiles(ctx context.Context, vendorID string, filter *string) ([]*m
 	return res, nil
 }
 
+// status='active' in all vendors
 func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (*model.VendorProfile, error) {
 	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {

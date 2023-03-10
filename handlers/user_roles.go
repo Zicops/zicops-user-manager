@@ -12,9 +12,8 @@ import (
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
-	"github.com/zicops/zicops-user-manager/lib/identity"
 	"github.com/zicops/zicops-user-manager/handlers/common"
-
+	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
 func AddUserRoles(ctx context.Context, input []*model.UserRoleInput) ([]*model.UserRole, error) {
@@ -235,6 +234,9 @@ func GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*mod
 	}
 	//get all users details
 	userDetails, err := common.GetUserDetails(ctx, users)
+	if err != nil {
+		return nil, err
+	}
 	var wg sync.WaitGroup
 	res = make([]*model.UserDetailsRole, len(userLspMaps))
 	for i, ud := range userDetails {
@@ -347,6 +349,9 @@ func GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*st
 	}
 	//get all users details
 	userDetails, err := common.GetUserDetails(ctx, users)
+	if err != nil {
+		return nil, err
+	}
 	var wg sync.WaitGroup
 	res := make([]*model.UserDetailsRole, len(userLspMaps))
 	for i, ud := range userDetails {
@@ -370,7 +375,7 @@ func GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*st
 				//remove the extra comma and space which we have, plus add the bracket
 				qryStr = qryStr[:len(qryStr)-2] + ")"
 			}
-			queryStr += " ALLOW FILTERING"
+			qryStr += " ALLOW FILTERING"
 			getUserRoles := func() (maps []userz.UserRole, err error) {
 				q := CassUserSession.Query(qryStr, nil)
 				defer q.Release()

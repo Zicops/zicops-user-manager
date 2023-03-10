@@ -933,6 +933,10 @@ input ExamAttemptsFilters {
   attempt_status: String
 }
 
+input VendorFilters {
+  status: String
+}
+
 type UserDetailsRole {
   user: User
   roles: [String]
@@ -1122,7 +1126,7 @@ type Query {
   ): [CourseViews]
   getVendorExperience(vendor_id: String!, pf_id: String!):[ExperienceVendor]
   getVendorExperienceDetails(vendor_id: String!, pf_id: String!, exp_id: String!): ExperienceVendor
-  getVendors(lsp_id: String): [Vendor]
+  getVendors(lsp_id: String, filters: VendorFilters): [Vendor]
   getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
