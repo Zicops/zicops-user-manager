@@ -917,6 +917,10 @@ type Vendor struct {
 	Status       *string   `json:"status"`
 }
 
+type VendorFilters struct {
+	Status *string `json:"status"`
+}
+
 type VendorInput struct {
 	LspID        *string         `json:"lsp_id"`
 	Name         *string         `json:"name"`
