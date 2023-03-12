@@ -238,7 +238,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		vendor.Status = *input.Status
 		updatedCols = append(updatedCols, "status")
 
-		if *input.Status == "disable" {
+		if *input.Status == "disable" && vendor.Status != "disable" {
 			//update vendor lsp map status to disable as well
 			maps := vendorz.VendorLspMap{
 				VendorId:  v_id,
@@ -254,6 +254,20 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 				return nil, err
 			}
 
+		} else if *input.Status == "active" && vendor.Status != "active" {
+			maps := vendorz.VendorLspMap{
+				VendorId:  v_id,
+				LspId:     lsp,
+				UpdatedAt: time.Now().Unix(),
+				UpdatedBy: email,
+				Status:    "active",
+			}
+			updates := []string{"updated_at", "updated_by", "status"}
+			stmt, names := vendorz.VendorLspMapTable.Update(updates...)
+			updatedQuery := CassUserSession.Query(stmt, names).BindStruct(&maps)
+			if err = updatedQuery.ExecRelease(); err != nil {
+				return nil, err
+			}
 		}
 	}
 
