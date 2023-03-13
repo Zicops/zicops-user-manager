@@ -343,7 +343,8 @@ func GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*st
 	}
 	users := make([]*string, 0)
 	userIdLspIdMap := make(map[string]string)
-	for _, v := range userLspMaps {
+	for _, vv := range userLspMaps {
+		v := vv
 		users = append(users, &v.UserID)
 		userIdLspIdMap[v.UserID] = v.ID
 	}
