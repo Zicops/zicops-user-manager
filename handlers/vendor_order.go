@@ -481,3 +481,86 @@ func GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderSer
 
 	return res, nil
 }
+
+func updateVendorLspMap(ctx context.Context, vendorId string, lsp string, service string, add bool) error {
+	claims, err := identity.GetClaimsFromContext(ctx)
+	if err != nil {
+		log.Errorf("Got error while getting claims: %v", err)
+	}
+	email := claims["email"].(string)
+
+	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map WHERE vendor_id='%s' AND lsp_id='%s' ALLOW FILTERING`, vendorId, lsp)
+
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
+	if err != nil {
+		log.Errorf("Error while getting session: %v", err)
+	}
+	CassSession := session
+
+	getVendorLspMap := func() (maps []vendorz.VendorLspMap, err error) {
+		q := CassSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return maps, iter.Select(&maps)
+	}
+
+	maps, err := getVendorLspMap()
+	if err != nil {
+		return err
+	}
+	vendorLspMap := maps[0]
+	services := vendorLspMap.Services
+	// add is for checking whether to add or delete the value
+	if add {
+
+		//check if service already exists
+		for _, v := range services {
+			if v == service {
+				return nil
+			}
+		}
+		//if not then append
+		services = append(services, "crt")
+
+		vendorLspMap.Services = services
+		vendorLspMap.UpdatedAt = time.Now().Unix()
+		vendorLspMap.UpdatedBy = email
+
+		updatedCols := []string{"services", "updated_by", "updated_at"}
+		stmt, names := vendorz.VendorLspMapTable.Update(updatedCols...)
+		updateQuery := CassSession.Query(stmt, names).BindStruct(&vendorLspMap)
+		if err = updateQuery.ExecRelease(); err != nil {
+			return err
+		}
+
+	} else {
+		//it means delete the given service from the table
+		var pos int
+		//flag is used to see if service actually exists in the table or not
+		flag := false
+		for k, v := range services {
+			if v == service {
+				flag = true
+				pos = k
+			}
+		}
+
+		if flag {
+			//we have the index of element in services array
+			services = append(services[:pos], services[pos+1:]...)
+
+			vendorLspMap.Services = services
+			vendorLspMap.UpdatedAt = time.Now().Unix()
+			vendorLspMap.UpdatedBy = email
+
+			updatedCols := []string{"services", "updated_by", "updated_at"}
+			stmt, names := vendorz.VendorLspMapTable.Update(updatedCols...)
+			updateQuery := CassSession.Query(stmt, names).BindStruct(&vendorLspMap)
+			if err = updateQuery.ExecRelease(); err != nil {
+				return err
+			}
+		}
+
+	}
+	return nil
+}

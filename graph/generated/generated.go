@@ -371,7 +371,7 @@ type ComplexityRoot struct {
 		GetOrganizations               func(childComplexity int, orgIds []*string) int
 		GetOrganizationsByName         func(childComplexity int, name *string, prevPageSnapShot string, pageSize int) int
 		GetPaginatedLspUsersWithRoles  func(childComplexity int, lspID string, role []*string, pageCursor *string, direction *string, pageSize *int) int
-		GetPaginatedVendors            func(childComplexity int, lspID *string, pageCursor *string, direction *string, pageSize *int) int
+		GetPaginatedVendors            func(childComplexity int, lspID *string, pageCursor *string, direction *string, pageSize *int, filters *model.VendorFilters) int
 		GetSampleFiles                 func(childComplexity int, vendorID string, pType string) int
 		GetSmeDetails                  func(childComplexity int, vendorID string) int
 		GetUnitsByOrgID                func(childComplexity int, orgID string) int
@@ -851,7 +851,7 @@ type QueryResolver interface {
 	GetVendorExperience(ctx context.Context, vendorID string, pfID string) ([]*model.ExperienceVendor, error)
 	GetVendorExperienceDetails(ctx context.Context, vendorID string, pfID string, expID string) (*model.ExperienceVendor, error)
 	GetVendors(ctx context.Context, lspID *string, filters *model.VendorFilters) ([]*model.Vendor, error)
-	GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendors, error)
+	GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int, filters *model.VendorFilters) (*model.PaginatedVendors, error)
 	GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error)
 	GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, error)
 	ViewProfileVendorDetails(ctx context.Context, vendorID string, email string) (*model.VendorProfile, error)
@@ -3089,7 +3089,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetPaginatedVendors(childComplexity, args["lsp_id"].(*string), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+		return e.complexity.Query.GetPaginatedVendors(childComplexity, args["lsp_id"].(*string), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int), args["filters"].(*model.VendorFilters)), true
 
 	case "Query.getSampleFiles":
 		if e.complexity.Query.GetSampleFiles == nil {
@@ -6428,6 +6428,7 @@ input ExamAttemptsFilters {
 
 input VendorFilters {
   status: String
+  service: String
 }
 
 type UserDetailsRole {
@@ -6620,7 +6621,7 @@ type Query {
   getVendorExperience(vendor_id: String!, pf_id: String!):[ExperienceVendor]
   getVendorExperienceDetails(vendor_id: String!, pf_id: String!, exp_id: String!): ExperienceVendor
   getVendors(lsp_id: String, filters: VendorFilters): [Vendor]
-  getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendors
+  getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int, filters: VendorFilters): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
@@ -8242,6 +8243,15 @@ func (ec *executionContext) field_Query_getPaginatedVendors_args(ctx context.Con
 		}
 	}
 	args["pageSize"] = arg3
+	var arg4 *model.VendorFilters
+	if tmp, ok := rawArgs["filters"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filters"))
+		arg4, err = ec.unmarshalOVendorFilters2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorFilters(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg4
 	return args, nil
 }
 
@@ -24608,7 +24618,7 @@ func (ec *executionContext) _Query_getPaginatedVendors(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetPaginatedVendors(rctx, fc.Args["lsp_id"].(*string), fc.Args["pageCursor"].(*string), fc.Args["Direction"].(*string), fc.Args["pageSize"].(*int))
+		return ec.resolvers.Query().GetPaginatedVendors(rctx, fc.Args["lsp_id"].(*string), fc.Args["pageCursor"].(*string), fc.Args["Direction"].(*string), fc.Args["pageSize"].(*int), fc.Args["filters"].(*model.VendorFilters))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -42024,7 +42034,7 @@ func (ec *executionContext) unmarshalInputVendorFilters(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status"}
+	fieldsInOrder := [...]string{"status", "service"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -42036,6 +42046,14 @@ func (ec *executionContext) unmarshalInputVendorFilters(ctx context.Context, obj
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
 			it.Status, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "service":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service"))
+			it.Service, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

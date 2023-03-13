@@ -171,6 +171,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		return nil, nil
 	}
 	email := claims["email"].(string)
+	lsp := claims["lsp_id"].(string)
 	v_id := *input.VendorID
 	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s'`, v_id)
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
@@ -236,6 +237,38 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 	if input.Status != nil {
 		vendor.Status = *input.Status
 		updatedCols = append(updatedCols, "status")
+
+		if *input.Status == "disable" && vendor.Status != "disable" {
+			//update vendor lsp map status to disable as well
+			maps := vendorz.VendorLspMap{
+				VendorId:  v_id,
+				LspId:     lsp,
+				UpdatedAt: time.Now().Unix(),
+				UpdatedBy: email,
+				Status:    "disable",
+			}
+			updates := []string{"updated_at", "updated_by", "status"}
+			stmt, names := vendorz.VendorLspMapTable.Update(updates...)
+			updatedQuery := CassUserSession.Query(stmt, names).BindStruct(&maps)
+			if err = updatedQuery.ExecRelease(); err != nil {
+				return nil, err
+			}
+
+		} else if *input.Status == "active" && vendor.Status != "active" {
+			maps := vendorz.VendorLspMap{
+				VendorId:  v_id,
+				LspId:     lsp,
+				UpdatedAt: time.Now().Unix(),
+				UpdatedBy: email,
+				Status:    "active",
+			}
+			updates := []string{"updated_at", "updated_by", "status"}
+			stmt, names := vendorz.VendorLspMapTable.Update(updates...)
+			updatedQuery := CassUserSession.Query(stmt, names).BindStruct(&maps)
+			if err = updatedQuery.ExecRelease(); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	storageC := bucket.NewStorageHandler()
@@ -1117,7 +1150,7 @@ func GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, erro
 	return res, nil
 }
 
-func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendors, error) {
+func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int, filters *model.VendorFilters) (*model.PaginatedVendors, error) {
 	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting context: %v", err)
@@ -1153,7 +1186,12 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 		pageSizeInt = 10
 	}
 
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map where lsp_id = '%s' ALLOW FILTERING`, lsp)
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map where lsp_id = '%s' `, lsp)
+	if filters != nil && filters.Service != nil {
+		service := strings.ToLower(*filters.Service)
+		queryStr += fmt.Sprintf(` AND services contains '%s' `, service)
+	}
+	queryStr += `ALLOW FILTERING`
 	getVendorIds := func(page []byte) (vendors []vendorz.VendorLspMap, nextPage []byte, err error) {
 		q := CassVendorSession.Query(queryStr, nil)
 		defer q.Release()
@@ -1998,6 +2036,7 @@ func CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 	email := claims["email"].(string)
+	lsp := claims["lsp_id"].(string)
 
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
@@ -2043,6 +2082,11 @@ func CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 		return nil, err
 	}
 
+	err = updateVendorLspMap(ctx, input.VendorID, lsp, "sme", true)
+	if err != nil {
+		return nil, err
+	}
+
 	createdAt := strconv.Itoa(int(ca))
 	res := model.Sme{
 		VendorID:         &input.VendorID,
@@ -2070,6 +2114,7 @@ func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 	email := claims["email"].(string)
+	lsp := claims["lsp_id"].(string)
 
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
@@ -2106,6 +2151,19 @@ func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 		updatedCols = append(updatedCols, "expertise")
 	}
 	if input.IsApplicable != nil {
+
+		if !*input.IsApplicable && smeData.IsApplicable {
+			err = updateVendorLspMap(ctx, input.VendorID, lsp, "sme", false)
+			if err != nil {
+				return nil, err
+			}
+		} else if *input.IsApplicable && !smeData.IsApplicable {
+			err = updateVendorLspMap(ctx, input.VendorID, lsp, "sme", true)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		smeData.IsApplicable = *input.IsApplicable
 		updatedCols = append(updatedCols, "is_applicable")
 	}
@@ -2227,6 +2285,7 @@ func CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 	email := claims["email"].(string)
+	lsp := claims["lsp_id"].(string)
 
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
@@ -2270,9 +2329,13 @@ func CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 	if input.Status != nil {
 		crt.Status = *input.Status
 	}
-
 	insertQuery := CassSession.Query(vendorz.ClassRoomTrainingTable.Insert()).BindStruct(crt)
 	if err = insertQuery.Exec(); err != nil {
+		return nil, err
+	}
+
+	err = updateVendorLspMap(ctx, input.VendorID, lsp, "crt", true)
+	if err != nil {
 		return nil, err
 	}
 
@@ -2305,6 +2368,7 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 	email := claims["email"].(string)
+	lsp := claims["lsp_id"].(string)
 
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
@@ -2340,6 +2404,21 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		updatedCols = append(updatedCols, "expertise")
 	}
 	if input.IsApplicable != nil {
+
+		if !*input.IsApplicable && crt.IsApplicable {
+			//i.e., originally is applicable was true, but we are updating it to false, so update vendor lsp map to remove crt
+			err = updateVendorLspMap(ctx, input.VendorID, lsp, "crt", false)
+			if err != nil {
+				return nil, err
+			}
+		} else if *input.IsApplicable && !crt.IsApplicable {
+			//we are updating is applicable to true, but it was false initially
+			err = updateVendorLspMap(ctx, input.VendorID, lsp, "crt", true)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		crt.IsApplicable = *input.IsApplicable
 		updatedCols = append(updatedCols, "is_applicable")
 	}
@@ -2402,7 +2481,6 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		UpdatedBy:         &email,
 		Status:            &crt.Status,
 	}
-
 	return &res, nil
 }
 
@@ -2467,6 +2545,7 @@ func CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 	email := claims["email"].(string)
+	lsp := claims["lsp_id"].(string)
 
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
@@ -2512,6 +2591,12 @@ func CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 	if err = insertQuery.Exec(); err != nil {
 		return nil, err
 	}
+
+	err = updateVendorLspMap(ctx, input.VendorID, lsp, "cd", true)
+	if err != nil {
+		return nil, err
+	}
+
 	ca := strconv.Itoa(int(createdAt))
 	res := model.ContentDevelopment{
 		CdID:             &cdId,
@@ -2540,6 +2625,7 @@ func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		log.Errorf("Got error while getting claims: %v", err)
 	}
 	email := claims["email"].(string)
+	lsp := claims["lsp_id"].(string)
 
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
@@ -2574,6 +2660,20 @@ func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		updatedCols = append(updatedCols, "expertise")
 	}
 	if input.IsApplicable != nil {
+
+		if !*input.IsApplicable && cd.IsApplicable {
+			//we are updating is applicable to false, but initially its set to true, so remove it from vendor lsp map
+			err = updateVendorLspMap(ctx, input.VendorID, lsp, "cd", false)
+			if err != nil {
+				return nil, err
+			}
+		} else if *input.IsApplicable && !cd.IsApplicable {
+			err = updateVendorLspMap(ctx, input.VendorID, lsp, "cd", true)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 		cd.IsApplicable = *input.IsApplicable
 		updatedCols = append(updatedCols, "is_applicable")
 	}

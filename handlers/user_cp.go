@@ -148,8 +148,17 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 	if input.Status != "" && input.Status != userLspMap.Status {
 
 		if input.Status == "in-progress" && userLspMap.Status == "open" {
-			userLspMap.Status = "started"
-		} else if input.Status == "completed" && userLspMap.Status != "completed" {
+			_, err = UpdateUserCourse(ctx, model.UserCourseInput{
+				UserCourseID: &userLspMap.UserCmID,
+				UserID:       userLspMap.UserID,
+				CourseStatus: "started",
+			})
+
+			if err != nil {
+				return nil, err
+			}
+		}
+		if input.Status == "completed" && userLspMap.Status != "completed" {
 			res := checkStatusOfEachTopic(ctx, input.UserID, input.UserCourseID)
 			if res {
 				//update course to be completed
@@ -163,9 +172,8 @@ func UpdateUserCourseProgress(ctx context.Context, input model.UserCourseProgres
 					return nil, err
 				}
 			}
-		} else {
-			userLspMap.Status = input.Status
 		}
+		userLspMap.Status = input.Status
 		updatedCols = append(updatedCols, "status")
 	}
 	if input.TopicID != "" && input.TopicID != userLspMap.TopicID {
@@ -277,3 +285,11 @@ func GetCourseViews(ctx context.Context, lspIds []string, startTime *string, end
 	}
 	return output, nil
 }
+
+//usercourse map
+//user course progress
+//input - completed, map not completed - check status of each topic of user course progresss - if yes, map - compeleted
+//input - in progress, map open, user course map started
+
+//input, output
+//input in progress,
