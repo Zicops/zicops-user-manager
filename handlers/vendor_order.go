@@ -564,3 +564,73 @@ func updateVendorLspMap(ctx context.Context, vendorId string, lsp string, servic
 	}
 	return nil
 }
+
+func GetSpeakers(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
+	claims, err := identity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	lsp := claims["lsp_id"].(string)
+	if lspID != nil {
+		lsp = *lspID
+	}
+
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
+	if err != nil {
+		return nil, err
+	}
+
+	CassSession := session
+	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile where lsp_id='%s' AND is_speaker=true ALLOW FILTERING`, lsp)
+	getProfiles := func() (profilesData []vendorz.VendorProfile, err error) {
+		q := CassSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return profilesData, iter.Select(&profilesData)
+	}
+
+	profiles, err := getProfiles()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(profiles) == 0 {
+		return nil, nil
+	}
+
+	//now we have different profiles which are linked to their respective vendors
+	//and we want to return only unique vendors
+	//for example, say a vendor has 2 profiles, both of them are speakers, but still we want to display that vendor only once
+	//so we have to return only unique values
+
+	arr := make(map[string]bool)
+	for _, v := range profiles {
+		//check if this vendorId is already seen
+		if _, exists := arr[v.VendorId]; !exists {
+			arr[v.VendorId] = true
+		}
+	}
+
+	//now we have a list of unique vendor Id
+	var wg sync.WaitGroup
+	res := make([]*model.Vendor, len(arr))
+	i := 0
+
+	for kk := range arr {
+		k := kk
+		wg.Add(1)
+		go func(vendorId string, ctx context.Context, i int) {
+			defer wg.Done()
+			tmp, err := GetVendorDetails(ctx, vendorId)
+			if err != nil {
+				log.Printf("Got error while getting vendor details: %v", err)
+				return
+			}
+
+			res[i] = tmp
+
+		}(k, ctx, i)
+		i += 1
+	}
+	return nil, nil
+}

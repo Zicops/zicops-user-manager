@@ -910,6 +910,7 @@ type Vendor struct {
 	InstagramURL *string   `json:"instagram_url"`
 	TwitterURL   *string   `json:"twitter_url"`
 	LinkedinURL  *string   `json:"linkedin_url"`
+	Services     []*string `json:"services"`
 	CreatedAt    *string   `json:"created_at"`
 	CreatedBy    *string   `json:"created_by"`
 	UpdatedAt    *string   `json:"updated_at"`
@@ -983,6 +984,7 @@ type VendorProfile struct {
 	Crt                *bool     `json:"crt"`
 	Cd                 *bool     `json:"cd"`
 	IsSpeaker          *bool     `json:"is_speaker"`
+	LspID              *string   `json:"lsp_id"`
 	CreatedAt          *string   `json:"created_at"`
 	CreatedBy          *string   `json:"created_by"`
 	UpdatedAt          *string   `json:"updated_at"`

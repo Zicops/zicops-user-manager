@@ -449,6 +449,7 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		return nil, err
 	}
 	createdBy := claims["email"].(string)
+	lspId := claims["lsp_id"].(string)
 
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
@@ -481,6 +482,7 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		PfId:     pfId,
 		VendorId: input.VendorID,
 		Email:    email,
+		LspId:    lspId,
 	}
 	if input.FirstName != nil {
 		profile.FirstName = *input.FirstName
@@ -585,6 +587,7 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		Experience:         input.Experience,
 		ExperienceYears:    input.ExperienceYears,
 		IsSpeaker:          &profile.IsSpeaker,
+		LspID:              &lspId,
 		CreatedAt:          &createdAt,
 		CreatedBy:          &profile.CreatedBy,
 		UpdatedAt:          nil,
@@ -1187,6 +1190,9 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 	}
 
 	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map where lsp_id = '%s' `, lsp)
+	if filters != nil && filters.Status != nil {
+		queryStr += fmt.Sprintf(` AND status='%s'`, *filters.Status)
+	}
 	if filters != nil && filters.Service != nil {
 		service := strings.ToLower(*filters.Service)
 		queryStr += fmt.Sprintf(` AND services contains '%s' `, service)
@@ -1221,7 +1227,8 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 	for kk, vvv := range vendorIds {
 		vv := vvv
 		wg.Add(1)
-		go func(vendorId string, k int) {
+		go func(vendorLspMap vendorz.VendorLspMap, k int) {
+			vendorId := vendorLspMap.VendorId
 
 			queryStr = fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s' ALLOW FILTERING`, vendorId)
 			getVendors := func() (vendors []vendorz.Vendor, err error) {
@@ -1254,6 +1261,10 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 
 			createdAt := strconv.Itoa(int(vendor.CreatedAt))
 			updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
+			var services []*string
+			for _, v := range vendorLspMap.Services {
+				services = append(services, &v)
+			}
 			vendorData := &model.Vendor{
 				VendorID:     vendor.VendorId,
 				Type:         vendor.Type,
@@ -1268,6 +1279,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 				InstagramURL: &vendor.Instagram,
 				TwitterURL:   &vendor.Twitter,
 				LinkedinURL:  &vendor.LinkedIn,
+				Services:     services,
 				CreatedAt:    &createdAt,
 				CreatedBy:    &vendor.CreatedBy,
 				UpdatedAt:    &updatedAt,
@@ -1276,7 +1288,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 			}
 			res[k] = vendorData
 			wg.Done()
-		}(vv.VendorId, kk)
+		}(vv, kk)
 	}
 	wg.Wait()
 	outputResponse.Vendors = res
