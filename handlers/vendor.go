@@ -2481,7 +2481,6 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		UpdatedBy:         &email,
 		Status:            &crt.Status,
 	}
-
 	return &res, nil
 }
 
