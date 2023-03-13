@@ -374,6 +374,7 @@ type ComplexityRoot struct {
 		GetPaginatedVendors            func(childComplexity int, lspID *string, pageCursor *string, direction *string, pageSize *int, filters *model.VendorFilters) int
 		GetSampleFiles                 func(childComplexity int, vendorID string, pType string) int
 		GetSmeDetails                  func(childComplexity int, vendorID string) int
+		GetSpeakers                    func(childComplexity int, lspID *string) int
 		GetUnitsByOrgID                func(childComplexity int, orgID string) int
 		GetUserBookmarks               func(childComplexity int, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string, lspID *string) int
@@ -697,6 +698,7 @@ type ComplexityRoot struct {
 		LinkedinURL  func(childComplexity int) int
 		Name         func(childComplexity int) int
 		PhotoURL     func(childComplexity int) int
+		Services     func(childComplexity int) int
 		Status       func(childComplexity int) int
 		TwitterURL   func(childComplexity int) int
 		Type         func(childComplexity int) int
@@ -736,6 +738,7 @@ type ComplexityRoot struct {
 		IsSpeaker          func(childComplexity int) int
 		Language           func(childComplexity int) int
 		LastName           func(childComplexity int) int
+		LspID              func(childComplexity int) int
 		PfID               func(childComplexity int) int
 		Phone              func(childComplexity int) int
 		PhotoURL           func(childComplexity int) int
@@ -866,6 +869,7 @@ type QueryResolver interface {
 	GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserDetailsWithRole, error)
 	GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, error)
 	GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderServices, error)
+	GetSpeakers(ctx context.Context, lspID *string) ([]*model.Vendor, error)
 }
 
 type executableSchema struct {
@@ -3115,6 +3119,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetSmeDetails(childComplexity, args["vendor_id"].(string)), true
 
+	case "Query.getSpeakers":
+		if e.complexity.Query.GetSpeakers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getSpeakers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetSpeakers(childComplexity, args["lsp_id"].(*string)), true
+
 	case "Query.getUnitsByOrgId":
 		if e.complexity.Query.GetUnitsByOrgID == nil {
 			break
@@ -5095,6 +5111,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Vendor.PhotoURL(childComplexity), true
 
+	case "Vendor.services":
+		if e.complexity.Vendor.Services == nil {
+			break
+		}
+
+		return e.complexity.Vendor.Services(childComplexity), true
+
 	case "Vendor.status":
 		if e.complexity.Vendor.Status == nil {
 			break
@@ -5325,6 +5348,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.VendorProfile.LastName(childComplexity), true
+
+	case "VendorProfile.lsp_id":
+		if e.complexity.VendorProfile.LspID == nil {
+			break
+		}
+
+		return e.complexity.VendorProfile.LspID(childComplexity), true
 
 	case "VendorProfile.pf_id":
 		if e.complexity.VendorProfile.PfID == nil {
@@ -6216,6 +6246,7 @@ type Vendor {
 	instagram_url: String
 	twitter_url: String
 	linkedin_url: String
+  services: [String]
 	created_at: String
 	created_by: String
 	updated_at: String
@@ -6295,6 +6326,7 @@ type VendorProfile {
   crt: Boolean
   cd: Boolean
   is_speaker: Boolean
+  lsp_id: String
   created_at: String
 	created_by: String
 	updated_at: String
@@ -6636,6 +6668,7 @@ type Query {
   getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
   getAllOrders(lsp_id: String): [VendorOrder]
   getOrderServices(order_id: [String]):[OrderServices]
+  getSpeakers(lsp_id: String): [Vendor]
 }
 
 type Mutation {
@@ -8291,6 +8324,21 @@ func (ec *executionContext) field_Query_getSmeDetails_args(ctx context.Context, 
 		}
 	}
 	args["vendor_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getSpeakers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lsp_id"] = arg0
 	return args, nil
 }
 
@@ -16501,6 +16549,8 @@ func (ec *executionContext) fieldContext_Mutation_addVendor(ctx context.Context,
 				return ec.fieldContext_Vendor_twitter_url(ctx, field)
 			case "linkedin_url":
 				return ec.fieldContext_Vendor_linkedin_url(ctx, field)
+			case "services":
+				return ec.fieldContext_Vendor_services(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Vendor_created_at(ctx, field)
 			case "created_by":
@@ -16591,6 +16641,8 @@ func (ec *executionContext) fieldContext_Mutation_updateVendor(ctx context.Conte
 				return ec.fieldContext_Vendor_twitter_url(ctx, field)
 			case "linkedin_url":
 				return ec.fieldContext_Vendor_linkedin_url(ctx, field)
+			case "services":
+				return ec.fieldContext_Vendor_services(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Vendor_created_at(ctx, field)
 			case "created_by":
@@ -16691,6 +16743,8 @@ func (ec *executionContext) fieldContext_Mutation_createProfileVendor(ctx contex
 				return ec.fieldContext_VendorProfile_cd(ctx, field)
 			case "is_speaker":
 				return ec.fieldContext_VendorProfile_is_speaker(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_VendorProfile_lsp_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_VendorProfile_created_at(ctx, field)
 			case "created_by":
@@ -17087,6 +17141,8 @@ func (ec *executionContext) fieldContext_Mutation_updateProfileVendor(ctx contex
 				return ec.fieldContext_VendorProfile_cd(ctx, field)
 			case "is_speaker":
 				return ec.fieldContext_VendorProfile_is_speaker(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_VendorProfile_lsp_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_VendorProfile_created_at(ctx, field)
 			case "created_by":
@@ -21509,6 +21565,8 @@ func (ec *executionContext) fieldContext_PaginatedVendors_vendors(ctx context.Co
 				return ec.fieldContext_Vendor_twitter_url(ctx, field)
 			case "linkedin_url":
 				return ec.fieldContext_Vendor_linkedin_url(ctx, field)
+			case "services":
+				return ec.fieldContext_Vendor_services(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Vendor_created_at(ctx, field)
 			case "created_by":
@@ -24576,6 +24634,8 @@ func (ec *executionContext) fieldContext_Query_getVendors(ctx context.Context, f
 				return ec.fieldContext_Vendor_twitter_url(ctx, field)
 			case "linkedin_url":
 				return ec.fieldContext_Vendor_linkedin_url(ctx, field)
+			case "services":
+				return ec.fieldContext_Vendor_services(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Vendor_created_at(ctx, field)
 			case "created_by":
@@ -24812,6 +24872,8 @@ func (ec *executionContext) fieldContext_Query_getVendorDetails(ctx context.Cont
 				return ec.fieldContext_Vendor_twitter_url(ctx, field)
 			case "linkedin_url":
 				return ec.fieldContext_Vendor_linkedin_url(ctx, field)
+			case "services":
+				return ec.fieldContext_Vendor_services(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Vendor_created_at(ctx, field)
 			case "created_by":
@@ -24912,6 +24974,8 @@ func (ec *executionContext) fieldContext_Query_viewProfileVendorDetails(ctx cont
 				return ec.fieldContext_VendorProfile_cd(ctx, field)
 			case "is_speaker":
 				return ec.fieldContext_VendorProfile_is_speaker(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_VendorProfile_lsp_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_VendorProfile_created_at(ctx, field)
 			case "created_by":
@@ -25012,6 +25076,8 @@ func (ec *executionContext) fieldContext_Query_viewAllProfiles(ctx context.Conte
 				return ec.fieldContext_VendorProfile_cd(ctx, field)
 			case "is_speaker":
 				return ec.fieldContext_VendorProfile_is_speaker(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_VendorProfile_lsp_id(ctx, field)
 			case "created_at":
 				return ec.fieldContext_VendorProfile_created_at(ctx, field)
 			case "created_by":
@@ -25420,6 +25486,8 @@ func (ec *executionContext) fieldContext_Query_getUserVendor(ctx context.Context
 				return ec.fieldContext_Vendor_twitter_url(ctx, field)
 			case "linkedin_url":
 				return ec.fieldContext_Vendor_linkedin_url(ctx, field)
+			case "services":
+				return ec.fieldContext_Vendor_services(ctx, field)
 			case "created_at":
 				return ec.fieldContext_Vendor_created_at(ctx, field)
 			case "created_by":
@@ -25772,6 +25840,98 @@ func (ec *executionContext) fieldContext_Query_getOrderServices(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getOrderServices_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getSpeakers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getSpeakers(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetSpeakers(rctx, fc.Args["lsp_id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Vendor)
+	fc.Result = res
+	return ec.marshalOVendor2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getSpeakers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "vendorId":
+				return ec.fieldContext_Vendor_vendorId(ctx, field)
+			case "type":
+				return ec.fieldContext_Vendor_type(ctx, field)
+			case "level":
+				return ec.fieldContext_Vendor_level(ctx, field)
+			case "name":
+				return ec.fieldContext_Vendor_name(ctx, field)
+			case "description":
+				return ec.fieldContext_Vendor_description(ctx, field)
+			case "photo_url":
+				return ec.fieldContext_Vendor_photo_url(ctx, field)
+			case "address":
+				return ec.fieldContext_Vendor_address(ctx, field)
+			case "users":
+				return ec.fieldContext_Vendor_users(ctx, field)
+			case "website":
+				return ec.fieldContext_Vendor_website(ctx, field)
+			case "facebook_url":
+				return ec.fieldContext_Vendor_facebook_url(ctx, field)
+			case "instagram_url":
+				return ec.fieldContext_Vendor_instagram_url(ctx, field)
+			case "twitter_url":
+				return ec.fieldContext_Vendor_twitter_url(ctx, field)
+			case "linkedin_url":
+				return ec.fieldContext_Vendor_linkedin_url(ctx, field)
+			case "services":
+				return ec.fieldContext_Vendor_services(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Vendor_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_Vendor_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_Vendor_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_Vendor_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_Vendor_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Vendor", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getSpeakers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -35831,6 +35991,47 @@ func (ec *executionContext) fieldContext_Vendor_linkedin_url(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Vendor_services(ctx context.Context, field graphql.CollectedField, obj *model.Vendor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Vendor_services(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Services, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Vendor_services(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Vendor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Vendor_created_at(ctx context.Context, field graphql.CollectedField, obj *model.Vendor) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Vendor_created_at(ctx, field)
 	if err != nil {
@@ -37220,6 +37421,47 @@ func (ec *executionContext) fieldContext_VendorProfile_is_speaker(ctx context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorProfile_lsp_id(ctx context.Context, field graphql.CollectedField, obj *model.VendorProfile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorProfile_lsp_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LspID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorProfile_lsp_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -45246,6 +45488,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getSpeakers":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getSpeakers(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -47045,6 +47307,10 @@ func (ec *executionContext) _Vendor(ctx context.Context, sel ast.SelectionSet, o
 
 			out.Values[i] = ec._Vendor_linkedin_url(ctx, field, obj)
 
+		case "services":
+
+			out.Values[i] = ec._Vendor_services(ctx, field, obj)
+
 		case "created_at":
 
 			out.Values[i] = ec._Vendor_created_at(ctx, field, obj)
@@ -47222,6 +47488,10 @@ func (ec *executionContext) _VendorProfile(ctx context.Context, sel ast.Selectio
 		case "is_speaker":
 
 			out.Values[i] = ec._VendorProfile_is_speaker(ctx, field, obj)
+
+		case "lsp_id":
+
+			out.Values[i] = ec._VendorProfile_lsp_id(ctx, field, obj)
 
 		case "created_at":
 
