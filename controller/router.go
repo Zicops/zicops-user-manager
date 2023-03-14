@@ -51,7 +51,7 @@ func CCRouter(restRouter *gin.Engine) (*gin.Engine, error) {
 func org(c *gin.Context) {
 	ctx := c.Request.Context()
 	d := c.Request.Host
-	redisKey := fmt.Sprintf("org_%s", d)
+	redisKey := fmt.Sprintf("org:%s", d)
 	res, err := redis.GetRedisValue(ctx, redisKey)
 	var outputInt userz.Organization
 	if err == nil && res != "" {

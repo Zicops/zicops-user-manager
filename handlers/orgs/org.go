@@ -266,7 +266,7 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 		Type:          orgCass.Type,
 	}
 
-	key := fmt.Sprintf("org_%s", orgCass.ZicopsSubdomain)
+	key := fmt.Sprintf("org:%s", orgCass.ZicopsSubdomain)
 	redisBytes, err := json.Marshal(orgCass)
 	if err == nil {
 		redis.SetRedisValue(ctx, key, string(redisBytes))
@@ -298,7 +298,7 @@ func GetOrganizations(ctx context.Context, orgIds []*string) ([]*model.Organizat
 				return
 			}
 			orgCass := userz.Organization{}
-			key := fmt.Sprintf("org_%s", *orgID)
+			key := fmt.Sprintf("org:%s", *orgID)
 			res, err := redis.GetRedisValue(ctx, key)
 			if err == nil && res != "" {
 				json.Unmarshal([]byte(res), &orgCass)
@@ -464,7 +464,7 @@ func GetOrganizationsByDomain(ctx context.Context, domain string) ([]*model.Orga
 	outputOrgs := make([]*model.Organization, 1)
 	log.Errorf("domain: %v", domain)
 	orgCass := userz.Organization{}
-	key := fmt.Sprintf("org_%s", domain)
+	key := fmt.Sprintf("org:%s", domain)
 	res, err := redis.GetRedisValue(ctx, key)
 	if err == nil && res != "" {
 		json.Unmarshal([]byte(res), &orgCass)

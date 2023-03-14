@@ -845,6 +845,8 @@ type ExperienceVendor {
 
 type InviteResponse {
   email: String
+  user_id: String
+  user_lsp_id: String
   message: String!
 }
 
@@ -948,6 +950,7 @@ type UserDetailsRole {
 type RoleData {
   user_role_id: String
   role: String
+  user_lsp_id: String
 }
 
 type PaginatedUserDetailsWithRole {

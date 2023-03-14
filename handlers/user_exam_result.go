@@ -39,6 +39,22 @@ func AddUserExamResult(ctx context.Context, input []*model.UserExamResultInput) 
 			continue
 		}
 		input := res
+
+		queryStr := fmt.Sprintf(`SELECT * FROM userz.user_exam_results WHERE user_id='%s' AND user_ea_id='%s' ALLOW FILTERING`, input.UserID, input.UserEaID)
+		checkMapping := func() (examResults []userz.UserExamResults, err error) {
+			q := CassUserSession.Query(queryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return examResults, iter.Select(&examResults)
+		}
+		userExamResults, err := checkMapping()
+		if err != nil {
+			return nil, err
+		}
+		if len(userExamResults) != 0 {
+			continue
+		}
+
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {

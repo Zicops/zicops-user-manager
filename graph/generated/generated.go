@@ -145,8 +145,10 @@ type ComplexityRoot struct {
 	}
 
 	InviteResponse struct {
-		Email   func(childComplexity int) int
-		Message func(childComplexity int) int
+		Email     func(childComplexity int) int
+		Message   func(childComplexity int) int
+		UserID    func(childComplexity int) int
+		UserLspID func(childComplexity int) int
 	}
 
 	LearningSpace struct {
@@ -197,7 +199,7 @@ type ComplexityRoot struct {
 		DeleteCohortImage            func(childComplexity int, cohortID string, filename string) int
 		DeleteSampleFile             func(childComplexity int, sfID string, vendorID string, pType string) int
 		InviteUsers                  func(childComplexity int, emails []string, lspID *string) int
-		InviteUsersWithRole          func(childComplexity int, emails []string, lspID *string, role *string, tags *string) int
+		InviteUsersWithRole          func(childComplexity int, emails []string, lspID *string, role *string) int
 		Login                        func(childComplexity int) int
 		RegisterUsers                func(childComplexity int, input []*model.UserInput) int
 		UpdateClassRoomTraining      func(childComplexity int, input *model.CRTInput) int
@@ -760,7 +762,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error)
 	InviteUsers(ctx context.Context, emails []string, lspID *string) (*bool, error)
-	InviteUsersWithRole(ctx context.Context, emails []string, lspID *string, role *string, tags *string) ([]*model.InviteResponse, error)
+	InviteUsersWithRole(ctx context.Context, emails []string, lspID *string, role *string) ([]*model.InviteResponse, error)
 	UpdateUser(ctx context.Context, input model.UserInput) (*model.User, error)
 	Login(ctx context.Context) (*model.User, error)
 	AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*model.UserLspMap, error)
@@ -1467,6 +1469,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.InviteResponse.Message(childComplexity), true
 
+	case "InviteResponse.user_id":
+		if e.complexity.InviteResponse.UserID == nil {
+			break
+		}
+
+		return e.complexity.InviteResponse.UserID(childComplexity), true
+
+	case "InviteResponse.user_lsp_id":
+		if e.complexity.InviteResponse.UserLspID == nil {
+			break
+		}
+
+		return e.complexity.InviteResponse.UserLspID(childComplexity), true
+
 	case "LearningSpace.created_at":
 		if e.complexity.LearningSpace.CreatedAt == nil {
 			break
@@ -1935,7 +1951,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InviteUsersWithRole(childComplexity, args["emails"].([]string), args["lsp_id"].(*string), args["role"].(*string), args["tags"].(*string)), true
+		return e.complexity.Mutation.InviteUsersWithRole(childComplexity, args["emails"].([]string), args["lsp_id"].(*string), args["role"].(*string)), true
 
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
@@ -6395,6 +6411,8 @@ type ExperienceVendor {
 
 type InviteResponse {
   email: String
+  user_id: String
+  user_lsp_id: String
   message: String!
 }
 
@@ -6707,7 +6725,7 @@ type Query {
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!, lsp_id: String): Boolean
-  inviteUsersWithRole(emails: [String!]!, lsp_id: String, role: String, tags: String): [InviteResponse]
+  inviteUsersWithRole(emails: [String!]!, lsp_id: String, role: String): [InviteResponse]
   updateUser(input: UserInput!): User
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
@@ -7280,15 +7298,6 @@ func (ec *executionContext) field_Mutation_inviteUsersWithRole_args(ctx context.
 		}
 	}
 	args["role"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["tags"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["tags"] = arg3
 	return args, nil
 }
 
@@ -12658,6 +12667,88 @@ func (ec *executionContext) fieldContext_InviteResponse_email(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _InviteResponse_user_id(ctx context.Context, field graphql.CollectedField, obj *model.InviteResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_InviteResponse_user_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_InviteResponse_user_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "InviteResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _InviteResponse_user_lsp_id(ctx context.Context, field graphql.CollectedField, obj *model.InviteResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_InviteResponse_user_lsp_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserLspID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_InviteResponse_user_lsp_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "InviteResponse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _InviteResponse_message(ctx context.Context, field graphql.CollectedField, obj *model.InviteResponse) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_InviteResponse_message(ctx, field)
 	if err != nil {
@@ -13450,7 +13541,7 @@ func (ec *executionContext) _Mutation_inviteUsersWithRole(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InviteUsersWithRole(rctx, fc.Args["emails"].([]string), fc.Args["lsp_id"].(*string), fc.Args["role"].(*string), fc.Args["tags"].(*string))
+		return ec.resolvers.Mutation().InviteUsersWithRole(rctx, fc.Args["emails"].([]string), fc.Args["lsp_id"].(*string), fc.Args["role"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13474,6 +13565,10 @@ func (ec *executionContext) fieldContext_Mutation_inviteUsersWithRole(ctx contex
 			switch field.Name {
 			case "email":
 				return ec.fieldContext_InviteResponse_email(ctx, field)
+			case "user_id":
+				return ec.fieldContext_InviteResponse_user_id(ctx, field)
+			case "user_lsp_id":
+				return ec.fieldContext_InviteResponse_user_lsp_id(ctx, field)
 			case "message":
 				return ec.fieldContext_InviteResponse_message(ctx, field)
 			}
@@ -43370,6 +43465,14 @@ func (ec *executionContext) _InviteResponse(ctx context.Context, sel ast.Selecti
 		case "email":
 
 			out.Values[i] = ec._InviteResponse_email(ctx, field, obj)
+
+		case "user_id":
+
+			out.Values[i] = ec._InviteResponse_user_id(ctx, field, obj)
+
+		case "user_lsp_id":
+
+			out.Values[i] = ec._InviteResponse_user_lsp_id(ctx, field, obj)
 
 		case "message":
 

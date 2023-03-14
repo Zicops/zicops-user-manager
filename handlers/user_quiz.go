@@ -34,11 +34,28 @@ func AddUserQuizAttempt(ctx context.Context, input []*model.UserQuizAttemptInput
 	CassUserSession := session
 
 	userLspMaps := make([]*model.UserQuizAttempt, 0)
-	for _, input := range input {
+	for _, inputV := range input {
+		input := inputV
 
 		if input == nil {
 			continue
 		}
+
+		queryStr := fmt.Sprintf(`SELECT * FROM userz.user_quiz_attempts WHERE user_id='%s' AND quiz_id='%s' AND user_cp_id='%s' ALLOW FILTERING`, input.UserID, input.QuizID, input.UserCpID)
+		checkMapping := func() (quizAttempts []userz.UserQuizAttempts, err error) {
+			q := CassUserSession.Query(queryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return quizAttempts, iter.Select(&quizAttempts)
+		}
+		quizAttempts, err := checkMapping()
+		if err != nil {
+			return nil, err
+		}
+		if len(quizAttempts) != 0 {
+			continue
+		}
+
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {

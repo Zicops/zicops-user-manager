@@ -845,6 +845,8 @@ type ExperienceVendor {
 
 type InviteResponse {
   email: String
+  user_id: String
+  user_lsp_id: String
   message: String!
 }
 
@@ -1157,7 +1159,7 @@ type Query {
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!, lsp_id: String): Boolean
-  inviteUsersWithRole(emails: [String!]!, lsp_id: String, role: String, tags: String): [InviteResponse]
+  inviteUsersWithRole(emails: [String!]!, lsp_id: String, role: String): [InviteResponse]
   updateUser(input: UserInput!): User
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]

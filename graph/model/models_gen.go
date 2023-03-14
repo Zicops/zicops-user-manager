@@ -174,8 +174,10 @@ type ExperienceVendor struct {
 }
 
 type InviteResponse struct {
-	Email   *string `json:"email"`
-	Message string  `json:"message"`
+	Email     *string `json:"email"`
+	UserID    *string `json:"user_id"`
+	UserLspID *string `json:"user_lsp_id"`
+	Message   string  `json:"message"`
 }
 
 type LearningSpace struct {

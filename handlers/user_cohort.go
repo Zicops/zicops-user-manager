@@ -39,6 +39,21 @@ func AddUserCohort(ctx context.Context, input []*model.UserCohortInput) ([]*mode
 		if input == nil {
 			continue
 		}
+		checkQuery := fmt.Sprintf(`SELECT * FROM userz.user_cohort_map WHERE user_id = '%s' AND cohort_id='%s' ALLOW FILTERING`, input.UserID, input.CohortID)
+		checkMapping := func() (cohortMaps []userz.UserCohort, err error) {
+			q := CassUserSession.Query(checkQuery, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return cohortMaps, iter.Select(&cohortMaps)
+		}
+		cohorts, err := checkMapping()
+		if err != nil {
+			return nil, err
+		}
+		if len(cohorts) != 0 {
+			continue
+		}
+
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {

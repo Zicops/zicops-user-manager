@@ -42,6 +42,23 @@ func AddUserCourseProgress(ctx context.Context, input []*model.UserCourseProgres
 			continue
 		}
 		input := *v
+
+		checkQuery := fmt.Sprintf(`SELECT * FROM userz.user_course_progress WHERE user_id='%s' AND topic_id = '%s' AND user_cm_id='%s' ALLOW FILTERING`, input.UserID, input.TopicID, input.UserCourseID)
+		checkMapping := func() (courseProgressMaps []userz.UserCourseProgress, err error) {
+			q := CassUserSession.Query(checkQuery, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return courseProgressMaps, iter.Select(&courseProgressMaps)
+		}
+
+		maps, err := checkMapping()
+		if err != nil {
+			return nil, err
+		}
+		if len(maps) != 0 {
+			continue
+		}
+
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
