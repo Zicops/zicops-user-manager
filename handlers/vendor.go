@@ -71,6 +71,8 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		Type:      *input.Type,
 		CreatedAt: createdAt,
 		CreatedBy: email,
+		UpdatedAt: createdAt,
+		UpdatedBy: email,
 	}
 	if input.Address != nil {
 		vendor.Address = *input.Address
@@ -170,6 +172,8 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		LinkedinURL:  &vendor.LinkedIn,
 		CreatedAt:    &ca,
 		CreatedBy:    &email,
+		UpdatedAt:    &ca,
+		UpdatedBy:    &email,
 		Status:       input.Status,
 	}
 
@@ -571,6 +575,8 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	}
 	profile.CreatedAt = time.Now().Unix()
 	profile.CreatedBy = createdBy
+	profile.UpdatedAt = time.Now().Unix()
+	profile.UpdatedBy = email
 
 	insertQuery := CassSession.Query(vendorz.VendorProfileTable.Insert()).BindStruct(profile)
 	if err = insertQuery.Exec(); err != nil {
@@ -605,8 +611,8 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		LspID:              &lspId,
 		CreatedAt:          &createdAt,
 		CreatedBy:          &profile.CreatedBy,
-		UpdatedAt:          nil,
-		UpdatedBy:          nil,
+		UpdatedAt:          &createdAt,
+		UpdatedBy:          &profile.UpdatedBy,
 		Status:             &profile.Status,
 	}
 	return &res, nil
@@ -639,6 +645,8 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 		PfId:      pfId,
 		CreatedAt: currentTime,
 		CreatedBy: email_creator,
+		UpdatedAt: currentTime,
+		UpdatedBy: email_creator,
 	}
 	if input.StartDate != nil {
 		exp.StartDate = int64(*input.StartDate)
@@ -683,6 +691,8 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 		EmployementType: input.EmployementType,
 		CreatedAt:       &ct,
 		CreatedBy:       &email_creator,
+		UpdatedAt:       &ct,
+		UpdatedBy:       &email_creator,
 		Status:          input.Status,
 	}
 
@@ -1958,6 +1968,8 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 		PType:      input.PType,
 		CreatedAt:  ca,
 		CreatedBy:  email,
+		UpdatedAt:  ca,
+		UpdatedBy:  email,
 	}
 
 	createdAt := strconv.Itoa(int(ca))
@@ -1966,6 +1978,8 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 	res.Price = &input.Pricing
 	res.CreatedAt = &createdAt
 	res.CreatedBy = &email
+	res.UpdatedAt = &createdAt
+	res.UpdatedBy = &email
 	res.FileURL = &getUrl
 	res.PType = &input.PType
 
@@ -2078,6 +2092,8 @@ func CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 		VendorId:  input.VendorID,
 		CreatedAt: ca,
 		CreatedBy: email,
+		UpdatedAt: ca,
+		UpdatedBy: email,
 	}
 	if input.IsApplicable != nil {
 		sme.IsApplicable = *input.IsApplicable
@@ -2126,6 +2142,8 @@ func CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 		SampleFiles:      input.SampleFiles,
 		CreatedAt:        &createdAt,
 		CreatedBy:        &email,
+		UpdatedAt:        &createdAt,
+		UpdatedBy:        &email,
 		Status:           input.Status,
 	}
 
@@ -2327,6 +2345,8 @@ func CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		VendorId:  input.VendorID,
 		CreatedAt: createdAt,
 		CreatedBy: email,
+		UpdatedAt: createdAt,
+		UpdatedBy: email,
 	}
 	if input.Description != nil {
 		crt.Description = *input.Description
@@ -2377,8 +2397,10 @@ func CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		SampleFiles:       input.SampleFiles,
 		OutputDeliveries:  input.OutputDeliveries,
 		IsExpertiseOnline: input.IsExpertiseOnline,
-		CreatedAt:         &email,
-		CreatedBy:         &ca,
+		CreatedAt:         &ca,
+		CreatedBy:         &email,
+		UpdatedAt:         &ca,
+		UpdatedBy:         &email,
 		Status:            input.Status,
 	}
 
@@ -2588,6 +2610,8 @@ func CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		VendorId:  input.VendorID,
 		CreatedAt: createdAt,
 		CreatedBy: email,
+		UpdatedAt: createdAt,
+		UpdatedBy: email,
 	}
 	if input.Description != nil {
 		cd.Description = *input.Description
@@ -2636,6 +2660,8 @@ func CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		SampleFiles:      input.SampleFiles,
 		CreatedAt:        &ca,
 		CreatedBy:        &email,
+		UpdatedAt:        &ca,
+		UpdatedBy:        &email,
 		Status:           &cd.Status,
 	}
 
