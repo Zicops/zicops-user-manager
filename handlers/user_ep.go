@@ -39,6 +39,22 @@ func AddUserExamProgress(ctx context.Context, input []*model.UserExamProgressInp
 		if input == nil {
 			continue
 		}
+
+		queryStr := fmt.Sprintf(`SELECT * FROM userz.user_exam_progress WHERE user_id='%s' AND user_ea_id='%s' ALLOW FILTERING`, input.UserID, input.UserEaID)
+		checkMapping := func() (maps []userz.UserExamProgress, err error) {
+			q := CassUserSession.Query(queryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return maps, iter.Select(&maps)
+		}
+		examProgress, err := checkMapping()
+		if err != nil {
+			return nil, err
+		}
+		if len(examProgress) != 0 {
+			continue
+		}
+
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {

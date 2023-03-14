@@ -52,7 +52,7 @@ func AddUserLanguageMap(ctx context.Context, input []*model.UserLanguageMapInput
 			return nil, err
 		}
 		if len(userLangMap) != 0 {
-			return nil, nil
+			continue
 		}
 
 		createdBy := userCass.Email

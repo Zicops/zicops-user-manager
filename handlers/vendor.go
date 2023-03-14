@@ -699,7 +699,9 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 	return &res, nil
 }
 
-func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role *string, tags *string) ([]*model.InviteResponse, error) {
+//user course map - mapping check
+
+func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role *string) ([]*model.InviteResponse, error) {
 	roles := []string{"admin", "learner", "vendor"}
 	isPresent := false
 	for _, vv := range roles {
@@ -769,22 +771,28 @@ func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role
 			Gender:     "",
 			Phone:      "",
 		}
+
+		_, lspMaps, err := RegisterUsers(ctx, []*model.UserInput{&userInput}, true, len(users) > 0)
+		if err != nil {
+			return nil, err
+		}
+
 		if len(users) > 0 {
 			tmp := &model.InviteResponse{
-				Email:   &email,
-				Message: "User already exists",
+				Email:     &email,
+				Message:   "User already exists",
+				UserID:    &lspMaps[0].UserID,
+				UserLspID: lspMaps[0].UserLspID,
 			}
 			res = append(res, tmp)
 		} else {
 			tmp := &model.InviteResponse{
-				Email:   &email,
-				Message: "New user",
+				Email:     &email,
+				Message:   "New user",
+				UserID:    &lspMaps[0].UserID,
+				UserLspID: lspMaps[0].UserLspID,
 			}
 			res = append(res, tmp)
-		}
-		_, lspMaps, err := RegisterUsers(ctx, []*model.UserInput{&userInput}, true, len(users) > 0)
-		if err != nil {
-			return nil, err
 		}
 
 		//check if map exists, if yes, check is active, if false - update to true
@@ -795,11 +803,11 @@ func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role
 			iter := q.Iter()
 			return userRoles, iter.Select(&userRoles)
 		}
-		res, err := getUserRole()
+		resp, err := getUserRole()
 		if err != nil {
 			log.Printf("Got error while getting user roles: %v", err)
 		}
-		if len(res) == 0 {
+		if len(resp) == 0 {
 			userRoleMap := &model.UserRoleInput{
 				UserID:    userID,
 				Role:      *role,

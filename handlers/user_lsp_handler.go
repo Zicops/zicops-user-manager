@@ -107,26 +107,6 @@ func AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput, isAdmin 
 	return userLspMaps, nil
 }
 
-// func AddTags(ctx context.Context, userLspId string, userId string, tag string) error {
-// 	data := fmt.Sprintf(`{
-// 		addUserTags(user_lsp_id: "%s",
-// 		user_id: "%s",
-// 		tags: ["%s"])
-// 	  }`, userLspId, userId, tag)
-// 	query := map[string]string{
-// 		"mutation": data,
-// 	}
-
-// 	dataJson, _ := json.Marshal(query)
-// 	request, err := http.NewRequest("POST", "https://demo.zicops.com/ns/query", bytes.NewBuffer(dataJson))
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	request.Header.Add("Authorization", )
-// 	return nil
-// }
-
 func UpdateUserLspMap(ctx context.Context, input model.UserLspMapInput) (*model.UserLspMap, error) {
 	userCass, err := GetUserFromCass(ctx)
 	if err != nil {

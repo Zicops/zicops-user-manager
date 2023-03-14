@@ -266,7 +266,7 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 		return nil, err
 	}
 	if input.Logo != nil {
-		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "logos", base64.URLEncoding.EncodeToString([]byte(input.Profile.Filename)))
+		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "logos", base64.URLEncoding.EncodeToString([]byte(input.Logo.Filename)))
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err

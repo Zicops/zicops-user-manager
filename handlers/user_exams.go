@@ -39,6 +39,22 @@ func AddUserExamAttempts(ctx context.Context, input []*model.UserExamAttemptsInp
 		if input == nil {
 			continue
 		}
+
+		checkQuery := fmt.Sprintf(`SELECT * FROM userz.user_exam_attempts WHERE user_id='%s' AND exam_id='%s' AND user_cp_id = '%s' ALLOW FILTERING`, input.UserID, input.ExamID, input.UserCpID)
+		checkMapping := func() (examAttempts []userz.UserExamAttempts, err error) {
+			q := CassUserSession.Query(checkQuery, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return examAttempts, iter.Select(&examAttempts)
+		}
+		attempts, err := checkMapping()
+		if err != nil {
+			return nil, err
+		}
+		if len(attempts) != 0 {
+			continue
+		}
+
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
