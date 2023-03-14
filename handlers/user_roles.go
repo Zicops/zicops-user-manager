@@ -272,9 +272,14 @@ func GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*mod
 				log.Printf("Got error getting user roles: %v", err)
 				return
 			}
-			roles := make([]*string, 0)
-			for _, v := range userRoles {
-				roles = append(roles, &v.Role)
+			roles := make([]*model.RoleData, 0)
+			for _, vv := range userRoles {
+				v := vv
+				tmp := model.RoleData{
+					UserRoleID: &v.ID,
+					Role:       &v.Role,
+				}
+				roles = append(roles, &tmp)
 			}
 			res[i] = &model.UserDetailsRole{
 				User:  ud,
@@ -388,9 +393,14 @@ func GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*st
 				log.Printf("Got error getting user roles: %v", err)
 				return
 			}
-			roles := make([]*string, 0)
-			for _, v := range userRoles {
-				roles = append(roles, &v.Role)
+			roles := make([]*model.RoleData, 0)
+			for _, vv := range userRoles {
+				v := vv
+				tmp := model.RoleData{
+					UserRoleID: &v.ID,
+					Role:       &v.Role,
+				}
+				roles = append(roles, &tmp)
 			}
 			res[i] = &model.UserDetailsRole{
 				User:  ud,

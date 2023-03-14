@@ -378,6 +378,12 @@ type PaginatedVendors struct {
 	PageSize   *int      `json:"pageSize"`
 }
 
+type RoleData struct {
+	UserRoleID *string `json:"user_role_id"`
+	Role       *string `json:"role"`
+	UserLspID  *string `json:"user_lsp_id"`
+}
+
 type Sme struct {
 	VendorID         *string   `json:"vendor_id"`
 	SmeID            *string   `json:"sme_id"`
@@ -583,8 +589,8 @@ type UserCourseProgressInput struct {
 }
 
 type UserDetailsRole struct {
-	User  *User     `json:"user"`
-	Roles []*string `json:"roles"`
+	User  *User       `json:"user"`
+	Roles []*RoleData `json:"roles"`
 }
 
 type UserExamAttempts struct {

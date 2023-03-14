@@ -197,7 +197,7 @@ type ComplexityRoot struct {
 		DeleteCohortImage            func(childComplexity int, cohortID string, filename string) int
 		DeleteSampleFile             func(childComplexity int, sfID string, vendorID string, pType string) int
 		InviteUsers                  func(childComplexity int, emails []string, lspID *string) int
-		InviteUsersWithRole          func(childComplexity int, emails []string, lspID *string, role *string) int
+		InviteUsersWithRole          func(childComplexity int, emails []string, lspID *string, role *string, tags *string) int
 		Login                        func(childComplexity int) int
 		RegisterUsers                func(childComplexity int, input []*model.UserInput) int
 		UpdateClassRoomTraining      func(childComplexity int, input *model.CRTInput) int
@@ -408,6 +408,12 @@ type ComplexityRoot struct {
 		Logout                         func(childComplexity int) int
 		ViewAllProfiles                func(childComplexity int, vendorID string, filter *string) int
 		ViewProfileVendorDetails       func(childComplexity int, vendorID string, email string) int
+	}
+
+	RoleData struct {
+		Role       func(childComplexity int) int
+		UserLspID  func(childComplexity int) int
+		UserRoleID func(childComplexity int) int
 	}
 
 	SME struct {
@@ -754,7 +760,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	RegisterUsers(ctx context.Context, input []*model.UserInput) ([]*model.User, error)
 	InviteUsers(ctx context.Context, emails []string, lspID *string) (*bool, error)
-	InviteUsersWithRole(ctx context.Context, emails []string, lspID *string, role *string) ([]*model.InviteResponse, error)
+	InviteUsersWithRole(ctx context.Context, emails []string, lspID *string, role *string, tags *string) ([]*model.InviteResponse, error)
 	UpdateUser(ctx context.Context, input model.UserInput) (*model.User, error)
 	Login(ctx context.Context) (*model.User, error)
 	AddUserLspMap(ctx context.Context, input []*model.UserLspMapInput) ([]*model.UserLspMap, error)
@@ -1929,7 +1935,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InviteUsersWithRole(childComplexity, args["emails"].([]string), args["lsp_id"].(*string), args["role"].(*string)), true
+		return e.complexity.Mutation.InviteUsersWithRole(childComplexity, args["emails"].([]string), args["lsp_id"].(*string), args["role"].(*string), args["tags"].(*string)), true
 
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
@@ -3521,6 +3527,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ViewProfileVendorDetails(childComplexity, args["vendor_id"].(string), args["email"].(string)), true
+
+	case "RoleData.role":
+		if e.complexity.RoleData.Role == nil {
+			break
+		}
+
+		return e.complexity.RoleData.Role(childComplexity), true
+
+	case "RoleData.user_lsp_id":
+		if e.complexity.RoleData.UserLspID == nil {
+			break
+		}
+
+		return e.complexity.RoleData.UserLspID(childComplexity), true
+
+	case "RoleData.user_role_id":
+		if e.complexity.RoleData.UserRoleID == nil {
+			break
+		}
+
+		return e.complexity.RoleData.UserRoleID(childComplexity), true
 
 	case "SME.created_at":
 		if e.complexity.SME.CreatedAt == nil {
@@ -6465,7 +6492,13 @@ input VendorFilters {
 
 type UserDetailsRole {
   user: User
-  roles: [String]
+  roles: [RoleData]
+}
+
+type RoleData {
+  user_role_id: String
+  role: String
+  user_lsp_id: String
 }
 
 type PaginatedUserDetailsWithRole {
@@ -6674,7 +6707,7 @@ type Query {
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!, lsp_id: String): Boolean
-  inviteUsersWithRole(emails: [String!]!, lsp_id: String, role: String): [InviteResponse]
+  inviteUsersWithRole(emails: [String!]!, lsp_id: String, role: String, tags: String): [InviteResponse]
   updateUser(input: UserInput!): User
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
@@ -7247,6 +7280,15 @@ func (ec *executionContext) field_Mutation_inviteUsersWithRole_args(ctx context.
 		}
 	}
 	args["role"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["tags"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tags"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tags"] = arg3
 	return args, nil
 }
 
@@ -13408,7 +13450,7 @@ func (ec *executionContext) _Mutation_inviteUsersWithRole(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InviteUsersWithRole(rctx, fc.Args["emails"].([]string), fc.Args["lsp_id"].(*string), fc.Args["role"].(*string))
+		return ec.resolvers.Mutation().InviteUsersWithRole(rctx, fc.Args["emails"].([]string), fc.Args["lsp_id"].(*string), fc.Args["role"].(*string), fc.Args["tags"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26067,6 +26109,129 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _RoleData_user_role_id(ctx context.Context, field graphql.CollectedField, obj *model.RoleData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoleData_user_role_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserRoleID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoleData_user_role_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoleData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoleData_role(ctx context.Context, field graphql.CollectedField, obj *model.RoleData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoleData_role(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoleData_role(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoleData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RoleData_user_lsp_id(ctx context.Context, field graphql.CollectedField, obj *model.RoleData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoleData_user_lsp_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserLspID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoleData_user_lsp_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoleData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SME_vendor_id(ctx context.Context, field graphql.CollectedField, obj *model.Sme) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SME_vendor_id(ctx, field)
 	if err != nil {
@@ -30176,9 +30341,9 @@ func (ec *executionContext) _UserDetailsRole_roles(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*string)
+	res := resTmp.([]*model.RoleData)
 	fc.Result = res
-	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+	return ec.marshalORoleData2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐRoleData(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_UserDetailsRole_roles(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -30188,7 +30353,15 @@ func (ec *executionContext) fieldContext_UserDetailsRole_roles(ctx context.Conte
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "user_role_id":
+				return ec.fieldContext_RoleData_user_role_id(ctx, field)
+			case "role":
+				return ec.fieldContext_RoleData_role(ctx, field)
+			case "user_lsp_id":
+				return ec.fieldContext_RoleData_user_lsp_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type RoleData", field.Name)
 		},
 	}
 	return fc, nil
@@ -45531,6 +45704,39 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
+var roleDataImplementors = []string{"RoleData"}
+
+func (ec *executionContext) _RoleData(ctx context.Context, sel ast.SelectionSet, obj *model.RoleData) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, roleDataImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RoleData")
+		case "user_role_id":
+
+			out.Values[i] = ec._RoleData_user_role_id(ctx, field, obj)
+
+		case "role":
+
+			out.Values[i] = ec._RoleData_role(ctx, field, obj)
+
+		case "user_lsp_id":
+
+			out.Values[i] = ec._RoleData_user_lsp_id(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var sMEImplementors = []string{"SME"}
 
 func (ec *executionContext) _SME(ctx context.Context, sel ast.SelectionSet, obj *model.Sme) graphql.Marshaler {
@@ -49323,6 +49529,54 @@ func (ec *executionContext) marshalOPaginatedVendors2ᚖgithubᚗcomᚋzicopsᚋ
 		return graphql.Null
 	}
 	return ec._PaginatedVendors(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalORoleData2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐRoleData(ctx context.Context, sel ast.SelectionSet, v []*model.RoleData) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalORoleData2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐRoleData(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalORoleData2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐRoleData(ctx context.Context, sel ast.SelectionSet, v *model.RoleData) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._RoleData(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOSME2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐSme(ctx context.Context, sel ast.SelectionSet, v *model.Sme) graphql.Marshaler {

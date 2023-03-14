@@ -48,6 +48,21 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	}
 	CassUserSession := session
 
+	checkQuery := fmt.Sprintf(`SELECT * FROM vendorz.vendor where name='%s' ALLOW FILTERING`, *input.Name)
+	getNamingVendors := func() (vendorsList []vendorz.Vendor, err error) {
+		q := CassUserSession.Query(checkQuery, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return vendorsList, iter.Select(&vendorsList)
+	}
+	vendors, err := getNamingVendors()
+	if err != nil {
+		return nil, err
+	}
+	if len(vendors) != 0 {
+		return nil, errors.New("vendor with same name already exists")
+	}
+
 	vendorId := uuid.New().String()
 	//create vendor
 	vendor := vendorz.Vendor{
@@ -674,7 +689,7 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 	return &res, nil
 }
 
-func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role *string) ([]*model.InviteResponse, error) {
+func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role *string, tags *string) ([]*model.InviteResponse, error) {
 	roles := []string{"admin", "learner", "vendor"}
 	isPresent := false
 	for _, vv := range roles {
