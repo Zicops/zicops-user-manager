@@ -265,6 +265,12 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 		UpdatedBy:     &orgCass.UpdatedBy,
 		Type:          orgCass.Type,
 	}
+
+	key := fmt.Sprintf("org_%s", orgCass.ZicopsSubdomain)
+	redisBytes, err := json.Marshal(orgCass)
+	if err == nil {
+		redis.SetRedisValue(ctx, key, string(redisBytes))
+	}
 	return result, nil
 
 }

@@ -40,8 +40,8 @@ func (r *mutationResolver) InviteUsers(ctx context.Context, emails []string, lsp
 }
 
 // InviteUsersWithRole is the resolver for the inviteUsersWithRole field.
-func (r *mutationResolver) InviteUsersWithRole(ctx context.Context, emails []string, lspID *string, role *string) ([]*model.InviteResponse, error) {
-	res, err := handlers.InviteUserWithRole(ctx, emails, *lspID, role)
+func (r *mutationResolver) InviteUsersWithRole(ctx context.Context, emails []string, lspID *string, role *string, tags *string) ([]*model.InviteResponse, error) {
+	res, err := handlers.InviteUserWithRole(ctx, emails, *lspID, role, tags)
 	if err != nil {
 		log.Println("Error while Inviting users with roles: %v", err)
 		return nil, err

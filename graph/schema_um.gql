@@ -723,6 +723,7 @@ type Vendor {
 	instagram_url: String
 	twitter_url: String
 	linkedin_url: String
+  services: [String]
 	created_at: String
 	created_by: String
 	updated_at: String
@@ -802,6 +803,7 @@ type VendorProfile {
   crt: Boolean
   cd: Boolean
   is_speaker: Boolean
+  lsp_id: String
   created_at: String
 	created_by: String
 	updated_at: String
@@ -935,11 +937,17 @@ input ExamAttemptsFilters {
 
 input VendorFilters {
   status: String
+  service: String
 }
 
 type UserDetailsRole {
   user: User
-  roles: [String]
+  roles: [RoleData]
+}
+
+type RoleData {
+  user_role_id: String
+  role: String
 }
 
 type PaginatedUserDetailsWithRole {
@@ -1127,7 +1135,7 @@ type Query {
   getVendorExperience(vendor_id: String!, pf_id: String!):[ExperienceVendor]
   getVendorExperienceDetails(vendor_id: String!, pf_id: String!, exp_id: String!): ExperienceVendor
   getVendors(lsp_id: String, filters: VendorFilters): [Vendor]
-  getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendors
+  getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int, filters: VendorFilters): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
@@ -1142,6 +1150,7 @@ type Query {
   getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
   getAllOrders(lsp_id: String): [VendorOrder]
   getOrderServices(order_id: [String]):[OrderServices]
+  getSpeakers(lsp_id: String): [Vendor]
 }
 
 type Mutation {
