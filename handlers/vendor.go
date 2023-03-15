@@ -145,6 +145,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 
 	//create its mapping to the specific LSP
 	vendorLspMap := vendorz.VendorLspMap{
+		Id:        uuid.New().String(),
 		VendorId:  vendorId,
 		LspId:     lspId,
 		CreatedAt: createdAt,
@@ -3008,11 +3009,12 @@ func GetUserVendors(ctx context.Context, userID *string) ([]*model.Vendor, error
 }
 
 func GetVendorServices(ctx context.Context, vendorID *string) ([]*string, error) {
-	_, err := identity.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Errorf("Got error while getting claims: %v", err)
 		return nil, err
 	}
+	lspId := claims["lsp_id"].(string)
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
@@ -3021,51 +3023,22 @@ func GetVendorServices(ctx context.Context, vendorID *string) ([]*string, error)
 	res := []string{}
 
 	//check for sme data
-	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.sme WHERE vendor_id='%s' ALLOW FILTERING`, *vendorID)
-	getSmeData := func() (smeData []vendorz.SME, err error) {
+	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map WHERE vendor_id='%s' AND lsp_id='%s' ALLOW FILTERING`, *vendorID, lspId)
+	getVendorDetails := func() (vendorMaps []vendorz.VendorLspMap, err error) {
 		q := CassSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
-		return smeData, iter.Select(&smeData)
+		return vendorMaps, iter.Select(&vendorMaps)
 	}
-	smeData, err := getSmeData()
+	vendors, err := getVendorDetails()
 	if err != nil {
 		return nil, err
 	}
-	if len(smeData) > 0 {
-		res = append(res, "Subject Matter Expertise")
-	}
-
-	//check for crt data
-	qryStr = fmt.Sprintf(`SELECT * FROM vendorz.classroom_training WHERE vendor_id='%s' ALLOW FILTERING`, *vendorID)
-	getCrtData := func() (crtData []vendorz.CRT, err error) {
-		q := CassSession.Query(qryStr, nil)
-		defer q.Release()
-		iter := q.Iter()
-		return crtData, iter.Select(&crtData)
-	}
-	crtData, err := getCrtData()
-	if err != nil {
-		return nil, err
-	}
-	if len(crtData) > 0 {
-		res = append(res, "Classroom training")
-	}
-
-	//check for content development data
-	qryStr = fmt.Sprintf(`SELECT * FROM vendorz.content_development WHERE vendor_id='%s' ALLOW FILTERING`, *vendorID)
-	getContentDevelopmentData := func() (cdData []vendorz.ContentDevelopment, err error) {
-		q := CassSession.Query(qryStr, nil)
-		defer q.Release()
-		iter := q.Iter()
-		return cdData, iter.Select(&cdData)
-	}
-	cdData, err := getContentDevelopmentData()
-	if err != nil {
-		return nil, err
-	}
-	if len(cdData) > 0 {
-		res = append(res, "Content Development")
+	vendor := vendors[0]
+	services := vendor.Services
+	for _, vv := range services {
+		v := vv
+		res = append(res, v)
 	}
 	tmp := ChangeToPointerArray(res)
 
