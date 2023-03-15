@@ -384,6 +384,7 @@ type RoleData struct {
 	UserRoleID *string `json:"user_role_id"`
 	Role       *string `json:"role"`
 	UserLspID  *string `json:"user_lsp_id"`
+	UpdatedAt  *string `json:"updated_at"`
 }
 
 type Sme struct {

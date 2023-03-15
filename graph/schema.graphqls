@@ -951,6 +951,7 @@ type RoleData {
   user_role_id: String
   role: String
   user_lsp_id: String
+  updated_at: String
 }
 
 type PaginatedUserDetailsWithRole {
