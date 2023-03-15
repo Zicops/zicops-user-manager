@@ -275,9 +275,12 @@ func GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*mod
 			roles := make([]*model.RoleData, 0)
 			for _, vv := range userRoles {
 				v := vv
+				ua := strconv.Itoa(int(v.UpdatedAt))
 				tmp := model.RoleData{
 					UserRoleID: &v.ID,
 					Role:       &v.Role,
+					UserLspID:  &v.UserLspID,
+					UpdatedAt:  &ua,
 				}
 				roles = append(roles, &tmp)
 			}
@@ -399,6 +402,7 @@ func GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*st
 				tmp := model.RoleData{
 					UserRoleID: &v.ID,
 					Role:       &v.Role,
+					UserLspID:  &v.UserLspID,
 				}
 				roles = append(roles, &tmp)
 			}

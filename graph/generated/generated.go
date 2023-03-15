@@ -414,6 +414,7 @@ type ComplexityRoot struct {
 
 	RoleData struct {
 		Role       func(childComplexity int) int
+		UpdatedAt  func(childComplexity int) int
 		UserLspID  func(childComplexity int) int
 		UserRoleID func(childComplexity int) int
 	}
@@ -3551,6 +3552,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RoleData.Role(childComplexity), true
 
+	case "RoleData.updated_at":
+		if e.complexity.RoleData.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.RoleData.UpdatedAt(childComplexity), true
+
 	case "RoleData.user_lsp_id":
 		if e.complexity.RoleData.UserLspID == nil {
 			break
@@ -6517,6 +6525,7 @@ type RoleData {
   user_role_id: String
   role: String
   user_lsp_id: String
+  updated_at: String
 }
 
 type PaginatedUserDetailsWithRole {
@@ -26327,6 +26336,47 @@ func (ec *executionContext) fieldContext_RoleData_user_lsp_id(ctx context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _RoleData_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.RoleData) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_RoleData_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_RoleData_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RoleData",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _SME_vendor_id(ctx context.Context, field graphql.CollectedField, obj *model.Sme) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SME_vendor_id(ctx, field)
 	if err != nil {
@@ -30455,6 +30505,8 @@ func (ec *executionContext) fieldContext_UserDetailsRole_roles(ctx context.Conte
 				return ec.fieldContext_RoleData_role(ctx, field)
 			case "user_lsp_id":
 				return ec.fieldContext_RoleData_user_lsp_id(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_RoleData_updated_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RoleData", field.Name)
 		},
@@ -45828,6 +45880,10 @@ func (ec *executionContext) _RoleData(ctx context.Context, sel ast.SelectionSet,
 		case "user_lsp_id":
 
 			out.Values[i] = ec._RoleData_user_lsp_id(ctx, field, obj)
+
+		case "updated_at":
+
+			out.Values[i] = ec._RoleData_updated_at(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
