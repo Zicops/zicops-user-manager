@@ -520,7 +520,7 @@ func updateVendorLspMap(ctx context.Context, vendorId string, lsp string, servic
 			}
 		}
 		//if not then append
-		services = append(services, "crt")
+		services = append(services, service)
 
 		vendorLspMap.Services = services
 		vendorLspMap.UpdatedAt = time.Now().Unix()
@@ -615,6 +615,9 @@ func GetSpeakers(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 	var wg sync.WaitGroup
 	res := make([]*model.Vendor, len(arr))
 	i := 0
+	if len(arr) == 0 {
+		return nil, nil
+	}
 
 	for kk := range arr {
 		k := kk
