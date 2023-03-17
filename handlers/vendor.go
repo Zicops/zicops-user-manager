@@ -150,6 +150,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		LspId:     lspId,
 		CreatedAt: createdAt,
 		CreatedBy: email,
+		Status:    "active",
 	}
 	insertQueryMap := CassUserSession.Query(vendorz.VendorLspMapTable.Insert()).BindStruct(vendorLspMap)
 	if err = insertQueryMap.Exec(); err != nil {
@@ -274,13 +275,13 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 				return nil, err
 			}
 
-		} else if *input.Status == "active" && vendor.Status != "active" {
+		} else {
 			maps := vendorz.VendorLspMap{
 				VendorId:  v_id,
 				LspId:     lsp,
 				UpdatedAt: time.Now().Unix(),
 				UpdatedBy: email,
-				Status:    "active",
+				Status:    *input.Status,
 			}
 			updates := []string{"updated_at", "updated_by", "status"}
 			stmt, names := vendorz.VendorLspMapTable.Update(updates...)
@@ -3040,7 +3041,11 @@ func GetVendorServices(ctx context.Context, vendorID *string) ([]*string, error)
 		v := vv
 		res = append(res, v)
 	}
-	tmp := ChangeToPointerArray(res)
+	var tmp []*string
+	for _, values := range res {
+		v := values
+		tmp = append(tmp, &v)
+	}
 
 	return tmp, nil
 }

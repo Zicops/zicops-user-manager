@@ -635,5 +635,6 @@ func GetSpeakers(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 		}(k, ctx, i)
 		i += 1
 	}
-	return nil, nil
+	wg.Wait()
+	return res, nil
 }
