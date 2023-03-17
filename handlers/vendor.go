@@ -145,7 +145,6 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 
 	//create its mapping to the specific LSP
 	vendorLspMap := vendorz.VendorLspMap{
-		Id:        uuid.New().String(),
 		VendorId:  vendorId,
 		LspId:     lspId,
 		CreatedAt: createdAt,
@@ -1263,7 +1262,16 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 		vv := vvv
 		wg.Add(1)
 		go func(vendorLspMap vendorz.VendorLspMap, k int) {
+			defer wg.Done()
 			vendorId := vendorLspMap.VendorId
+
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				log.Printf("Failed to get images of vendors: %v", err.Error())
+				return
+			}
 
 			queryStr = fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s' ALLOW FILTERING`, vendorId)
 			getVendors := func() (vendors []vendorz.Vendor, err error) {
@@ -1301,12 +1309,20 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 				v := vv
 				services = append(services, &v)
 			}
+
+			var photoUrl string
+			if vendor.PhotoUrl != "" {
+				photoUrl = storageC.GetSignedURLForObject(ctx, vendor.PhotoBucket)
+			} else {
+				photoUrl = vendor.PhotoUrl
+			}
+
 			vendorData := &model.Vendor{
 				VendorID:     vendor.VendorId,
 				Type:         vendor.Type,
 				Level:        vendor.Level,
 				Name:         vendor.Name,
-				PhotoURL:     &vendor.PhotoUrl,
+				PhotoURL:     &photoUrl,
 				Description:  &vendor.Description,
 				Website:      &vendor.Website,
 				Address:      &vendor.Address,
@@ -1323,7 +1339,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 				Status:       &vendor.Status,
 			}
 			res[k] = vendorData
-			wg.Done()
+
 		}(vv, kk)
 	}
 	wg.Wait()
