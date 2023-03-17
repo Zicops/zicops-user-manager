@@ -1297,7 +1297,8 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 			createdAt := strconv.Itoa(int(vendor.CreatedAt))
 			updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
 			var services []*string
-			for _, v := range vendorLspMap.Services {
+			for _, vv := range vendorLspMap.Services {
+				v := vv
 				services = append(services, &v)
 			}
 			vendorData := &model.Vendor{
