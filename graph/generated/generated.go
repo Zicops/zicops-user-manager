@@ -376,7 +376,7 @@ type ComplexityRoot struct {
 		GetPaginatedVendors            func(childComplexity int, lspID *string, pageCursor *string, direction *string, pageSize *int, filters *model.VendorFilters) int
 		GetSampleFiles                 func(childComplexity int, vendorID string, pType string) int
 		GetSmeDetails                  func(childComplexity int, vendorID string) int
-		GetSpeakers                    func(childComplexity int, lspID *string) int
+		GetSpeakers                    func(childComplexity int, lspID *string, service *string) int
 		GetUnitsByOrgID                func(childComplexity int, orgID string) int
 		GetUserBookmarks               func(childComplexity int, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string, lspID *string) int
@@ -878,7 +878,7 @@ type QueryResolver interface {
 	GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserDetailsWithRole, error)
 	GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, error)
 	GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderServices, error)
-	GetSpeakers(ctx context.Context, lspID *string) ([]*model.Vendor, error)
+	GetSpeakers(ctx context.Context, lspID *string, service *string) ([]*model.VendorProfile, error)
 }
 
 type executableSchema struct {
@@ -3152,7 +3152,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetSpeakers(childComplexity, args["lsp_id"].(*string)), true
+		return e.complexity.Query.GetSpeakers(childComplexity, args["lsp_id"].(*string), args["service"].(*string)), true
 
 	case "Query.getUnitsByOrgId":
 		if e.complexity.Query.GetUnitsByOrgID == nil {
@@ -6514,6 +6514,7 @@ input ExamAttemptsFilters {
 input VendorFilters {
   status: String
   service: String
+  type: String
 }
 
 type UserDetailsRole {
@@ -6728,7 +6729,7 @@ type Query {
   getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
   getAllOrders(lsp_id: String): [VendorOrder]
   getOrderServices(order_id: [String]):[OrderServices]
-  getSpeakers(lsp_id: String): [Vendor]
+  getSpeakers(lsp_id: String, service: String): [VendorProfile]
 }
 
 type Mutation {
@@ -8399,6 +8400,15 @@ func (ec *executionContext) field_Query_getSpeakers_args(ctx context.Context, ra
 		}
 	}
 	args["lsp_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["service"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["service"] = arg1
 	return args, nil
 }
 
@@ -26006,7 +26016,7 @@ func (ec *executionContext) _Query_getSpeakers(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetSpeakers(rctx, fc.Args["lsp_id"].(*string))
+		return ec.resolvers.Query().GetSpeakers(rctx, fc.Args["lsp_id"].(*string), fc.Args["service"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26015,9 +26025,9 @@ func (ec *executionContext) _Query_getSpeakers(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Vendor)
+	res := resTmp.([]*model.VendorProfile)
 	fc.Result = res
-	return ec.marshalOVendor2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendor(ctx, field.Selections, res)
+	return ec.marshalOVendorProfile2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorProfile(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getSpeakers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -26028,46 +26038,56 @@ func (ec *executionContext) fieldContext_Query_getSpeakers(ctx context.Context, 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "vendorId":
-				return ec.fieldContext_Vendor_vendorId(ctx, field)
-			case "type":
-				return ec.fieldContext_Vendor_type(ctx, field)
-			case "level":
-				return ec.fieldContext_Vendor_level(ctx, field)
-			case "name":
-				return ec.fieldContext_Vendor_name(ctx, field)
-			case "description":
-				return ec.fieldContext_Vendor_description(ctx, field)
+			case "pf_id":
+				return ec.fieldContext_VendorProfile_pf_id(ctx, field)
+			case "vendor_id":
+				return ec.fieldContext_VendorProfile_vendor_id(ctx, field)
+			case "first_name":
+				return ec.fieldContext_VendorProfile_first_name(ctx, field)
+			case "last_name":
+				return ec.fieldContext_VendorProfile_last_name(ctx, field)
+			case "email":
+				return ec.fieldContext_VendorProfile_email(ctx, field)
+			case "phone":
+				return ec.fieldContext_VendorProfile_phone(ctx, field)
 			case "photo_url":
-				return ec.fieldContext_Vendor_photo_url(ctx, field)
-			case "address":
-				return ec.fieldContext_Vendor_address(ctx, field)
-			case "users":
-				return ec.fieldContext_Vendor_users(ctx, field)
-			case "website":
-				return ec.fieldContext_Vendor_website(ctx, field)
-			case "facebook_url":
-				return ec.fieldContext_Vendor_facebook_url(ctx, field)
-			case "instagram_url":
-				return ec.fieldContext_Vendor_instagram_url(ctx, field)
-			case "twitter_url":
-				return ec.fieldContext_Vendor_twitter_url(ctx, field)
-			case "linkedin_url":
-				return ec.fieldContext_Vendor_linkedin_url(ctx, field)
-			case "services":
-				return ec.fieldContext_Vendor_services(ctx, field)
+				return ec.fieldContext_VendorProfile_photo_url(ctx, field)
+			case "description":
+				return ec.fieldContext_VendorProfile_description(ctx, field)
+			case "language":
+				return ec.fieldContext_VendorProfile_language(ctx, field)
+			case "sme_expertise":
+				return ec.fieldContext_VendorProfile_sme_expertise(ctx, field)
+			case "classroom_expertise":
+				return ec.fieldContext_VendorProfile_classroom_expertise(ctx, field)
+			case "content_development":
+				return ec.fieldContext_VendorProfile_content_development(ctx, field)
+			case "experience":
+				return ec.fieldContext_VendorProfile_experience(ctx, field)
+			case "experience_years":
+				return ec.fieldContext_VendorProfile_experience_years(ctx, field)
+			case "sme":
+				return ec.fieldContext_VendorProfile_sme(ctx, field)
+			case "crt":
+				return ec.fieldContext_VendorProfile_crt(ctx, field)
+			case "cd":
+				return ec.fieldContext_VendorProfile_cd(ctx, field)
+			case "is_speaker":
+				return ec.fieldContext_VendorProfile_is_speaker(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_VendorProfile_lsp_id(ctx, field)
 			case "created_at":
-				return ec.fieldContext_Vendor_created_at(ctx, field)
+				return ec.fieldContext_VendorProfile_created_at(ctx, field)
 			case "created_by":
-				return ec.fieldContext_Vendor_created_by(ctx, field)
+				return ec.fieldContext_VendorProfile_created_by(ctx, field)
 			case "updated_at":
-				return ec.fieldContext_Vendor_updated_at(ctx, field)
+				return ec.fieldContext_VendorProfile_updated_at(ctx, field)
 			case "updated_by":
-				return ec.fieldContext_Vendor_updated_by(ctx, field)
+				return ec.fieldContext_VendorProfile_updated_by(ctx, field)
 			case "status":
-				return ec.fieldContext_Vendor_status(ctx, field)
+				return ec.fieldContext_VendorProfile_status(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Vendor", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type VendorProfile", field.Name)
 		},
 	}
 	defer func() {
@@ -42596,7 +42616,7 @@ func (ec *executionContext) unmarshalInputVendorFilters(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "service"}
+	fieldsInOrder := [...]string{"status", "service", "type"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -42616,6 +42636,14 @@ func (ec *executionContext) unmarshalInputVendorFilters(ctx context.Context, obj
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service"))
 			it.Service, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			it.Type, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

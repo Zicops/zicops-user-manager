@@ -13,6 +13,8 @@ import (
 	"github.com/zicops/contracts/vendorz"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/lib/db/bucket"
+	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
 	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
@@ -482,6 +484,8 @@ func GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderSer
 	return res, nil
 }
 
+//getspeaker - speaker of that type =
+
 func updateVendorLspMap(ctx context.Context, vendorId string, lsp string, service string, add bool) error {
 	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
@@ -565,7 +569,7 @@ func updateVendorLspMap(ctx context.Context, vendorId string, lsp string, servic
 	return nil
 }
 
-func GetSpeakers(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
+func GetSpeakers(ctx context.Context, lspID *string, service *string) ([]*model.VendorProfile, error) {
 	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -581,7 +585,11 @@ func GetSpeakers(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 	}
 
 	CassSession := session
-	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile where lsp_id='%s' AND is_speaker=true ALLOW FILTERING`, lsp)
+	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile where lsp_id='%s' AND is_speaker=true `, lsp)
+	if service != nil {
+		qryStr += fmt.Sprintf(` AND %s=true`, *service)
+	}
+	qryStr += " ALLOW FILTERING"
 	getProfiles := func() (profilesData []vendorz.VendorProfile, err error) {
 		q := CassSession.Query(qryStr, nil)
 		defer q.Release()
@@ -598,42 +606,89 @@ func GetSpeakers(ctx context.Context, lspID *string) ([]*model.Vendor, error) {
 		return nil, nil
 	}
 
-	//now we have different profiles which are linked to their respective vendors
-	//and we want to return only unique vendors
-	//for example, say a vendor has 2 profiles, both of them are speakers, but still we want to display that vendor only once
-	//so we have to return only unique values
-
-	arr := make(map[string]bool)
-	for _, v := range profiles {
-		//check if this vendorId is already seen
-		if _, exists := arr[v.VendorId]; !exists {
-			arr[v.VendorId] = true
-		}
-	}
-
-	//now we have a list of unique vendor Id
 	var wg sync.WaitGroup
-	res := make([]*model.Vendor, len(arr))
-	i := 0
-	if len(arr) == 0 {
-		return nil, nil
-	}
+	res := make([]*model.VendorProfile, len(profiles))
 
-	for kk := range arr {
+	for kk, vvv := range profiles {
 		k := kk
+		vv := vvv
 		wg.Add(1)
-		go func(vendorId string, ctx context.Context, i int) {
+		go func(i int, v vendorz.VendorProfile) {
 			defer wg.Done()
-			tmp, err := GetVendorDetails(ctx, vendorId)
+
+			var photoUrl string
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
 			if err != nil {
-				log.Printf("Got error while getting vendor details: %v", err)
+				log.Printf("Failed to upload image to course: %v", err.Error())
 				return
 			}
+			if v.PhotoBucket != "" {
+				photoUrl = storageC.GetSignedURLForObject(ctx, v.PhotoBucket)
+			} else {
+				photoUrl = v.PhotoURL
+			}
 
-			res[i] = tmp
+			var l []*string
+			for _, lan := range v.Languages {
+				t := lan
+				l = append(l, &t)
+			}
 
-		}(k, ctx, i)
-		i += 1
+			var sme []*string
+			for _, s := range v.SMEExpertise {
+				t := s
+				sme = append(sme, &t)
+			}
+
+			var cre []*string
+			for _, c := range v.ClassroomExpertise {
+				t := c
+				cre = append(cre, &t)
+			}
+
+			var cd []*string
+			for _, c := range v.ContentDevelopment {
+				t := c
+				cd = append(cd, &t)
+			}
+
+			var exp []*string
+			for _, c := range v.Experience {
+				t := c
+				exp = append(exp, &t)
+			}
+
+			ca := strconv.Itoa(int(v.CreatedAt))
+			ua := strconv.Itoa(int(v.UpdatedAt))
+			tmp := model.VendorProfile{
+				PfID:               &v.PfId,
+				VendorID:           &v.VendorId,
+				FirstName:          &v.FirstName,
+				LastName:           &v.LastName,
+				Email:              &v.Email,
+				Phone:              &v.Phone,
+				Description:        &v.Description,
+				PhotoURL:           &photoUrl,
+				Language:           l,
+				SmeExpertise:       sme,
+				ClassroomExpertise: cre,
+				ContentDevelopment: cd,
+				Experience:         exp,
+				ExperienceYears:    &v.ExperienceYears,
+				IsSpeaker:          &v.IsSpeaker,
+				LspID:              &v.LspId,
+				CreatedAt:          &ca,
+				CreatedBy:          &v.CreatedBy,
+				UpdatedAt:          &ua,
+				UpdatedBy:          &v.UpdatedBy,
+			}
+
+			res[i] = &tmp
+
+		}(k, vv)
+
 	}
 	wg.Wait()
 	return res, nil

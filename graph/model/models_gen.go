@@ -930,6 +930,7 @@ type Vendor struct {
 type VendorFilters struct {
 	Status  *string `json:"status"`
 	Service *string `json:"service"`
+	Type    *string `json:"type"`
 }
 
 type VendorInput struct {

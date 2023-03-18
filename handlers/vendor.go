@@ -258,36 +258,10 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		vendor.Status = *input.Status
 		updatedCols = append(updatedCols, "status")
 
-		if *input.Status == "disable" && vendor.Status != "disable" {
-			//update vendor lsp map status to disable as well
-			maps := vendorz.VendorLspMap{
-				VendorId:  v_id,
-				LspId:     lsp,
-				UpdatedAt: time.Now().Unix(),
-				UpdatedBy: email,
-				Status:    "disable",
-			}
-			updates := []string{"updated_at", "updated_by", "status"}
-			stmt, names := vendorz.VendorLspMapTable.Update(updates...)
-			updatedQuery := CassUserSession.Query(stmt, names).BindStruct(&maps)
-			if err = updatedQuery.ExecRelease(); err != nil {
-				return nil, err
-			}
-
-		} else {
-			maps := vendorz.VendorLspMap{
-				VendorId:  v_id,
-				LspId:     lsp,
-				UpdatedAt: time.Now().Unix(),
-				UpdatedBy: email,
-				Status:    *input.Status,
-			}
-			updates := []string{"updated_at", "updated_by", "status"}
-			stmt, names := vendorz.VendorLspMapTable.Update(updates...)
-			updatedQuery := CassUserSession.Query(stmt, names).BindStruct(&maps)
-			if err = updatedQuery.ExecRelease(); err != nil {
-				return nil, err
-			}
+		//updation here, cause created_At is a key
+		err = updateMap(ctx, vendor, lsp, email)
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -382,6 +356,41 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 	}
 
 	return res, nil
+}
+
+func updateMap(ctx context.Context, vendor vendorz.Vendor, lsp string, email string) error {
+
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
+	if err != nil {
+		return err
+	}
+	CassUserSession := session
+	qry := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map where vendor_id='%s' AND lsp_id='%s' ALLOW FILTERING`, vendor.VendorId, lsp)
+	getMaps := func() (vendorLspMaps []vendorz.VendorLspMap, err error) {
+		q := CassUserSession.Query(qry, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return vendorLspMaps, iter.Select(&vendorLspMaps)
+	}
+
+	lspMaps, err := getMaps()
+	if err != nil {
+		return err
+	}
+	if len(lspMaps) == 0 {
+		return nil
+	}
+	lspMap := lspMaps[0]
+	lspMap.Status = vendor.Status
+	lspMap.UpdatedAt = time.Now().Unix()
+	lspMap.UpdatedBy = email
+	stmt, names := vendorz.VendorLspMapTable.Update("status", "updated_at", "updated_by")
+	updatedQuery := CassUserSession.Query(stmt, names).BindStruct(&lspMap)
+	if err = updatedQuery.ExecRelease(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func MapVendorUser(ctx context.Context, vendorId string, users []string, creator string) ([]string, error) {
@@ -1076,6 +1085,20 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 				phone = fireBaseUser.PhoneNumber
 			}
 
+			var photoUrl string
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				log.Printf("Failed to upload image to course: %v", err.Error())
+				return
+			}
+			if user.PhotoBucket != "" {
+				photoUrl = storageC.GetSignedURLForObject(ctx, user.PhotoBucket)
+			} else {
+				photoUrl = user.PhotoURL
+			}
+
 			temp := &model.User{
 				ID:         &user.ID,
 				FirstName:  user.FirstName,
@@ -1090,7 +1113,7 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 				UpdatedAt:  updatedAt,
 				UpdatedBy:  &user.UpdatedBy,
 				Email:      user.Email,
-				PhotoURL:   &user.PhotoURL,
+				PhotoURL:   &photoUrl,
 				Phone:      phone,
 			}
 			userData := temp
@@ -1230,6 +1253,10 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 	if filters != nil && filters.Service != nil {
 		service := strings.ToLower(*filters.Service)
 		queryStr += fmt.Sprintf(` AND services contains '%s' `, service)
+	}
+	if filters != nil && filters.Type != nil {
+		vendorType := strings.ToLower(*filters.Type)
+		queryStr += fmt.Sprintf(` AND type='%s'`, vendorType)
 	}
 	queryStr += `ALLOW FILTERING`
 	getVendorIds := func(page []byte) (vendors []vendorz.VendorLspMap, nextPage []byte, err error) {
