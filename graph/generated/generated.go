@@ -538,8 +538,9 @@ type ComplexityRoot struct {
 	}
 
 	UserDetailsRole struct {
-		Roles func(childComplexity int) int
-		User  func(childComplexity int) int
+		Roles  func(childComplexity int) int
+		Status func(childComplexity int) int
+		User   func(childComplexity int) int
 	}
 
 	UserExamAttempts struct {
@@ -4238,6 +4239,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserDetailsRole.Roles(childComplexity), true
 
+	case "UserDetailsRole.status":
+		if e.complexity.UserDetailsRole.Status == nil {
+			break
+		}
+
+		return e.complexity.UserDetailsRole.Status(childComplexity), true
+
 	case "UserDetailsRole.user":
 		if e.complexity.UserDetailsRole.User == nil {
 			break
@@ -6520,6 +6528,7 @@ input VendorFilters {
 type UserDetailsRole {
   user: User
   roles: [RoleData]
+  status: String
 }
 
 type RoleData {
@@ -21151,6 +21160,8 @@ func (ec *executionContext) fieldContext_PaginatedUserDetailsWithRole_data(ctx c
 				return ec.fieldContext_UserDetailsRole_user(ctx, field)
 			case "roles":
 				return ec.fieldContext_UserDetailsRole_roles(ctx, field)
+			case "status":
+				return ec.fieldContext_UserDetailsRole_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserDetailsRole", field.Name)
 		},
@@ -25764,6 +25775,8 @@ func (ec *executionContext) fieldContext_Query_getLspUsersRoles(ctx context.Cont
 				return ec.fieldContext_UserDetailsRole_user(ctx, field)
 			case "roles":
 				return ec.fieldContext_UserDetailsRole_roles(ctx, field)
+			case "status":
+				return ec.fieldContext_UserDetailsRole_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserDetailsRole", field.Name)
 		},
@@ -30529,6 +30542,47 @@ func (ec *executionContext) fieldContext_UserDetailsRole_roles(ctx context.Conte
 				return ec.fieldContext_RoleData_updated_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RoleData", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserDetailsRole_status(ctx context.Context, field graphql.CollectedField, obj *model.UserDetailsRole) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserDetailsRole_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserDetailsRole_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserDetailsRole",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -46632,6 +46686,10 @@ func (ec *executionContext) _UserDetailsRole(ctx context.Context, sel ast.Select
 		case "roles":
 
 			out.Values[i] = ec._UserDetailsRole_roles(ctx, field, obj)
+
+		case "status":
+
+			out.Values[i] = ec._UserDetailsRole_status(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

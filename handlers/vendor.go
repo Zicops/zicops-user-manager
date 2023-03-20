@@ -149,6 +149,8 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		LspId:     lspId,
 		CreatedAt: createdAt,
 		CreatedBy: email,
+		UpdatedAt: createdAt,
+		UpdatedBy: email,
 		Status:    "active",
 	}
 	insertQueryMap := CassUserSession.Query(vendorz.VendorLspMapTable.Insert()).BindStruct(vendorLspMap)
@@ -421,6 +423,27 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 		if err != nil {
 			return nil, err
 		}
+
+		//iterate over all the data from database, and compare with data sent from frontend
+		//for now lets assume we are going to delete the value
+		//if value is found, then ignore
+		//if value not found in list sent from frontend, delete the value
+		flagDel := true
+		//check if value exists,
+		for _, kk := range users {
+			k := kk
+			userId := base64.URLEncoding.EncodeToString([]byte(k))
+			if userId == v.UserId {
+				flagDel = false
+			}
+		}
+		if flagDel {
+			deleteStr := fmt.Sprintf(`DELETE FROM vendorz.vendor_user_map WHERE vendor_id='%s' AND user_id='%s' ALLOW FILTERING`, vendorId, v.UserId)
+			if err = CassUserSession.Query(deleteStr, nil).Exec(); err != nil {
+				return nil, err
+			}
+		}
+
 		resp = append(resp, string(email))
 	}
 
@@ -2251,16 +2274,10 @@ func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 	}
 	if input.IsApplicable != nil {
 
-		if !*input.IsApplicable && smeData.IsApplicable {
-			err = updateVendorLspMap(ctx, input.VendorID, lsp, "sme", false)
-			if err != nil {
-				return nil, err
-			}
-		} else if *input.IsApplicable && !smeData.IsApplicable {
-			err = updateVendorLspMap(ctx, input.VendorID, lsp, "sme", true)
-			if err != nil {
-				return nil, err
-			}
+		//if input.IsApplicable is set to true, then add, otherwise delete
+		err = updateVendorLspMap(ctx, input.VendorID, lsp, "sme", *input.IsApplicable)
+		if err != nil {
+			return nil, err
 		}
 
 		smeData.IsApplicable = *input.IsApplicable
@@ -2508,18 +2525,9 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 	}
 	if input.IsApplicable != nil {
 
-		if !*input.IsApplicable && crt.IsApplicable {
-			//i.e., originally is applicable was true, but we are updating it to false, so update vendor lsp map to remove crt
-			err = updateVendorLspMap(ctx, input.VendorID, lsp, "crt", false)
-			if err != nil {
-				return nil, err
-			}
-		} else if *input.IsApplicable && !crt.IsApplicable {
-			//we are updating is applicable to true, but it was false initially
-			err = updateVendorLspMap(ctx, input.VendorID, lsp, "crt", true)
-			if err != nil {
-				return nil, err
-			}
+		err = updateVendorLspMap(ctx, input.VendorID, lsp, "crt", *input.IsApplicable)
+		if err != nil {
+			return nil, err
 		}
 
 		crt.IsApplicable = *input.IsApplicable
@@ -2768,17 +2776,9 @@ func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 	}
 	if input.IsApplicable != nil {
 
-		if !*input.IsApplicable && cd.IsApplicable {
-			//we are updating is applicable to false, but initially its set to true, so remove it from vendor lsp map
-			err = updateVendorLspMap(ctx, input.VendorID, lsp, "cd", false)
-			if err != nil {
-				return nil, err
-			}
-		} else if *input.IsApplicable && !cd.IsApplicable {
-			err = updateVendorLspMap(ctx, input.VendorID, lsp, "cd", true)
-			if err != nil {
-				return nil, err
-			}
+		err = updateVendorLspMap(ctx, input.VendorID, lsp, "cd", *input.IsApplicable)
+		if err != nil {
+			return nil, err
 		}
 
 		cd.IsApplicable = *input.IsApplicable

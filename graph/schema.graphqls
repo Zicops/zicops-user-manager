@@ -946,6 +946,7 @@ input VendorFilters {
 type UserDetailsRole {
   user: User
   roles: [RoleData]
+  status: String
 }
 
 type RoleData {

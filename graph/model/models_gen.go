@@ -592,8 +592,9 @@ type UserCourseProgressInput struct {
 }
 
 type UserDetailsRole struct {
-	User  *User       `json:"user"`
-	Roles []*RoleData `json:"roles"`
+	User   *User       `json:"user"`
+	Roles  []*RoleData `json:"roles"`
+	Status *string     `json:"status"`
 }
 
 type UserExamAttempts struct {
