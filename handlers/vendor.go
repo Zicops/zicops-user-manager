@@ -1313,6 +1313,13 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 		wg.Add(1)
 		go func(vendorLspMap vendorz.VendorLspMap, k int) {
 			defer wg.Done()
+
+			session, err := global.CassPool.GetSession(ctx, "vendorz")
+			if err != nil {
+				return
+			}
+			CassSession := session
+
 			vendorId := vendorLspMap.VendorId
 
 			storageC := bucket.NewStorageHandler()
@@ -1325,7 +1332,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 
 			queryStr = fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id = '%s' ALLOW FILTERING`, vendorId)
 			getVendors := func() (vendors []vendorz.Vendor, err error) {
-				q := CassVendorSession.Query(queryStr, nil)
+				q := CassSession.Query(queryStr, nil)
 				defer q.Release()
 				iter := q.Iter()
 				return vendors, iter.Select(&vendors)
@@ -1344,6 +1351,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 			admins, err := GetVendorAdminsEmails(ctx, vendorId)
 			if err != nil {
 				log.Printf("Got error while getting vendor Admins for %v: %v", vendorId, err)
+				return
 			}
 			if len(admins) != 0 {
 				for _, vv := range admins {
