@@ -940,17 +940,20 @@ input ExamAttemptsFilters {
 input VendorFilters {
   status: String
   service: String
+  type: String
 }
 
 type UserDetailsRole {
   user: User
   roles: [RoleData]
+  status: String
 }
 
 type RoleData {
   user_role_id: String
   role: String
   user_lsp_id: String
+  updated_at: String
 }
 
 type PaginatedUserDetailsWithRole {
@@ -1153,7 +1156,7 @@ type Query {
   getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
   getAllOrders(lsp_id: String): [VendorOrder]
   getOrderServices(order_id: [String]):[OrderServices]
-  getSpeakers(lsp_id: String): [Vendor]
+  getSpeakers(lsp_id: String, service: String): [VendorProfile]
 }
 
 type Mutation {
