@@ -144,6 +144,11 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	}
 
 	//create its mapping to the specific LSP
+	wordsRaw := strings.Fields(*input.Name)
+	var words []string
+	for _, v := range wordsRaw {
+		words = append(words, strings.ToLower(v))
+	}
 	vendorLspMap := vendorz.VendorLspMap{
 		VendorId:  vendorId,
 		LspId:     lspId,
@@ -152,6 +157,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		UpdatedAt: createdAt,
 		UpdatedBy: email,
 		Status:    "active",
+		Words:     words,
 	}
 	insertQueryMap := CassUserSession.Query(vendorz.VendorLspMapTable.Insert()).BindStruct(vendorLspMap)
 	if err = insertQueryMap.Exec(); err != nil {
@@ -1281,6 +1287,10 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 		vendorType := strings.ToLower(*filters.Type)
 		queryStr += fmt.Sprintf(` AND type='%s'`, vendorType)
 	}
+	if filters != nil && filters.Name != nil {
+		name := strings.ToLower(*filters.Name)
+		queryStr += fmt.Sprintf(` AND words contains '%s' `, name)
+	}
 	queryStr += `ALLOW FILTERING`
 	getVendorIds := func(page []byte) (vendors []vendorz.VendorLspMap, nextPage []byte, err error) {
 		q := CassVendorSession.Query(queryStr, nil)
@@ -1312,7 +1322,6 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 		vv := vvv
 		wg.Add(1)
 		go func(vendorLspMap vendorz.VendorLspMap, k int) {
-			defer wg.Done()
 
 			session, err := global.CassPool.GetSession(ctx, "vendorz")
 			if err != nil {
@@ -1397,6 +1406,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 				Status:       &vendor.Status,
 			}
 			res[k] = vendorData
+			wg.Done()
 
 		}(vv, kk)
 	}

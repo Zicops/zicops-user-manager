@@ -941,6 +941,7 @@ input VendorFilters {
   status: String
   service: String
   type: String
+  name: String
 }
 
 type UserDetailsRole {

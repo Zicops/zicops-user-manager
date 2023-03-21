@@ -6523,6 +6523,7 @@ input VendorFilters {
   status: String
   service: String
   type: String
+  name: String
 }
 
 type UserDetailsRole {
@@ -42670,7 +42671,7 @@ func (ec *executionContext) unmarshalInputVendorFilters(ctx context.Context, obj
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"status", "service", "type"}
+	fieldsInOrder := [...]string{"status", "service", "type", "name"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -42698,6 +42699,14 @@ func (ec *executionContext) unmarshalInputVendorFilters(ctx context.Context, obj
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
 			it.Type, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
