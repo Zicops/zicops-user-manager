@@ -350,14 +350,20 @@ func GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*st
 		return nil, nil
 	}
 	users := make([]*string, 0)
-	userLspStatus := make([]*string, 0)
+
 	userIdLspIdMap := make(map[string]string)
 	for _, vv := range userLspMaps {
 		v := vv
 		users = append(users, &v.UserID)
-		userLspStatus = append(userLspStatus, &v.Status)
 		userIdLspIdMap[v.UserID] = v.ID
 	}
+	//
+	userLspStatus := make(map[string]string)
+	for _, vv := range userLspMaps {
+		v := vv
+		userLspStatus[v.UserID] = v.Status
+	}
+
 	//get all users details
 	userDetails, err := common.GetUserDetails(ctx, users)
 	if err != nil {
@@ -370,7 +376,7 @@ func GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*st
 		if ud == nil || ud.ID == nil {
 			continue
 		}
-		go func(i int, ud *model.User, status *string) {
+		go func(i int, ud *model.User, status string) {
 			defer wg.Done()
 			userLspId := userIdLspIdMap[*ud.ID]
 			//got all roles information for a user, with filter of a role
@@ -411,9 +417,9 @@ func GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*st
 			res[i] = &model.UserDetailsRole{
 				User:   ud,
 				Roles:  roles,
-				Status: status,
+				Status: &status,
 			}
-		}(i, ud, userLspStatus[i])
+		}(i, ud, userLspStatus[*ud.ID])
 	}
 	wg.Wait()
 	outputResponse.Data = res
