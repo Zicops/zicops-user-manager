@@ -365,8 +365,8 @@ github.com/vektah/gqlparser/v2 v2.5.1/go.mod h1:mPgqFBu/woKTVYWyNk8cO3kh4S/f4aRF
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
-github.com/zicops/contracts v0.0.0-20230321061714-34bddca29a2b h1:vi1ONPXI3ghoQQgh8CWqC3F3C1MnwpSzAX18m1TYg9E=
-github.com/zicops/contracts v0.0.0-20230321061714-34bddca29a2b/go.mod h1:jt0EYQwy9NemS+9GgiVeF71y+kDE1NIx7B/uQLOMGPM=
+github.com/zicops/contracts v0.0.0-20230321140141-755938ede4c9 h1:zoXXf7KeoEOgxtTiZdc37OkATeWT0c9kInrlHj7RtKw=
+github.com/zicops/contracts v0.0.0-20230321140141-755938ede4c9/go.mod h1:jt0EYQwy9NemS+9GgiVeF71y+kDE1NIx7B/uQLOMGPM=
 github.com/zicops/zicops-cass-pool v0.0.0-20230304193433-3918bccf970c h1:0DRnqD6D+iDXqrIqkq4e8G1jFybtvTg47r6S5I2cwk4=
 github.com/zicops/zicops-cass-pool v0.0.0-20230304193433-3918bccf970c/go.mod h1:/7lRQKtG+l+1WOe7MqcQo6FXDL08hz8kEFOegwDlHNM=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=

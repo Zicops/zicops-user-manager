@@ -416,17 +416,21 @@ type SMEInput struct {
 }
 
 type SampleFile struct {
-	SfID      string  `json:"sf_id"`
-	Name      *string `json:"name"`
-	FileType  *string `json:"fileType"`
-	Price     *string `json:"price"`
-	PType     *string `json:"p_type"`
-	FileURL   *string `json:"file_url"`
-	CreatedAt *string `json:"created_at"`
-	CreatedBy *string `json:"created_by"`
-	UpdatedAt *string `json:"updated_at"`
-	UpdatedBy *string `json:"updated_by"`
-	Status    *string `json:"status"`
+	SfID           string  `json:"sf_id"`
+	Name           *string `json:"name"`
+	FileType       *string `json:"fileType"`
+	Price          *string `json:"price"`
+	PType          *string `json:"p_type"`
+	FileURL        *string `json:"file_url"`
+	CreatedAt      *string `json:"created_at"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedAt      *string `json:"updated_at"`
+	UpdatedBy      *string `json:"updated_by"`
+	Status         *string `json:"status"`
+	Rate           *int    `json:"rate"`
+	Currency       *string `json:"currency"`
+	Unit           *string `json:"unit"`
+	ActualFileType *string `json:"actualFileType"`
 }
 
 type SampleFileInput struct {
@@ -438,6 +442,9 @@ type SampleFileInput struct {
 	Status      *string        `json:"status"`
 	VendorID    string         `json:"vendorId"`
 	PType       string         `json:"p_type"`
+	Rate        *int           `json:"rate"`
+	Currency    *string        `json:"currency"`
+	Unit        *string        `json:"unit"`
 }
 
 type User struct {
