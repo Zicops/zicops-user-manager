@@ -859,6 +859,9 @@ input SampleFileInput {
 	status: String
   vendorId: String!
   p_type: String!
+  rate: Int
+  currency: String
+  unit: String
 }
 
 type SampleFile {
@@ -873,6 +876,10 @@ type SampleFile {
 	updated_at: String
 	updated_by: String
 	status: String
+  rate: Int
+  currency: String
+  unit: String
+  actualFileType: String
 }
 
 input CRTInput {

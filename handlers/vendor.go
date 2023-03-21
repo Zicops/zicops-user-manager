@@ -2055,16 +2055,17 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 	ca := time.Now().Unix()
 
 	file := vendorz.SampleFile{
-		SfId:       sfId,
-		Name:       input.Name,
-		Pricing:    input.Pricing,
-		FileBucket: bucketPath,
-		VendorId:   input.VendorID,
-		PType:      input.PType,
-		CreatedAt:  ca,
-		CreatedBy:  email,
-		UpdatedAt:  ca,
-		UpdatedBy:  email,
+		SfId:           sfId,
+		Name:           input.Name,
+		Pricing:        input.Pricing,
+		FileBucket:     bucketPath,
+		VendorId:       input.VendorID,
+		PType:          input.PType,
+		ActualFileType: input.File.ContentType,
+		CreatedAt:      ca,
+		CreatedBy:      email,
+		UpdatedAt:      ca,
+		UpdatedBy:      email,
 	}
 
 	createdAt := strconv.Itoa(int(ca))
@@ -2077,6 +2078,7 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 	res.UpdatedBy = &email
 	res.FileURL = &getUrl
 	res.PType = &input.PType
+	res.ActualFileType = &input.File.ContentType
 
 	if input.Description != nil {
 		file.Description = *input.Description
@@ -2091,6 +2093,18 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 	if input.Status != nil {
 		file.Status = *input.Status
 		res.Status = input.Status
+	}
+	if input.Rate != nil {
+		file.Rate = int64(*input.Rate)
+		res.Rate = input.Rate
+	}
+	if input.Currency != nil {
+		file.Currency = *input.Currency
+		res.Currency = input.Currency
+	}
+	if input.Unit != nil {
+		res.Unit = input.Unit
+		res.Unit = input.Unit
 	}
 	insertQueryMap := CassSession.Query(vendorz.SampleFileTable.Insert()).BindStruct(file)
 	if err = insertQueryMap.Exec(); err != nil {
@@ -2142,17 +2156,22 @@ func GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*mode
 		photoUrl := ""
 		createdAt := strconv.Itoa(int(v.CreatedAt))
 		updatedAt := strconv.Itoa(int(v.UpdatedAt))
+		rate := int(v.Rate)
 		//just map these to model.sample-files and return
 		file := model.SampleFile{
-			SfID:      v.SfId,
-			Name:      &v.Name,
-			FileType:  &v.FileType,
-			Price:     &v.Pricing,
-			CreatedAt: &createdAt,
-			CreatedBy: &v.CreatedBy,
-			UpdatedAt: &updatedAt,
-			UpdatedBy: &v.UpdatedBy,
-			Status:    &v.Status,
+			SfID:           v.SfId,
+			Name:           &v.Name,
+			FileType:       &v.FileType,
+			Price:          &v.Pricing,
+			CreatedAt:      &createdAt,
+			CreatedBy:      &v.CreatedBy,
+			UpdatedAt:      &updatedAt,
+			UpdatedBy:      &v.UpdatedBy,
+			Status:         &v.Status,
+			Rate:           &rate,
+			Currency:       &v.Currency,
+			Unit:           &v.Unit,
+			ActualFileType: &v.ActualFileType,
 		}
 		if v.FileBucket != "" {
 			photoUrl = storageC.GetSignedURLForObject(ctx, v.FileBucket)
