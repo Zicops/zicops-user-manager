@@ -121,7 +121,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 
 	if input.Users != nil {
 		users := ChangesStringType(input.Users)
-		resp, err := MapVendorUser(ctx, vendorId, users, email)
+		resp, err := MapVendorUser(ctx, vendorId, users, email, lspId)
 		if err != nil {
 			return nil, err
 		}
@@ -255,7 +255,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 
 	if input.Users != nil {
 		users := ChangesStringType(input.Users)
-		resp, err := MapVendorUser(ctx, *input.VendorID, users, email)
+		resp, err := MapVendorUser(ctx, *input.VendorID, users, email, lsp)
 		if err != nil {
 			return nil, err
 		}
@@ -401,7 +401,13 @@ func updateMap(ctx context.Context, vendor vendorz.Vendor, lsp string, email str
 	return nil
 }
 
-func MapVendorUser(ctx context.Context, vendorId string, users []string, creator string) ([]string, error) {
+func MapVendorUser(ctx context.Context, vendorId string, users []string, creator string, lsp string) ([]string, error) {
+
+	sessionUser, err := global.CassPool.GetSession(ctx, "userz")
+	if err != nil {
+		return nil, err
+	}
+	CassSession := sessionUser
 
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
@@ -461,6 +467,22 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 
 		email := strings.ToLower(dirtyEmail)
 		userId := base64.URLEncoding.EncodeToString([]byte(email))
+
+		qryStr := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE user_id='%s' AND lsp_id='%s' ALLOW FILTERING`, userId, lsp)
+		getUserDetails := func() (userMap []userz.UserLsp, err error) {
+			q := CassSession.Query(qryStr, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return userMap, iter.Select(&userMap)
+		}
+		users, err := getUserDetails()
+		if err != nil {
+			return nil, err
+		}
+		if len(users) != 0 {
+			continue
+		}
+
 		var res []vendorz.VendorUserMap
 		queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' AND user_id = '%s' ALLOW FILTERING`, vendorId, userId)
 		getQuery := CassUserSession.Query(queryStr, nil)
@@ -3115,6 +3137,9 @@ func GetVendorServices(ctx context.Context, vendorID *string) ([]*string, error)
 	vendors, err := getVendorDetails()
 	if err != nil {
 		return nil, err
+	}
+	if len(vendors) == 0 {
+		return nil, errors.New("vendor does not exist")
 	}
 	vendor := vendors[0]
 	services := vendor.Services
