@@ -317,6 +317,9 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		if *input.Status == "disable" {
 			changeUserLspMapOfUsers(ctx, *input.VendorID, email, lsp)
 		}
+		if *input.Status == "active" {
+			changeUserLspMapOfUsersToActive(ctx, *input.VendorID, email, lsp)
+		}
 	}
 
 	storageC := bucket.NewStorageHandler()
@@ -410,6 +413,80 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 	}
 
 	return res, nil
+}
+
+func changeUserLspMapOfUsersToActive(ctx context.Context, vendorId string, email string, lsp string) error {
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
+	if err != nil {
+		return err
+	}
+	CassSession := session
+
+	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' AND status='active' ALLOW FILTERING`, vendorId)
+
+	getUserIds := func() (vendorUserIds []vendorz.VendorUserMap, err error) {
+		q := CassSession.Query(queryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return vendorUserIds, iter.Select(&vendorUserIds)
+	}
+	userIds, err := getUserIds()
+	if err != nil {
+		return err
+	}
+
+	if len(userIds) == 0 {
+		return nil
+	}
+
+	var wg sync.WaitGroup
+	for _, vvv := range userIds {
+		vv := vvv
+		wg.Add(1)
+		//iterate over these userIds and return user details
+		go func(userId string) {
+			//return user data
+
+			usersession, err := global.CassPool.GetSession(ctx, "userz")
+			if err != nil {
+				return
+			}
+			CassUserSession := usersession
+
+			QueryStr := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE user_id = '%s' AND lsp_id='%s' ALLOW FILTERING`, userId, lsp)
+			getUserData := func() (users []userz.UserLsp, err error) {
+				q := CassUserSession.Query(QueryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return users, iter.Select(&users)
+			}
+			users, err := getUserData()
+			if err != nil {
+				return
+			}
+
+			if len(users) == 0 {
+				return
+			}
+			user := users[0]
+			user.Status = "active"
+			user.UpdatedAt = time.Now().Unix()
+			user.UpdatedBy = email
+
+			updatedCols := []string{"status", "updated_at", "updated_by"}
+			stmt, names := userz.UserLspTable.Update(updatedCols...)
+			updateQuery := CassUserSession.Query(stmt, names).BindStruct(&user)
+			if err = updateQuery.ExecRelease(); err != nil {
+				log.Printf("Error: %v", err)
+				return
+			}
+
+			wg.Done()
+		}(vv.UserId)
+	}
+	wg.Wait()
+
+	return nil
 }
 
 func changeUserLspMapOfUsers(ctx context.Context, vendorId string, email string, lsp string) error {
@@ -572,14 +649,11 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 		}
 		if flagDel {
 			//disable the map
-			err := changeStatus(ctx, vendorId, v.UserId, lsp, creator, "disable")
+			err := changeStatusOfAllUsers(ctx, vendorId, v.UserId, lsp, creator, "disable")
 			if err != nil {
 				return nil, err
 			}
-			deleteStr := fmt.Sprintf(`DELETE FROM vendorz.vendor_user_map WHERE vendor_id='%s' AND user_id='%s' ALLOW FILTERING`, vendorId, v.UserId)
-			if err = CassUserSession.Query(deleteStr, nil).Exec(); err != nil {
-				return nil, err
-			}
+
 		}
 
 		resp = append(resp, string(email))
@@ -636,7 +710,7 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 	return resp, nil
 }
 
-func changeStatus(ctx context.Context, vendorId string, userId string, lsp string, email string, status string) error {
+func changeStatusOfAllUsers(ctx context.Context, vendorId string, userId string, lsp string, email string, status string) error {
 
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
