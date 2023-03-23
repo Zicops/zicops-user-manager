@@ -146,7 +146,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		CreatedBy: email,
 		UpdatedAt: createdAt,
 		UpdatedBy: email,
-		Status:    "active",
+		Status:    *input.Status,
 		Type:      *input.Type,
 		Words:     words,
 	}
