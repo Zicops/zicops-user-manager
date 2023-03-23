@@ -48,18 +48,8 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	}
 	CassUserSession := session
 
-	checkQuery := fmt.Sprintf(`SELECT * FROM vendorz.vendor where name='%s' ALLOW FILTERING`, *input.Name)
-	getNamingVendors := func() (vendorsList []vendorz.Vendor, err error) {
-		q := CassUserSession.Query(checkQuery, nil)
-		defer q.Release()
-		iter := q.Iter()
-		return vendorsList, iter.Select(&vendorsList)
-	}
-	vendors, err := getNamingVendors()
-	if err != nil {
-		return nil, err
-	}
-	if len(vendors) != 0 {
+	check := checkName(ctx, *input.Name, lspId)
+	if !check {
 		return nil, errors.New("vendor with same name already exists")
 	}
 
@@ -157,6 +147,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		UpdatedAt: createdAt,
 		UpdatedBy: email,
 		Status:    "active",
+		Type:      *input.Type,
 		Words:     words,
 	}
 	insertQueryMap := CassUserSession.Query(vendorz.VendorLspMapTable.Insert()).BindStruct(vendorLspMap)
@@ -187,6 +178,58 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	}
 
 	return res, nil
+}
+
+func checkName(ctx context.Context, name string, lsp string) bool {
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
+	if err != nil {
+		log.Printf("Got error while getting session: %v", err)
+		return false
+	}
+	CassSession := session
+
+	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map WHERE lsp_id = '%s' ALLOW FILTERING`, lsp)
+	getVendors := func() (vendorDetails []vendorz.VendorLspMap, err error) {
+		q := CassSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return vendorDetails, iter.Select(&vendorDetails)
+	}
+
+	vendorMaps, err := getVendors()
+	if err != nil {
+		log.Printf("Got error while getting vendor details: %v", err)
+		return false
+	}
+	if len(vendorMaps) == 0 {
+		return false
+	}
+
+	for _, vv := range vendorMaps {
+		v := vv
+		query := fmt.Sprintf(`SELECT * FROM vendorz.vendor WHERE id='%s' ALLOW FILTERING`, v.VendorId)
+		getVendorDetails := func() (vendorData []vendorz.Vendor, err error) {
+			q := CassSession.Query(query, nil)
+			defer q.Release()
+			iter := q.Iter()
+			return vendorData, iter.Select(&vendorData)
+		}
+
+		vendors, err := getVendorDetails()
+		if err != nil {
+			log.Printf("Got error while getting vendor details: %v", err)
+			return false
+		}
+		if len(vendors) == 0 {
+			return false
+		}
+
+		vendor := vendors[0]
+		if vendor.Name == name {
+			return false
+		}
+	}
+	return true
 }
 
 func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error) {
