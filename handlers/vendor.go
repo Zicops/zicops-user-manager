@@ -2168,7 +2168,7 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 		res.Currency = input.Currency
 	}
 	if input.Unit != nil {
-		res.Unit = input.Unit
+		file.Unit = *input.Unit
 		res.Unit = input.Unit
 	}
 	insertQueryMap := CassSession.Query(vendorz.SampleFileTable.Insert()).BindStruct(file)
