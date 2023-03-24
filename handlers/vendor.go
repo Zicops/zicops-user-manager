@@ -680,7 +680,19 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 			return nil, err
 		}
 		if len(users) != 0 {
-			continue
+			user := users[0]
+			if user.Status != "active" {
+				user.Status = "active"
+				user.UpdatedAt = time.Now().Unix()
+				user.UpdatedBy = creator
+				updatedCols := []string{"status", "updated_at", "updated_by"}
+				stmt, names := vendorz.VendorUserMapTable.Update(updatedCols...)
+				updateQuery := CassSession.Query(stmt, names).BindStruct(&user)
+				if err = updateQuery.ExecRelease(); err != nil {
+					return nil, err
+				}
+			}
+			return nil, nil
 		}
 
 		var res []vendorz.VendorUserMap
@@ -696,7 +708,7 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 				UserId:    userId,
 				CreatedAt: createdAt,
 				CreatedBy: creator,
-				Status:    "",
+				Status:    "active",
 			}
 			insertVendorUserMap := CassUserSession.Query(vendorz.VendorUserMapTable.Insert()).BindStruct(vendorUserMap)
 			if err = insertVendorUserMap.Exec(); err != nil {
@@ -717,7 +729,7 @@ func changeStatusOfAllUsers(ctx context.Context, vendorId string, userId string,
 		return err
 	}
 	CassSession := session
-	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map WHERE vendor_id='%s' AND user_id='%s' ALLOW FILTERING`, vendorId, userId)
+	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id='%s' AND user_id='%s' ALLOW FILTERING`, vendorId, userId)
 	getDetails := func() (maps []vendorz.VendorUserMap, err error) {
 		q := CassSession.Query(qryStr, nil)
 		defer q.Release()
@@ -731,6 +743,7 @@ func changeStatusOfAllUsers(ctx context.Context, vendorId string, userId string,
 	if len(vendorLspMaps) == 0 {
 		return errors.New("map not found")
 	}
+
 	vendorLspMap := vendorLspMaps[0]
 	vendorLspMap.Status = status
 	vendorLspMap.UpdatedAt = time.Now().Unix()
