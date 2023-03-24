@@ -512,6 +512,9 @@ func updateVendorLspMap(ctx context.Context, vendorId string, lsp string, servic
 	if err != nil {
 		return err
 	}
+	if len(maps) == 0 {
+		return fmt.Errorf("map does not exist")
+	}
 	vendorLspMap := maps[0]
 	services := vendorLspMap.Services
 	// add is for checking whether to add or delete the value
