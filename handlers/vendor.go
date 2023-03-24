@@ -691,7 +691,6 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 				if err = updateQuery.ExecRelease(); err != nil {
 					return nil, err
 				}
-
 			}
 			return nil, nil
 		}
