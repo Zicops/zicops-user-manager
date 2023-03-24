@@ -743,6 +743,7 @@ func changeStatusOfAllUsers(ctx context.Context, vendorId string, userId string,
 	if len(vendorLspMaps) == 0 {
 		return errors.New("map not found")
 	}
+
 	vendorLspMap := vendorLspMaps[0]
 	vendorLspMap.Status = status
 	vendorLspMap.UpdatedAt = time.Now().Unix()
