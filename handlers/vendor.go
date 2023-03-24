@@ -686,7 +686,7 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 				user.UpdatedAt = time.Now().Unix()
 				user.UpdatedBy = creator
 				updatedCols := []string{"status", "updated_at", "updated_by"}
-				stmt, names := vendorz.VendorUserMapTable.Update(updatedCols...)
+				stmt, names := userz.UserLspTable.Update(updatedCols...)
 				updateQuery := CassSession.Query(stmt, names).BindStruct(&user)
 				if err = updateQuery.ExecRelease(); err != nil {
 					return nil, err
@@ -1588,7 +1588,11 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 	}
 	if filters != nil && filters.Name != nil {
 		name := strings.ToLower(*filters.Name)
-		queryStr += fmt.Sprintf(` AND words contains '%s' `, name)
+		nameArray := strings.Fields(name)
+		for _, vv := range nameArray {
+			v := vv
+			queryStr += fmt.Sprintf(` AND words contains '%s' `, v)
+		}
 	}
 	queryStr += `ALLOW FILTERING`
 	getVendorIds := func(page []byte) (vendors []vendorz.VendorLspMap, nextPage []byte, err error) {
