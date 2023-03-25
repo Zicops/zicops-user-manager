@@ -1061,8 +1061,8 @@ func (r *queryResolver) ViewProfileVendorDetails(ctx context.Context, vendorID s
 }
 
 // ViewAllProfiles is the resolver for the viewAllProfiles field.
-func (r *queryResolver) ViewAllProfiles(ctx context.Context, vendorID string, filter *string) ([]*model.VendorProfile, error) {
-	res, err := handlers.ViewAllProfiles(ctx, vendorID, filter)
+func (r *queryResolver) ViewAllProfiles(ctx context.Context, vendorID string, filter *string, name *string) ([]*model.VendorProfile, error) {
+	res, err := handlers.ViewAllProfiles(ctx, vendorID, filter, name)
 	if err != nil {
 		log.Printf("Got error while getting details of the vendor: %v", err)
 		return nil, err

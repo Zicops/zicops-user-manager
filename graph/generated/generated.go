@@ -408,7 +408,7 @@ type ComplexityRoot struct {
 		GetVendorServices              func(childComplexity int, vendorID *string) int
 		GetVendors                     func(childComplexity int, lspID *string, filters *model.VendorFilters) int
 		Logout                         func(childComplexity int) int
-		ViewAllProfiles                func(childComplexity int, vendorID string, filter *string) int
+		ViewAllProfiles                func(childComplexity int, vendorID string, filter *string, name *string) int
 		ViewProfileVendorDetails       func(childComplexity int, vendorID string, email string) int
 	}
 
@@ -872,7 +872,7 @@ type QueryResolver interface {
 	GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error)
 	GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, error)
 	ViewProfileVendorDetails(ctx context.Context, vendorID string, email string) (*model.VendorProfile, error)
-	ViewAllProfiles(ctx context.Context, vendorID string, filter *string) ([]*model.VendorProfile, error)
+	ViewAllProfiles(ctx context.Context, vendorID string, filter *string, name *string) ([]*model.VendorProfile, error)
 	GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*model.SampleFile, error)
 	GetSmeDetails(ctx context.Context, vendorID string) (*model.Sme, error)
 	GetClassRoomTraining(ctx context.Context, vendorID string) (*model.Crt, error)
@@ -3536,7 +3536,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ViewAllProfiles(childComplexity, args["vendor_id"].(string), args["filter"].(*string)), true
+		return e.complexity.Query.ViewAllProfiles(childComplexity, args["vendor_id"].(string), args["filter"].(*string), args["name"].(*string)), true
 
 	case "Query.viewProfileVendorDetails":
 		if e.complexity.Query.ViewProfileVendorDetails == nil {
@@ -6767,7 +6767,7 @@ type Query {
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
-  viewAllProfiles(vendor_id: String!, filter: String): [VendorProfile]
+  viewAllProfiles(vendor_id: String!, filter: String, name: String): [VendorProfile]
   getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
   getSmeDetails(vendor_id: String!): SME
   getClassRoomTraining(vendor_id: String!): CRT
@@ -9301,6 +9301,15 @@ func (ec *executionContext) field_Query_viewAllProfiles_args(ctx context.Context
 		}
 	}
 	args["filter"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg2
 	return args, nil
 }
 
@@ -25233,7 +25242,7 @@ func (ec *executionContext) _Query_viewAllProfiles(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ViewAllProfiles(rctx, fc.Args["vendor_id"].(string), fc.Args["filter"].(*string))
+		return ec.resolvers.Query().ViewAllProfiles(rctx, fc.Args["vendor_id"].(string), fc.Args["filter"].(*string), fc.Args["name"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
