@@ -421,6 +421,7 @@ type SampleFile struct {
 	FileType       *string `json:"fileType"`
 	Price          *string `json:"price"`
 	PType          *string `json:"p_type"`
+	Description    *string `json:"description"`
 	FileURL        *string `json:"file_url"`
 	CreatedAt      *string `json:"created_at"`
 	CreatedBy      *string `json:"created_by"`
