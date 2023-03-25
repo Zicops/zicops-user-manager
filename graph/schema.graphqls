@@ -870,6 +870,7 @@ type SampleFile {
   fileType: String
   price: String
   p_type: String
+  description: String
   file_url: String
   created_at: String
 	created_by: String

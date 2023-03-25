@@ -440,6 +440,7 @@ type ComplexityRoot struct {
 		CreatedAt      func(childComplexity int) int
 		CreatedBy      func(childComplexity int) int
 		Currency       func(childComplexity int) int
+		Description    func(childComplexity int) int
 		FileType       func(childComplexity int) int
 		FileURL        func(childComplexity int) int
 		Name           func(childComplexity int) int
@@ -3697,6 +3698,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SampleFile.Currency(childComplexity), true
 
+	case "SampleFile.description":
+		if e.complexity.SampleFile.Description == nil {
+			break
+		}
+
+		return e.complexity.SampleFile.Description(childComplexity), true
+
 	case "SampleFile.fileType":
 		if e.complexity.SampleFile.FileType == nil {
 			break
@@ -6484,6 +6492,7 @@ type SampleFile {
   fileType: String
   price: String
   p_type: String
+  description: String
   file_url: String
   created_at: String
 	created_by: String
@@ -17201,6 +17210,8 @@ func (ec *executionContext) fieldContext_Mutation_uploadSampleFile(ctx context.C
 				return ec.fieldContext_SampleFile_price(ctx, field)
 			case "p_type":
 				return ec.fieldContext_SampleFile_p_type(ctx, field)
+			case "description":
+				return ec.fieldContext_SampleFile_description(ctx, field)
 			case "file_url":
 				return ec.fieldContext_SampleFile_file_url(ctx, field)
 			case "created_at":
@@ -25376,6 +25387,8 @@ func (ec *executionContext) fieldContext_Query_getSampleFiles(ctx context.Contex
 				return ec.fieldContext_SampleFile_price(ctx, field)
 			case "p_type":
 				return ec.fieldContext_SampleFile_p_type(ctx, field)
+			case "description":
+				return ec.fieldContext_SampleFile_description(ctx, field)
 			case "file_url":
 				return ec.fieldContext_SampleFile_file_url(ctx, field)
 			case "created_at":
@@ -27204,6 +27217,47 @@ func (ec *executionContext) _SampleFile_p_type(ctx context.Context, field graphq
 }
 
 func (ec *executionContext) fieldContext_SampleFile_p_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SampleFile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SampleFile_description(ctx context.Context, field graphql.CollectedField, obj *model.SampleFile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SampleFile_description(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SampleFile_description(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "SampleFile",
 		Field:      field,
@@ -46344,6 +46398,10 @@ func (ec *executionContext) _SampleFile(ctx context.Context, sel ast.SelectionSe
 		case "p_type":
 
 			out.Values[i] = ec._SampleFile_p_type(ctx, field, obj)
+
+		case "description":
+
+			out.Values[i] = ec._SampleFile_description(ctx, field, obj)
 
 		case "file_url":
 

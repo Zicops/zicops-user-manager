@@ -680,43 +680,31 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 			return nil, err
 		}
 		if len(users) != 0 {
-			user := users[0]
-			if user.Status != "active" {
-				user.Status = "active"
-				user.UpdatedAt = time.Now().Unix()
-				user.UpdatedBy = creator
-				updatedCols := []string{"status", "updated_at", "updated_by"}
-				stmt, names := userz.UserLspTable.Update(updatedCols...)
-				updateQuery := CassSession.Query(stmt, names).BindStruct(&user)
-				if err = updateQuery.ExecRelease(); err != nil {
-					return nil, err
-				}
-			}
-			return nil, nil
-		}
-
-		var res []vendorz.VendorUserMap
-		queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' AND user_id = '%s' ALLOW FILTERING`, vendorId, userId)
-		getQuery := CassUserSession.Query(queryStr, nil)
-		if err = getQuery.SelectRelease(&res); err != nil {
-			return nil, err
-		}
-		if len(res) == 0 {
-			createdAt := time.Now().Unix()
-			vendorUserMap := vendorz.VendorUserMap{
-				VendorId:  vendorId,
-				UserId:    userId,
-				CreatedAt: createdAt,
-				CreatedBy: creator,
-				Status:    "active",
-			}
-			insertVendorUserMap := CassUserSession.Query(vendorz.VendorUserMapTable.Insert()).BindStruct(vendorUserMap)
-			if err = insertVendorUserMap.Exec(); err != nil {
+			continue
+		} else {
+			var res []vendorz.VendorUserMap
+			queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' AND user_id = '%s' ALLOW FILTERING`, vendorId, userId)
+			getQuery := CassUserSession.Query(queryStr, nil)
+			if err = getQuery.SelectRelease(&res); err != nil {
 				return nil, err
 			}
-			resp = append(resp, email)
-		} else {
-			continue
+			if len(res) == 0 {
+				createdAt := time.Now().Unix()
+				vendorUserMap := vendorz.VendorUserMap{
+					VendorId:  vendorId,
+					UserId:    userId,
+					CreatedAt: createdAt,
+					CreatedBy: creator,
+					Status:    "active",
+				}
+				insertVendorUserMap := CassUserSession.Query(vendorz.VendorUserMapTable.Insert()).BindStruct(vendorUserMap)
+				if err = insertVendorUserMap.Exec(); err != nil {
+					return nil, err
+				}
+				resp = append(resp, email)
+			} else {
+				continue
+			}
 		}
 	}
 	return resp, nil
@@ -2401,6 +2389,7 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 
 	if input.Description != nil {
 		file.Description = *input.Description
+		res.Description = input.Description
 	}
 	if input.FileType != nil {
 		file.FileType = *input.FileType
@@ -2487,6 +2476,7 @@ func GetSampleFiles(ctx context.Context, vendorID string, pType string) ([]*mode
 			UpdatedAt:      &updatedAt,
 			UpdatedBy:      &v.UpdatedBy,
 			Status:         &v.Status,
+			Description:    &v.Description,
 			Rate:           &rate,
 			Currency:       &v.Currency,
 			Unit:           &v.Unit,
