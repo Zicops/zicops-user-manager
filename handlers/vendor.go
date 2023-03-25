@@ -814,6 +814,7 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		return nil, err
 	}
 	CassSession := session
+	var words []string
 
 	email := strings.ToLower(input.Email)
 	pfId := base64.URLEncoding.EncodeToString([]byte(email))
@@ -843,10 +844,17 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	}
 	if input.FirstName != nil {
 		profile.FirstName = *input.FirstName
+		firstName := strings.ToLower(*input.FirstName)
+		nameArray := strings.Fields(firstName)
+		words = append(words, nameArray...)
 	}
 	if input.LastName != nil {
 		profile.LastName = *input.LastName
+		lastName := strings.ToLower(*input.LastName)
+		namesArray := strings.Fields(lastName)
+		words = append(words, namesArray...)
 	}
+	profile.Name = words
 	storageC := bucket.NewStorageHandler()
 	gproject := googleprojectlib.GetGoogleProjectID()
 	err = storageC.InitializeStorageClient(ctx, gproject)
@@ -2041,7 +2049,7 @@ func ChangeToPointerArray(input []string) []*string {
 	return res
 }
 
-func ViewAllProfiles(ctx context.Context, vendorID string, filter *string) ([]*model.VendorProfile, error) {
+func ViewAllProfiles(ctx context.Context, vendorID string, filter *string, name *string) ([]*model.VendorProfile, error) {
 	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting claims: %v", err)
@@ -2050,6 +2058,14 @@ func ViewAllProfiles(ctx context.Context, vendorID string, filter *string) ([]*m
 	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE vendor_id = '%s' `, vendorID)
 	if filter != nil && *filter != "" {
 		queryStr = queryStr + fmt.Sprintf(`AND '%s' = true `, *filter)
+	}
+	if name != nil && *name != "" {
+		names := strings.ToLower(*name)
+		namesArray := strings.Fields(names)
+		for _, vv := range namesArray {
+			v := vv
+			queryStr += fmt.Sprintf(` AND name CONTAINS '%s' `, v)
+		}
 	}
 	queryStr = queryStr + "ALLOW FILTERING"
 

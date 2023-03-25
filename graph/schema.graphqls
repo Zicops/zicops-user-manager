@@ -1153,7 +1153,7 @@ type Query {
   getVendorAdmins(vendor_id: String!): [User]
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
-  viewAllProfiles(vendor_id: String!, filter: String): [VendorProfile]
+  viewAllProfiles(vendor_id: String!, filter: String, name: String): [VendorProfile]
   getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
   getSmeDetails(vendor_id: String!): SME
   getClassRoomTraining(vendor_id: String!): CRT
