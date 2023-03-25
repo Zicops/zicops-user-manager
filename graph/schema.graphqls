@@ -1165,7 +1165,7 @@ type Query {
   getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
   getAllOrders(lsp_id: String): [VendorOrder]
   getOrderServices(order_id: [String]):[OrderServices]
-  getSpeakers(lsp_id: String, service: String): [VendorProfile]
+  getSpeakers(lsp_id: String, service: String, name: String): [VendorProfile]
 }
 
 type Mutation {

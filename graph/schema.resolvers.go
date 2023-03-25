@@ -1171,8 +1171,8 @@ func (r *queryResolver) GetOrderServices(ctx context.Context, orderID []*string)
 }
 
 // GetSpeakers is the resolver for the getSpeakers field.
-func (r *queryResolver) GetSpeakers(ctx context.Context, lspID *string, service *string) ([]*model.VendorProfile, error) {
-	res, err := handlers.GetSpeakers(ctx, lspID, service)
+func (r *queryResolver) GetSpeakers(ctx context.Context, lspID *string, service *string, name *string) ([]*model.VendorProfile, error) {
+	res, err := handlers.GetSpeakers(ctx, lspID, service, name)
 	if err != nil {
 		log.Printf("error getting profiles: %v", err)
 		return nil, err

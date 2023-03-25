@@ -376,7 +376,7 @@ type ComplexityRoot struct {
 		GetPaginatedVendors            func(childComplexity int, lspID *string, pageCursor *string, direction *string, pageSize *int, filters *model.VendorFilters) int
 		GetSampleFiles                 func(childComplexity int, vendorID string, pType string) int
 		GetSmeDetails                  func(childComplexity int, vendorID string) int
-		GetSpeakers                    func(childComplexity int, lspID *string, service *string) int
+		GetSpeakers                    func(childComplexity int, lspID *string, service *string, name *string) int
 		GetUnitsByOrgID                func(childComplexity int, orgID string) int
 		GetUserBookmarks               func(childComplexity int, userID string, userLspID *string, courseID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetUserCourseMapByCourseID     func(childComplexity int, userID string, courseID string, lspID *string) int
@@ -884,7 +884,7 @@ type QueryResolver interface {
 	GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserDetailsWithRole, error)
 	GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, error)
 	GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderServices, error)
-	GetSpeakers(ctx context.Context, lspID *string, service *string) ([]*model.VendorProfile, error)
+	GetSpeakers(ctx context.Context, lspID *string, service *string, name *string) ([]*model.VendorProfile, error)
 }
 
 type executableSchema struct {
@@ -3158,7 +3158,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetSpeakers(childComplexity, args["lsp_id"].(*string), args["service"].(*string)), true
+		return e.complexity.Query.GetSpeakers(childComplexity, args["lsp_id"].(*string), args["service"].(*string), args["name"].(*string)), true
 
 	case "Query.getUnitsByOrgId":
 		if e.complexity.Query.GetUnitsByOrgID == nil {
@@ -6787,7 +6787,7 @@ type Query {
   getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
   getAllOrders(lsp_id: String): [VendorOrder]
   getOrderServices(order_id: [String]):[OrderServices]
-  getSpeakers(lsp_id: String, service: String): [VendorProfile]
+  getSpeakers(lsp_id: String, service: String, name: String): [VendorProfile]
 }
 
 type Mutation {
@@ -8467,6 +8467,15 @@ func (ec *executionContext) field_Query_getSpeakers_args(ctx context.Context, ra
 		}
 	}
 	args["service"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg2
 	return args, nil
 }
 
@@ -26107,7 +26116,7 @@ func (ec *executionContext) _Query_getSpeakers(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetSpeakers(rctx, fc.Args["lsp_id"].(*string), fc.Args["service"].(*string))
+		return ec.resolvers.Query().GetSpeakers(rctx, fc.Args["lsp_id"].(*string), fc.Args["service"].(*string), fc.Args["name"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

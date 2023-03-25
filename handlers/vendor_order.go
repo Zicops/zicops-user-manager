@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -572,7 +573,7 @@ func updateVendorLspMap(ctx context.Context, vendorId string, lsp string, servic
 	return nil
 }
 
-func GetSpeakers(ctx context.Context, lspID *string, service *string) ([]*model.VendorProfile, error) {
+func GetSpeakers(ctx context.Context, lspID *string, service *string, name *string) ([]*model.VendorProfile, error) {
 	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -591,6 +592,14 @@ func GetSpeakers(ctx context.Context, lspID *string, service *string) ([]*model.
 	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile where lsp_id='%s' AND is_speaker=true `, lsp)
 	if service != nil {
 		qryStr += fmt.Sprintf(` AND %s=true`, *service)
+	}
+	if name != nil {
+		names := strings.ToLower(*name)
+		namesArray := strings.Fields(names)
+		for _, vv := range namesArray {
+			v := vv
+			qryStr += fmt.Sprintf(` AND name CONTAINS '%s' `, v)
+		}
 	}
 	qryStr += " ALLOW FILTERING"
 	getProfiles := func() (profilesData []vendorz.VendorProfile, err error) {
