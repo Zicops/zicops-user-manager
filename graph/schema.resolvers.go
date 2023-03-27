@@ -620,6 +620,26 @@ func (r *mutationResolver) UpdateOrderServices(ctx context.Context, input *model
 	return resp, nil
 }
 
+// CreateVendorUserMap is the resolver for the createVendorUserMap field.
+func (r *mutationResolver) CreateVendorUserMap(ctx context.Context, vendorID *string, userID *string, status *string) (*model.VendorUserMap, error) {
+	resp, err := handlers.CreateVendorUserMap(ctx, vendorID, userID, status)
+	if err != nil {
+		log.Printf("Got error while adding vendor user map: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+// UpdateVendorUserMap is the resolver for the updateVendorUserMap field.
+func (r *mutationResolver) UpdateVendorUserMap(ctx context.Context, vendorID *string, userID *string, status *string) (*model.VendorUserMap, error) {
+	resp, err := handlers.UpdateVendorUserMap(ctx, vendorID, userID, status)
+	if err != nil {
+		log.Printf("Got error while updating vendor user map: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Logout is the resolver for the logout field.
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
