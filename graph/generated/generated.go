@@ -196,6 +196,7 @@ type ComplexityRoot struct {
 		CreateExperienceVendor       func(childComplexity int, input model.ExperienceInput) int
 		CreateProfileVendor          func(childComplexity int, input *model.VendorProfileInput) int
 		CreateSubjectMatterExpertise func(childComplexity int, input *model.SMEInput) int
+		CreateVendorUserMap          func(childComplexity int, vendorID *string, userID *string, status *string) int
 		DeleteCohortImage            func(childComplexity int, cohortID string, filename string) int
 		DeleteSampleFile             func(childComplexity int, sfID string, vendorID string, pType string) int
 		InviteUsers                  func(childComplexity int, emails []string, lspID *string) int
@@ -228,6 +229,7 @@ type ComplexityRoot struct {
 		UpdateUserQuizAttempt        func(childComplexity int, input model.UserQuizAttemptInput) int
 		UpdateUserRole               func(childComplexity int, input model.UserRoleInput) int
 		UpdateVendor                 func(childComplexity int, input *model.VendorInput) int
+		UpdateVendorUserMap          func(childComplexity int, vendorID *string, userID *string, status *string) int
 		UploadSampleFile             func(childComplexity int, input *model.SampleFileInput) int
 	}
 
@@ -711,7 +713,9 @@ type ComplexityRoot struct {
 		InstagramURL func(childComplexity int) int
 		Level        func(childComplexity int) int
 		LinkedinURL  func(childComplexity int) int
+		LspID        func(childComplexity int) int
 		Name         func(childComplexity int) int
+		Phone        func(childComplexity int) int
 		PhotoURL     func(childComplexity int) int
 		Services     func(childComplexity int) int
 		Status       func(childComplexity int) int
@@ -763,6 +767,16 @@ type ComplexityRoot struct {
 		UpdatedAt          func(childComplexity int) int
 		UpdatedBy          func(childComplexity int) int
 		VendorID           func(childComplexity int) int
+	}
+
+	VendorUserMap struct {
+		CreatedAt func(childComplexity int) int
+		CreatedBy func(childComplexity int) int
+		Status    func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+		UpdatedBy func(childComplexity int) int
+		UserID    func(childComplexity int) int
+		VendorID  func(childComplexity int) int
 	}
 }
 
@@ -827,6 +841,8 @@ type MutationResolver interface {
 	UpdateOrder(ctx context.Context, input *model.VendorOrderInput) (*model.VendorOrder, error)
 	AddOrderServies(ctx context.Context, input []*model.OrderServicesInput) ([]*model.OrderServices, error)
 	UpdateOrderServices(ctx context.Context, input *model.OrderServicesInput) (*model.OrderServices, error)
+	CreateVendorUserMap(ctx context.Context, vendorID *string, userID *string, status *string) (*model.VendorUserMap, error)
+	UpdateVendorUserMap(ctx context.Context, vendorID *string, userID *string, status *string) (*model.VendorUserMap, error)
 }
 type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
@@ -1912,6 +1928,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateSubjectMatterExpertise(childComplexity, args["input"].(*model.SMEInput)), true
 
+	case "Mutation.createVendorUserMap":
+		if e.complexity.Mutation.CreateVendorUserMap == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createVendorUserMap_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateVendorUserMap(childComplexity, args["vendor_id"].(*string), args["user_id"].(*string), args["status"].(*string)), true
+
 	case "Mutation.deleteCohortImage":
 		if e.complexity.Mutation.DeleteCohortImage == nil {
 			break
@@ -2290,6 +2318,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateVendor(childComplexity, args["input"].(*model.VendorInput)), true
+
+	case "Mutation.updateVendorUserMap":
+		if e.complexity.Mutation.UpdateVendorUserMap == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateVendorUserMap_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateVendorUserMap(childComplexity, args["vendor_id"].(*string), args["user_id"].(*string), args["status"].(*string)), true
 
 	case "Mutation.uploadSampleFile":
 		if e.complexity.Mutation.UploadSampleFile == nil {
@@ -5196,12 +5236,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Vendor.LinkedinURL(childComplexity), true
 
+	case "Vendor.lsp_id":
+		if e.complexity.Vendor.LspID == nil {
+			break
+		}
+
+		return e.complexity.Vendor.LspID(childComplexity), true
+
 	case "Vendor.name":
 		if e.complexity.Vendor.Name == nil {
 			break
 		}
 
 		return e.complexity.Vendor.Name(childComplexity), true
+
+	case "Vendor.phone":
+		if e.complexity.Vendor.Phone == nil {
+			break
+		}
+
+		return e.complexity.Vendor.Phone(childComplexity), true
 
 	case "Vendor.photo_url":
 		if e.complexity.Vendor.PhotoURL == nil {
@@ -5517,6 +5571,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.VendorProfile.VendorID(childComplexity), true
+
+	case "VendorUserMap.created_at":
+		if e.complexity.VendorUserMap.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.VendorUserMap.CreatedAt(childComplexity), true
+
+	case "VendorUserMap.created_by":
+		if e.complexity.VendorUserMap.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.VendorUserMap.CreatedBy(childComplexity), true
+
+	case "VendorUserMap.status":
+		if e.complexity.VendorUserMap.Status == nil {
+			break
+		}
+
+		return e.complexity.VendorUserMap.Status(childComplexity), true
+
+	case "VendorUserMap.updated_at":
+		if e.complexity.VendorUserMap.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.VendorUserMap.UpdatedAt(childComplexity), true
+
+	case "VendorUserMap.updated_by":
+		if e.complexity.VendorUserMap.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.VendorUserMap.UpdatedBy(childComplexity), true
+
+	case "VendorUserMap.user_id":
+		if e.complexity.VendorUserMap.UserID == nil {
+			break
+		}
+
+		return e.complexity.VendorUserMap.UserID(childComplexity), true
+
+	case "VendorUserMap.vendor_id":
+		if e.complexity.VendorUserMap.VendorID == nil {
+			break
+		}
+
+		return e.complexity.VendorUserMap.VendorID(childComplexity), true
 
 	}
 	return 0, false
@@ -6326,6 +6429,7 @@ input VendorInput {
   instagram_url: String
   twitter_url: String
   linkedin_url: String
+  phone: String
   users: [String]
   description: String
 	status: String
@@ -6336,6 +6440,8 @@ type Vendor {
 	type: String!
 	level: String!
 	name: String!
+  phone: String
+  lsp_id: String
   description: String
 	photo_url: String
 	address: String
@@ -6648,6 +6754,16 @@ type OrderServices {
   status: String
 }
 
+type VendorUserMap {
+  vendor_id: String
+  user_id: String
+  created_at: String
+  created_by: String
+  status: String
+  updated_at: String
+  updated_by: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -6856,6 +6972,8 @@ type Mutation {
   updateOrder(input: VendorOrderInput): VendorOrder
   addOrderServies(input: [OrderServicesInput]): [OrderServices]
   updateOrderServices(input: OrderServicesInput): OrderServices
+  createVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
+  updateVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
 }
 `, BuiltIn: false},
 }
@@ -7276,6 +7394,39 @@ func (ec *executionContext) field_Mutation_createSubjectMatterExpertise_args(ctx
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createVendorUserMap_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["vendor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["status"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["status"] = arg2
 	return args, nil
 }
 
@@ -7780,6 +7931,39 @@ func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, 
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateVendorUserMap_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["vendor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["status"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["status"] = arg2
 	return args, nil
 }
 
@@ -16763,6 +16947,10 @@ func (ec *executionContext) fieldContext_Mutation_addVendor(ctx context.Context,
 				return ec.fieldContext_Vendor_level(ctx, field)
 			case "name":
 				return ec.fieldContext_Vendor_name(ctx, field)
+			case "phone":
+				return ec.fieldContext_Vendor_phone(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_Vendor_lsp_id(ctx, field)
 			case "description":
 				return ec.fieldContext_Vendor_description(ctx, field)
 			case "photo_url":
@@ -16855,6 +17043,10 @@ func (ec *executionContext) fieldContext_Mutation_updateVendor(ctx context.Conte
 				return ec.fieldContext_Vendor_level(ctx, field)
 			case "name":
 				return ec.fieldContext_Vendor_name(ctx, field)
+			case "phone":
+				return ec.fieldContext_Vendor_phone(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_Vendor_lsp_id(ctx, field)
 			case "description":
 				return ec.fieldContext_Vendor_description(ctx, field)
 			case "photo_url":
@@ -18207,6 +18399,142 @@ func (ec *executionContext) fieldContext_Mutation_updateOrderServices(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateOrderServices_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createVendorUserMap(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createVendorUserMap(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateVendorUserMap(rctx, fc.Args["vendor_id"].(*string), fc.Args["user_id"].(*string), fc.Args["status"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.VendorUserMap)
+	fc.Result = res
+	return ec.marshalOVendorUserMap2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorUserMap(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createVendorUserMap(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "vendor_id":
+				return ec.fieldContext_VendorUserMap_vendor_id(ctx, field)
+			case "user_id":
+				return ec.fieldContext_VendorUserMap_user_id(ctx, field)
+			case "created_at":
+				return ec.fieldContext_VendorUserMap_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_VendorUserMap_created_by(ctx, field)
+			case "status":
+				return ec.fieldContext_VendorUserMap_status(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_VendorUserMap_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_VendorUserMap_updated_by(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VendorUserMap", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createVendorUserMap_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateVendorUserMap(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateVendorUserMap(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateVendorUserMap(rctx, fc.Args["vendor_id"].(*string), fc.Args["user_id"].(*string), fc.Args["status"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.VendorUserMap)
+	fc.Result = res
+	return ec.marshalOVendorUserMap2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorUserMap(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateVendorUserMap(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "vendor_id":
+				return ec.fieldContext_VendorUserMap_vendor_id(ctx, field)
+			case "user_id":
+				return ec.fieldContext_VendorUserMap_user_id(ctx, field)
+			case "created_at":
+				return ec.fieldContext_VendorUserMap_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_VendorUserMap_created_by(ctx, field)
+			case "status":
+				return ec.fieldContext_VendorUserMap_status(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_VendorUserMap_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_VendorUserMap_updated_by(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VendorUserMap", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateVendorUserMap_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -21791,6 +22119,10 @@ func (ec *executionContext) fieldContext_PaginatedVendors_vendors(ctx context.Co
 				return ec.fieldContext_Vendor_level(ctx, field)
 			case "name":
 				return ec.fieldContext_Vendor_name(ctx, field)
+			case "phone":
+				return ec.fieldContext_Vendor_phone(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_Vendor_lsp_id(ctx, field)
 			case "description":
 				return ec.fieldContext_Vendor_description(ctx, field)
 			case "photo_url":
@@ -24860,6 +25192,10 @@ func (ec *executionContext) fieldContext_Query_getVendors(ctx context.Context, f
 				return ec.fieldContext_Vendor_level(ctx, field)
 			case "name":
 				return ec.fieldContext_Vendor_name(ctx, field)
+			case "phone":
+				return ec.fieldContext_Vendor_phone(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_Vendor_lsp_id(ctx, field)
 			case "description":
 				return ec.fieldContext_Vendor_description(ctx, field)
 			case "photo_url":
@@ -25098,6 +25434,10 @@ func (ec *executionContext) fieldContext_Query_getVendorDetails(ctx context.Cont
 				return ec.fieldContext_Vendor_level(ctx, field)
 			case "name":
 				return ec.fieldContext_Vendor_name(ctx, field)
+			case "phone":
+				return ec.fieldContext_Vendor_phone(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_Vendor_lsp_id(ctx, field)
 			case "description":
 				return ec.fieldContext_Vendor_description(ctx, field)
 			case "photo_url":
@@ -25722,6 +26062,10 @@ func (ec *executionContext) fieldContext_Query_getUserVendor(ctx context.Context
 				return ec.fieldContext_Vendor_level(ctx, field)
 			case "name":
 				return ec.fieldContext_Vendor_name(ctx, field)
+			case "phone":
+				return ec.fieldContext_Vendor_phone(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_Vendor_lsp_id(ctx, field)
 			case "description":
 				return ec.fieldContext_Vendor_description(ctx, field)
 			case "photo_url":
@@ -36308,6 +36652,88 @@ func (ec *executionContext) fieldContext_Vendor_name(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _Vendor_phone(ctx context.Context, field graphql.CollectedField, obj *model.Vendor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Vendor_phone(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Vendor_phone(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Vendor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Vendor_lsp_id(ctx context.Context, field graphql.CollectedField, obj *model.Vendor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Vendor_lsp_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LspID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Vendor_lsp_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Vendor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Vendor_description(ctx context.Context, field graphql.CollectedField, obj *model.Vendor) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Vendor_description(ctx, field)
 	if err != nil {
@@ -38348,6 +38774,293 @@ func (ec *executionContext) _VendorProfile_status(ctx context.Context, field gra
 func (ec *executionContext) fieldContext_VendorProfile_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "VendorProfile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorUserMap_vendor_id(ctx context.Context, field graphql.CollectedField, obj *model.VendorUserMap) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorUserMap_vendor_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VendorID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorUserMap_vendor_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorUserMap",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorUserMap_user_id(ctx context.Context, field graphql.CollectedField, obj *model.VendorUserMap) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorUserMap_user_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorUserMap_user_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorUserMap",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorUserMap_created_at(ctx context.Context, field graphql.CollectedField, obj *model.VendorUserMap) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorUserMap_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorUserMap_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorUserMap",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorUserMap_created_by(ctx context.Context, field graphql.CollectedField, obj *model.VendorUserMap) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorUserMap_created_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorUserMap_created_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorUserMap",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorUserMap_status(ctx context.Context, field graphql.CollectedField, obj *model.VendorUserMap) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorUserMap_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorUserMap_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorUserMap",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorUserMap_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.VendorUserMap) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorUserMap_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorUserMap_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorUserMap",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _VendorUserMap_updated_by(ctx context.Context, field graphql.CollectedField, obj *model.VendorUserMap) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorUserMap_updated_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_VendorUserMap_updated_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "VendorUserMap",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -43038,7 +43751,7 @@ func (ec *executionContext) unmarshalInputVendorInput(ctx context.Context, obj i
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"lsp_id", "name", "level", "vendor_id", "type", "photo", "address", "website", "facebook_url", "instagram_url", "twitter_url", "linkedin_url", "users", "description", "status"}
+	fieldsInOrder := [...]string{"lsp_id", "name", "level", "vendor_id", "type", "photo", "address", "website", "facebook_url", "instagram_url", "twitter_url", "linkedin_url", "phone", "users", "description", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -43138,6 +43851,14 @@ func (ec *executionContext) unmarshalInputVendorInput(ctx context.Context, obj i
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedin_url"))
 			it.LinkedinURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "phone":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("phone"))
+			it.Phone, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44428,6 +45149,18 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateOrderServices(ctx, field)
+			})
+
+		case "createVendorUserMap":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createVendorUserMap(ctx, field)
+			})
+
+		case "updateVendorUserMap":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateVendorUserMap(ctx, field)
 			})
 
 		default:
@@ -48066,6 +48799,14 @@ func (ec *executionContext) _Vendor(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "phone":
+
+			out.Values[i] = ec._Vendor_phone(ctx, field, obj)
+
+		case "lsp_id":
+
+			out.Values[i] = ec._Vendor_lsp_id(ctx, field, obj)
+
 		case "description":
 
 			out.Values[i] = ec._Vendor_description(ctx, field, obj)
@@ -48307,6 +49048,55 @@ func (ec *executionContext) _VendorProfile(ctx context.Context, sel ast.Selectio
 		case "status":
 
 			out.Values[i] = ec._VendorProfile_status(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var vendorUserMapImplementors = []string{"VendorUserMap"}
+
+func (ec *executionContext) _VendorUserMap(ctx context.Context, sel ast.SelectionSet, obj *model.VendorUserMap) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, vendorUserMapImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("VendorUserMap")
+		case "vendor_id":
+
+			out.Values[i] = ec._VendorUserMap_vendor_id(ctx, field, obj)
+
+		case "user_id":
+
+			out.Values[i] = ec._VendorUserMap_user_id(ctx, field, obj)
+
+		case "created_at":
+
+			out.Values[i] = ec._VendorUserMap_created_at(ctx, field, obj)
+
+		case "created_by":
+
+			out.Values[i] = ec._VendorUserMap_created_by(ctx, field, obj)
+
+		case "status":
+
+			out.Values[i] = ec._VendorUserMap_status(ctx, field, obj)
+
+		case "updated_at":
+
+			out.Values[i] = ec._VendorUserMap_updated_at(ctx, field, obj)
+
+		case "updated_by":
+
+			out.Values[i] = ec._VendorUserMap_updated_by(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -51466,6 +52256,13 @@ func (ec *executionContext) unmarshalOVendorProfileInput2ᚖgithubᚗcomᚋzicop
 	}
 	res, err := ec.unmarshalInputVendorProfileInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOVendorUserMap2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorUserMap(ctx context.Context, sel ast.SelectionSet, v *model.VendorUserMap) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._VendorUserMap(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

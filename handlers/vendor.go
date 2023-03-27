@@ -59,6 +59,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		VendorId:  vendorId,
 		Name:      *input.Name,
 		Type:      *input.Type,
+		LspId:     lspId,
 		CreatedAt: createdAt,
 		CreatedBy: email,
 		UpdatedAt: createdAt,
@@ -66,6 +67,9 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	}
 	if input.Address != nil {
 		vendor.Address = *input.Address
+	}
+	if input.Phone != nil {
+		vendor.Phone = *input.Phone
 	}
 	if input.Website != nil {
 		vendor.Website = *input.Website
@@ -170,6 +174,8 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		InstagramURL: &vendor.Instagram,
 		TwitterURL:   &vendor.Twitter,
 		LinkedinURL:  &vendor.LinkedIn,
+		Phone:        &vendor.Phone,
+		LspID:        &vendor.LspId,
 		CreatedAt:    &ca,
 		CreatedBy:    &email,
 		UpdatedAt:    &ca,
@@ -305,6 +311,10 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		vendor.Users = resp
 		updatedCols = append(updatedCols, "users")
 	}
+	if input.Phone != nil {
+		vendor.Phone = *input.Phone
+		updatedCols = append(updatedCols, "phone")
+	}
 	if input.Status != nil {
 		vendor.Status = *input.Status
 		updatedCols = append(updatedCols, "status")
@@ -361,7 +371,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 	}
 
 	createdAt := strconv.Itoa(int(vendor.CreatedAt))
-	updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
+	updatedAt := time.Now().Unix()
 
 	admins, err := GetVendorAdmins(ctx, *input.VendorID)
 	if err != nil {
@@ -381,7 +391,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		vendor.UpdatedBy = email
 
 		updatedCols = append(updatedCols, "updated_at")
-		vendor.UpdatedAt = time.Now().Unix()
+		vendor.UpdatedAt = updatedAt
 
 		upStms, uNames := vendorz.VendorTable.Update(updatedCols...)
 		updateQuery := CassUserSession.Query(upStms, uNames).BindStruct(&vendor)
@@ -391,6 +401,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		}
 	}
 
+	ua := strconv.Itoa(int(updatedAt))
 	res := &model.Vendor{
 		VendorID:     vendor.VendorId,
 		Type:         vendor.Type,
@@ -405,13 +416,13 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		InstagramURL: &vendor.Instagram,
 		TwitterURL:   &vendor.Twitter,
 		LinkedinURL:  &vendor.LinkedIn,
+		Phone:        &vendor.Phone,
 		CreatedAt:    &createdAt,
 		CreatedBy:    &vendor.CreatedBy,
-		UpdatedAt:    &updatedAt,
+		UpdatedAt:    &ua,
 		UpdatedBy:    &email,
 		Status:       &vendor.Status,
 	}
-
 	return res, nil
 }
 
@@ -684,8 +695,14 @@ func MapVendorUser(ctx context.Context, vendorId string, users []string, creator
 		} else {
 			var res []vendorz.VendorUserMap
 			queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' AND user_id = '%s' ALLOW FILTERING`, vendorId, userId)
-			getQuery := CassUserSession.Query(queryStr, nil)
-			if err = getQuery.SelectRelease(&res); err != nil {
+			getQuery := func() (maps []vendorz.VendorUserMap, err error) {
+				q := CassUserSession.Query(queryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return maps, iter.Select(&maps)
+			}
+			res, err = getQuery()
+			if err != nil {
 				return nil, err
 			}
 			if len(res) == 0 {

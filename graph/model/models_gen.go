@@ -919,6 +919,8 @@ type Vendor struct {
 	Type         string    `json:"type"`
 	Level        string    `json:"level"`
 	Name         string    `json:"name"`
+	Phone        *string   `json:"phone"`
+	LspID        *string   `json:"lsp_id"`
 	Description  *string   `json:"description"`
 	PhotoURL     *string   `json:"photo_url"`
 	Address      *string   `json:"address"`
@@ -956,6 +958,7 @@ type VendorInput struct {
 	InstagramURL *string         `json:"instagram_url"`
 	TwitterURL   *string         `json:"twitter_url"`
 	LinkedinURL  *string         `json:"linkedin_url"`
+	Phone        *string         `json:"phone"`
 	Users        []*string       `json:"users"`
 	Description  *string         `json:"description"`
 	Status       *string         `json:"status"`
@@ -1028,4 +1031,14 @@ type VendorProfileInput struct {
 	ExperienceYears    *string         `json:"experience_years"`
 	IsSpeaker          *bool           `json:"is_speaker"`
 	Status             *string         `json:"status"`
+}
+
+type VendorUserMap struct {
+	VendorID  *string `json:"vendor_id"`
+	UserID    *string `json:"user_id"`
+	CreatedAt *string `json:"created_at"`
+	CreatedBy *string `json:"created_by"`
+	Status    *string `json:"status"`
+	UpdatedAt *string `json:"updated_at"`
+	UpdatedBy *string `json:"updated_by"`
 }

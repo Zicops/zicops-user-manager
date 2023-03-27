@@ -704,6 +704,7 @@ input VendorInput {
   instagram_url: String
   twitter_url: String
   linkedin_url: String
+  phone: String
   users: [String]
   description: String
 	status: String
@@ -714,6 +715,8 @@ type Vendor {
 	type: String!
 	level: String!
 	name: String!
+  phone: String
+  lsp_id: String
   description: String
 	photo_url: String
 	address: String
@@ -1026,6 +1029,16 @@ type OrderServices {
   status: String
 }
 
+type VendorUserMap {
+  vendor_id: String
+  user_id: String
+  created_at: String
+  created_by: String
+  status: String
+  updated_at: String
+  updated_by: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -1234,4 +1247,6 @@ type Mutation {
   updateOrder(input: VendorOrderInput): VendorOrder
   addOrderServies(input: [OrderServicesInput]): [OrderServices]
   updateOrderServices(input: OrderServicesInput): OrderServices
+  createVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
+  updateVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
 }
