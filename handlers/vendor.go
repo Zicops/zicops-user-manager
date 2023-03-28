@@ -539,7 +539,7 @@ func changeUserLspMapOfUsers(ctx context.Context, vendorId string, email string,
 			}
 			CassUserSession := usersession
 
-			QueryStr := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE user_id = '%s' AND lsp_id='%s' ALLOW FILTERING`, userId, lsp)
+			QueryStr := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE user_id = '%s' ALLOW FILTERING`, userId)
 			getUserData := func() (users []userz.UserLsp, err error) {
 				q := CassUserSession.Query(QueryStr, nil)
 				defer q.Release()
