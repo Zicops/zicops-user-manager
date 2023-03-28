@@ -554,17 +554,18 @@ func changeUserLspMapOfUsers(ctx context.Context, vendorId string, email string,
 			if len(users) == 0 {
 				return
 			}
-			user := users[0]
-			user.Status = "disable"
-			user.UpdatedAt = time.Now().Unix()
-			user.UpdatedBy = email
+			for _, user := range users {
+				user.Status = "disable"
+				user.UpdatedAt = time.Now().Unix()
+				user.UpdatedBy = email
 
-			updatedCols := []string{"status", "updated_at", "updated_by"}
-			stmt, names := userz.UserLspTable.Update(updatedCols...)
-			updateQuery := CassUserSession.Query(stmt, names).BindStruct(&user)
-			if err = updateQuery.ExecRelease(); err != nil {
-				log.Printf("Error: %v", err)
-				return
+				updatedCols := []string{"status", "updated_at", "updated_by"}
+				stmt, names := userz.UserLspTable.Update(updatedCols...)
+				updateQuery := CassUserSession.Query(stmt, names).BindStruct(&user)
+				if err = updateQuery.ExecRelease(); err != nil {
+					log.Printf("Error: %v", err)
+					return
+				}
 			}
 
 			wg.Done()
@@ -1720,6 +1721,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 				UpdatedAt:    &updatedAt,
 				UpdatedBy:    &email,
 				Status:       &vendor.Status,
+				//vendor lsp status
 			}
 			res[k] = vendorData
 			wg.Done()

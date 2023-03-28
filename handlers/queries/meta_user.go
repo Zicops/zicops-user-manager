@@ -387,6 +387,9 @@ func GetUserExamAttemptsByExamIds(ctx context.Context, userID string, examIds []
 				log.Errorf(err.Error())
 				return
 			}
+			if len(courses) == 0 {
+				return
+			}
 
 			attemptStartTime := strconv.FormatInt(v.AttemptStartTime, 10)
 			createdAt := strconv.FormatInt(v.CreatedAt, 10)
