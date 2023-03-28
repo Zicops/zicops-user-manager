@@ -1249,4 +1249,5 @@ type Mutation {
   updateOrderServices(input: OrderServicesInput): OrderServices
   createVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
   updateVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
+  deleteVendorUserMap(vendor_id: String, user_id: String): VendorUserMap
 }

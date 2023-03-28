@@ -115,12 +115,12 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 
 	if input.Users != nil {
 		users := ChangesStringType(input.Users)
-		resp, err := MapVendorUser(ctx, vendorId, users, email, lspId)
-		if err != nil {
-			return nil, err
-		}
-		//check all users, and return appended users
-		vendor.Users = resp
+		// resp, err := MapVendorUser(ctx, vendorId, users, email, lspId)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// //check all users, and return appended users
+		vendor.Users = users
 	}
 	if input.Status != nil {
 		vendor.Status = *input.Status
@@ -304,11 +304,11 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 
 	if input.Users != nil {
 		users := ChangesStringType(input.Users)
-		resp, err := MapVendorUser(ctx, *input.VendorID, users, email, lsp)
-		if err != nil {
-			return nil, err
-		}
-		vendor.Users = resp
+		// resp, err := MapVendorUser(ctx, *input.VendorID, users, email, lsp)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		vendor.Users = users
 		updatedCols = append(updatedCols, "users")
 	}
 	if input.Phone != nil {
@@ -610,187 +610,187 @@ func updateMap(ctx context.Context, vendor vendorz.Vendor, lsp string, email str
 	return nil
 }
 
-func MapVendorUser(ctx context.Context, vendorId string, users []string, creator string, lsp string) ([]string, error) {
+// func MapVendorUser(ctx context.Context, vendorId string, users []string, creator string, lsp string) ([]string, error) {
 
-	sessionUser, err := global.CassPool.GetSession(ctx, "userz")
-	if err != nil {
-		return nil, err
-	}
-	CassSession := sessionUser
+// 	sessionUser, err := global.CassPool.GetSession(ctx, "userz")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	CassSession := sessionUser
 
-	session, err := global.CassPool.GetSession(ctx, "vendorz")
-	if err != nil {
-		return nil, err
-	}
-	CassUserSession := session
+// 	session, err := global.CassPool.GetSession(ctx, "vendorz")
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	CassUserSession := session
 
-	//get all the emails already mapped with that vendor
-	var mappedUsers []vendorz.VendorUserMap
-	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' ALLOW FILTERING`, vendorId)
-	getUsers := func() (users []vendorz.VendorUserMap, err error) {
-		q := CassUserSession.Query(queryStr, nil)
-		defer q.Release()
-		iter := q.Iter()
-		return users, iter.Select(&users)
-	}
-	mappedUsers, err = getUsers()
-	if err != nil {
-		return nil, err
-	}
-	var resp []string
-	for _, vv := range mappedUsers {
-		v := vv
-		email, err := base64.URLEncoding.DecodeString(v.UserId)
-		if err != nil {
-			return nil, err
-		}
+// 	//get all the emails already mapped with that vendor
+// 	var mappedUsers []vendorz.VendorUserMap
+// 	queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' ALLOW FILTERING`, vendorId)
+// 	getUsers := func() (users []vendorz.VendorUserMap, err error) {
+// 		q := CassUserSession.Query(queryStr, nil)
+// 		defer q.Release()
+// 		iter := q.Iter()
+// 		return users, iter.Select(&users)
+// 	}
+// 	mappedUsers, err = getUsers()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	var resp []string
+// 	for _, vv := range mappedUsers {
+// 		v := vv
+// 		email, err := base64.URLEncoding.DecodeString(v.UserId)
+// 		if err != nil {
+// 			return nil, err
+// 		}
 
-		//iterate over all the data from database, and compare with data sent from frontend
-		//for now lets assume we are going to delete the value
-		//if value is found, then ignore
-		//if value not found in list sent from frontend, delete the value
-		flagDel := true
-		//check if value exists,
-		for _, kk := range users {
-			k := kk
-			userId := base64.URLEncoding.EncodeToString([]byte(k))
-			if userId == v.UserId {
-				flagDel = false
-			}
-		}
-		if flagDel {
-			//disable the map
-			err := changeStatusOfAllUsers(ctx, vendorId, v.UserId, lsp, creator, "disable")
-			if err != nil {
-				return nil, err
-			}
+// 		//iterate over all the data from database, and compare with data sent from frontend
+// 		//for now lets assume we are going to delete the value
+// 		//if value is found, then ignore
+// 		//if value not found in list sent from frontend, delete the value
+// 		flagDel := true
+// 		//check if value exists,
+// 		for _, kk := range users {
+// 			k := kk
+// 			userId := base64.URLEncoding.EncodeToString([]byte(k))
+// 			if userId == v.UserId {
+// 				flagDel = false
+// 			}
+// 		}
+// 		if flagDel {
+// 			//disable the map
+// 			err := changeStatusOfAllUsers(ctx, vendorId, v.UserId, lsp, creator, "disable")
+// 			if err != nil {
+// 				return nil, err
+// 			}
 
-		}
+// 		}
 
-		resp = append(resp, string(email))
-	}
+// 		resp = append(resp, string(email))
+// 	}
 
-	for _, dirtyEmail := range users {
-		if !IsEmailValid(dirtyEmail) {
-			continue
-		}
-		//check if already exists
+// 	for _, dirtyEmail := range users {
+// 		if !IsEmailValid(dirtyEmail) {
+// 			continue
+// 		}
+// 		//check if already exists
 
-		email := strings.ToLower(dirtyEmail)
-		userId := base64.URLEncoding.EncodeToString([]byte(email))
+// 		email := strings.ToLower(dirtyEmail)
+// 		userId := base64.URLEncoding.EncodeToString([]byte(email))
 
-		qryStr := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE user_id='%s' AND lsp_id='%s' ALLOW FILTERING`, userId, lsp)
-		getUserDetails := func() (userMap []userz.UserLsp, err error) {
-			q := CassSession.Query(qryStr, nil)
-			defer q.Release()
-			iter := q.Iter()
-			return userMap, iter.Select(&userMap)
-		}
-		users, err := getUserDetails()
-		if err != nil {
-			return nil, err
-		}
-		if len(users) != 0 {
-			continue
-		} else {
-			var res []vendorz.VendorUserMap
-			queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' AND user_id = '%s' ALLOW FILTERING`, vendorId, userId)
-			getQuery := func() (maps []vendorz.VendorUserMap, err error) {
-				q := CassUserSession.Query(queryStr, nil)
-				defer q.Release()
-				iter := q.Iter()
-				return maps, iter.Select(&maps)
-			}
-			res, err = getQuery()
-			if err != nil {
-				return nil, err
-			}
-			if len(res) == 0 {
-				createdAt := time.Now().Unix()
-				vendorUserMap := vendorz.VendorUserMap{
-					VendorId:  vendorId,
-					UserId:    userId,
-					CreatedAt: createdAt,
-					CreatedBy: creator,
-					Status:    "active",
-				}
-				insertVendorUserMap := CassUserSession.Query(vendorz.VendorUserMapTable.Insert()).BindStruct(vendorUserMap)
-				if err = insertVendorUserMap.Exec(); err != nil {
-					return nil, err
-				}
-				resp = append(resp, email)
-			} else {
-				continue
-			}
-		}
-	}
-	return resp, nil
-}
+// 		qryStr := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE user_id='%s' AND lsp_id='%s' ALLOW FILTERING`, userId, lsp)
+// 		getUserDetails := func() (userMap []userz.UserLsp, err error) {
+// 			q := CassSession.Query(qryStr, nil)
+// 			defer q.Release()
+// 			iter := q.Iter()
+// 			return userMap, iter.Select(&userMap)
+// 		}
+// 		users, err := getUserDetails()
+// 		if err != nil {
+// 			return nil, err
+// 		}
+// 		if len(users) != 0 {
+// 			continue
+// 		} else {
+// 			var res []vendorz.VendorUserMap
+// 			queryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id = '%s' AND user_id = '%s' ALLOW FILTERING`, vendorId, userId)
+// 			getQuery := func() (maps []vendorz.VendorUserMap, err error) {
+// 				q := CassUserSession.Query(queryStr, nil)
+// 				defer q.Release()
+// 				iter := q.Iter()
+// 				return maps, iter.Select(&maps)
+// 			}
+// 			res, err = getQuery()
+// 			if err != nil {
+// 				return nil, err
+// 			}
+// 			if len(res) == 0 {
+// 				createdAt := time.Now().Unix()
+// 				vendorUserMap := vendorz.VendorUserMap{
+// 					VendorId:  vendorId,
+// 					UserId:    userId,
+// 					CreatedAt: createdAt,
+// 					CreatedBy: creator,
+// 					Status:    "active",
+// 				}
+// 				insertVendorUserMap := CassUserSession.Query(vendorz.VendorUserMapTable.Insert()).BindStruct(vendorUserMap)
+// 				if err = insertVendorUserMap.Exec(); err != nil {
+// 					return nil, err
+// 				}
+// 				resp = append(resp, email)
+// 			} else {
+// 				continue
+// 			}
+// 		}
+// 	}
+// 	return resp, nil
+// }
 
-func changeStatusOfAllUsers(ctx context.Context, vendorId string, userId string, lsp string, email string, status string) error {
+// func changeStatusOfAllUsers(ctx context.Context, vendorId string, userId string, lsp string, email string, status string) error {
 
-	session, err := global.CassPool.GetSession(ctx, "vendorz")
-	if err != nil {
-		return err
-	}
-	CassSession := session
-	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id='%s' AND user_id='%s' ALLOW FILTERING`, vendorId, userId)
-	getDetails := func() (maps []vendorz.VendorUserMap, err error) {
-		q := CassSession.Query(qryStr, nil)
-		defer q.Release()
-		iter := q.Iter()
-		return maps, iter.Select(&maps)
-	}
-	vendorLspMaps, err := getDetails()
-	if err != nil {
-		return err
-	}
-	if len(vendorLspMaps) == 0 {
-		return errors.New("map not found")
-	}
+// 	session, err := global.CassPool.GetSession(ctx, "vendorz")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	CassSession := session
+// 	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id='%s' AND user_id='%s' ALLOW FILTERING`, vendorId, userId)
+// 	getDetails := func() (maps []vendorz.VendorUserMap, err error) {
+// 		q := CassSession.Query(qryStr, nil)
+// 		defer q.Release()
+// 		iter := q.Iter()
+// 		return maps, iter.Select(&maps)
+// 	}
+// 	vendorLspMaps, err := getDetails()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	if len(vendorLspMaps) == 0 {
+// 		return errors.New("map not found")
+// 	}
 
-	vendorLspMap := vendorLspMaps[0]
-	vendorLspMap.Status = status
-	vendorLspMap.UpdatedAt = time.Now().Unix()
-	vendorLspMap.UpdatedBy = email
-	updatedCols := []string{"status", "updated_at", "updated_by"}
-	stmt, names := vendorz.VendorLspMapTable.Update(updatedCols...)
-	updatedQuery := CassSession.Query(stmt, names).BindStruct(&vendorLspMap)
-	if err = updatedQuery.ExecRelease(); err != nil {
-		return err
-	}
+// 	vendorLspMap := vendorLspMaps[0]
+// 	vendorLspMap.Status = status
+// 	vendorLspMap.UpdatedAt = time.Now().Unix()
+// 	vendorLspMap.UpdatedBy = email
+// 	updatedCols := []string{"status", "updated_at", "updated_by"}
+// 	stmt, names := vendorz.VendorLspMapTable.Update(updatedCols...)
+// 	updatedQuery := CassSession.Query(stmt, names).BindStruct(&vendorLspMap)
+// 	if err = updatedQuery.ExecRelease(); err != nil {
+// 		return err
+// 	}
 
-	session, err = global.CassPool.GetSession(ctx, "userz")
-	if err != nil {
-		return err
-	}
-	CassUserSession := session
-	query := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE user_id='%s' AND lsp_id='%s' ALLOW FILTERING`, userId, lsp)
-	getUserData := func() (maps []userz.UserLsp, err error) {
-		q := CassUserSession.Query(query, nil)
-		defer q.Release()
-		iter := q.Iter()
-		return maps, iter.Select(&maps)
-	}
-	userLspMaps, err := getUserData()
-	if err != nil {
-		return err
-	}
-	if len(userLspMaps) == 0 {
-		return fmt.Errorf("user does not exist: %v", userId)
-	}
-	userLspMap := userLspMaps[0]
-	userLspMap.Status = status
-	userLspMap.UpdatedAt = time.Now().Unix()
-	userLspMap.UpdatedBy = email
-	stmt, names = userz.UserLspTable.Update(updatedCols...)
-	updateQuery := CassUserSession.Query(stmt, names).BindStruct(&userLspMap)
-	if err = updateQuery.ExecRelease(); err != nil {
-		return err
-	}
+// 	session, err = global.CassPool.GetSession(ctx, "userz")
+// 	if err != nil {
+// 		return err
+// 	}
+// 	CassUserSession := session
+// 	query := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE user_id='%s' AND lsp_id='%s' ALLOW FILTERING`, userId, lsp)
+// 	getUserData := func() (maps []userz.UserLsp, err error) {
+// 		q := CassUserSession.Query(query, nil)
+// 		defer q.Release()
+// 		iter := q.Iter()
+// 		return maps, iter.Select(&maps)
+// 	}
+// 	userLspMaps, err := getUserData()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	if len(userLspMaps) == 0 {
+// 		return fmt.Errorf("user does not exist: %v", userId)
+// 	}
+// 	userLspMap := userLspMaps[0]
+// 	userLspMap.Status = status
+// 	userLspMap.UpdatedAt = time.Now().Unix()
+// 	userLspMap.UpdatedBy = email
+// 	stmt, names = userz.UserLspTable.Update(updatedCols...)
+// 	updateQuery := CassUserSession.Query(stmt, names).BindStruct(&userLspMap)
+// 	if err = updateQuery.ExecRelease(); err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 func ChangesStringType(input []*string) []string {
 	var res []string

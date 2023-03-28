@@ -199,6 +199,7 @@ type ComplexityRoot struct {
 		CreateVendorUserMap          func(childComplexity int, vendorID *string, userID *string, status *string) int
 		DeleteCohortImage            func(childComplexity int, cohortID string, filename string) int
 		DeleteSampleFile             func(childComplexity int, sfID string, vendorID string, pType string) int
+		DeleteVendorUserMap          func(childComplexity int, vendorID *string, userID *string) int
 		InviteUsers                  func(childComplexity int, emails []string, lspID *string) int
 		InviteUsersWithRole          func(childComplexity int, emails []string, lspID *string, role *string) int
 		Login                        func(childComplexity int) int
@@ -843,6 +844,7 @@ type MutationResolver interface {
 	UpdateOrderServices(ctx context.Context, input *model.OrderServicesInput) (*model.OrderServices, error)
 	CreateVendorUserMap(ctx context.Context, vendorID *string, userID *string, status *string) (*model.VendorUserMap, error)
 	UpdateVendorUserMap(ctx context.Context, vendorID *string, userID *string, status *string) (*model.VendorUserMap, error)
+	DeleteVendorUserMap(ctx context.Context, vendorID *string, userID *string) (*model.VendorUserMap, error)
 }
 type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
@@ -1963,6 +1965,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteSampleFile(childComplexity, args["sfId"].(string), args["vendor_id"].(string), args["p_type"].(string)), true
+
+	case "Mutation.deleteVendorUserMap":
+		if e.complexity.Mutation.DeleteVendorUserMap == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteVendorUserMap_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteVendorUserMap(childComplexity, args["vendor_id"].(*string), args["user_id"].(*string)), true
 
 	case "Mutation.inviteUsers":
 		if e.complexity.Mutation.InviteUsers == nil {
@@ -6974,6 +6988,7 @@ type Mutation {
   updateOrderServices(input: OrderServicesInput): OrderServices
   createVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
   updateVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
+  deleteVendorUserMap(vendor_id: String, user_id: String): VendorUserMap
 }
 `, BuiltIn: false},
 }
@@ -7484,6 +7499,30 @@ func (ec *executionContext) field_Mutation_deleteSampleFile_args(ctx context.Con
 		}
 	}
 	args["p_type"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteVendorUserMap_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["vendor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg1
 	return args, nil
 }
 
@@ -18535,6 +18574,74 @@ func (ec *executionContext) fieldContext_Mutation_updateVendorUserMap(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateVendorUserMap_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_deleteVendorUserMap(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_deleteVendorUserMap(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteVendorUserMap(rctx, fc.Args["vendor_id"].(*string), fc.Args["user_id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.VendorUserMap)
+	fc.Result = res
+	return ec.marshalOVendorUserMap2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorUserMap(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_deleteVendorUserMap(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "vendor_id":
+				return ec.fieldContext_VendorUserMap_vendor_id(ctx, field)
+			case "user_id":
+				return ec.fieldContext_VendorUserMap_user_id(ctx, field)
+			case "created_at":
+				return ec.fieldContext_VendorUserMap_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_VendorUserMap_created_by(ctx, field)
+			case "status":
+				return ec.fieldContext_VendorUserMap_status(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_VendorUserMap_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_VendorUserMap_updated_by(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VendorUserMap", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_deleteVendorUserMap_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -45161,6 +45268,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateVendorUserMap(ctx, field)
+			})
+
+		case "deleteVendorUserMap":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteVendorUserMap(ctx, field)
 			})
 
 		default:
