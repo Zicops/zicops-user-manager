@@ -1215,7 +1215,7 @@ func GetVendors(ctx context.Context, lspID *string, filters *model.VendorFilters
 	for _, vv := range vendorIds {
 		v := vv
 		wg.Add(1)
-		go func(vendorId string) {
+		go func(vendorId string, status string) {
 			storageC := bucket.NewStorageHandler()
 			gproject := googleprojectlib.GetGoogleProjectID()
 			err = storageC.InitializeStorageClient(ctx, gproject)
@@ -1269,28 +1269,29 @@ func GetVendors(ctx context.Context, lspID *string, filters *model.VendorFilters
 			createdAt := strconv.Itoa(int(vendor.CreatedAt))
 			updatedAt := strconv.Itoa(int(vendor.UpdatedAt))
 			vendorData := &model.Vendor{
-				VendorID:     vendor.VendorId,
-				Type:         vendor.Type,
-				Level:        vendor.Level,
-				Name:         vendor.Name,
-				PhotoURL:     &photoUrl,
-				Description:  &vendor.Description,
-				Website:      &vendor.Website,
-				Address:      &vendor.Address,
-				Users:        usersEmail,
-				FacebookURL:  &vendor.Facebook,
-				InstagramURL: &vendor.Instagram,
-				TwitterURL:   &vendor.Twitter,
-				LinkedinURL:  &vendor.LinkedIn,
-				CreatedAt:    &createdAt,
-				CreatedBy:    &vendor.CreatedBy,
-				UpdatedAt:    &updatedAt,
-				UpdatedBy:    &vendor.UpdatedBy,
-				Status:       &vendor.Status,
+				VendorID:        vendor.VendorId,
+				Type:            vendor.Type,
+				Level:           vendor.Level,
+				Name:            vendor.Name,
+				PhotoURL:        &photoUrl,
+				Description:     &vendor.Description,
+				Website:         &vendor.Website,
+				Address:         &vendor.Address,
+				Users:           usersEmail,
+				FacebookURL:     &vendor.Facebook,
+				InstagramURL:    &vendor.Instagram,
+				TwitterURL:      &vendor.Twitter,
+				LinkedinURL:     &vendor.LinkedIn,
+				CreatedAt:       &createdAt,
+				CreatedBy:       &vendor.CreatedBy,
+				UpdatedAt:       &updatedAt,
+				UpdatedBy:       &vendor.UpdatedBy,
+				Status:          &vendor.Status,
+				VendorLspStatus: &status,
 			}
 			res = append(res, vendorData)
 			wg.Done()
-		}(v.VendorId)
+		}(v.VendorId, v.Status)
 	}
 	wg.Wait()
 	return res, nil
@@ -1344,7 +1345,7 @@ func GetVendorAdminsEmails(ctx context.Context, vendorID string) ([]string, erro
 	return res, nil
 }
 
-func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error) {
+func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.UserWithLspStatus, error) {
 	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -1373,14 +1374,14 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 	if len(userIds) == 0 {
 		return nil, nil
 	}
-	res := make([]*model.User, len(userIds))
+	res := make([]*model.UserWithLspStatus, len(userIds))
 
 	var wg sync.WaitGroup
 	for kk, vvv := range userIds {
 		vv := vvv
 		wg.Add(1)
 		//iterate over these userIds and return user details
-		go func(userId string, k int) {
+		go func(userId string, k int, status string) {
 			//return user data
 
 			email, err := base64.URLEncoding.DecodeString(userId)
@@ -1441,28 +1442,29 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error
 				photoUrl = user.PhotoURL
 			}
 
-			temp := &model.User{
-				ID:         &user.ID,
-				FirstName:  user.FirstName,
-				LastName:   user.LastName,
-				Status:     user.Status,
-				Role:       user.Role,
-				IsVerified: user.IsVerified,
-				IsActive:   user.IsActive,
-				Gender:     user.Gender,
-				CreatedAt:  createdAt,
-				CreatedBy:  &user.CreatedBy,
-				UpdatedAt:  updatedAt,
-				UpdatedBy:  &user.UpdatedBy,
-				Email:      user.Email,
-				PhotoURL:   &photoUrl,
-				Phone:      phone,
+			temp := &model.UserWithLspStatus{
+				ID:            &user.ID,
+				FirstName:     user.FirstName,
+				LastName:      user.LastName,
+				Status:        user.Status,
+				Role:          user.Role,
+				IsVerified:    user.IsVerified,
+				IsActive:      user.IsActive,
+				Gender:        user.Gender,
+				CreatedAt:     createdAt,
+				CreatedBy:     &user.CreatedBy,
+				UpdatedAt:     updatedAt,
+				UpdatedBy:     &user.UpdatedBy,
+				Email:         user.Email,
+				PhotoURL:      &photoUrl,
+				Phone:         phone,
+				UserLspStatus: &status,
 			}
 			userData := temp
 			res[k] = userData
 
 			wg.Done()
-		}(vv.UserId, kk)
+		}(vv.UserId, kk, vv.Status)
 	}
 	wg.Wait()
 	return res, nil
@@ -1647,6 +1649,7 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 			CassSession := session
 
 			vendorId := vendorLspMap.VendorId
+			status := vendorLspMap.Status
 
 			storageC := bucket.NewStorageHandler()
 			gproject := googleprojectlib.GetGoogleProjectID()
@@ -1702,26 +1705,26 @@ func GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string,
 			}
 
 			vendorData := &model.Vendor{
-				VendorID:     vendor.VendorId,
-				Type:         vendor.Type,
-				Level:        vendor.Level,
-				Name:         vendor.Name,
-				PhotoURL:     &photoUrl,
-				Description:  &vendor.Description,
-				Website:      &vendor.Website,
-				Address:      &vendor.Address,
-				Users:        usersEmail,
-				FacebookURL:  &vendor.Facebook,
-				InstagramURL: &vendor.Instagram,
-				TwitterURL:   &vendor.Twitter,
-				LinkedinURL:  &vendor.LinkedIn,
-				Services:     services,
-				CreatedAt:    &createdAt,
-				CreatedBy:    &vendor.CreatedBy,
-				UpdatedAt:    &updatedAt,
-				UpdatedBy:    &email,
-				Status:       &vendor.Status,
-				//vendor lsp status
+				VendorID:        vendor.VendorId,
+				Type:            vendor.Type,
+				Level:           vendor.Level,
+				Name:            vendor.Name,
+				PhotoURL:        &photoUrl,
+				Description:     &vendor.Description,
+				Website:         &vendor.Website,
+				Address:         &vendor.Address,
+				Users:           usersEmail,
+				FacebookURL:     &vendor.Facebook,
+				InstagramURL:    &vendor.Instagram,
+				TwitterURL:      &vendor.Twitter,
+				LinkedinURL:     &vendor.LinkedIn,
+				Services:        services,
+				CreatedAt:       &createdAt,
+				CreatedBy:       &vendor.CreatedBy,
+				UpdatedAt:       &updatedAt,
+				UpdatedBy:       &email,
+				Status:          &vendor.Status,
+				VendorLspStatus: &status,
 			}
 			res[k] = vendorData
 			wg.Done()

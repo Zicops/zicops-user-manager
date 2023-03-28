@@ -706,28 +706,48 @@ type ComplexityRoot struct {
 		UserRoleID func(childComplexity int) int
 	}
 
+	UserWithLspStatus struct {
+		CreatedAt     func(childComplexity int) int
+		CreatedBy     func(childComplexity int) int
+		Email         func(childComplexity int) int
+		FirstName     func(childComplexity int) int
+		Gender        func(childComplexity int) int
+		ID            func(childComplexity int) int
+		IsActive      func(childComplexity int) int
+		IsVerified    func(childComplexity int) int
+		LastName      func(childComplexity int) int
+		Phone         func(childComplexity int) int
+		PhotoURL      func(childComplexity int) int
+		Role          func(childComplexity int) int
+		Status        func(childComplexity int) int
+		UpdatedAt     func(childComplexity int) int
+		UpdatedBy     func(childComplexity int) int
+		UserLspStatus func(childComplexity int) int
+	}
+
 	Vendor struct {
-		Address      func(childComplexity int) int
-		CreatedAt    func(childComplexity int) int
-		CreatedBy    func(childComplexity int) int
-		Description  func(childComplexity int) int
-		FacebookURL  func(childComplexity int) int
-		InstagramURL func(childComplexity int) int
-		Level        func(childComplexity int) int
-		LinkedinURL  func(childComplexity int) int
-		LspID        func(childComplexity int) int
-		Name         func(childComplexity int) int
-		Phone        func(childComplexity int) int
-		PhotoURL     func(childComplexity int) int
-		Services     func(childComplexity int) int
-		Status       func(childComplexity int) int
-		TwitterURL   func(childComplexity int) int
-		Type         func(childComplexity int) int
-		UpdatedAt    func(childComplexity int) int
-		UpdatedBy    func(childComplexity int) int
-		Users        func(childComplexity int) int
-		VendorID     func(childComplexity int) int
-		Website      func(childComplexity int) int
+		Address         func(childComplexity int) int
+		CreatedAt       func(childComplexity int) int
+		CreatedBy       func(childComplexity int) int
+		Description     func(childComplexity int) int
+		FacebookURL     func(childComplexity int) int
+		InstagramURL    func(childComplexity int) int
+		Level           func(childComplexity int) int
+		LinkedinURL     func(childComplexity int) int
+		LspID           func(childComplexity int) int
+		Name            func(childComplexity int) int
+		Phone           func(childComplexity int) int
+		PhotoURL        func(childComplexity int) int
+		Services        func(childComplexity int) int
+		Status          func(childComplexity int) int
+		TwitterURL      func(childComplexity int) int
+		Type            func(childComplexity int) int
+		UpdatedAt       func(childComplexity int) int
+		UpdatedBy       func(childComplexity int) int
+		Users           func(childComplexity int) int
+		VendorID        func(childComplexity int) int
+		VendorLspStatus func(childComplexity int) int
+		Website         func(childComplexity int) int
 	}
 
 	VendorOrder struct {
@@ -890,7 +910,7 @@ type QueryResolver interface {
 	GetVendorExperienceDetails(ctx context.Context, vendorID string, pfID string, expID string) (*model.ExperienceVendor, error)
 	GetVendors(ctx context.Context, lspID *string, filters *model.VendorFilters) ([]*model.Vendor, error)
 	GetPaginatedVendors(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int, filters *model.VendorFilters) (*model.PaginatedVendors, error)
-	GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error)
+	GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.UserWithLspStatus, error)
 	GetVendorDetails(ctx context.Context, vendorID string) (*model.Vendor, error)
 	ViewProfileVendorDetails(ctx context.Context, vendorID string, email string) (*model.VendorProfile, error)
 	ViewAllProfiles(ctx context.Context, vendorID string, filter *string, name *string) ([]*model.VendorProfile, error)
@@ -5208,6 +5228,118 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserRole.UserRoleID(childComplexity), true
 
+	case "UserWithLspStatus.created_at":
+		if e.complexity.UserWithLspStatus.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.CreatedAt(childComplexity), true
+
+	case "UserWithLspStatus.created_by":
+		if e.complexity.UserWithLspStatus.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.CreatedBy(childComplexity), true
+
+	case "UserWithLspStatus.email":
+		if e.complexity.UserWithLspStatus.Email == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.Email(childComplexity), true
+
+	case "UserWithLspStatus.first_name":
+		if e.complexity.UserWithLspStatus.FirstName == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.FirstName(childComplexity), true
+
+	case "UserWithLspStatus.gender":
+		if e.complexity.UserWithLspStatus.Gender == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.Gender(childComplexity), true
+
+	case "UserWithLspStatus.id":
+		if e.complexity.UserWithLspStatus.ID == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.ID(childComplexity), true
+
+	case "UserWithLspStatus.is_active":
+		if e.complexity.UserWithLspStatus.IsActive == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.IsActive(childComplexity), true
+
+	case "UserWithLspStatus.is_verified":
+		if e.complexity.UserWithLspStatus.IsVerified == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.IsVerified(childComplexity), true
+
+	case "UserWithLspStatus.last_name":
+		if e.complexity.UserWithLspStatus.LastName == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.LastName(childComplexity), true
+
+	case "UserWithLspStatus.phone":
+		if e.complexity.UserWithLspStatus.Phone == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.Phone(childComplexity), true
+
+	case "UserWithLspStatus.photo_url":
+		if e.complexity.UserWithLspStatus.PhotoURL == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.PhotoURL(childComplexity), true
+
+	case "UserWithLspStatus.role":
+		if e.complexity.UserWithLspStatus.Role == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.Role(childComplexity), true
+
+	case "UserWithLspStatus.status":
+		if e.complexity.UserWithLspStatus.Status == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.Status(childComplexity), true
+
+	case "UserWithLspStatus.updated_at":
+		if e.complexity.UserWithLspStatus.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.UpdatedAt(childComplexity), true
+
+	case "UserWithLspStatus.updated_by":
+		if e.complexity.UserWithLspStatus.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.UpdatedBy(childComplexity), true
+
+	case "UserWithLspStatus.user_lsp_status":
+		if e.complexity.UserWithLspStatus.UserLspStatus == nil {
+			break
+		}
+
+		return e.complexity.UserWithLspStatus.UserLspStatus(childComplexity), true
+
 	case "Vendor.address":
 		if e.complexity.Vendor.Address == nil {
 			break
@@ -5347,6 +5479,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Vendor.VendorID(childComplexity), true
+
+	case "Vendor.vendor_lsp_status":
+		if e.complexity.Vendor.VendorLspStatus == nil {
+			break
+		}
+
+		return e.complexity.Vendor.VendorLspStatus(childComplexity), true
 
 	case "Vendor.website":
 		if e.complexity.Vendor.Website == nil {
@@ -6485,6 +6624,7 @@ type Vendor {
 	updated_at: String
 	updated_by: String
 	status: String
+  vendor_lsp_status: String
 }
 
 type PaginatedVendors {
@@ -6792,6 +6932,26 @@ type VendorUserMap {
   updated_by: String
 }
 
+type UserWithLspStatus {
+  id: ID
+  first_name: String!
+  last_name: String!
+  status: String!
+  role: String!
+  is_verified: Boolean!
+  is_active: Boolean!
+  gender: String!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+  email: String!
+  phone: String!
+  photo_url: String
+  user_lsp_status: String
+}
+
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -6917,7 +7077,7 @@ type Query {
   getVendorExperienceDetails(vendor_id: String!, pf_id: String!, exp_id: String!): ExperienceVendor
   getVendors(lsp_id: String, filters: VendorFilters): [Vendor]
   getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int, filters: VendorFilters): PaginatedVendors
-  getVendorAdmins(vendor_id: String!): [User]
+  getVendorAdmins(vendor_id: String!): [UserWithLspStatus]
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
   viewAllProfiles(vendor_id: String!, filter: String, name: String): [VendorProfile]
@@ -17068,6 +17228,8 @@ func (ec *executionContext) fieldContext_Mutation_addVendor(ctx context.Context,
 				return ec.fieldContext_Vendor_updated_by(ctx, field)
 			case "status":
 				return ec.fieldContext_Vendor_status(ctx, field)
+			case "vendor_lsp_status":
+				return ec.fieldContext_Vendor_vendor_lsp_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Vendor", field.Name)
 		},
@@ -17164,6 +17326,8 @@ func (ec *executionContext) fieldContext_Mutation_updateVendor(ctx context.Conte
 				return ec.fieldContext_Vendor_updated_by(ctx, field)
 			case "status":
 				return ec.fieldContext_Vendor_status(ctx, field)
+			case "vendor_lsp_status":
+				return ec.fieldContext_Vendor_vendor_lsp_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Vendor", field.Name)
 		},
@@ -22344,6 +22508,8 @@ func (ec *executionContext) fieldContext_PaginatedVendors_vendors(ctx context.Co
 				return ec.fieldContext_Vendor_updated_by(ctx, field)
 			case "status":
 				return ec.fieldContext_Vendor_status(ctx, field)
+			case "vendor_lsp_status":
+				return ec.fieldContext_Vendor_vendor_lsp_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Vendor", field.Name)
 		},
@@ -25417,6 +25583,8 @@ func (ec *executionContext) fieldContext_Query_getVendors(ctx context.Context, f
 				return ec.fieldContext_Vendor_updated_by(ctx, field)
 			case "status":
 				return ec.fieldContext_Vendor_status(ctx, field)
+			case "vendor_lsp_status":
+				return ec.fieldContext_Vendor_vendor_lsp_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Vendor", field.Name)
 		},
@@ -25520,9 +25688,9 @@ func (ec *executionContext) _Query_getVendorAdmins(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.User)
+	res := resTmp.([]*model.UserWithLspStatus)
 	fc.Result = res
-	return ec.marshalOUser2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+	return ec.marshalOUserWithLspStatus2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserWithLspStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getVendorAdmins(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -25534,37 +25702,39 @@ func (ec *executionContext) fieldContext_Query_getVendorAdmins(ctx context.Conte
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_User_id(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_id(ctx, field)
 			case "first_name":
-				return ec.fieldContext_User_first_name(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_first_name(ctx, field)
 			case "last_name":
-				return ec.fieldContext_User_last_name(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_last_name(ctx, field)
 			case "status":
-				return ec.fieldContext_User_status(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_status(ctx, field)
 			case "role":
-				return ec.fieldContext_User_role(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_role(ctx, field)
 			case "is_verified":
-				return ec.fieldContext_User_is_verified(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_is_verified(ctx, field)
 			case "is_active":
-				return ec.fieldContext_User_is_active(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_is_active(ctx, field)
 			case "gender":
-				return ec.fieldContext_User_gender(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_gender(ctx, field)
 			case "created_by":
-				return ec.fieldContext_User_created_by(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_created_by(ctx, field)
 			case "updated_by":
-				return ec.fieldContext_User_updated_by(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_updated_by(ctx, field)
 			case "created_at":
-				return ec.fieldContext_User_created_at(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_created_at(ctx, field)
 			case "updated_at":
-				return ec.fieldContext_User_updated_at(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_updated_at(ctx, field)
 			case "email":
-				return ec.fieldContext_User_email(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_email(ctx, field)
 			case "phone":
-				return ec.fieldContext_User_phone(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_phone(ctx, field)
 			case "photo_url":
-				return ec.fieldContext_User_photo_url(ctx, field)
+				return ec.fieldContext_UserWithLspStatus_photo_url(ctx, field)
+			case "user_lsp_status":
+				return ec.fieldContext_UserWithLspStatus_user_lsp_status(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type UserWithLspStatus", field.Name)
 		},
 	}
 	defer func() {
@@ -25659,6 +25829,8 @@ func (ec *executionContext) fieldContext_Query_getVendorDetails(ctx context.Cont
 				return ec.fieldContext_Vendor_updated_by(ctx, field)
 			case "status":
 				return ec.fieldContext_Vendor_status(ctx, field)
+			case "vendor_lsp_status":
+				return ec.fieldContext_Vendor_vendor_lsp_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Vendor", field.Name)
 		},
@@ -26287,6 +26459,8 @@ func (ec *executionContext) fieldContext_Query_getUserVendor(ctx context.Context
 				return ec.fieldContext_Vendor_updated_by(ctx, field)
 			case "status":
 				return ec.fieldContext_Vendor_status(ctx, field)
+			case "vendor_lsp_status":
+				return ec.fieldContext_Vendor_vendor_lsp_status(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Vendor", field.Name)
 		},
@@ -36667,6 +36841,695 @@ func (ec *executionContext) fieldContext_UserRole_updated_at(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _UserWithLspStatus_id(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_first_name(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_first_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_first_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_last_name(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_last_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_last_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_status(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_role(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_role(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Role, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_role(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_is_verified(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_is_verified(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsVerified, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_is_verified(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_is_active(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_is_active(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsActive, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_is_active(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_gender(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_gender(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Gender, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_gender(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_created_by(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_created_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_created_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_updated_by(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_updated_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_updated_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_created_at(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_email(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_email(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_email(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_phone(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_phone(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Phone, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_phone(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_photo_url(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_photo_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PhotoURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_photo_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserWithLspStatus_user_lsp_status(ctx context.Context, field graphql.CollectedField, obj *model.UserWithLspStatus) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserWithLspStatus_user_lsp_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserLspStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserWithLspStatus_user_lsp_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserWithLspStatus",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Vendor_vendorId(ctx context.Context, field graphql.CollectedField, obj *model.Vendor) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Vendor_vendorId(ctx, field)
 	if err != nil {
@@ -37528,6 +38391,47 @@ func (ec *executionContext) _Vendor_status(ctx context.Context, field graphql.Co
 }
 
 func (ec *executionContext) fieldContext_Vendor_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Vendor",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Vendor_vendor_lsp_status(ctx context.Context, field graphql.CollectedField, obj *model.Vendor) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Vendor_vendor_lsp_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VendorLspStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Vendor_vendor_lsp_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Vendor",
 		Field:      field,
@@ -48964,6 +49868,124 @@ func (ec *executionContext) _UserRole(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
+var userWithLspStatusImplementors = []string{"UserWithLspStatus"}
+
+func (ec *executionContext) _UserWithLspStatus(ctx context.Context, sel ast.SelectionSet, obj *model.UserWithLspStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userWithLspStatusImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserWithLspStatus")
+		case "id":
+
+			out.Values[i] = ec._UserWithLspStatus_id(ctx, field, obj)
+
+		case "first_name":
+
+			out.Values[i] = ec._UserWithLspStatus_first_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "last_name":
+
+			out.Values[i] = ec._UserWithLspStatus_last_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+
+			out.Values[i] = ec._UserWithLspStatus_status(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "role":
+
+			out.Values[i] = ec._UserWithLspStatus_role(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "is_verified":
+
+			out.Values[i] = ec._UserWithLspStatus_is_verified(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "is_active":
+
+			out.Values[i] = ec._UserWithLspStatus_is_active(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "gender":
+
+			out.Values[i] = ec._UserWithLspStatus_gender(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "created_by":
+
+			out.Values[i] = ec._UserWithLspStatus_created_by(ctx, field, obj)
+
+		case "updated_by":
+
+			out.Values[i] = ec._UserWithLspStatus_updated_by(ctx, field, obj)
+
+		case "created_at":
+
+			out.Values[i] = ec._UserWithLspStatus_created_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updated_at":
+
+			out.Values[i] = ec._UserWithLspStatus_updated_at(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "email":
+
+			out.Values[i] = ec._UserWithLspStatus_email(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "phone":
+
+			out.Values[i] = ec._UserWithLspStatus_phone(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "photo_url":
+
+			out.Values[i] = ec._UserWithLspStatus_photo_url(ctx, field, obj)
+
+		case "user_lsp_status":
+
+			out.Values[i] = ec._UserWithLspStatus_user_lsp_status(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var vendorImplementors = []string{"Vendor"}
 
 func (ec *executionContext) _Vendor(ctx context.Context, sel ast.SelectionSet, obj *model.Vendor) graphql.Marshaler {
@@ -49069,6 +50091,10 @@ func (ec *executionContext) _Vendor(ctx context.Context, sel ast.SelectionSet, o
 		case "status":
 
 			out.Values[i] = ec._Vendor_status(ctx, field, obj)
+
+		case "vendor_lsp_status":
+
+			out.Values[i] = ec._Vendor_vendor_lsp_status(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -52283,6 +53309,54 @@ func (ec *executionContext) unmarshalOUserRoleInput2ᚖgithubᚗcomᚋzicopsᚋz
 	}
 	res, err := ec.unmarshalInputUserRoleInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUserWithLspStatus2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserWithLspStatus(ctx context.Context, sel ast.SelectionSet, v []*model.UserWithLspStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUserWithLspStatus2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserWithLspStatus(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOUserWithLspStatus2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserWithLspStatus(ctx context.Context, sel ast.SelectionSet, v *model.UserWithLspStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UserWithLspStatus(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOVendor2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendor(ctx context.Context, sel ast.SelectionSet, v []*model.Vendor) graphql.Marshaler {

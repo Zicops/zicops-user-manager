@@ -914,28 +914,48 @@ type UserRoleInput struct {
 	UpdatedBy  *string `json:"updated_by"`
 }
 
+type UserWithLspStatus struct {
+	ID            *string `json:"id"`
+	FirstName     string  `json:"first_name"`
+	LastName      string  `json:"last_name"`
+	Status        string  `json:"status"`
+	Role          string  `json:"role"`
+	IsVerified    bool    `json:"is_verified"`
+	IsActive      bool    `json:"is_active"`
+	Gender        string  `json:"gender"`
+	CreatedBy     *string `json:"created_by"`
+	UpdatedBy     *string `json:"updated_by"`
+	CreatedAt     string  `json:"created_at"`
+	UpdatedAt     string  `json:"updated_at"`
+	Email         string  `json:"email"`
+	Phone         string  `json:"phone"`
+	PhotoURL      *string `json:"photo_url"`
+	UserLspStatus *string `json:"user_lsp_status"`
+}
+
 type Vendor struct {
-	VendorID     string    `json:"vendorId"`
-	Type         string    `json:"type"`
-	Level        string    `json:"level"`
-	Name         string    `json:"name"`
-	Phone        *string   `json:"phone"`
-	LspID        *string   `json:"lsp_id"`
-	Description  *string   `json:"description"`
-	PhotoURL     *string   `json:"photo_url"`
-	Address      *string   `json:"address"`
-	Users        []*string `json:"users"`
-	Website      *string   `json:"website"`
-	FacebookURL  *string   `json:"facebook_url"`
-	InstagramURL *string   `json:"instagram_url"`
-	TwitterURL   *string   `json:"twitter_url"`
-	LinkedinURL  *string   `json:"linkedin_url"`
-	Services     []*string `json:"services"`
-	CreatedAt    *string   `json:"created_at"`
-	CreatedBy    *string   `json:"created_by"`
-	UpdatedAt    *string   `json:"updated_at"`
-	UpdatedBy    *string   `json:"updated_by"`
-	Status       *string   `json:"status"`
+	VendorID        string    `json:"vendorId"`
+	Type            string    `json:"type"`
+	Level           string    `json:"level"`
+	Name            string    `json:"name"`
+	Phone           *string   `json:"phone"`
+	LspID           *string   `json:"lsp_id"`
+	Description     *string   `json:"description"`
+	PhotoURL        *string   `json:"photo_url"`
+	Address         *string   `json:"address"`
+	Users           []*string `json:"users"`
+	Website         *string   `json:"website"`
+	FacebookURL     *string   `json:"facebook_url"`
+	InstagramURL    *string   `json:"instagram_url"`
+	TwitterURL      *string   `json:"twitter_url"`
+	LinkedinURL     *string   `json:"linkedin_url"`
+	Services        []*string `json:"services"`
+	CreatedAt       *string   `json:"created_at"`
+	CreatedBy       *string   `json:"created_by"`
+	UpdatedAt       *string   `json:"updated_at"`
+	UpdatedBy       *string   `json:"updated_by"`
+	Status          *string   `json:"status"`
+	VendorLspStatus *string   `json:"vendor_lsp_status"`
 }
 
 type VendorFilters struct {

@@ -1071,7 +1071,7 @@ func (r *queryResolver) GetPaginatedVendors(ctx context.Context, lspID *string, 
 }
 
 // GetVendorAdmins is the resolver for the getVendorAdmins field.
-func (r *queryResolver) GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.User, error) {
+func (r *queryResolver) GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.UserWithLspStatus, error) {
 	resp, err := handlers.GetVendorAdmins(ctx, vendorID)
 	if err != nil {
 		log.Printf("Got error while getting Vendor Admins: %v", err)
