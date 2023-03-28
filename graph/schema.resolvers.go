@@ -640,6 +640,16 @@ func (r *mutationResolver) UpdateVendorUserMap(ctx context.Context, vendorID *st
 	return resp, nil
 }
 
+// DeleteVendorUserMap is the resolver for the deleteVendorUserMap field.
+func (r *mutationResolver) DeleteVendorUserMap(ctx context.Context, vendorID *string, userID *string) (*model.VendorUserMap, error) {
+	resp, err := handlers.DeleteVendorUserMap(ctx, vendorID, userID)
+	if err != nil {
+		log.Printf("Got error while updating vendor user map: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Logout is the resolver for the logout field.
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)

@@ -85,7 +85,7 @@ func UpdateVendorUserMap(ctx context.Context, vendorID *string, userID *string, 
 		return nil, err
 	}
 
-	if len(maps) != 0 {
+	if len(maps) == 0 {
 		return nil, nil
 	}
 
@@ -121,4 +121,9 @@ func UpdateVendorUserMap(ctx context.Context, vendorID *string, userID *string, 
 	}
 
 	return &res, nil
+}
+
+func DeleteVendorUserMap(ctx context.Context, vendorID *string, userID *string) (*model.VendorUserMap, error) {
+
+	return nil, nil
 }
