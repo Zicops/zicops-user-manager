@@ -732,6 +732,7 @@ type Vendor {
 	updated_at: String
 	updated_by: String
 	status: String
+  vendor_lsp_status: String
 }
 
 type PaginatedVendors {
@@ -1039,6 +1040,26 @@ type VendorUserMap {
   updated_by: String
 }
 
+type UserWithLspStatus {
+  id: ID
+  first_name: String!
+  last_name: String!
+  status: String!
+  role: String!
+  is_verified: Boolean!
+  is_active: Boolean!
+  gender: String!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+  email: String!
+  phone: String!
+  photo_url: String
+  user_lsp_status: String
+}
+
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -1164,7 +1185,7 @@ type Query {
   getVendorExperienceDetails(vendor_id: String!, pf_id: String!, exp_id: String!): ExperienceVendor
   getVendors(lsp_id: String, filters: VendorFilters): [Vendor]
   getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int, filters: VendorFilters): PaginatedVendors
-  getVendorAdmins(vendor_id: String!): [User]
+  getVendorAdmins(vendor_id: String!): [UserWithLspStatus]
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
   viewAllProfiles(vendor_id: String!, filter: String, name: String): [VendorProfile]
