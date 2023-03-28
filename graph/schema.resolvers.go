@@ -641,10 +641,20 @@ func (r *mutationResolver) UpdateVendorUserMap(ctx context.Context, vendorID *st
 }
 
 // DeleteVendorUserMap is the resolver for the deleteVendorUserMap field.
-func (r *mutationResolver) DeleteVendorUserMap(ctx context.Context, vendorID *string, userID *string) (*model.VendorUserMap, error) {
+func (r *mutationResolver) DeleteVendorUserMap(ctx context.Context, vendorID *string, userID *string) (*bool, error) {
 	resp, err := handlers.DeleteVendorUserMap(ctx, vendorID, userID)
 	if err != nil {
 		log.Printf("Got error while updating vendor user map: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
+// DisableVendorLspMap is the resolver for the disableVendorLspMap field.
+func (r *mutationResolver) DisableVendorLspMap(ctx context.Context, vendorID *string, lspID *string) (*bool, error) {
+	resp, err := handlers.DisableVendorLspMap(ctx, vendorID, lspID)
+	if err != nil {
+		log.Printf("Got error while disabling vendor lsp map: %v", err)
 		return nil, err
 	}
 	return resp, nil
@@ -1161,8 +1171,8 @@ func (r *queryResolver) GetVendorServices(ctx context.Context, vendorID *string)
 }
 
 // GetLspUsersRoles is the resolver for the getLspUsersRoles field.
-func (r *queryResolver) GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*model.UserDetailsRole, error) {
-	res, err := handlers.GetLspUsersRoles(ctx, lspID, role)
+func (r *queryResolver) GetLspUsersRoles(ctx context.Context, lspID string, userID []*string, userLspID []*string) ([]*model.UserDetailsRole, error) {
+	res, err := handlers.GetLspUsersRoles(ctx, lspID, userID, userLspID)
 	if err != nil {
 		log.Printf("error getting user details with roles: %v", err)
 		return nil, err

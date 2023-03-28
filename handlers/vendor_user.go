@@ -123,7 +123,73 @@ func UpdateVendorUserMap(ctx context.Context, vendorID *string, userID *string, 
 	return &res, nil
 }
 
-func DeleteVendorUserMap(ctx context.Context, vendorID *string, userID *string) (*model.VendorUserMap, error) {
+func DeleteVendorUserMap(ctx context.Context, vendorID *string, userID *string) (*bool, error) {
+	if vendorID == nil && userID == nil {
+		return nil, fmt.Errorf("please enter both vendorId and userId")
+	}
+	_, err := identity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
+	if err != nil {
+		return nil, err
+	}
+	CassSession := session
 
-	return nil, nil
+	res := false
+	deleteStr := fmt.Sprintf(`DELETE FROM vendorz.vendor_user_map WHERE vendor_id='%s' AND user_id='%s'`, *vendorID, *userID)
+	if err = CassSession.Query(deleteStr, nil).Exec(); err != nil {
+		return &res, err
+	}
+	res = true
+	return &res, nil
+}
+
+func DisableVendorLspMap(ctx context.Context, vendorID *string, lspID *string) (*bool, error) {
+	if vendorID != nil {
+		return nil, fmt.Errorf("please enter vendorId")
+	}
+	res := false
+	claims, err := identity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return &res, err
+	}
+	email := claims["email"].(string)
+	lsp := claims["lsp_id"].(string)
+	if lspID != nil {
+		lsp = *lspID
+	}
+
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
+	if err != nil {
+		return &res, err
+	}
+	CassSession := session
+	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map WHERE vendor_id='%s' AND lsp_id='%s' ALLOW FILTERING`, *vendorID, lsp)
+	getVendorLsp := func() (maps []vendorz.VendorLspMap, err error) {
+		q := CassSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return maps, iter.Select(&maps)
+	}
+
+	vendorLspMaps, err := getVendorLsp()
+	if err != nil {
+		return &res, err
+	}
+	ua := time.Now().Unix()
+	vendorLsp := vendorLspMaps[0]
+	vendorLsp.Status = "disable"
+	vendorLsp.UpdatedAt = ua
+	vendorLsp.UpdatedBy = email
+	updatedCols := []string{"status", "updated_at", "updated_by"}
+	stmt, names := vendorz.VendorLspMapTable.Update(updatedCols...)
+	updatedQuery := CassSession.Query(stmt, names).BindStruct(vendorLsp)
+	if err = updatedQuery.ExecRelease(); err != nil {
+		return &res, err
+	}
+
+	res = true
+	return &res, nil
 }

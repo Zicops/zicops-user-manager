@@ -199,68 +199,57 @@ func GetUserLspRoles(ctx context.Context, userID string, userLspIds []string) ([
 	return userLspMaps, nil
 }
 
-func GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*model.UserDetailsRole, error) {
+func GetLspUsersRoles(ctx context.Context, lspID string, userID []*string, userLspID []*string) ([]*model.UserDetailsRole, error) {
 	_, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		log.Printf("Got error while getting context: %v", err)
 		return nil, err
 	}
+
 	var res []*model.UserDetailsRole
 	session, err := global.CassPool.GetSession(ctx, "userz")
 	if err != nil {
 		return nil, err
 	}
 	CassUserSession := session
-	queryStr := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE lsp_id = '%s' ALLOW FILTERING`, lspID)
-	getLspUsers := func() (maps []userz.UserLsp, err error) {
-		q := CassUserSession.Query(queryStr, nil)
-		defer q.Release()
-		iter := q.Iter()
-		return maps, iter.Select(&maps)
-	}
-	userLspMaps, err := getLspUsers()
-	if err != nil {
-		log.Printf("Got error getting users of a lsp: %v", err)
-		return nil, err
-	}
-	if len(userLspMaps) == 0 {
-		return nil, nil
-	}
-	users := make([]*string, 0)
-	userIdLspIdMap := make(map[string]string)
-	for _, v := range userLspMaps {
-		users = append(users, &v.UserID)
-		userIdLspIdMap[v.UserID] = v.ID
-	}
+
 	//get all users details
-	userDetails, err := common.GetUserDetails(ctx, users)
+	userDetails, err := common.GetUserDetails(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 	var wg sync.WaitGroup
-	res = make([]*model.UserDetailsRole, len(userLspMaps))
+	res = make([]*model.UserDetailsRole, len(userID))
 	for i, ud := range userDetails {
 		wg.Add(1)
 		if ud == nil || ud.ID == nil {
 			continue
 		}
-		go func(i int, ud *model.User) {
+		go func(i int, ud *model.User, userlsp []*string) {
 			defer wg.Done()
-			userLspId := userIdLspIdMap[*ud.ID]
-			//got all roles information for a user, with filter of a role
-			qryStr := fmt.Sprintf(`SELECT * FROM userz.user_role WHERE user_id='%s' AND user_lsp_id='%s' `, *ud.ID, userLspId)
-			if role != nil {
-				qryStr = qryStr + " and role in ("
-				for _, r := range role {
-					if r == nil {
-						continue
-					}
-					qryStr = qryStr + fmt.Sprintf(`'%s', `, *r)
-				}
-				//remove the extra comma and space which we have, plus add the bracket
-				qryStr = qryStr[:len(qryStr)-2] + ")"
+			userLsp := userlsp[i]
+
+			var userLspId string
+			if userLsp != nil {
+				userLspId = *userLsp
+			} else {
+				return
 			}
-			queryStr += " ALLOW FILTERING"
+
+			//got all roles information for a user, with filter of a role
+			qryStr := fmt.Sprintf(`SELECT * FROM userz.user_role WHERE user_id='%s' AND user_lsp_id='%s' ALLOW FITERING`, *ud.ID, userLspId)
+			// if role != nil {
+			// 	qryStr = qryStr + " and role in ("
+			// 	for _, r := range role {
+			// 		if r == nil {
+			// 			continue
+			// 		}
+			// 		qryStr = qryStr + fmt.Sprintf(`'%s', `, *r)
+			// 	}
+			// 	//remove the extra comma and space which we have, plus add the bracket
+			// 	qryStr = qryStr[:len(qryStr)-2] + ")"
+			// }
+			// queryStr += " ALLOW FILTERING"
 			getUserRoles := func() (maps []userz.UserRole, err error) {
 				q := CassUserSession.Query(qryStr, nil)
 				defer q.Release()
@@ -288,7 +277,7 @@ func GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*mod
 				User:  ud,
 				Roles: roles,
 			}
-		}(i, ud)
+		}(i, ud, userLspID)
 	}
 	wg.Wait()
 	return res, nil

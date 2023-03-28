@@ -200,6 +200,7 @@ type ComplexityRoot struct {
 		DeleteCohortImage            func(childComplexity int, cohortID string, filename string) int
 		DeleteSampleFile             func(childComplexity int, sfID string, vendorID string, pType string) int
 		DeleteVendorUserMap          func(childComplexity int, vendorID *string, userID *string) int
+		DisableVendorLspMap          func(childComplexity int, vendorID *string, lspID *string) int
 		InviteUsers                  func(childComplexity int, emails []string, lspID *string) int
 		InviteUsersWithRole          func(childComplexity int, emails []string, lspID *string, role *string) int
 		Login                        func(childComplexity int) int
@@ -370,7 +371,7 @@ type ComplexityRoot struct {
 		GetLearningSpaceDetails        func(childComplexity int, lspIds []*string) int
 		GetLearningSpacesByOrgID       func(childComplexity int, orgID string) int
 		GetLearningSpacesByOuID        func(childComplexity int, ouID string, orgID string) int
-		GetLspUsersRoles               func(childComplexity int, lspID string, role []*string) int
+		GetLspUsersRoles               func(childComplexity int, lspID string, userID []*string, userLspID []*string) int
 		GetOrderServices               func(childComplexity int, orderID []*string) int
 		GetOrganizationUnits           func(childComplexity int, ouIds []*string) int
 		GetOrganizations               func(childComplexity int, orgIds []*string) int
@@ -844,7 +845,8 @@ type MutationResolver interface {
 	UpdateOrderServices(ctx context.Context, input *model.OrderServicesInput) (*model.OrderServices, error)
 	CreateVendorUserMap(ctx context.Context, vendorID *string, userID *string, status *string) (*model.VendorUserMap, error)
 	UpdateVendorUserMap(ctx context.Context, vendorID *string, userID *string, status *string) (*model.VendorUserMap, error)
-	DeleteVendorUserMap(ctx context.Context, vendorID *string, userID *string) (*model.VendorUserMap, error)
+	DeleteVendorUserMap(ctx context.Context, vendorID *string, userID *string) (*bool, error)
+	DisableVendorLspMap(ctx context.Context, vendorID *string, lspID *string) (*bool, error)
 }
 type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
@@ -898,7 +900,7 @@ type QueryResolver interface {
 	GetContentDevelopment(ctx context.Context, vendorID string) (*model.ContentDevelopment, error)
 	GetUserVendor(ctx context.Context, userID *string) ([]*model.Vendor, error)
 	GetVendorServices(ctx context.Context, vendorID *string) ([]*string, error)
-	GetLspUsersRoles(ctx context.Context, lspID string, role []*string) ([]*model.UserDetailsRole, error)
+	GetLspUsersRoles(ctx context.Context, lspID string, userID []*string, userLspID []*string) ([]*model.UserDetailsRole, error)
 	GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserDetailsWithRole, error)
 	GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, error)
 	GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderServices, error)
@@ -1977,6 +1979,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteVendorUserMap(childComplexity, args["vendor_id"].(*string), args["user_id"].(*string)), true
+
+	case "Mutation.disableVendorLspMap":
+		if e.complexity.Mutation.DisableVendorLspMap == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_disableVendorLspMap_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DisableVendorLspMap(childComplexity, args["vendor_id"].(*string), args["lsp_id"].(*string)), true
 
 	case "Mutation.inviteUsers":
 		if e.complexity.Mutation.InviteUsers == nil {
@@ -3104,7 +3118,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetLspUsersRoles(childComplexity, args["lsp_id"].(string), args["role"].([]*string)), true
+		return e.complexity.Query.GetLspUsersRoles(childComplexity, args["lsp_id"].(string), args["user_id"].([]*string), args["user_lsp_id"].([]*string)), true
 
 	case "Query.getOrderServices":
 		if e.complexity.Query.GetOrderServices == nil {
@@ -6913,7 +6927,7 @@ type Query {
   getContentDevelopment(vendor_id: String!): ContentDevelopment
   getUserVendor(user_id: String): [Vendor]
   getVendorServices(vendor_id: String): [String]
-  getLspUsersRoles(lsp_id: String!, role: [String]): [UserDetailsRole] 
+  getLspUsersRoles(lsp_id: String!, user_id: [String], user_lsp_id: [String]): [UserDetailsRole] 
   getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
   getAllOrders(lsp_id: String): [VendorOrder]
   getOrderServices(order_id: [String]):[OrderServices]
@@ -6988,7 +7002,8 @@ type Mutation {
   updateOrderServices(input: OrderServicesInput): OrderServices
   createVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
   updateVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
-  deleteVendorUserMap(vendor_id: String, user_id: String): VendorUserMap
+  deleteVendorUserMap(vendor_id: String, user_id: String): Boolean
+  disableVendorLspMap(vendor_id: String, lsp_id: String): Boolean
 }
 `, BuiltIn: false},
 }
@@ -7523,6 +7538,30 @@ func (ec *executionContext) field_Mutation_deleteVendorUserMap_args(ctx context.
 		}
 	}
 	args["user_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_disableVendorLspMap_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["vendor_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lsp_id"] = arg1
 	return args, nil
 }
 
@@ -8439,14 +8478,23 @@ func (ec *executionContext) field_Query_getLspUsersRoles_args(ctx context.Contex
 	}
 	args["lsp_id"] = arg0
 	var arg1 []*string
-	if tmp, ok := rawArgs["role"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("role"))
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
 		arg1, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["role"] = arg1
+	args["user_id"] = arg1
+	var arg2 []*string
+	if tmp, ok := rawArgs["user_lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_lsp_id"))
+		arg2, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_lsp_id"] = arg2
 	return args, nil
 }
 
@@ -18603,9 +18651,9 @@ func (ec *executionContext) _Mutation_deleteVendorUserMap(ctx context.Context, f
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.VendorUserMap)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOVendorUserMap2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorUserMap(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteVendorUserMap(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -18615,23 +18663,7 @@ func (ec *executionContext) fieldContext_Mutation_deleteVendorUserMap(ctx contex
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "vendor_id":
-				return ec.fieldContext_VendorUserMap_vendor_id(ctx, field)
-			case "user_id":
-				return ec.fieldContext_VendorUserMap_user_id(ctx, field)
-			case "created_at":
-				return ec.fieldContext_VendorUserMap_created_at(ctx, field)
-			case "created_by":
-				return ec.fieldContext_VendorUserMap_created_by(ctx, field)
-			case "status":
-				return ec.fieldContext_VendorUserMap_status(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_VendorUserMap_updated_at(ctx, field)
-			case "updated_by":
-				return ec.fieldContext_VendorUserMap_updated_by(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type VendorUserMap", field.Name)
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	defer func() {
@@ -18642,6 +18674,58 @@ func (ec *executionContext) fieldContext_Mutation_deleteVendorUserMap(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_deleteVendorUserMap_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_disableVendorLspMap(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_disableVendorLspMap(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DisableVendorLspMap(rctx, fc.Args["vendor_id"].(*string), fc.Args["lsp_id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_disableVendorLspMap(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_disableVendorLspMap_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -26287,7 +26371,7 @@ func (ec *executionContext) _Query_getLspUsersRoles(ctx context.Context, field g
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetLspUsersRoles(rctx, fc.Args["lsp_id"].(string), fc.Args["role"].([]*string))
+		return ec.resolvers.Query().GetLspUsersRoles(rctx, fc.Args["lsp_id"].(string), fc.Args["user_id"].([]*string), fc.Args["user_lsp_id"].([]*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -45274,6 +45358,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_deleteVendorUserMap(ctx, field)
+			})
+
+		case "disableVendorLspMap":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_disableVendorLspMap(ctx, field)
 			})
 
 		default:

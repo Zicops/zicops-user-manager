@@ -1174,7 +1174,7 @@ type Query {
   getContentDevelopment(vendor_id: String!): ContentDevelopment
   getUserVendor(user_id: String): [Vendor]
   getVendorServices(vendor_id: String): [String]
-  getLspUsersRoles(lsp_id: String!, role: [String]): [UserDetailsRole] 
+  getLspUsersRoles(lsp_id: String!, user_id: [String], user_lsp_id: [String]): [UserDetailsRole] 
   getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
   getAllOrders(lsp_id: String): [VendorOrder]
   getOrderServices(order_id: [String]):[OrderServices]
@@ -1249,5 +1249,6 @@ type Mutation {
   updateOrderServices(input: OrderServicesInput): OrderServices
   createVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
   updateVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
-  deleteVendorUserMap(vendor_id: String, user_id: String): VendorUserMap
+  deleteVendorUserMap(vendor_id: String, user_id: String): Boolean
+  disableVendorLspMap(vendor_id: String, lsp_id: String): Boolean
 }
