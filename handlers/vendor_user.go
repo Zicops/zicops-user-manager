@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
+	"sync"
 	"time"
 
+	"github.com/zicops/contracts/userz"
 	"github.com/zicops/contracts/vendorz"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
@@ -147,7 +150,7 @@ func DeleteVendorUserMap(ctx context.Context, vendorID *string, userID *string) 
 }
 
 func DisableVendorLspMap(ctx context.Context, vendorID *string, lspID *string) (*bool, error) {
-	if vendorID != nil {
+	if vendorID == nil {
 		return nil, fmt.Errorf("please enter vendorId")
 	}
 	res := false
@@ -185,11 +188,89 @@ func DisableVendorLspMap(ctx context.Context, vendorID *string, lspID *string) (
 	vendorLsp.UpdatedBy = email
 	updatedCols := []string{"status", "updated_at", "updated_by"}
 	stmt, names := vendorz.VendorLspMapTable.Update(updatedCols...)
-	updatedQuery := CassSession.Query(stmt, names).BindStruct(vendorLsp)
+	updatedQuery := CassSession.Query(stmt, names).BindStruct(&vendorLsp)
 	if err = updatedQuery.ExecRelease(); err != nil {
+		return &res, err
+	}
+
+	err = disableUsersOfVendors(ctx, *vendorID, lsp, email)
+	if err != nil {
+		log.Printf("Got error while disabling users: %v", err)
 		return &res, err
 	}
 
 	res = true
 	return &res, nil
+}
+
+func disableUsersOfVendors(ctx context.Context, vendorId string, lsp string, email string) error {
+
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
+	if err != nil {
+		return err
+	}
+	CassSession := session
+	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_user_map WHERE vendor_id='%s' ALLOW FILTERING`, vendorId)
+	getUsers := func() (maps []vendorz.VendorUserMap, err error) {
+		q := CassSession.Query(qryStr, nil)
+		defer q.Iter()
+		iter := q.Iter()
+		return maps, iter.Select(&maps)
+	}
+	vendorUserMaps, err := getUsers()
+	if err != nil {
+		return err
+	}
+	if len(vendorUserMaps) == 0 {
+		return nil
+	}
+
+	var wg sync.WaitGroup
+	for _, vv := range vendorUserMaps {
+		v := vv
+		wg.Add(1)
+		go func(userId string, lspId string, email string) {
+			defer wg.Done()
+
+			session, err := global.CassPool.GetSession(ctx, "userz")
+			if err != nil {
+				log.Printf("Got error while getting users data: %v", err)
+				return
+			}
+			CassUserSession := session
+
+			query := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE user_id='%s' AND lsp_id='%s' ALLOW FILTERING`, userId, lspId)
+			getUserData := func() (usersData []userz.UserLsp, err error) {
+				q := CassUserSession.Query(query, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return usersData, iter.Select(&usersData)
+			}
+
+			users, err := getUserData()
+			if err != nil {
+				log.Printf("Got error while get users data: %v", err)
+				return
+			}
+			if len(users) == 0 {
+				return
+			}
+
+			user := users[0]
+			user.Status = "disable"
+			user.UpdatedAt = time.Now().Unix()
+			user.UpdatedBy = email
+			updatedCols := []string{"status", "updated_at", "updated_by"}
+
+			stmt, names := userz.UserLspTable.Update(updatedCols...)
+			updatedQuery := CassUserSession.Query(stmt, names).BindStruct(&user)
+			if err = updatedQuery.ExecRelease(); err != nil {
+				log.Printf("Got error while getting user info: %v", err)
+				return
+			}
+
+		}(v.UserId, lsp, email)
+	}
+	wg.Wait()
+	return nil
 }
