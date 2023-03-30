@@ -22,6 +22,7 @@ import (
 	"github.com/zicops/zicops-user-manager/lib/db/bucket"
 	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
 	"github.com/zicops/zicops-user-manager/lib/identity"
+	"github.com/zicops/zicops-user-manager/lib/utils"
 )
 
 func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, error) {
@@ -2363,21 +2364,23 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 		return &res, err
 	}
 	bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", input.VendorID, input.PType, input.Name)
-	writer, err := storageC.UploadToGCS(ctx, bucketPath)
-	if err != nil {
-		log.Printf("Failed to upload sample file: %v", err.Error())
-		return &res, nil
-	}
-	defer writer.Close()
-	fileBuffer := bytes.NewBuffer(nil)
-	if _, err := io.Copy(fileBuffer, input.File.File); err != nil {
-		return &res, nil
-	}
-	currentBytes := fileBuffer.Bytes()
-	_, err = io.Copy(writer, bytes.NewReader(currentBytes))
-	if err != nil {
-		return &res, nil
-	}
+	// writer, err := storageC.UploadToGCS(ctx, bucketPath)
+	// if err != nil {
+	// 	log.Printf("Failed to upload sample file: %v", err.Error())
+	// 	return &res, nil
+	// }
+	// defer writer.Close()
+	// fileBuffer := bytes.NewBuffer(nil)
+	// if _, err := io.Copy(fileBuffer, input.File.File); err != nil {
+	// 	return &res, nil
+	// }
+	// currentBytes := fileBuffer.Bytes()
+	// _, err = io.Copy(writer, bytes.NewReader(currentBytes))
+	// if err != nil {
+	// 	return &res, nil
+	// }
+
+	utils.SenUploadRequestToQueue(ctx, &input.File, bucketPath)
 	getUrl := storageC.GetSignedURLForObject(ctx, bucketPath)
 	if getUrl == "" {
 		return &res, fmt.Errorf("failed to upload sample file: %v", errors.New("failed to get URL"))

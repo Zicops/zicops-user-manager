@@ -19,7 +19,7 @@ type maxPayloadHandler struct {
 
 // ServeHTTP uses MaxByteReader to limit the size of the input
 func (handler *maxPayloadHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	r.Body = http.MaxBytesReader(w, r.Body, handler.size)
+	r.Body = http.MaxBytesReader(w, r.Body, 50*1024*1024)
 	handler.handler.ServeHTTP(w, r)
 }
 
