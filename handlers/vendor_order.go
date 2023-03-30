@@ -626,7 +626,6 @@ func GetSpeakers(ctx context.Context, lspID *string, service *string, name *stri
 		vv := vvv
 		wg.Add(1)
 		go func(i int, v vendorz.VendorProfile) {
-			defer wg.Done()
 
 			var photoUrl string
 			storageC := bucket.NewStorageHandler()
@@ -702,6 +701,7 @@ func GetSpeakers(ctx context.Context, lspID *string, service *string, name *stri
 
 			res[i] = &tmp
 
+			wg.Done()
 		}(k, vv)
 
 	}
