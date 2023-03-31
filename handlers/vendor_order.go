@@ -64,7 +64,7 @@ func AddOrder(ctx context.Context, input *model.VendorOrderInput) (*model.Vendor
 	}
 	createdAt := strconv.Itoa(int(order.CreatedAt))
 	res := model.VendorOrder{
-		OrderID:    &id,
+		ID:         &id,
 		VendorID:   input.VendorID,
 		LspID:      &lspId,
 		Total:      input.Total,
@@ -81,7 +81,7 @@ func AddOrder(ctx context.Context, input *model.VendorOrderInput) (*model.Vendor
 }
 
 func UpdateOrder(ctx context.Context, input *model.VendorOrderInput) (*model.VendorOrder, error) {
-	if input.VendorID == nil || input.OrderID == nil {
+	if input.VendorID == nil || input.ID == nil {
 		return nil, errors.New("please enter vendor Id and orderId")
 	}
 	claims, err := identity.GetClaimsFromContext(ctx)
@@ -95,7 +95,7 @@ func UpdateOrder(ctx context.Context, input *model.VendorOrderInput) (*model.Ven
 		return nil, err
 	}
 	CassSession := session
-	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_order WHERE id='%s' AND vendor_id='%s' ALLOW FILTERING`, *input.OrderID, *input.VendorID)
+	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_order WHERE id='%s' AND vendor_id='%s' ALLOW FILTERING`, *input.ID, *input.VendorID)
 	getOrders := func() (vendorOrders []vendorz.VendorOrder, err error) {
 		q := CassSession.Query(qryStr, nil)
 		defer q.Release()
@@ -152,7 +152,7 @@ func UpdateOrder(ctx context.Context, input *model.VendorOrderInput) (*model.Ven
 	grandTotal := int(order.GrandTotal)
 	ua := strconv.Itoa(int(updatedAt))
 	res := model.VendorOrder{
-		OrderID:    &order.OrderId,
+		ID:         &order.OrderId,
 		VendorID:   &order.VendorId,
 		LspID:      &order.LspId,
 		Total:      &total,
@@ -395,7 +395,7 @@ func GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, err
 			ca := strconv.Itoa(int(order.CreatedAt))
 			ua := strconv.Itoa(int(order.UpdatedAt))
 			tmp := model.VendorOrder{
-				OrderID:    &order.OrderId,
+				ID:         &order.OrderId,
 				VendorID:   &order.VendorId,
 				LspID:      &order.LspId,
 				Total:      &total,
@@ -587,26 +587,26 @@ func GetSpeakers(ctx context.Context, lspID *string, service *string, name *stri
 	if err != nil {
 		return nil, err
 	}
-
 	CassSession := session
-	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile where lsp_id='%s' AND is_speaker=true `, lsp)
-	if service != nil {
-		qryStr += fmt.Sprintf(` AND %s=true`, *service)
+
+	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.profile WHERE lsp_id='%s' AND is_speaker=true `, lsp)
+	if service != nil && *service != "" {
+		qryStr += fmt.Sprintf(` AND %s=true `, *service)
 	}
 	if name != nil {
-		names := strings.ToLower(*name)
-		namesArray := strings.Fields(names)
+		nameStr := strings.ToLower(*name)
+		namesArray := strings.Fields(nameStr)
 		for _, vv := range namesArray {
 			v := vv
-			qryStr += fmt.Sprintf(` AND name CONTAINS '%s' `, v)
+			qryStr += fmt.Sprintf(` AND name contains '%s' `, v)
 		}
 	}
-	qryStr += " ALLOW FILTERING"
-	getProfiles := func() (profilesData []vendorz.VendorProfile, err error) {
+	qryStr += ` ALLOW FILTERING`
+	getProfiles := func() (maps []vendorz.VendorProfile, err error) {
 		q := CassSession.Query(qryStr, nil)
 		defer q.Release()
 		iter := q.Iter()
-		return profilesData, iter.Select(&profilesData)
+		return maps, iter.Select(&maps)
 	}
 
 	profiles, err := getProfiles()
@@ -621,90 +621,90 @@ func GetSpeakers(ctx context.Context, lspID *string, service *string, name *stri
 	var wg sync.WaitGroup
 	res := make([]*model.VendorProfile, len(profiles))
 
-	for kk, vvv := range profiles {
-		k := kk
-		vv := vvv
+	for kk, vvvv := range profiles {
+		vvv := vvvv
 		wg.Add(1)
-		go func(i int, v vendorz.VendorProfile) {
+		go func(k int, profile vendorz.VendorProfile) {
 
-			var photoUrl string
 			storageC := bucket.NewStorageHandler()
 			gproject := googleprojectlib.GetGoogleProjectID()
 			err = storageC.InitializeStorageClient(ctx, gproject)
 			if err != nil {
-				log.Printf("Failed to upload image to course: %v", err.Error())
+				log.Errorf("Error initializing bucket: %v", err)
 				return
 			}
-			if v.PhotoBucket != "" {
-				photoUrl = storageC.GetSignedURLForObject(ctx, v.PhotoBucket)
+
+			var photoUrl string
+			if profile.PhotoBucket != "" {
+				photoUrl = storageC.GetSignedURLForObject(ctx, profile.PhotoBucket)
 			} else {
-				photoUrl = v.PhotoURL
+				photoUrl = profile.PhotoURL
 			}
 
-			var l []*string
-			for _, lan := range v.Languages {
-				t := lan
-				l = append(l, &t)
+			var lang []*string
+			for _, vv := range profile.Languages {
+				v := vv
+				lang = append(lang, &v)
 			}
 
 			var sme []*string
-			for _, s := range v.SMEExpertise {
-				t := s
-				sme = append(sme, &t)
+			for _, vv := range profile.SMEExpertise {
+				v := vv
+				sme = append(sme, &v)
 			}
 
 			var cre []*string
-			for _, c := range v.ClassroomExpertise {
-				t := c
-				cre = append(cre, &t)
+			for _, vv := range profile.ClassroomExpertise {
+				v := vv
+				cre = append(cre, &v)
 			}
 
 			var cd []*string
-			for _, c := range v.ContentDevelopment {
-				t := c
-				cd = append(cd, &t)
+			for _, vv := range profile.ContentDevelopment {
+				v := vv
+				cd = append(cd, &v)
 			}
 
 			var exp []*string
-			for _, c := range v.Experience {
-				t := c
-				exp = append(exp, &t)
+			for _, vv := range profile.Experience {
+				v := vv
+				exp = append(exp, &v)
 			}
 
-			ca := strconv.Itoa(int(v.CreatedAt))
-			ua := strconv.Itoa(int(v.UpdatedAt))
+			ca := strconv.Itoa(int(profile.CreatedAt))
+			ua := strconv.Itoa(int(profile.UpdatedAt))
 			tmp := model.VendorProfile{
-				PfID:               &v.PfId,
-				VendorID:           &v.VendorId,
-				FirstName:          &v.FirstName,
-				LastName:           &v.LastName,
-				Email:              &v.Email,
-				Phone:              &v.Phone,
-				Description:        &v.Description,
+				PfID:               &profile.PfId,
+				VendorID:           &profile.VendorId,
+				FirstName:          &profile.FirstName,
+				LastName:           &profile.LastName,
+				Email:              &profile.Email,
+				Phone:              &profile.Phone,
 				PhotoURL:           &photoUrl,
-				Language:           l,
+				Description:        &profile.Description,
+				Language:           lang,
 				SmeExpertise:       sme,
 				ClassroomExpertise: cre,
 				ContentDevelopment: cd,
 				Experience:         exp,
-				ExperienceYears:    &v.ExperienceYears,
-				Sme:                &v.Sme,
-				Crt:                &v.Crt,
-				Cd:                 &v.Cd,
-				IsSpeaker:          &v.IsSpeaker,
-				LspID:              &v.LspId,
+				ExperienceYears:    &profile.ExperienceYears,
+				Sme:                &profile.Sme,
+				Crt:                &profile.Crt,
+				Cd:                 &profile.Cd,
+				IsSpeaker:          &profile.IsSpeaker,
+				LspID:              &profile.LspId,
 				CreatedAt:          &ca,
-				CreatedBy:          &v.CreatedBy,
+				CreatedBy:          &profile.CreatedBy,
 				UpdatedAt:          &ua,
-				UpdatedBy:          &v.UpdatedBy,
+				UpdatedBy:          &profile.UpdatedBy,
+				Status:             &profile.Status,
 			}
 
-			res[i] = &tmp
-
+			res[k] = &tmp
 			wg.Done()
-		}(k, vv)
-
+		}(kk, vvv)
 	}
+
 	wg.Wait()
 	return res, nil
 }

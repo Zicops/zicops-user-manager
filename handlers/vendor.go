@@ -328,7 +328,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		if *input.Status == "disable" {
 			changeUserLspMapOfUsers(ctx, *input.VendorID, email, lsp)
 		}
-		if *input.Status == "active" {
+		if *input.Status == "active" && vendor.Status != "active" {
 			changeUserLspMapOfUsersToActive(ctx, *input.VendorID, email, lsp)
 		}
 	}
@@ -481,16 +481,18 @@ func changeUserLspMapOfUsersToActive(ctx context.Context, vendorId string, email
 				return
 			}
 			user := users[0]
-			user.Status = "active"
-			user.UpdatedAt = time.Now().Unix()
-			user.UpdatedBy = email
+			if user.Status == "disable" {
+				user.Status = "active"
+				user.UpdatedAt = time.Now().Unix()
+				user.UpdatedBy = email
 
-			updatedCols := []string{"status", "updated_at", "updated_by"}
-			stmt, names := userz.UserLspTable.Update(updatedCols...)
-			updateQuery := CassUserSession.Query(stmt, names).BindStruct(&user)
-			if err = updateQuery.ExecRelease(); err != nil {
-				log.Printf("Error: %v", err)
-				return
+				updatedCols := []string{"status", "updated_at", "updated_by"}
+				stmt, names := userz.UserLspTable.Update(updatedCols...)
+				updateQuery := CassUserSession.Query(stmt, names).BindStruct(&user)
+				if err = updateQuery.ExecRelease(); err != nil {
+					log.Printf("Error: %v", err)
+					return
+				}
 			}
 
 			wg.Done()
@@ -1347,10 +1349,11 @@ func GetVendorAdminsEmails(ctx context.Context, vendorID string) ([]string, erro
 }
 
 func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.UserWithLspStatus, error) {
-	_, err := identity.GetClaimsFromContext(ctx)
+	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
+	lspId := claims["lsp_id"].(string)
 
 	var userIds []vendorz.VendorUserMap
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
@@ -1382,7 +1385,7 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.UserWithLsp
 		vv := vvv
 		wg.Add(1)
 		//iterate over these userIds and return user details
-		go func(userId string, k int, status string) {
+		go func(userId string, k int, lsp string) {
 			//return user data
 
 			email, err := base64.URLEncoding.DecodeString(userId)
@@ -1444,28 +1447,44 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.UserWithLsp
 			}
 
 			temp := &model.UserWithLspStatus{
-				ID:            &user.ID,
-				FirstName:     user.FirstName,
-				LastName:      user.LastName,
-				Status:        user.Status,
-				Role:          user.Role,
-				IsVerified:    user.IsVerified,
-				IsActive:      user.IsActive,
-				Gender:        user.Gender,
-				CreatedAt:     createdAt,
-				CreatedBy:     &user.CreatedBy,
-				UpdatedAt:     updatedAt,
-				UpdatedBy:     &user.UpdatedBy,
-				Email:         user.Email,
-				PhotoURL:      &photoUrl,
-				Phone:         phone,
-				UserLspStatus: &status,
+				ID:         &user.ID,
+				FirstName:  user.FirstName,
+				LastName:   user.LastName,
+				Status:     user.Status,
+				Role:       user.Role,
+				IsVerified: user.IsVerified,
+				IsActive:   user.IsActive,
+				Gender:     user.Gender,
+				CreatedAt:  createdAt,
+				CreatedBy:  &user.CreatedBy,
+				UpdatedAt:  updatedAt,
+				UpdatedBy:  &user.UpdatedBy,
+				Email:      user.Email,
+				PhotoURL:   &photoUrl,
+				Phone:      phone,
 			}
+
+			qry := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE user_id='%s' AND lsp_id='%s' ALLOW FILTERING`, user.ID, lsp)
+			getUserLsp := func() (userlsps []userz.UserLsp, err error) {
+				q := CassUserSession.Query(qry, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return userlsps, iter.Select(&userlsps)
+			}
+			userLsps, err := getUserLsp()
+			if err != nil {
+				return
+			}
+			if len(userLsps) == 0 {
+				return
+			}
+			temp.UserLspStatus = &userLsps[0].Status
+
 			userData := temp
 			res[k] = userData
 
 			wg.Done()
-		}(vv.UserId, kk, vv.Status)
+		}(vv.UserId, kk, lspId)
 	}
 	wg.Wait()
 	return res, nil

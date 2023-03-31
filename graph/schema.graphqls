@@ -977,7 +977,7 @@ type PaginatedUserDetailsWithRole {
 }
 
 input VendorOrderInput {
-  order_id: String
+  id: String
   vendor_id: String
   lsp_id: String
   total: Int
@@ -987,7 +987,7 @@ input VendorOrderInput {
 }
 
 type VendorOrder {
-  order_id: String
+  id: String
   vendor_id: String
   lsp_id: String
   total: Int
