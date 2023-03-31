@@ -481,7 +481,19 @@ func changeUserLspMapOfUsersToActive(ctx context.Context, vendorId string, email
 				return
 			}
 			user := users[0]
-			if user.Status == "disable" {
+			if user.Status == "invited_disable" {
+				user.Status = ""
+				user.UpdatedAt = time.Now().Unix()
+				user.UpdatedBy = email
+
+				updatedCols := []string{"status", "updated_at", "updated_by"}
+				stmt, names := userz.UserLspTable.Update(updatedCols...)
+				updateQuery := CassUserSession.Query(stmt, names).BindStruct(&user)
+				if err = updateQuery.ExecRelease(); err != nil {
+					log.Printf("Error: %v", err)
+					return
+				}
+			} else if user.Status == "disable" {
 				user.Status = "active"
 				user.UpdatedAt = time.Now().Unix()
 				user.UpdatedBy = email
@@ -558,17 +570,32 @@ func changeUserLspMapOfUsers(ctx context.Context, vendorId string, email string,
 				return
 			}
 			for _, user := range users {
-				user.Status = "disable"
-				user.UpdatedAt = time.Now().Unix()
-				user.UpdatedBy = email
+				if user.Status == "" {
+					user.Status = "invited_disable"
+					user.UpdatedAt = time.Now().Unix()
+					user.UpdatedBy = email
 
-				updatedCols := []string{"status", "updated_at", "updated_by"}
-				stmt, names := userz.UserLspTable.Update(updatedCols...)
-				updateQuery := CassUserSession.Query(stmt, names).BindStruct(&user)
-				if err = updateQuery.ExecRelease(); err != nil {
-					log.Printf("Error: %v", err)
-					return
+					updatedCols := []string{"status", "updated_at", "updated_by"}
+					stmt, names := userz.UserLspTable.Update(updatedCols...)
+					updateQuery := CassUserSession.Query(stmt, names).BindStruct(&user)
+					if err = updateQuery.ExecRelease(); err != nil {
+						log.Printf("Error: %v", err)
+						return
+					}
+				} else {
+					user.Status = "disable"
+					user.UpdatedAt = time.Now().Unix()
+					user.UpdatedBy = email
+
+					updatedCols := []string{"status", "updated_at", "updated_by"}
+					stmt, names := userz.UserLspTable.Update(updatedCols...)
+					updateQuery := CassUserSession.Query(stmt, names).BindStruct(&user)
+					if err = updateQuery.ExecRelease(); err != nil {
+						log.Printf("Error: %v", err)
+						return
+					}
 				}
+
 			}
 
 			wg.Done()
