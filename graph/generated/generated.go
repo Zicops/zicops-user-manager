@@ -754,8 +754,8 @@ type ComplexityRoot struct {
 		CreatedAt  func(childComplexity int) int
 		CreatedBy  func(childComplexity int) int
 		GrandTotal func(childComplexity int) int
+		ID         func(childComplexity int) int
 		LspID      func(childComplexity int) int
-		OrderID    func(childComplexity int) int
 		Status     func(childComplexity int) int
 		Tax        func(childComplexity int) int
 		Total      func(childComplexity int) int
@@ -5515,19 +5515,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.VendorOrder.GrandTotal(childComplexity), true
 
+	case "VendorOrder.id":
+		if e.complexity.VendorOrder.ID == nil {
+			break
+		}
+
+		return e.complexity.VendorOrder.ID(childComplexity), true
+
 	case "VendorOrder.lsp_id":
 		if e.complexity.VendorOrder.LspID == nil {
 			break
 		}
 
 		return e.complexity.VendorOrder.LspID(childComplexity), true
-
-	case "VendorOrder.order_id":
-		if e.complexity.VendorOrder.OrderID == nil {
-			break
-		}
-
-		return e.complexity.VendorOrder.OrderID(childComplexity), true
 
 	case "VendorOrder.status":
 		if e.complexity.VendorOrder.Status == nil {
@@ -6869,7 +6869,7 @@ type PaginatedUserDetailsWithRole {
 }
 
 input VendorOrderInput {
-  order_id: String
+  id: String
   vendor_id: String
   lsp_id: String
   total: Int
@@ -6879,7 +6879,7 @@ input VendorOrderInput {
 }
 
 type VendorOrder {
-  order_id: String
+  id: String
   vendor_id: String
   lsp_id: String
   total: Int
@@ -18376,8 +18376,8 @@ func (ec *executionContext) fieldContext_Mutation_addOrder(ctx context.Context, 
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "order_id":
-				return ec.fieldContext_VendorOrder_order_id(ctx, field)
+			case "id":
+				return ec.fieldContext_VendorOrder_id(ctx, field)
 			case "vendor_id":
 				return ec.fieldContext_VendorOrder_vendor_id(ctx, field)
 			case "lsp_id":
@@ -18452,8 +18452,8 @@ func (ec *executionContext) fieldContext_Mutation_updateOrder(ctx context.Contex
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "order_id":
-				return ec.fieldContext_VendorOrder_order_id(ctx, field)
+			case "id":
+				return ec.fieldContext_VendorOrder_id(ctx, field)
 			case "vendor_id":
 				return ec.fieldContext_VendorOrder_vendor_id(ctx, field)
 			case "lsp_id":
@@ -26689,8 +26689,8 @@ func (ec *executionContext) fieldContext_Query_getAllOrders(ctx context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "order_id":
-				return ec.fieldContext_VendorOrder_order_id(ctx, field)
+			case "id":
+				return ec.fieldContext_VendorOrder_id(ctx, field)
 			case "vendor_id":
 				return ec.fieldContext_VendorOrder_vendor_id(ctx, field)
 			case "lsp_id":
@@ -38444,8 +38444,8 @@ func (ec *executionContext) fieldContext_Vendor_vendor_lsp_status(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _VendorOrder_order_id(ctx context.Context, field graphql.CollectedField, obj *model.VendorOrder) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_VendorOrder_order_id(ctx, field)
+func (ec *executionContext) _VendorOrder_id(ctx context.Context, field graphql.CollectedField, obj *model.VendorOrder) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VendorOrder_id(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -38458,7 +38458,7 @@ func (ec *executionContext) _VendorOrder_order_id(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.OrderID, nil
+		return obj.ID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -38472,7 +38472,7 @@ func (ec *executionContext) _VendorOrder_order_id(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_VendorOrder_order_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_VendorOrder_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "VendorOrder",
 		Field:      field,
@@ -44994,18 +44994,18 @@ func (ec *executionContext) unmarshalInputVendorOrderInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"order_id", "vendor_id", "lsp_id", "total", "tax", "grand_total", "status"}
+	fieldsInOrder := [...]string{"id", "vendor_id", "lsp_id", "total", "tax", "grand_total", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "order_id":
+		case "id":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("order_id"))
-			it.OrderID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -50117,9 +50117,9 @@ func (ec *executionContext) _VendorOrder(ctx context.Context, sel ast.SelectionS
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("VendorOrder")
-		case "order_id":
+		case "id":
 
-			out.Values[i] = ec._VendorOrder_order_id(ctx, field, obj)
+			out.Values[i] = ec._VendorOrder_id(ctx, field, obj)
 
 		case "vendor_id":
 
