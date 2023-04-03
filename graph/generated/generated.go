@@ -44,20 +44,21 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	CRT struct {
-		CreatedAt         func(childComplexity int) int
-		CreatedBy         func(childComplexity int) int
-		CrtID             func(childComplexity int) int
-		Description       func(childComplexity int) int
-		Expertise         func(childComplexity int) int
-		IsApplicable      func(childComplexity int) int
-		IsExpertiseOnline func(childComplexity int) int
-		Languages         func(childComplexity int) int
-		OutputDeliveries  func(childComplexity int) int
-		SampleFiles       func(childComplexity int) int
-		Status            func(childComplexity int) int
-		UpdatedAt         func(childComplexity int) int
-		UpdatedBy         func(childComplexity int) int
-		VendorID          func(childComplexity int) int
+		CreatedAt          func(childComplexity int) int
+		CreatedBy          func(childComplexity int) int
+		CrtID              func(childComplexity int) int
+		Description        func(childComplexity int) int
+		Expertise          func(childComplexity int) int
+		IsApplicable       func(childComplexity int) int
+		IsExpertiseOffline func(childComplexity int) int
+		IsExpertiseOnline  func(childComplexity int) int
+		Languages          func(childComplexity int) int
+		OutputDeliveries   func(childComplexity int) int
+		SampleFiles        func(childComplexity int) int
+		Status             func(childComplexity int) int
+		UpdatedAt          func(childComplexity int) int
+		UpdatedBy          func(childComplexity int) int
+		VendorID           func(childComplexity int) int
 	}
 
 	CohortMain struct {
@@ -78,19 +79,21 @@ type ComplexityRoot struct {
 	}
 
 	ContentDevelopment struct {
-		CdID             func(childComplexity int) int
-		CreatedAt        func(childComplexity int) int
-		CreatedBy        func(childComplexity int) int
-		Description      func(childComplexity int) int
-		Expertise        func(childComplexity int) int
-		IsApplicable     func(childComplexity int) int
-		Languages        func(childComplexity int) int
-		OutputDeliveries func(childComplexity int) int
-		SampleFiles      func(childComplexity int) int
-		Status           func(childComplexity int) int
-		UpdatedAt        func(childComplexity int) int
-		UpdatedBy        func(childComplexity int) int
-		VendorID         func(childComplexity int) int
+		CdID               func(childComplexity int) int
+		CreatedAt          func(childComplexity int) int
+		CreatedBy          func(childComplexity int) int
+		Description        func(childComplexity int) int
+		Expertise          func(childComplexity int) int
+		IsApplicable       func(childComplexity int) int
+		IsExpertiseOffline func(childComplexity int) int
+		IsExpertiseOnline  func(childComplexity int) int
+		Languages          func(childComplexity int) int
+		OutputDeliveries   func(childComplexity int) int
+		SampleFiles        func(childComplexity int) int
+		Status             func(childComplexity int) int
+		UpdatedAt          func(childComplexity int) int
+		UpdatedBy          func(childComplexity int) int
+		VendorID           func(childComplexity int) int
 	}
 
 	Count struct {
@@ -350,6 +353,13 @@ type ComplexityRoot struct {
 		Users      func(childComplexity int) int
 	}
 
+	PaginatedVendorOrder struct {
+		Direction  func(childComplexity int) int
+		Orders     func(childComplexity int) int
+		PageCursor func(childComplexity int) int
+		PageSize   func(childComplexity int) int
+	}
+
 	PaginatedVendors struct {
 		Direction  func(childComplexity int) int
 		PageCursor func(childComplexity int) int
@@ -358,7 +368,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		GetAllOrders                   func(childComplexity int, lspID *string) int
+		GetAllOrders                   func(childComplexity int, lspID *string, pageCursor *string, direction *string, pageSize *int) int
 		GetClassRoomTraining           func(childComplexity int, vendorID string) int
 		GetCohortDetails               func(childComplexity int, cohortID string) int
 		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) int
@@ -424,19 +434,21 @@ type ComplexityRoot struct {
 	}
 
 	SME struct {
-		CreatedAt        func(childComplexity int) int
-		CreatedBy        func(childComplexity int) int
-		Description      func(childComplexity int) int
-		Expertise        func(childComplexity int) int
-		IsApplicable     func(childComplexity int) int
-		Languages        func(childComplexity int) int
-		OutputDeliveries func(childComplexity int) int
-		SampleFiles      func(childComplexity int) int
-		SmeID            func(childComplexity int) int
-		Status           func(childComplexity int) int
-		UpdatedAt        func(childComplexity int) int
-		UpdatedBy        func(childComplexity int) int
-		VendorID         func(childComplexity int) int
+		CreatedAt          func(childComplexity int) int
+		CreatedBy          func(childComplexity int) int
+		Description        func(childComplexity int) int
+		Expertise          func(childComplexity int) int
+		IsApplicable       func(childComplexity int) int
+		IsExpertiseOffline func(childComplexity int) int
+		IsExpertiseOnline  func(childComplexity int) int
+		Languages          func(childComplexity int) int
+		OutputDeliveries   func(childComplexity int) int
+		SampleFiles        func(childComplexity int) int
+		SmeID              func(childComplexity int) int
+		Status             func(childComplexity int) int
+		UpdatedAt          func(childComplexity int) int
+		UpdatedBy          func(childComplexity int) int
+		VendorID           func(childComplexity int) int
 	}
 
 	SampleFile struct {
@@ -922,7 +934,7 @@ type QueryResolver interface {
 	GetVendorServices(ctx context.Context, vendorID *string) ([]*string, error)
 	GetLspUsersRoles(ctx context.Context, lspID string, userID []*string, userLspID []*string) ([]*model.UserDetailsRole, error)
 	GetPaginatedLspUsersWithRoles(ctx context.Context, lspID string, role []*string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserDetailsWithRole, error)
-	GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, error)
+	GetAllOrders(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendorOrder, error)
 	GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderServices, error)
 	GetSpeakers(ctx context.Context, lspID *string, service *string, name *string) ([]*model.VendorProfile, error)
 }
@@ -983,6 +995,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CRT.IsApplicable(childComplexity), true
+
+	case "CRT.is_expertise_offline":
+		if e.complexity.CRT.IsExpertiseOffline == nil {
+			break
+		}
+
+		return e.complexity.CRT.IsExpertiseOffline(childComplexity), true
 
 	case "CRT.is_expertise_online":
 		if e.complexity.CRT.IsExpertiseOnline == nil {
@@ -1179,6 +1198,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ContentDevelopment.IsApplicable(childComplexity), true
+
+	case "ContentDevelopment.is_expertise_offline":
+		if e.complexity.ContentDevelopment.IsExpertiseOffline == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.IsExpertiseOffline(childComplexity), true
+
+	case "ContentDevelopment.is_expertise_online":
+		if e.complexity.ContentDevelopment.IsExpertiseOnline == nil {
+			break
+		}
+
+		return e.complexity.ContentDevelopment.IsExpertiseOnline(childComplexity), true
 
 	case "ContentDevelopment.languages":
 		if e.complexity.ContentDevelopment.Languages == nil {
@@ -2944,6 +2977,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PaginatedUsers.Users(childComplexity), true
 
+	case "PaginatedVendorOrder.direction":
+		if e.complexity.PaginatedVendorOrder.Direction == nil {
+			break
+		}
+
+		return e.complexity.PaginatedVendorOrder.Direction(childComplexity), true
+
+	case "PaginatedVendorOrder.orders":
+		if e.complexity.PaginatedVendorOrder.Orders == nil {
+			break
+		}
+
+		return e.complexity.PaginatedVendorOrder.Orders(childComplexity), true
+
+	case "PaginatedVendorOrder.pageCursor":
+		if e.complexity.PaginatedVendorOrder.PageCursor == nil {
+			break
+		}
+
+		return e.complexity.PaginatedVendorOrder.PageCursor(childComplexity), true
+
+	case "PaginatedVendorOrder.pageSize":
+		if e.complexity.PaginatedVendorOrder.PageSize == nil {
+			break
+		}
+
+		return e.complexity.PaginatedVendorOrder.PageSize(childComplexity), true
+
 	case "PaginatedVendors.direction":
 		if e.complexity.PaginatedVendors.Direction == nil {
 			break
@@ -2982,7 +3043,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetAllOrders(childComplexity, args["lsp_id"].(*string)), true
+		return e.complexity.Query.GetAllOrders(childComplexity, args["lsp_id"].(*string), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
 	case "Query.getClassRoomTraining":
 		if e.complexity.Query.GetClassRoomTraining == nil {
@@ -3701,6 +3762,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SME.IsApplicable(childComplexity), true
+
+	case "SME.is_expertise_offline":
+		if e.complexity.SME.IsExpertiseOffline == nil {
+			break
+		}
+
+		return e.complexity.SME.IsExpertiseOffline(childComplexity), true
+
+	case "SME.is_expertise_online":
+		if e.complexity.SME.IsExpertiseOnline == nil {
+			break
+		}
+
+		return e.complexity.SME.IsExpertiseOnline(childComplexity), true
 
 	case "SME.languages":
 		if e.complexity.SME.Languages == nil {
@@ -6643,6 +6718,8 @@ input SMEInput {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
+  is_expertise_online: Boolean
+  is_expertise_offline: Boolean
 	Status: String
 }
 
@@ -6655,6 +6732,8 @@ type SME {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
+  is_expertise_online: Boolean
+  is_expertise_offline: Boolean
   created_at: String
   created_by: String
   updated_at: String
@@ -6789,6 +6868,7 @@ input CRTInput {
   output_deliveries: [String]
   sample_files:[String]
   is_expertise_online: Boolean
+  is_expertise_offline: Boolean
 	status: String
 }
 
@@ -6802,6 +6882,7 @@ type CRT {
   output_deliveries: [String]
   sample_files:[String]
   is_expertise_online: Boolean
+  is_expertise_offline: Boolean
   created_at: String
 	created_by: String
 	updated_at: String
@@ -6818,6 +6899,8 @@ input ContentDevelopmentInput {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
+  is_expertise_online: Boolean
+  is_expertise_offline: Boolean
   status: String
 }
 
@@ -6830,6 +6913,8 @@ type ContentDevelopment {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
+  is_expertise_online: Boolean
+  is_expertise_offline: Boolean
   created_at: String
 	created_by: String
 	updated_at: String
@@ -6890,6 +6975,13 @@ type VendorOrder {
 	updated_at: String
 	updated_by: String
   status: String
+}
+
+type PaginatedVendorOrder {
+  orders: [VendorOrder]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
 input OrderServicesInput {
@@ -7089,7 +7181,7 @@ type Query {
   getVendorServices(vendor_id: String): [String]
   getLspUsersRoles(lsp_id: String!, user_id: [String], user_lsp_id: [String]): [UserDetailsRole] 
   getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
-  getAllOrders(lsp_id: String): [VendorOrder]
+  getAllOrders(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendorOrder
   getOrderServices(order_id: [String]):[OrderServices]
   getSpeakers(lsp_id: String, service: String, name: String): [VendorProfile]
 }
@@ -8262,6 +8354,33 @@ func (ec *executionContext) field_Query_getAllOrders_args(ctx context.Context, r
 		}
 	}
 	args["lsp_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["pageCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageCursor"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["Direction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Direction"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["Direction"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["pageSize"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageSize"] = arg3
 	return args, nil
 }
 
@@ -10196,6 +10315,47 @@ func (ec *executionContext) fieldContext_CRT_is_expertise_online(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _CRT_is_expertise_offline(ctx context.Context, field graphql.CollectedField, obj *model.Crt) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CRT_is_expertise_offline(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsExpertiseOffline, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CRT_is_expertise_offline(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CRT",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CRT_created_at(ctx context.Context, field graphql.CollectedField, obj *model.Crt) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_CRT_created_at(ctx, field)
 	if err != nil {
@@ -11328,6 +11488,88 @@ func (ec *executionContext) fieldContext_ContentDevelopment_sample_files(ctx con
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_is_expertise_online(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_is_expertise_online(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsExpertiseOnline, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_is_expertise_online(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ContentDevelopment_is_expertise_offline(ctx context.Context, field graphql.CollectedField, obj *model.ContentDevelopment) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ContentDevelopment_is_expertise_offline(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsExpertiseOffline, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ContentDevelopment_is_expertise_offline(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ContentDevelopment",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -17908,6 +18150,10 @@ func (ec *executionContext) fieldContext_Mutation_createSubjectMatterExpertise(c
 				return ec.fieldContext_SME_output_deliveries(ctx, field)
 			case "sample_files":
 				return ec.fieldContext_SME_sample_files(ctx, field)
+			case "is_expertise_online":
+				return ec.fieldContext_SME_is_expertise_online(ctx, field)
+			case "is_expertise_offline":
+				return ec.fieldContext_SME_is_expertise_offline(ctx, field)
 			case "created_at":
 				return ec.fieldContext_SME_created_at(ctx, field)
 			case "created_by":
@@ -17988,6 +18234,10 @@ func (ec *executionContext) fieldContext_Mutation_updateSubjectMatterExpertise(c
 				return ec.fieldContext_SME_output_deliveries(ctx, field)
 			case "sample_files":
 				return ec.fieldContext_SME_sample_files(ctx, field)
+			case "is_expertise_online":
+				return ec.fieldContext_SME_is_expertise_online(ctx, field)
+			case "is_expertise_offline":
+				return ec.fieldContext_SME_is_expertise_offline(ctx, field)
 			case "created_at":
 				return ec.fieldContext_SME_created_at(ctx, field)
 			case "created_by":
@@ -18070,6 +18320,8 @@ func (ec *executionContext) fieldContext_Mutation_createClassRoomTraining(ctx co
 				return ec.fieldContext_CRT_sample_files(ctx, field)
 			case "is_expertise_online":
 				return ec.fieldContext_CRT_is_expertise_online(ctx, field)
+			case "is_expertise_offline":
+				return ec.fieldContext_CRT_is_expertise_offline(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CRT_created_at(ctx, field)
 			case "created_by":
@@ -18152,6 +18404,8 @@ func (ec *executionContext) fieldContext_Mutation_updateClassRoomTraining(ctx co
 				return ec.fieldContext_CRT_sample_files(ctx, field)
 			case "is_expertise_online":
 				return ec.fieldContext_CRT_is_expertise_online(ctx, field)
+			case "is_expertise_offline":
+				return ec.fieldContext_CRT_is_expertise_offline(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CRT_created_at(ctx, field)
 			case "created_by":
@@ -18232,6 +18486,10 @@ func (ec *executionContext) fieldContext_Mutation_createContentDevelopment(ctx c
 				return ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
 			case "sample_files":
 				return ec.fieldContext_ContentDevelopment_sample_files(ctx, field)
+			case "is_expertise_online":
+				return ec.fieldContext_ContentDevelopment_is_expertise_online(ctx, field)
+			case "is_expertise_offline":
+				return ec.fieldContext_ContentDevelopment_is_expertise_offline(ctx, field)
 			case "created_at":
 				return ec.fieldContext_ContentDevelopment_created_at(ctx, field)
 			case "created_by":
@@ -18312,6 +18570,10 @@ func (ec *executionContext) fieldContext_Mutation_updateContentDevelopment(ctx c
 				return ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
 			case "sample_files":
 				return ec.fieldContext_ContentDevelopment_sample_files(ctx, field)
+			case "is_expertise_online":
+				return ec.fieldContext_ContentDevelopment_is_expertise_online(ctx, field)
+			case "is_expertise_offline":
+				return ec.fieldContext_ContentDevelopment_is_expertise_offline(ctx, field)
 			case "created_at":
 				return ec.fieldContext_ContentDevelopment_created_at(ctx, field)
 			case "created_by":
@@ -22430,6 +22692,194 @@ func (ec *executionContext) fieldContext_PaginatedUsers_pageSize(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _PaginatedVendorOrder_orders(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedVendorOrder) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedVendorOrder_orders(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Orders, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.VendorOrder)
+	fc.Result = res
+	return ec.marshalOVendorOrder2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorOrder(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedVendorOrder_orders(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedVendorOrder",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_VendorOrder_id(ctx, field)
+			case "vendor_id":
+				return ec.fieldContext_VendorOrder_vendor_id(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_VendorOrder_lsp_id(ctx, field)
+			case "total":
+				return ec.fieldContext_VendorOrder_total(ctx, field)
+			case "tax":
+				return ec.fieldContext_VendorOrder_tax(ctx, field)
+			case "grand_total":
+				return ec.fieldContext_VendorOrder_grand_total(ctx, field)
+			case "created_at":
+				return ec.fieldContext_VendorOrder_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_VendorOrder_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_VendorOrder_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_VendorOrder_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_VendorOrder_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VendorOrder", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginatedVendorOrder_pageCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedVendorOrder) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedVendorOrder_pageCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedVendorOrder_pageCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedVendorOrder",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginatedVendorOrder_direction(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedVendorOrder) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedVendorOrder_direction(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Direction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedVendorOrder_direction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedVendorOrder",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginatedVendorOrder_pageSize(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedVendorOrder) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedVendorOrder_pageSize(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedVendorOrder_pageSize(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedVendorOrder",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PaginatedVendors_vendors(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedVendors) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PaginatedVendors_vendors(ctx, field)
 	if err != nil {
@@ -26191,6 +26641,10 @@ func (ec *executionContext) fieldContext_Query_getSmeDetails(ctx context.Context
 				return ec.fieldContext_SME_output_deliveries(ctx, field)
 			case "sample_files":
 				return ec.fieldContext_SME_sample_files(ctx, field)
+			case "is_expertise_online":
+				return ec.fieldContext_SME_is_expertise_online(ctx, field)
+			case "is_expertise_offline":
+				return ec.fieldContext_SME_is_expertise_offline(ctx, field)
 			case "created_at":
 				return ec.fieldContext_SME_created_at(ctx, field)
 			case "created_by":
@@ -26273,6 +26727,8 @@ func (ec *executionContext) fieldContext_Query_getClassRoomTraining(ctx context.
 				return ec.fieldContext_CRT_sample_files(ctx, field)
 			case "is_expertise_online":
 				return ec.fieldContext_CRT_is_expertise_online(ctx, field)
+			case "is_expertise_offline":
+				return ec.fieldContext_CRT_is_expertise_offline(ctx, field)
 			case "created_at":
 				return ec.fieldContext_CRT_created_at(ctx, field)
 			case "created_by":
@@ -26353,6 +26809,10 @@ func (ec *executionContext) fieldContext_Query_getContentDevelopment(ctx context
 				return ec.fieldContext_ContentDevelopment_output_deliveries(ctx, field)
 			case "sample_files":
 				return ec.fieldContext_ContentDevelopment_sample_files(ctx, field)
+			case "is_expertise_online":
+				return ec.fieldContext_ContentDevelopment_is_expertise_online(ctx, field)
+			case "is_expertise_offline":
+				return ec.fieldContext_ContentDevelopment_is_expertise_offline(ctx, field)
 			case "created_at":
 				return ec.fieldContext_ContentDevelopment_created_at(ctx, field)
 			case "created_by":
@@ -26667,7 +27127,7 @@ func (ec *executionContext) _Query_getAllOrders(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetAllOrders(rctx, fc.Args["lsp_id"].(*string))
+		return ec.resolvers.Query().GetAllOrders(rctx, fc.Args["lsp_id"].(*string), fc.Args["pageCursor"].(*string), fc.Args["Direction"].(*string), fc.Args["pageSize"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26676,9 +27136,9 @@ func (ec *executionContext) _Query_getAllOrders(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model.VendorOrder)
+	res := resTmp.(*model.PaginatedVendorOrder)
 	fc.Result = res
-	return ec.marshalOVendorOrder2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendorOrder(ctx, field.Selections, res)
+	return ec.marshalOPaginatedVendorOrder2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedVendorOrder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_getAllOrders(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -26689,30 +27149,16 @@ func (ec *executionContext) fieldContext_Query_getAllOrders(ctx context.Context,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_VendorOrder_id(ctx, field)
-			case "vendor_id":
-				return ec.fieldContext_VendorOrder_vendor_id(ctx, field)
-			case "lsp_id":
-				return ec.fieldContext_VendorOrder_lsp_id(ctx, field)
-			case "total":
-				return ec.fieldContext_VendorOrder_total(ctx, field)
-			case "tax":
-				return ec.fieldContext_VendorOrder_tax(ctx, field)
-			case "grand_total":
-				return ec.fieldContext_VendorOrder_grand_total(ctx, field)
-			case "created_at":
-				return ec.fieldContext_VendorOrder_created_at(ctx, field)
-			case "created_by":
-				return ec.fieldContext_VendorOrder_created_by(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_VendorOrder_updated_at(ctx, field)
-			case "updated_by":
-				return ec.fieldContext_VendorOrder_updated_by(ctx, field)
-			case "status":
-				return ec.fieldContext_VendorOrder_status(ctx, field)
+			case "orders":
+				return ec.fieldContext_PaginatedVendorOrder_orders(ctx, field)
+			case "pageCursor":
+				return ec.fieldContext_PaginatedVendorOrder_pageCursor(ctx, field)
+			case "direction":
+				return ec.fieldContext_PaginatedVendorOrder_direction(ctx, field)
+			case "pageSize":
+				return ec.fieldContext_PaginatedVendorOrder_pageSize(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type VendorOrder", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type PaginatedVendorOrder", field.Name)
 		},
 	}
 	defer func() {
@@ -27529,6 +27975,88 @@ func (ec *executionContext) fieldContext_SME_sample_files(ctx context.Context, f
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SME_is_expertise_online(ctx context.Context, field graphql.CollectedField, obj *model.Sme) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SME_is_expertise_online(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsExpertiseOnline, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SME_is_expertise_online(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SME",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SME_is_expertise_offline(ctx context.Context, field graphql.CollectedField, obj *model.Sme) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SME_is_expertise_offline(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsExpertiseOffline, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SME_is_expertise_offline(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SME",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -41946,7 +42474,7 @@ func (ec *executionContext) unmarshalInputCRTInput(ctx context.Context, obj inte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"crt_id", "vendor_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "sample_files", "is_expertise_online", "status"}
+	fieldsInOrder := [...]string{"crt_id", "vendor_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "sample_files", "is_expertise_online", "is_expertise_offline", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -42022,6 +42550,14 @@ func (ec *executionContext) unmarshalInputCRTInput(ctx context.Context, obj inte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_expertise_online"))
 			it.IsExpertiseOnline, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "is_expertise_offline":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_expertise_offline"))
+			it.IsExpertiseOffline, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -42170,7 +42706,7 @@ func (ec *executionContext) unmarshalInputContentDevelopmentInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"cd_id", "vendor_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "sample_files", "status"}
+	fieldsInOrder := [...]string{"cd_id", "vendor_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "sample_files", "is_expertise_online", "is_expertise_offline", "status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -42238,6 +42774,22 @@ func (ec *executionContext) unmarshalInputContentDevelopmentInput(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sample_files"))
 			it.SampleFiles, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "is_expertise_online":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_expertise_online"))
+			it.IsExpertiseOnline, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "is_expertise_offline":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_expertise_offline"))
+			it.IsExpertiseOffline, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -42922,7 +43474,7 @@ func (ec *executionContext) unmarshalInputSMEInput(ctx context.Context, obj inte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"vendor_id", "sme_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "sample_files", "Status"}
+	fieldsInOrder := [...]string{"vendor_id", "sme_id", "description", "is_applicable", "expertise", "languages", "output_deliveries", "sample_files", "is_expertise_online", "is_expertise_offline", "Status"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -42990,6 +43542,22 @@ func (ec *executionContext) unmarshalInputSMEInput(ctx context.Context, obj inte
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sample_files"))
 			it.SampleFiles, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "is_expertise_online":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_expertise_online"))
+			it.IsExpertiseOnline, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "is_expertise_offline":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_expertise_offline"))
+			it.IsExpertiseOffline, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -45260,6 +45828,10 @@ func (ec *executionContext) _CRT(ctx context.Context, sel ast.SelectionSet, obj 
 
 			out.Values[i] = ec._CRT_is_expertise_online(ctx, field, obj)
 
+		case "is_expertise_offline":
+
+			out.Values[i] = ec._CRT_is_expertise_offline(ctx, field, obj)
+
 		case "created_at":
 
 			out.Values[i] = ec._CRT_created_at(ctx, field, obj)
@@ -45439,6 +46011,14 @@ func (ec *executionContext) _ContentDevelopment(ctx context.Context, sel ast.Sel
 		case "sample_files":
 
 			out.Values[i] = ec._ContentDevelopment_sample_files(ctx, field, obj)
+
+		case "is_expertise_online":
+
+			out.Values[i] = ec._ContentDevelopment_is_expertise_online(ctx, field, obj)
+
+		case "is_expertise_offline":
+
+			out.Values[i] = ec._ContentDevelopment_is_expertise_offline(ctx, field, obj)
 
 		case "created_at":
 
@@ -46906,6 +47486,43 @@ func (ec *executionContext) _PaginatedUsers(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var paginatedVendorOrderImplementors = []string{"PaginatedVendorOrder"}
+
+func (ec *executionContext) _PaginatedVendorOrder(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedVendorOrder) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedVendorOrderImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaginatedVendorOrder")
+		case "orders":
+
+			out.Values[i] = ec._PaginatedVendorOrder_orders(ctx, field, obj)
+
+		case "pageCursor":
+
+			out.Values[i] = ec._PaginatedVendorOrder_pageCursor(ctx, field, obj)
+
+		case "direction":
+
+			out.Values[i] = ec._PaginatedVendorOrder_direction(ctx, field, obj)
+
+		case "pageSize":
+
+			out.Values[i] = ec._PaginatedVendorOrder_pageSize(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var paginatedVendorsImplementors = []string{"PaginatedVendors"}
 
 func (ec *executionContext) _PaginatedVendors(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedVendors) graphql.Marshaler {
@@ -48183,6 +48800,14 @@ func (ec *executionContext) _SME(ctx context.Context, sel ast.SelectionSet, obj 
 		case "sample_files":
 
 			out.Values[i] = ec._SME_sample_files(ctx, field, obj)
+
+		case "is_expertise_online":
+
+			out.Values[i] = ec._SME_is_expertise_online(ctx, field, obj)
+
+		case "is_expertise_offline":
+
+			out.Values[i] = ec._SME_is_expertise_offline(ctx, field, obj)
 
 		case "created_at":
 
@@ -52130,6 +52755,13 @@ func (ec *executionContext) marshalOPaginatedUsers2ᚖgithubᚗcomᚋzicopsᚋzi
 		return graphql.Null
 	}
 	return ec._PaginatedUsers(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOPaginatedVendorOrder2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedVendorOrder(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedVendorOrder) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PaginatedVendorOrder(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPaginatedVendors2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedVendors(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedVendors) graphql.Marshaler {

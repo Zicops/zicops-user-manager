@@ -1191,8 +1191,8 @@ func (r *queryResolver) GetPaginatedLspUsersWithRoles(ctx context.Context, lspID
 }
 
 // GetAllOrders is the resolver for the getAllOrders field.
-func (r *queryResolver) GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, error) {
-	res, err := handlers.GetAllOrders(ctx, lspID)
+func (r *queryResolver) GetAllOrders(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendorOrder, error) {
+	res, err := handlers.GetAllOrders(ctx, lspID, pageCursor, direction, pageSize)
 	if err != nil {
 		log.Printf("error getting orders of LSP: %v", err)
 		return nil, err

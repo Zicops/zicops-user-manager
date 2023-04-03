@@ -704,6 +704,7 @@ input VendorInput {
   instagram_url: String
   twitter_url: String
   linkedin_url: String
+  phone: String
   users: [String]
   description: String
 	status: String
@@ -714,6 +715,8 @@ type Vendor {
 	type: String!
 	level: String!
 	name: String!
+  phone: String
+  lsp_id: String
   description: String
 	photo_url: String
 	address: String
@@ -729,6 +732,7 @@ type Vendor {
 	updated_at: String
 	updated_by: String
 	status: String
+  vendor_lsp_status: String
 }
 
 type PaginatedVendors {
@@ -747,6 +751,8 @@ input SMEInput {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
+  is_expertise_online: Boolean
+  is_expertise_offline: Boolean
 	Status: String
 }
 
@@ -759,6 +765,8 @@ type SME {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
+  is_expertise_online: Boolean
+  is_expertise_offline: Boolean
   created_at: String
   created_by: String
   updated_at: String
@@ -859,6 +867,9 @@ input SampleFileInput {
 	status: String
   vendorId: String!
   p_type: String!
+  rate: Int
+  currency: String
+  unit: String
 }
 
 type SampleFile {
@@ -867,12 +878,17 @@ type SampleFile {
   fileType: String
   price: String
   p_type: String
+  description: String
   file_url: String
   created_at: String
 	created_by: String
 	updated_at: String
 	updated_by: String
 	status: String
+  rate: Int
+  currency: String
+  unit: String
+  actualFileType: String
 }
 
 input CRTInput {
@@ -885,6 +901,7 @@ input CRTInput {
   output_deliveries: [String]
   sample_files:[String]
   is_expertise_online: Boolean
+  is_expertise_offline: Boolean
 	status: String
 }
 
@@ -898,6 +915,7 @@ type CRT {
   output_deliveries: [String]
   sample_files:[String]
   is_expertise_online: Boolean
+  is_expertise_offline: Boolean
   created_at: String
 	created_by: String
 	updated_at: String
@@ -914,6 +932,8 @@ input ContentDevelopmentInput {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
+  is_expertise_online: Boolean
+  is_expertise_offline: Boolean
   status: String
 }
 
@@ -926,6 +946,8 @@ type ContentDevelopment {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
+  is_expertise_online: Boolean
+  is_expertise_offline: Boolean
   created_at: String
 	created_by: String
 	updated_at: String
@@ -965,7 +987,7 @@ type PaginatedUserDetailsWithRole {
 }
 
 input VendorOrderInput {
-  order_id: String
+  id: String
   vendor_id: String
   lsp_id: String
   total: Int
@@ -975,7 +997,7 @@ input VendorOrderInput {
 }
 
 type VendorOrder {
-  order_id: String
+  id: String
   vendor_id: String
   lsp_id: String
   total: Int
@@ -1017,6 +1039,36 @@ type OrderServices {
 	updated_by: String
   status: String
 }
+
+type VendorUserMap {
+  vendor_id: String
+  user_id: String
+  created_at: String
+  created_by: String
+  status: String
+  updated_at: String
+  updated_by: String
+}
+
+type UserWithLspStatus {
+  id: ID
+  first_name: String!
+  last_name: String!
+  status: String!
+  role: String!
+  is_verified: Boolean!
+  is_active: Boolean!
+  gender: String!
+  created_by: String
+  updated_by: String
+  created_at: String!
+  updated_at: String!
+  email: String!
+  phone: String!
+  photo_url: String
+  user_lsp_status: String
+}
+
 
 type Query {
   logout: Boolean
@@ -1143,21 +1195,21 @@ type Query {
   getVendorExperienceDetails(vendor_id: String!, pf_id: String!, exp_id: String!): ExperienceVendor
   getVendors(lsp_id: String, filters: VendorFilters): [Vendor]
   getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int, filters: VendorFilters): PaginatedVendors
-  getVendorAdmins(vendor_id: String!): [User]
+  getVendorAdmins(vendor_id: String!): [UserWithLspStatus]
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
-  viewAllProfiles(vendor_id: String!, filter: String): [VendorProfile]
+  viewAllProfiles(vendor_id: String!, filter: String, name: String): [VendorProfile]
   getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
   getSmeDetails(vendor_id: String!): SME
   getClassRoomTraining(vendor_id: String!): CRT
   getContentDevelopment(vendor_id: String!): ContentDevelopment
   getUserVendor(user_id: String): [Vendor]
   getVendorServices(vendor_id: String): [String]
-  getLspUsersRoles(lsp_id: String!, role: [String]): [UserDetailsRole] 
+  getLspUsersRoles(lsp_id: String!, user_id: [String], user_lsp_id: [String]): [UserDetailsRole] 
   getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
   getAllOrders(lsp_id: String): [VendorOrder]
   getOrderServices(order_id: [String]):[OrderServices]
-  getSpeakers(lsp_id: String, service: String): [VendorProfile]
+  getSpeakers(lsp_id: String, service: String, name: String): [VendorProfile]
 }
 
 type Mutation {
@@ -1226,4 +1278,8 @@ type Mutation {
   updateOrder(input: VendorOrderInput): VendorOrder
   addOrderServies(input: [OrderServicesInput]): [OrderServices]
   updateOrderServices(input: OrderServicesInput): OrderServices
+  createVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
+  updateVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
+  deleteVendorUserMap(vendor_id: String, user_id: String): Boolean
+  disableVendorLspMap(vendor_id: String, lsp_id: String): Boolean
 }

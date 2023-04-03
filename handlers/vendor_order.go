@@ -351,7 +351,7 @@ func UpdateOrderServices(ctx context.Context, input *model.OrderServicesInput) (
 	return &res, nil
 }
 
-func GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, error) {
+func GetAllOrders(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendorOrder, error) {
 	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -361,6 +361,22 @@ func GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, err
 		lsp = *lspID
 	}
 
+	var newPage []byte
+	if pageCursor != nil && *pageCursor != "" {
+		page, err := global.CryptSession.DecryptString(*pageCursor, nil)
+		if err != nil {
+			return nil, err
+		}
+		newPage = page
+	}
+
+	var pageSizeInt int
+	if pageSize != nil {
+		pageSizeInt = *pageSize
+	} else {
+		pageSizeInt = 10
+	}
+
 	session, err := global.CassPool.GetSession(ctx, "vendorz")
 	if err != nil {
 		return nil, err
@@ -368,16 +384,26 @@ func GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, err
 	CassSession := session
 
 	qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_order WHERE lsp_id='%s' ALLOW FILTERING`, lsp)
-	getOrders := func() (vendorOrders []vendorz.VendorOrder, err error) {
+	getOrders := func(page []byte) (vendorOrders []vendorz.VendorOrder, newPage []byte, err error) {
 		q := CassSession.Query(qryStr, nil)
 		defer q.Release()
+		q.PageState(page)
+		q.PageSize(pageSizeInt)
 		iter := q.Iter()
-		return vendorOrders, iter.Select(&vendorOrders)
+		return vendorOrders, iter.PageState(), iter.Select(&vendorOrders)
 	}
 
-	orders, err := getOrders()
+	orders, newPage, err := getOrders(newPage)
 	if err != nil {
 		return nil, err
+	}
+
+	var newCursor string
+	if len(newPage) != 0 {
+		newCursor, err = global.CryptSession.EncryptAsString(newPage, nil)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if len(orders) == 0 {
 		return nil, nil
@@ -413,7 +439,14 @@ func GetAllOrders(ctx context.Context, lspID *string) ([]*model.VendorOrder, err
 		}(kk, v)
 	}
 	wg.Wait()
-	return res, nil
+
+	resp := model.PaginatedVendorOrder{
+		Orders:     res,
+		PageCursor: &newCursor,
+		Direction:  direction,
+		PageSize:   &pageSizeInt,
+	}
+	return &resp, nil
 }
 
 func GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderServices, error) {
