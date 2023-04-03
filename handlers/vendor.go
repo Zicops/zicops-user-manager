@@ -2616,6 +2616,12 @@ func CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 	if input.Status != nil {
 		sme.Status = *input.Status
 	}
+	if input.IsExpertiseOffline != nil {
+		sme.IsExpertiseOffline = *input.IsExpertiseOffline
+	}
+	if input.IsExpertiseOnline != nil {
+		sme.IsExpertiseOnline = *input.IsExpertiseOnline
+	}
 	insertQuery := CassSession.Query(vendorz.SMETable.Insert()).BindStruct(sme)
 	if err = insertQuery.Exec(); err != nil {
 		return nil, err
@@ -2628,19 +2634,21 @@ func CreateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 
 	createdAt := strconv.Itoa(int(ca))
 	res := model.Sme{
-		VendorID:         &input.VendorID,
-		SmeID:            &smeId,
-		Description:      input.Description,
-		IsApplicable:     input.IsApplicable,
-		Expertise:        input.Expertise,
-		Languages:        input.Languages,
-		OutputDeliveries: input.OutputDeliveries,
-		SampleFiles:      input.SampleFiles,
-		CreatedAt:        &createdAt,
-		CreatedBy:        &email,
-		UpdatedAt:        &createdAt,
-		UpdatedBy:        &email,
-		Status:           input.Status,
+		VendorID:           &input.VendorID,
+		SmeID:              &smeId,
+		Description:        input.Description,
+		IsApplicable:       input.IsApplicable,
+		Expertise:          input.Expertise,
+		Languages:          input.Languages,
+		OutputDeliveries:   input.OutputDeliveries,
+		SampleFiles:        input.SampleFiles,
+		IsExpertiseOnline:  input.IsExpertiseOnline,
+		IsExpertiseOffline: input.IsExpertiseOffline,
+		CreatedAt:          &createdAt,
+		CreatedBy:          &email,
+		UpdatedAt:          &createdAt,
+		UpdatedBy:          &email,
+		Status:             input.Status,
 	}
 
 	return &res, nil
@@ -2721,6 +2729,14 @@ func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 		smeData.Status = *input.Status
 		updatedCols = append(updatedCols, "status")
 	}
+	if input.IsExpertiseOffline != nil {
+		smeData.IsExpertiseOffline = *input.IsExpertiseOffline
+		updatedCols = append(updatedCols, "is_expertise_offline")
+	}
+	if input.IsExpertiseOnline != nil {
+		smeData.IsExpertiseOnline = *input.IsExpertiseOnline
+		updatedCols = append(updatedCols, "is_expertise_online")
+	}
 	ua := time.Now().Unix()
 	if len(updatedCols) > 0 {
 		smeData.UpdatedAt = ua
@@ -2742,19 +2758,21 @@ func UpdateSubjectMatterExpertise(ctx context.Context, input *model.SMEInput) (*
 	ca := strconv.Itoa(int(smeData.CreatedAt))
 	updatedAt := strconv.Itoa(int(ua))
 	res := model.Sme{
-		VendorID:         &input.VendorID,
-		SmeID:            input.SmeID,
-		Description:      &smeData.Description,
-		IsApplicable:     &smeData.IsApplicable,
-		Expertise:        expertise,
-		Languages:        lan,
-		OutputDeliveries: od,
-		SampleFiles:      sf,
-		CreatedAt:        &ca,
-		CreatedBy:        &smeData.CreatedBy,
-		UpdatedAt:        &updatedAt,
-		UpdatedBy:        &smeData.UpdatedBy,
-		Status:           &smeData.Status,
+		VendorID:           &input.VendorID,
+		SmeID:              input.SmeID,
+		Description:        &smeData.Description,
+		IsApplicable:       &smeData.IsApplicable,
+		Expertise:          expertise,
+		Languages:          lan,
+		OutputDeliveries:   od,
+		SampleFiles:        sf,
+		IsExpertiseOnline:  &smeData.IsExpertiseOnline,
+		IsExpertiseOffline: &smeData.IsExpertiseOffline,
+		CreatedAt:          &ca,
+		CreatedBy:          &smeData.CreatedBy,
+		UpdatedAt:          &updatedAt,
+		UpdatedBy:          &smeData.UpdatedBy,
+		Status:             &smeData.Status,
 	}
 
 	return &res, nil
@@ -2796,19 +2814,21 @@ func GetSmeDetails(ctx context.Context, vendorID string) (*model.Sme, error) {
 	ca := strconv.Itoa(int(smeData.CreatedAt))
 	ua := strconv.Itoa(int(smeData.UpdatedAt))
 	res := model.Sme{
-		VendorID:         &vendorID,
-		SmeID:            &smeData.SMEId,
-		Description:      &smeData.Description,
-		IsApplicable:     &smeData.IsApplicable,
-		Expertise:        expertise,
-		Languages:        lan,
-		OutputDeliveries: od,
-		SampleFiles:      sf,
-		CreatedAt:        &ca,
-		CreatedBy:        &smeData.CreatedBy,
-		UpdatedAt:        &ua,
-		UpdatedBy:        &smeData.UpdatedBy,
-		Status:           &smeData.Status,
+		VendorID:           &vendorID,
+		SmeID:              &smeData.SMEId,
+		Description:        &smeData.Description,
+		IsApplicable:       &smeData.IsApplicable,
+		Expertise:          expertise,
+		Languages:          lan,
+		OutputDeliveries:   od,
+		SampleFiles:        sf,
+		IsExpertiseOnline:  &smeData.IsExpertiseOnline,
+		IsExpertiseOffline: &smeData.IsExpertiseOffline,
+		CreatedAt:          &ca,
+		CreatedBy:          &smeData.CreatedBy,
+		UpdatedAt:          &ua,
+		UpdatedBy:          &smeData.UpdatedBy,
+		Status:             &smeData.Status,
 	}
 	return &res, nil
 }
@@ -2866,6 +2886,9 @@ func CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 	if input.Status != nil {
 		crt.Status = *input.Status
 	}
+	if input.IsExpertiseOffline != nil {
+		crt.IsExpertiseOffline = *input.IsExpertiseOffline
+	}
 	insertQuery := CassSession.Query(vendorz.ClassRoomTrainingTable.Insert()).BindStruct(crt)
 	if err = insertQuery.Exec(); err != nil {
 		return nil, err
@@ -2878,20 +2901,21 @@ func CreateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 
 	ca := strconv.Itoa(int(createdAt))
 	res := model.Crt{
-		CrtID:             &crtId,
-		VendorID:          input.VendorID,
-		Description:       input.Description,
-		IsApplicable:      input.IsApplicable,
-		Expertise:         input.Expertise,
-		Languages:         input.Languages,
-		SampleFiles:       input.SampleFiles,
-		OutputDeliveries:  input.OutputDeliveries,
-		IsExpertiseOnline: input.IsExpertiseOnline,
-		CreatedAt:         &ca,
-		CreatedBy:         &email,
-		UpdatedAt:         &ca,
-		UpdatedBy:         &email,
-		Status:            input.Status,
+		CrtID:              &crtId,
+		VendorID:           input.VendorID,
+		Description:        input.Description,
+		IsApplicable:       input.IsApplicable,
+		Expertise:          input.Expertise,
+		Languages:          input.Languages,
+		SampleFiles:        input.SampleFiles,
+		OutputDeliveries:   input.OutputDeliveries,
+		IsExpertiseOnline:  input.IsExpertiseOnline,
+		IsExpertiseOffline: input.IsExpertiseOffline,
+		CreatedAt:          &ca,
+		CreatedBy:          &email,
+		UpdatedAt:          &ca,
+		UpdatedBy:          &email,
+		Status:             input.Status,
 	}
 
 	return &res, nil
@@ -2975,6 +2999,10 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 		crt.Status = *input.Status
 		updatedCols = append(updatedCols, "status")
 	}
+	if input.IsExpertiseOffline != nil {
+		crt.IsExpertiseOffline = *input.IsExpertiseOffline
+		updatedCols = append(updatedCols, "is_expertise_offline")
+	}
 	updatedAt := time.Now().Unix()
 	if len(updatedCols) > 0 {
 		crt.UpdatedBy = email
@@ -2996,20 +3024,21 @@ func UpdateClassRoomTraining(ctx context.Context, input *model.CRTInput) (*model
 	ca := strconv.Itoa(int(crt.CreatedAt))
 	ua := strconv.Itoa(int(crt.UpdatedAt))
 	res := model.Crt{
-		CrtID:             &crt.CtId,
-		VendorID:          crt.VendorId,
-		Description:       &crt.Description,
-		IsApplicable:      &crt.IsApplicable,
-		Expertise:         exp,
-		Languages:         lan,
-		OutputDeliveries:  od,
-		SampleFiles:       sf,
-		IsExpertiseOnline: &crt.IsExpertiseOnline,
-		CreatedAt:         &ca,
-		CreatedBy:         &crt.CreatedBy,
-		UpdatedAt:         &ua,
-		UpdatedBy:         &email,
-		Status:            &crt.Status,
+		CrtID:              &crt.CtId,
+		VendorID:           crt.VendorId,
+		Description:        &crt.Description,
+		IsApplicable:       &crt.IsApplicable,
+		Expertise:          exp,
+		Languages:          lan,
+		OutputDeliveries:   od,
+		SampleFiles:        sf,
+		IsExpertiseOnline:  &crt.IsExpertiseOnline,
+		IsExpertiseOffline: &crt.IsExpertiseOffline,
+		CreatedAt:          &ca,
+		CreatedBy:          &crt.CreatedBy,
+		UpdatedAt:          &ua,
+		UpdatedBy:          &email,
+		Status:             &crt.Status,
 	}
 	return &res, nil
 }
@@ -3051,20 +3080,21 @@ func GetClassRoomTraining(ctx context.Context, vendorID string) (*model.Crt, err
 	ca := strconv.Itoa(int(crt.CreatedAt))
 	ua := strconv.Itoa(int(crt.UpdatedAt))
 	res := model.Crt{
-		CrtID:             &crt.CtId,
-		VendorID:          crt.VendorId,
-		Description:       &crt.Description,
-		IsApplicable:      &crt.IsApplicable,
-		Expertise:         exp,
-		Languages:         lan,
-		OutputDeliveries:  od,
-		SampleFiles:       sf,
-		IsExpertiseOnline: &crt.IsExpertiseOnline,
-		CreatedAt:         &ca,
-		CreatedBy:         &crt.CreatedBy,
-		UpdatedAt:         &ua,
-		UpdatedBy:         &crt.UpdatedBy,
-		Status:            &crt.Status,
+		CrtID:              &crt.CtId,
+		VendorID:           crt.VendorId,
+		Description:        &crt.Description,
+		IsApplicable:       &crt.IsApplicable,
+		Expertise:          exp,
+		Languages:          lan,
+		OutputDeliveries:   od,
+		SampleFiles:        sf,
+		IsExpertiseOnline:  &crt.IsExpertiseOnline,
+		IsExpertiseOffline: &crt.IsExpertiseOffline,
+		CreatedAt:          &ca,
+		CreatedBy:          &crt.CreatedBy,
+		UpdatedAt:          &ua,
+		UpdatedBy:          &crt.UpdatedBy,
+		Status:             &crt.Status,
 	}
 	return &res, nil
 }
@@ -3119,6 +3149,12 @@ func CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 	if input.Status != nil {
 		cd.Status = *input.Status
 	}
+	if input.IsExpertiseOffline != nil {
+		cd.IsExpertiseOffline = *input.IsExpertiseOffline
+	}
+	if input.IsExpertiseOnline != nil {
+		cd.IsExpertiseOnline = *input.IsExpertiseOnline
+	}
 	insertQuery := CassSession.Query(vendorz.ContentDevelopmentTable.Insert()).BindStruct(cd)
 	if err = insertQuery.Exec(); err != nil {
 		return nil, err
@@ -3131,19 +3167,21 @@ func CreateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 
 	ca := strconv.Itoa(int(createdAt))
 	res := model.ContentDevelopment{
-		CdID:             &cdId,
-		VendorID:         &cd.VendorId,
-		Description:      &cd.Description,
-		IsApplicable:     &cd.IsApplicable,
-		Expertise:        input.Expertise,
-		Languages:        input.Languages,
-		OutputDeliveries: input.OutputDeliveries,
-		SampleFiles:      input.SampleFiles,
-		CreatedAt:        &ca,
-		CreatedBy:        &email,
-		UpdatedAt:        &ca,
-		UpdatedBy:        &email,
-		Status:           &cd.Status,
+		CdID:               &cdId,
+		VendorID:           &cd.VendorId,
+		Description:        &cd.Description,
+		IsApplicable:       &cd.IsApplicable,
+		Expertise:          input.Expertise,
+		Languages:          input.Languages,
+		OutputDeliveries:   input.OutputDeliveries,
+		SampleFiles:        input.SampleFiles,
+		IsExpertiseOnline:  input.IsExpertiseOnline,
+		IsExpertiseOffline: input.IsExpertiseOffline,
+		CreatedAt:          &ca,
+		CreatedBy:          &email,
+		UpdatedAt:          &ca,
+		UpdatedBy:          &email,
+		Status:             &cd.Status,
 	}
 
 	return &res, nil
@@ -3222,6 +3260,14 @@ func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 		cd.SampleFiles = tmp
 		updatedCols = append(updatedCols, "sample_files")
 	}
+	if input.IsExpertiseOffline != nil {
+		cd.IsExpertiseOffline = *input.IsExpertiseOffline
+		updatedCols = append(updatedCols, "is_expertise_offline")
+	}
+	if input.IsExpertiseOnline != nil {
+		cd.IsExpertiseOnline = *input.IsExpertiseOnline
+		updatedCols = append(updatedCols, "is_expertise_online")
+	}
 	updatedAt := time.Now().Unix()
 	if len(updatedCols) > 0 {
 		cd.UpdatedAt = updatedAt
@@ -3243,19 +3289,21 @@ func UpdateContentDevelopment(ctx context.Context, input *model.ContentDevelopme
 	ca := strconv.Itoa(int(cd.CreatedAt))
 	ua := strconv.Itoa(int(updatedAt))
 	res := &model.ContentDevelopment{
-		CdID:             &cd.CdId,
-		VendorID:         &cd.VendorId,
-		Description:      &cd.Description,
-		IsApplicable:     &cd.IsApplicable,
-		Expertise:        exp,
-		Languages:        lan,
-		OutputDeliveries: od,
-		SampleFiles:      sf,
-		CreatedAt:        &ca,
-		CreatedBy:        &cd.CreatedBy,
-		UpdatedAt:        &ua,
-		UpdatedBy:        &email,
-		Status:           &cd.Status,
+		CdID:               &cd.CdId,
+		VendorID:           &cd.VendorId,
+		Description:        &cd.Description,
+		IsApplicable:       &cd.IsApplicable,
+		Expertise:          exp,
+		Languages:          lan,
+		OutputDeliveries:   od,
+		SampleFiles:        sf,
+		IsExpertiseOnline:  &cd.IsExpertiseOnline,
+		IsExpertiseOffline: &cd.IsExpertiseOffline,
+		CreatedAt:          &ca,
+		CreatedBy:          &cd.CreatedBy,
+		UpdatedAt:          &ua,
+		UpdatedBy:          &email,
+		Status:             &cd.Status,
 	}
 	return res, nil
 }
@@ -3296,19 +3344,21 @@ func GetContentDevelopment(ctx context.Context, vendorID string) (*model.Content
 	ua := strconv.Itoa(int(cd.UpdatedAt))
 	ca := strconv.Itoa(int(cd.CreatedAt))
 	res := &model.ContentDevelopment{
-		CdID:             &cd.CdId,
-		VendorID:         &cd.VendorId,
-		Description:      &cd.Description,
-		IsApplicable:     &cd.IsApplicable,
-		Expertise:        exp,
-		Languages:        lan,
-		OutputDeliveries: od,
-		SampleFiles:      sf,
-		CreatedAt:        &ca,
-		CreatedBy:        &cd.CreatedBy,
-		UpdatedAt:        &ua,
-		UpdatedBy:        &cd.UpdatedBy,
-		Status:           &cd.Status,
+		CdID:               &cd.CdId,
+		VendorID:           &cd.VendorId,
+		Description:        &cd.Description,
+		IsApplicable:       &cd.IsApplicable,
+		Expertise:          exp,
+		Languages:          lan,
+		OutputDeliveries:   od,
+		SampleFiles:        sf,
+		IsExpertiseOnline:  &cd.IsExpertiseOnline,
+		IsExpertiseOffline: &cd.IsExpertiseOffline,
+		CreatedAt:          &ca,
+		CreatedBy:          &cd.CreatedBy,
+		UpdatedAt:          &ua,
+		UpdatedBy:          &cd.UpdatedBy,
+		Status:             &cd.Status,
 	}
 	return res, nil
 }

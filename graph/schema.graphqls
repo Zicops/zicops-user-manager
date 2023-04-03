@@ -751,6 +751,8 @@ input SMEInput {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
+  is_expertise_online: Boolean
+  is_expertise_offline: Boolean
 	Status: String
 }
 
@@ -763,6 +765,8 @@ type SME {
   languages: [String]
   output_deliveries: [String]
   sample_files:[String]
+  is_expertise_online: Boolean
+  is_expertise_offline: Boolean
   created_at: String
   created_by: String
   updated_at: String
@@ -897,6 +901,7 @@ input CRTInput {
   output_deliveries: [String]
   sample_files:[String]
   is_expertise_online: Boolean
+  is_expertise_offline: Boolean
 	status: String
 }
 
@@ -910,6 +915,7 @@ type CRT {
   output_deliveries: [String]
   sample_files:[String]
   is_expertise_online: Boolean
+  is_expertise_offline: Boolean
   created_at: String
 	created_by: String
 	updated_at: String
@@ -926,6 +932,8 @@ input ContentDevelopmentInput {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
+  is_expertise_online: Boolean
+  is_expertise_offline: Boolean
   status: String
 }
 
@@ -938,6 +946,8 @@ type ContentDevelopment {
   languages: [String]
   output_deliveries: [String]
   sample_files: [String]
+  is_expertise_online: Boolean
+  is_expertise_offline: Boolean
   created_at: String
 	created_by: String
 	updated_at: String
@@ -998,6 +1008,13 @@ type VendorOrder {
 	updated_at: String
 	updated_by: String
   status: String
+}
+
+type PaginatedVendorOrder {
+  orders: [VendorOrder]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
 input OrderServicesInput {
@@ -1197,7 +1214,7 @@ type Query {
   getVendorServices(vendor_id: String): [String]
   getLspUsersRoles(lsp_id: String!, user_id: [String], user_lsp_id: [String]): [UserDetailsRole] 
   getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
-  getAllOrders(lsp_id: String): [VendorOrder]
+  getAllOrders(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendorOrder
   getOrderServices(order_id: [String]):[OrderServices]
   getSpeakers(lsp_id: String, service: String, name: String): [VendorProfile]
 }
