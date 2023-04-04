@@ -237,7 +237,7 @@ func GetLspUsersRoles(ctx context.Context, lspID string, userID []*string, userL
 			}
 
 			//got all roles information for a user, with filter of a role
-			qryStr := fmt.Sprintf(`SELECT * FROM userz.user_role WHERE user_id='%s' AND user_lsp_id='%s' ALLOW FITERING`, *ud.ID, userLspId)
+			qryStr := fmt.Sprintf(`SELECT * FROM userz.user_role WHERE user_id='%s' AND user_lsp_id='%s' ALLOW FILTERING`, *ud.ID, userLspId)
 			// if role != nil {
 			// 	qryStr = qryStr + " and role in ("
 			// 	for _, r := range role {
