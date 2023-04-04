@@ -1161,13 +1161,14 @@ func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role
 
 		if len(users) > 0 {
 			tmp := &model.InviteResponse{
-				Email:     &email,
-				Message:   "User already exists",
-				UserID:    &lspMaps[0].UserID,
-				UserLspID: lspMaps[0].UserLspID,
+				Email:   &email,
+				Message: "User already exists",
 			}
 			res = append(res, tmp)
 		} else {
+			//it is currently for vendor, i.e., if vendor already exists then dont send its userID and
+			//user lsp Id otherwise send, this check is because mapping is being created only when user id
+			//is not being sent
 			tmp := &model.InviteResponse{
 				Email:     &email,
 				Message:   "New user",
@@ -1415,14 +1416,14 @@ func GetVendorAdmins(ctx context.Context, vendorID string) ([]*model.UserWithLsp
 		go func(userId string, k int, lsp string) {
 			//return user data
 
-			email, err := base64.URLEncoding.DecodeString(userId)
-			if err != nil {
-				return
-			}
+			// email, err := base64.URLEncoding.DecodeString(userId)
+			// if err != nil {
+			// 	return
+			// }
 
-			if !IsEmailValid(string(email)) || string(email) == "" {
-				return
-			}
+			// if !IsEmailValid(string(email)) || string(email) == "" {
+			// 	return
+			// }
 
 			usersession, err := global.CassPool.GetSession(ctx, "userz")
 			if err != nil {

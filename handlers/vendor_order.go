@@ -38,13 +38,16 @@ func AddOrder(ctx context.Context, input *model.VendorOrderInput) (*model.Vendor
 	}
 	CassSession := session
 
+	ca := time.Now().Unix()
 	id := uuid.New().String()
 	order := vendorz.VendorOrder{
 		OrderId:   id,
 		VendorId:  *input.VendorID,
 		LspId:     lspId,
-		CreatedAt: time.Now().Unix(),
+		CreatedAt: ca,
 		CreatedBy: userEmail,
+		UpdatedAt: ca,
+		UpdatedBy: userEmail,
 	}
 	if input.Status != nil {
 		order.Status = *input.Status
@@ -198,6 +201,8 @@ func AddOrderServies(ctx context.Context, input []*model.OrderServicesInput) ([]
 			ServiceType: *v.ServiceType,
 			CreatedAt:   createdAt,
 			CreatedBy:   userEmail,
+			UpdatedAt:   createdAt,
+			UpdatedBy:   userEmail,
 		}
 
 		if v.Currency != nil {
@@ -488,7 +493,7 @@ func GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderSer
 		v := vv
 		wg.Add(1)
 		go func(k int, order vendorz.OrderServices) {
-			defer wg.Done()
+
 			rate := int(order.Rate)
 			q := int(order.Quantity)
 			total := int(order.Total)
@@ -512,6 +517,8 @@ func GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderSer
 			}
 
 			res[k] = &tmp
+
+			wg.Done()
 		}(kk, v)
 	}
 
