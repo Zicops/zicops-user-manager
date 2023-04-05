@@ -1217,6 +1217,7 @@ type Query {
   getAllOrders(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendorOrder
   getOrderServices(order_id: [String]):[OrderServices]
   getSpeakers(lsp_id: String, service: String, name: String): [VendorProfile]
+  getAllVendors(vendor_ids: [String]): [Vendor]
 }
 
 type Mutation {

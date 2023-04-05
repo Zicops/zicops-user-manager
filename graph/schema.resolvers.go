@@ -1220,6 +1220,16 @@ func (r *queryResolver) GetSpeakers(ctx context.Context, lspID *string, service 
 	return res, nil
 }
 
+// GetAllVendors is the resolver for the getAllVendors field.
+func (r *queryResolver) GetAllVendors(ctx context.Context, vendorIds []*string) ([]*model.Vendor, error) {
+	res, err := handlers.GetAllVendors(ctx, vendorIds)
+	if err != nil {
+		log.Printf("error getting vendors: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
