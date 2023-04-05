@@ -4,15 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"sync"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/zicops/contracts/userz"
 	"github.com/zicops/contracts/vendorz"
 	"github.com/zicops/zicops-user-manager/global"
 	"github.com/zicops/zicops-user-manager/graph/model"
+	"github.com/zicops/zicops-user-manager/lib/db/bucket"
+	"github.com/zicops/zicops-user-manager/lib/googleprojectlib"
 	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
@@ -273,4 +275,122 @@ func disableUsersOfVendors(ctx context.Context, vendorId string, lsp string, ema
 	}
 	wg.Wait()
 	return nil
+}
+
+func GetAllVendors(ctx context.Context, vendorIds []*string) ([]*model.Vendor, error) {
+	_, err := identity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
+	if err != nil {
+		return nil, err
+	}
+	CassSession := session
+
+	res := make([]*model.Vendor, len(vendorIds))
+	var wg sync.WaitGroup
+	for kk, vv := range vendorIds {
+		if vv == nil {
+			return nil, err
+		}
+		v := *vv
+		wg.Add(1)
+		go func(k int, vendorId string) {
+
+			qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor where id='%s'`, vendorId)
+			getVendors := func() (vendorDetails []vendorz.Vendor, err error) {
+				q := CassSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return vendorDetails, iter.Select(&vendorDetails)
+			}
+
+			vendors, err := getVendors()
+			if err != nil {
+				log.Errorf("Got error while getting vendors details: %v", err)
+				return
+			}
+			if len(vendors) == 0 {
+				return
+			}
+
+			vendor := vendors[0]
+
+			qry := fmt.Sprintf(`SELECT * FROM vendorz.vendor_lsp_map WHERE vendor_id='%s' ALLOW FILTERING`, vendorId)
+			getMaps := func() (maps []vendorz.VendorLspMap, err error) {
+				q := CassSession.Query(qry, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return maps, iter.Select(&maps)
+			}
+			vendorLspMaps, err := getMaps()
+			if err != nil {
+				log.Errorf("Got error while getting vendor lsp map: %v", err)
+				return
+			}
+			if len(vendorLspMaps) == 0 {
+				return
+			}
+			servicesVendor := vendorLspMaps[0].Services
+			vendorLspStatus := vendorLspMaps[0].Status
+
+			var users []*string
+			for _, xx := range vendor.Users {
+				x := xx
+				users = append(users, &x)
+			}
+			var services []*string
+			for _, xx := range servicesVendor {
+				x := xx
+				services = append(services, &x)
+			}
+
+			storageC := bucket.NewStorageHandler()
+			gproject := googleprojectlib.GetGoogleProjectID()
+			err = storageC.InitializeStorageClient(ctx, gproject)
+			if err != nil {
+				log.Printf("Failed to upload image to course: %v", err.Error())
+				return
+			}
+			photoUrl := ""
+			if vendor.PhotoBucket != "" {
+				photoUrl = storageC.GetSignedURLForObject(ctx, vendor.PhotoBucket)
+			} else {
+				photoUrl = vendor.PhotoUrl
+			}
+			ca := strconv.Itoa(int(vendor.CreatedAt))
+			ua := strconv.Itoa(int(vendor.UpdatedAt))
+			tmp := model.Vendor{
+				VendorID:        vendor.VendorId,
+				Type:            vendor.Type,
+				Level:           vendor.Level,
+				Name:            vendor.Name,
+				Phone:           &vendor.Phone,
+				LspID:           &vendor.LspId,
+				Description:     &vendor.Description,
+				PhotoURL:        &photoUrl,
+				Address:         &vendor.Address,
+				Users:           users,
+				Website:         &vendor.Website,
+				FacebookURL:     &vendor.Facebook,
+				InstagramURL:    &vendor.Instagram,
+				TwitterURL:      &vendor.Twitter,
+				LinkedinURL:     &vendor.LinkedIn,
+				Services:        services,
+				CreatedAt:       &ca,
+				CreatedBy:       &vendor.CreatedBy,
+				UpdatedAt:       &ua,
+				UpdatedBy:       &vendor.UpdatedBy,
+				Status:          &vendor.Status,
+				VendorLspStatus: &vendorLspStatus,
+			}
+			res[k] = &tmp
+
+			wg.Done()
+		}(kk, v)
+	}
+	wg.Wait()
+	return res, nil
 }

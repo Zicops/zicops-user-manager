@@ -369,6 +369,7 @@ type ComplexityRoot struct {
 
 	Query struct {
 		GetAllOrders                   func(childComplexity int, lspID *string, pageCursor *string, direction *string, pageSize *int) int
+		GetAllVendors                  func(childComplexity int, vendorIds []*string) int
 		GetClassRoomTraining           func(childComplexity int, vendorID string) int
 		GetCohortDetails               func(childComplexity int, cohortID string) int
 		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) int
@@ -937,6 +938,7 @@ type QueryResolver interface {
 	GetAllOrders(ctx context.Context, lspID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedVendorOrder, error)
 	GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderServices, error)
 	GetSpeakers(ctx context.Context, lspID *string, service *string, name *string) ([]*model.VendorProfile, error)
+	GetAllVendors(ctx context.Context, vendorIds []*string) ([]*model.Vendor, error)
 }
 
 type executableSchema struct {
@@ -3044,6 +3046,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetAllOrders(childComplexity, args["lsp_id"].(*string), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+
+	case "Query.getAllVendors":
+		if e.complexity.Query.GetAllVendors == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getAllVendors_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAllVendors(childComplexity, args["vendor_ids"].([]*string)), true
 
 	case "Query.getClassRoomTraining":
 		if e.complexity.Query.GetClassRoomTraining == nil {
@@ -7184,6 +7198,7 @@ type Query {
   getAllOrders(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendorOrder
   getOrderServices(order_id: [String]):[OrderServices]
   getSpeakers(lsp_id: String, service: String, name: String): [VendorProfile]
+  getAllVendors(vendor_ids: [String]): [Vendor]
 }
 
 type Mutation {
@@ -8381,6 +8396,21 @@ func (ec *executionContext) field_Query_getAllOrders_args(ctx context.Context, r
 		}
 	}
 	args["pageSize"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getAllVendors_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*string
+	if tmp, ok := rawArgs["vendor_ids"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("vendor_ids"))
+		arg0, err = ec.unmarshalOString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["vendor_ids"] = arg0
 	return args, nil
 }
 
@@ -27353,6 +27383,104 @@ func (ec *executionContext) fieldContext_Query_getSpeakers(ctx context.Context, 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getSpeakers_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getAllVendors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getAllVendors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAllVendors(rctx, fc.Args["vendor_ids"].([]*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Vendor)
+	fc.Result = res
+	return ec.marshalOVendor2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐVendor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getAllVendors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "vendorId":
+				return ec.fieldContext_Vendor_vendorId(ctx, field)
+			case "type":
+				return ec.fieldContext_Vendor_type(ctx, field)
+			case "level":
+				return ec.fieldContext_Vendor_level(ctx, field)
+			case "name":
+				return ec.fieldContext_Vendor_name(ctx, field)
+			case "phone":
+				return ec.fieldContext_Vendor_phone(ctx, field)
+			case "lsp_id":
+				return ec.fieldContext_Vendor_lsp_id(ctx, field)
+			case "description":
+				return ec.fieldContext_Vendor_description(ctx, field)
+			case "photo_url":
+				return ec.fieldContext_Vendor_photo_url(ctx, field)
+			case "address":
+				return ec.fieldContext_Vendor_address(ctx, field)
+			case "users":
+				return ec.fieldContext_Vendor_users(ctx, field)
+			case "website":
+				return ec.fieldContext_Vendor_website(ctx, field)
+			case "facebook_url":
+				return ec.fieldContext_Vendor_facebook_url(ctx, field)
+			case "instagram_url":
+				return ec.fieldContext_Vendor_instagram_url(ctx, field)
+			case "twitter_url":
+				return ec.fieldContext_Vendor_twitter_url(ctx, field)
+			case "linkedin_url":
+				return ec.fieldContext_Vendor_linkedin_url(ctx, field)
+			case "services":
+				return ec.fieldContext_Vendor_services(ctx, field)
+			case "created_at":
+				return ec.fieldContext_Vendor_created_at(ctx, field)
+			case "created_by":
+				return ec.fieldContext_Vendor_created_by(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_Vendor_updated_at(ctx, field)
+			case "updated_by":
+				return ec.fieldContext_Vendor_updated_by(ctx, field)
+			case "status":
+				return ec.fieldContext_Vendor_status(ctx, field)
+			case "vendor_lsp_status":
+				return ec.fieldContext_Vendor_vendor_lsp_status(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Vendor", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getAllVendors_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -48689,6 +48817,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getSpeakers(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getAllVendors":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getAllVendors(ctx, field)
 				return res
 			}
 
