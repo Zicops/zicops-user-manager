@@ -521,6 +521,7 @@ func GetOrderServices(ctx context.Context, orderID []*string) ([]*model.OrderSer
 			wg.Done()
 		}(kk, v)
 	}
+	wg.Wait()
 
 	return res, nil
 }
