@@ -1230,6 +1230,16 @@ func (r *queryResolver) GetAllVendors(ctx context.Context, vendorIds []*string) 
 	return res, nil
 }
 
+// GetOrders is the resolver for the getOrders field.
+func (r *queryResolver) GetOrders(ctx context.Context, orderID []*string) ([]*model.VendorOrder, error) {
+	res, err := handlers.GetOrders(ctx, orderID)
+	if err != nil {
+		log.Printf("error getting orders: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

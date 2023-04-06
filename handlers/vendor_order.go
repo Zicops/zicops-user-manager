@@ -255,6 +255,9 @@ func AddOrderServies(ctx context.Context, input []*model.OrderServicesInput) ([]
 }
 
 func UpdateOrderServices(ctx context.Context, input *model.OrderServicesInput) (*model.OrderServices, error) {
+	if input.OrderID == nil || input.ServiceID == nil {
+		return nil, fmt.Errorf("please pass both order id and service id")
+	}
 	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -747,5 +750,69 @@ func GetSpeakers(ctx context.Context, lspID *string, service *string, name *stri
 	}
 
 	wg.Wait()
+	return res, nil
+}
+
+func GetOrders(ctx context.Context, orderID []*string) ([]*model.VendorOrder, error) {
+	_, err := identity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	session, err := global.CassPool.GetSession(ctx, "vendorz")
+	if err != nil {
+		return nil, err
+	}
+	CassSession := session
+	res := make([]*model.VendorOrder, len(orderID))
+	var wg sync.WaitGroup
+	for kk, vv := range orderID {
+		v := vv
+		if v == nil {
+			continue
+		}
+		wg.Add(1)
+
+		go func(k int, id *string) {
+			qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor_order where id='%s' ALLOW FILTERING`, *id)
+			getOrder := func() (orderDetails []vendorz.VendorOrder, err error) {
+				q := CassSession.Query(qryStr, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return orderDetails, iter.Select(&orderDetails)
+			}
+			orders, err := getOrder()
+			if err != nil {
+				log.Errorf("Got error while geting order details: %v", err)
+				return
+			}
+			if len(orders) == 0 {
+				return
+			}
+			order := orders[0]
+			total := int(order.Total)
+			tax := int(order.Tax)
+			grandTotal := int(order.Tax)
+			ca := strconv.Itoa(int(order.CreatedAt))
+			ua := strconv.Itoa(int(order.UpdatedAt))
+			tmp := model.VendorOrder{
+				ID:         &order.OrderId,
+				VendorID:   &order.VendorId,
+				LspID:      &order.LspId,
+				Total:      &total,
+				Tax:        &tax,
+				GrandTotal: &grandTotal,
+				CreatedAt:  &ca,
+				CreatedBy:  &order.CreatedBy,
+				UpdatedAt:  &ua,
+				UpdatedBy:  &order.UpdatedBy,
+				Status:     &order.Status,
+			}
+			res[k] = &tmp
+			wg.Done()
+		}(kk, v)
+	}
+	wg.Wait()
+
 	return res, nil
 }
