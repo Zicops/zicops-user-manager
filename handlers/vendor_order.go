@@ -792,7 +792,7 @@ func GetOrders(ctx context.Context, orderID []*string) ([]*model.VendorOrder, er
 			order := orders[0]
 			total := int(order.Total)
 			tax := int(order.Tax)
-			grandTotal := int(order.Tax)
+			grandTotal := int(order.GrandTotal)
 			ca := strconv.Itoa(int(order.CreatedAt))
 			ua := strconv.Itoa(int(order.UpdatedAt))
 			tmp := model.VendorOrder{

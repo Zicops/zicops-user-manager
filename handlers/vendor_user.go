@@ -298,7 +298,7 @@ func GetAllVendors(ctx context.Context, vendorIds []*string) ([]*model.Vendor, e
 		v := *vv
 		wg.Add(1)
 		go func(k int, vendorId string) {
-
+			defer wg.Done()
 			qryStr := fmt.Sprintf(`SELECT * FROM vendorz.vendor where id='%s'`, vendorId)
 			getVendors := func() (vendorDetails []vendorz.Vendor, err error) {
 				q := CassSession.Query(qryStr, nil)
@@ -388,7 +388,6 @@ func GetAllVendors(ctx context.Context, vendorIds []*string) ([]*model.Vendor, e
 			}
 			res[k] = &tmp
 
-			wg.Done()
 		}(kk, v)
 	}
 	wg.Wait()
