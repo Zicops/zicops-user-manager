@@ -1218,6 +1218,7 @@ type Query {
   getOrderServices(order_id: [String]):[OrderServices]
   getSpeakers(lsp_id: String, service: String, name: String): [VendorProfile]
   getAllVendors(vendor_ids: [String]): [Vendor]
+  getOrders(order_id: [String]): [VendorOrder]
 }
 
 type Mutation {
