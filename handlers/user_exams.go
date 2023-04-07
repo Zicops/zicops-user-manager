@@ -52,6 +52,27 @@ func AddUserExamAttempts(ctx context.Context, input []*model.UserExamAttemptsInp
 			return nil, err
 		}
 		if len(attempts) != 0 {
+			attempt := attempts[0]
+			attemptStart := strconv.Itoa(int(attempt.AttemptStartTime))
+			ca := strconv.Itoa(int(attempt.CreatedAt))
+			ua := strconv.Itoa(int(attempt.UpdatedAt))
+			userLspMap := model.UserExamAttempts{
+				UserEaID:         &attempt.ID,
+				UserID:           attempt.UserID,
+				UserLspID:        attempt.UserLspID,
+				UserCpID:         attempt.UserCpID,
+				UserCourseID:     attempt.UserCmID,
+				ExamID:           attempt.ExamID,
+				AttemptNo:        int(attempt.AttemptNo),
+				AttemptStatus:    attempt.AttemptStatus,
+				AttemptStartTime: attemptStart,
+				AttemptDuration:  attempt.AttemptDuration,
+				CreatedBy:        &attempt.CreatedBy,
+				UpdatedBy:        &attempt.UpdatedBy,
+				CreatedAt:        ca,
+				UpdatedAt:        ua,
+			}
+			userLspMaps = append(userLspMaps, &userLspMap)
 			continue
 		}
 
