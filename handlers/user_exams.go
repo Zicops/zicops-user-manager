@@ -39,43 +39,6 @@ func AddUserExamAttempts(ctx context.Context, input []*model.UserExamAttemptsInp
 		if input == nil {
 			continue
 		}
-
-		checkQuery := fmt.Sprintf(`SELECT * FROM userz.user_exam_attempts WHERE user_id='%s' AND exam_id='%s' AND user_cp_id = '%s' ALLOW FILTERING`, input.UserID, input.ExamID, input.UserCpID)
-		checkMapping := func() (examAttempts []userz.UserExamAttempts, err error) {
-			q := CassUserSession.Query(checkQuery, nil)
-			defer q.Release()
-			iter := q.Iter()
-			return examAttempts, iter.Select(&examAttempts)
-		}
-		attempts, err := checkMapping()
-		if err != nil {
-			return nil, err
-		}
-		if len(attempts) != 0 {
-			attempt := attempts[0]
-			attemptStart := strconv.Itoa(int(attempt.AttemptStartTime))
-			ca := strconv.Itoa(int(attempt.CreatedAt))
-			ua := strconv.Itoa(int(attempt.UpdatedAt))
-			userLspMap := model.UserExamAttempts{
-				UserEaID:         &attempt.ID,
-				UserID:           attempt.UserID,
-				UserLspID:        attempt.UserLspID,
-				UserCpID:         attempt.UserCpID,
-				UserCourseID:     attempt.UserCmID,
-				ExamID:           attempt.ExamID,
-				AttemptNo:        int(attempt.AttemptNo),
-				AttemptStatus:    attempt.AttemptStatus,
-				AttemptStartTime: attemptStart,
-				AttemptDuration:  attempt.AttemptDuration,
-				CreatedBy:        &attempt.CreatedBy,
-				UpdatedBy:        &attempt.UpdatedBy,
-				CreatedAt:        ca,
-				UpdatedAt:        ua,
-			}
-			userLspMaps = append(userLspMaps, &userLspMap)
-			continue
-		}
-
 		createdBy := userCass.Email
 		updatedBy := userCass.Email
 		if input.CreatedBy != nil {
