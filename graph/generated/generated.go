@@ -121,6 +121,13 @@ type ComplexityRoot struct {
 		UpdatedBy              func(childComplexity int) int
 	}
 
+	CourseCountStats struct {
+		Count        func(childComplexity int) int
+		CourseStatus func(childComplexity int) int
+		CourseType   func(childComplexity int) int
+		LspID        func(childComplexity int) int
+	}
+
 	CourseViews struct {
 		CreatedAt  func(childComplexity int) int
 		DateString func(childComplexity int) int
@@ -370,6 +377,7 @@ type ComplexityRoot struct {
 	Query struct {
 		GetAllOrders                   func(childComplexity int, lspID *string, pageCursor *string, direction *string, pageSize *int) int
 		GetAllVendors                  func(childComplexity int, vendorIds []*string) int
+		GetAssignedCourses             func(childComplexity int, lspID *string, status string, typeArg string) int
 		GetClassRoomTraining           func(childComplexity int, vendorID string) int
 		GetCohortDetails               func(childComplexity int, cohortID string) int
 		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) int
@@ -941,6 +949,7 @@ type QueryResolver interface {
 	GetSpeakers(ctx context.Context, lspID *string, service *string, name *string) ([]*model.VendorProfile, error)
 	GetAllVendors(ctx context.Context, vendorIds []*string) ([]*model.Vendor, error)
 	GetOrders(ctx context.Context, orderID []*string) ([]*model.VendorOrder, error)
+	GetAssignedCourses(ctx context.Context, lspID *string, status string, typeArg string) (*model.CourseCountStats, error)
 }
 
 type executableSchema struct {
@@ -1398,6 +1407,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CourseConsumptionStats.UpdatedBy(childComplexity), true
+
+	case "CourseCountStats.count":
+		if e.complexity.CourseCountStats.Count == nil {
+			break
+		}
+
+		return e.complexity.CourseCountStats.Count(childComplexity), true
+
+	case "CourseCountStats.course_status":
+		if e.complexity.CourseCountStats.CourseStatus == nil {
+			break
+		}
+
+		return e.complexity.CourseCountStats.CourseStatus(childComplexity), true
+
+	case "CourseCountStats.course_type":
+		if e.complexity.CourseCountStats.CourseType == nil {
+			break
+		}
+
+		return e.complexity.CourseCountStats.CourseType(childComplexity), true
+
+	case "CourseCountStats.lsp_id":
+		if e.complexity.CourseCountStats.LspID == nil {
+			break
+		}
+
+		return e.complexity.CourseCountStats.LspID(childComplexity), true
 
 	case "CourseViews.created_at":
 		if e.complexity.CourseViews.CreatedAt == nil {
@@ -3060,6 +3097,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetAllVendors(childComplexity, args["vendor_ids"].([]*string)), true
+
+	case "Query.getAssignedCourses":
+		if e.complexity.Query.GetAssignedCourses == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getAssignedCourses_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetAssignedCourses(childComplexity, args["lsp_id"].(*string), args["status"].(string), args["type"].(string)), true
 
 	case "Query.getClassRoomTraining":
 		if e.complexity.Query.GetClassRoomTraining == nil {
@@ -7071,6 +7120,12 @@ type UserWithLspStatus {
   user_lsp_status: String
 }
 
+type CourseCountStats {
+    lsp_id: String
+    course_status: String
+    course_type: String
+    count: Int
+}
 
 type Query {
   logout: Boolean
@@ -7214,6 +7269,7 @@ type Query {
   getSpeakers(lsp_id: String, service: String, name: String): [VendorProfile]
   getAllVendors(vendor_ids: [String]): [Vendor]
   getOrders(order_id: [String]): [VendorOrder]
+  getAssignedCourses(lsp_id: String, status: String!, type: String!): CourseCountStats
 }
 
 type Mutation {
@@ -8426,6 +8482,39 @@ func (ec *executionContext) field_Query_getAllVendors_args(ctx context.Context, 
 		}
 	}
 	args["vendor_ids"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getAssignedCourses_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lsp_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["status"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["status"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg2
 	return args, nil
 }
 
@@ -12620,6 +12709,170 @@ func (ec *executionContext) fieldContext_CourseConsumptionStats_UpdatedBy(ctx co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseCountStats_lsp_id(ctx context.Context, field graphql.CollectedField, obj *model.CourseCountStats) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseCountStats_lsp_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LspID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseCountStats_lsp_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseCountStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseCountStats_course_status(ctx context.Context, field graphql.CollectedField, obj *model.CourseCountStats) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseCountStats_course_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CourseStatus, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseCountStats_course_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseCountStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseCountStats_course_type(ctx context.Context, field graphql.CollectedField, obj *model.CourseCountStats) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseCountStats_course_type(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CourseType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseCountStats_course_type(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseCountStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseCountStats_count(ctx context.Context, field graphql.CollectedField, obj *model.CourseCountStats) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseCountStats_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseCountStats_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseCountStats",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -27587,6 +27840,68 @@ func (ec *executionContext) fieldContext_Query_getOrders(ctx context.Context, fi
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getOrders_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getAssignedCourses(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getAssignedCourses(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetAssignedCourses(rctx, fc.Args["lsp_id"].(*string), fc.Args["status"].(string), fc.Args["type"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.CourseCountStats)
+	fc.Result = res
+	return ec.marshalOCourseCountStats2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseCountStats(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getAssignedCourses(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "lsp_id":
+				return ec.fieldContext_CourseCountStats_lsp_id(ctx, field)
+			case "course_status":
+				return ec.fieldContext_CourseCountStats_course_status(ctx, field)
+			case "course_type":
+				return ec.fieldContext_CourseCountStats_course_type(ctx, field)
+			case "count":
+				return ec.fieldContext_CourseCountStats_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CourseCountStats", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getAssignedCourses_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -46409,6 +46724,43 @@ func (ec *executionContext) _CourseConsumptionStats(ctx context.Context, sel ast
 	return out
 }
 
+var courseCountStatsImplementors = []string{"CourseCountStats"}
+
+func (ec *executionContext) _CourseCountStats(ctx context.Context, sel ast.SelectionSet, obj *model.CourseCountStats) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, courseCountStatsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CourseCountStats")
+		case "lsp_id":
+
+			out.Values[i] = ec._CourseCountStats_lsp_id(ctx, field, obj)
+
+		case "course_status":
+
+			out.Values[i] = ec._CourseCountStats_course_status(ctx, field, obj)
+
+		case "course_type":
+
+			out.Values[i] = ec._CourseCountStats_course_type(ctx, field, obj)
+
+		case "count":
+
+			out.Values[i] = ec._CourseCountStats_count(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var courseViewsImplementors = []string{"CourseViews"}
 
 func (ec *executionContext) _CourseViews(ctx context.Context, sel ast.SelectionSet, obj *model.CourseViews) graphql.Marshaler {
@@ -48963,6 +49315,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getOrders(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getAssignedCourses":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getAssignedCourses(ctx, field)
 				return res
 			}
 
@@ -52516,6 +52888,13 @@ func (ec *executionContext) marshalOCourseConsumptionStats2ᚖgithubᚗcomᚋzic
 		return graphql.Null
 	}
 	return ec._CourseConsumptionStats(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCourseCountStats2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseCountStats(ctx context.Context, sel ast.SelectionSet, v *model.CourseCountStats) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CourseCountStats(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOCourseMapFilters2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseMapFilters(ctx context.Context, v interface{}) (*model.CourseMapFilters, error) {
