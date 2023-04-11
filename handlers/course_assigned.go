@@ -40,7 +40,7 @@ func GetAssignedCourses(ctx context.Context, lspID *string, status string, typeA
 	tmp := make(map[string]bool, 0)
 	for _, vv := range courseMaps {
 		v := vv
-		if tmp[v.CourseID] || v.CourseStatus == "disable" {
+		if tmp[v.CourseID] || v.CourseStatus == status {
 			continue
 		}
 		tmp[v.CourseID] = true
