@@ -128,6 +128,13 @@ type CourseConsumptionStats struct {
 	UpdatedBy              *string `json:"UpdatedBy"`
 }
 
+type CourseCountStats struct {
+	LspID        *string `json:"lsp_id"`
+	CourseStatus *string `json:"course_status"`
+	CourseType   *string `json:"course_type"`
+	Count        *int    `json:"count"`
+}
+
 type CourseMapFilters struct {
 	LspID       []*string `json:"lsp_id"`
 	IsMandatory *bool     `json:"is_mandatory"`
