@@ -25,7 +25,7 @@ func GetAssignedCourses(ctx context.Context, lspID *string, status string, typeA
 		return nil, err
 	}
 	CassSession := session
-	qryStr := fmt.Sprintf(`SELECT * FROM userz.user_course_map WHERE lsp_id='%s' AND course_status='%s' AND course_type='%s' ALLOW FILTERING`, lsp, status, typeArg)
+	qryStr := fmt.Sprintf(`SELECT * FROM userz.user_course_map WHERE lsp_id='%s' AND course_type='%s' ALLOW FILTERING`, lsp, typeArg)
 	getCourseMaps := func() (maps []userz.UserCourse, err error) {
 		q := CassSession.Query(qryStr, nil)
 		defer q.Release()
@@ -40,7 +40,7 @@ func GetAssignedCourses(ctx context.Context, lspID *string, status string, typeA
 	tmp := make(map[string]bool, 0)
 	for _, vv := range courseMaps {
 		v := vv
-		if tmp[v.CourseID] {
+		if tmp[v.CourseID] || v.CourseStatus == status {
 			continue
 		}
 		tmp[v.CourseID] = true
