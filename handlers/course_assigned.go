@@ -38,14 +38,16 @@ func GetAssignedCourses(ctx context.Context, lspID *string, status string, typeA
 	}
 
 	tmp := make(map[string]bool, 0)
+	var result []string
 	for _, vv := range courseMaps {
 		v := vv
-		if tmp[v.CourseID] || v.CourseStatus == status {
+		if _, ok := tmp[v.CourseID]; ok || v.CourseStatus == status {
 			continue
 		}
 		tmp[v.CourseID] = true
+		result = append(result, v.CourseID)
 	}
-	num := len(tmp)
+	num := len(result)
 	res := model.CourseCountStats{
 		LspID:        &lsp,
 		CourseStatus: &status,
