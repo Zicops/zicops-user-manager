@@ -61,6 +61,9 @@ func AddOrder(ctx context.Context, input *model.VendorOrderInput) (*model.Vendor
 	if input.GrandTotal != nil {
 		order.GrandTotal = int64(*input.GrandTotal)
 	}
+	if input.Description != nil {
+		order.Description = *input.Description
+	}
 	insertQuery := CassSession.Query(vendorz.VendorOrderTable.Insert()).BindStruct(order)
 	if err = insertQuery.Exec(); err != nil {
 		return nil, err
@@ -132,6 +135,10 @@ func UpdateOrder(ctx context.Context, input *model.VendorOrderInput) (*model.Ven
 	if input.Total != nil {
 		order.Total = int64(*input.Total)
 		updatedCols = append(updatedCols, "total")
+	}
+	if input.Description != nil {
+		order.Description = *input.Description
+		updatedCols = append(updatedCols, "description")
 	}
 
 	var updatedAt int64
@@ -429,17 +436,18 @@ func GetAllOrders(ctx context.Context, lspID *string, pageCursor *string, direct
 			ca := strconv.Itoa(int(order.CreatedAt))
 			ua := strconv.Itoa(int(order.UpdatedAt))
 			tmp := model.VendorOrder{
-				ID:         &order.OrderId,
-				VendorID:   &order.VendorId,
-				LspID:      &order.LspId,
-				Total:      &total,
-				Tax:        &tax,
-				GrandTotal: &grandTotal,
-				CreatedAt:  &ca,
-				CreatedBy:  &order.CreatedBy,
-				UpdatedAt:  &ua,
-				UpdatedBy:  &order.UpdatedBy,
-				Status:     &order.Status,
+				ID:          &order.OrderId,
+				VendorID:    &order.VendorId,
+				LspID:       &order.LspId,
+				Total:       &total,
+				Tax:         &tax,
+				GrandTotal:  &grandTotal,
+				Description: &order.Description,
+				CreatedAt:   &ca,
+				CreatedBy:   &order.CreatedBy,
+				UpdatedAt:   &ua,
+				UpdatedBy:   &order.UpdatedBy,
+				Status:      &order.Status,
 			}
 
 			res[k] = &tmp
@@ -796,17 +804,18 @@ func GetOrders(ctx context.Context, orderID []*string) ([]*model.VendorOrder, er
 			ca := strconv.Itoa(int(order.CreatedAt))
 			ua := strconv.Itoa(int(order.UpdatedAt))
 			tmp := model.VendorOrder{
-				ID:         &order.OrderId,
-				VendorID:   &order.VendorId,
-				LspID:      &order.LspId,
-				Total:      &total,
-				Tax:        &tax,
-				GrandTotal: &grandTotal,
-				CreatedAt:  &ca,
-				CreatedBy:  &order.CreatedBy,
-				UpdatedAt:  &ua,
-				UpdatedBy:  &order.UpdatedBy,
-				Status:     &order.Status,
+				ID:          &order.OrderId,
+				VendorID:    &order.VendorId,
+				LspID:       &order.LspId,
+				Total:       &total,
+				Tax:         &tax,
+				GrandTotal:  &grandTotal,
+				Description: &order.Description,
+				CreatedAt:   &ca,
+				CreatedBy:   &order.CreatedBy,
+				UpdatedAt:   &ua,
+				UpdatedBy:   &order.UpdatedBy,
+				Status:      &order.Status,
 			}
 			res[k] = &tmp
 			wg.Done()
