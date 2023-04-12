@@ -1009,27 +1009,29 @@ type VendorInput struct {
 }
 
 type VendorOrder struct {
-	ID         *string `json:"id"`
-	VendorID   *string `json:"vendor_id"`
-	LspID      *string `json:"lsp_id"`
-	Total      *int    `json:"total"`
-	Tax        *int    `json:"tax"`
-	GrandTotal *int    `json:"grand_total"`
-	CreatedAt  *string `json:"created_at"`
-	CreatedBy  *string `json:"created_by"`
-	UpdatedAt  *string `json:"updated_at"`
-	UpdatedBy  *string `json:"updated_by"`
-	Status     *string `json:"status"`
+	ID          *string `json:"id"`
+	VendorID    *string `json:"vendor_id"`
+	LspID       *string `json:"lsp_id"`
+	Total       *int    `json:"total"`
+	Tax         *int    `json:"tax"`
+	GrandTotal  *int    `json:"grand_total"`
+	Description *string `json:"description"`
+	CreatedAt   *string `json:"created_at"`
+	CreatedBy   *string `json:"created_by"`
+	UpdatedAt   *string `json:"updated_at"`
+	UpdatedBy   *string `json:"updated_by"`
+	Status      *string `json:"status"`
 }
 
 type VendorOrderInput struct {
-	ID         *string `json:"id"`
-	VendorID   *string `json:"vendor_id"`
-	LspID      *string `json:"lsp_id"`
-	Total      *int    `json:"total"`
-	Tax        *int    `json:"tax"`
-	GrandTotal *int    `json:"grand_total"`
-	Status     *string `json:"status"`
+	ID          *string `json:"id"`
+	VendorID    *string `json:"vendor_id"`
+	LspID       *string `json:"lsp_id"`
+	Total       *int    `json:"total"`
+	Tax         *int    `json:"tax"`
+	GrandTotal  *int    `json:"grand_total"`
+	Description *string `json:"description"`
+	Status      *string `json:"status"`
 }
 
 type VendorProfile struct {

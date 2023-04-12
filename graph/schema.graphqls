@@ -993,6 +993,7 @@ input VendorOrderInput {
   total: Int
   tax: Int
   grand_total: Int
+  description: String
   status: String
 }
 
@@ -1003,6 +1004,7 @@ type VendorOrder {
   total: Int
   tax: Int
   grand_total: Int
+  description: String
   created_at: String
 	created_by: String
 	updated_at: String
