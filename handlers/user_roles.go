@@ -273,9 +273,24 @@ func GetLspUsersRoles(ctx context.Context, lspID string, userID []*string, userL
 				}
 				roles = append(roles, &tmp)
 			}
+
+			query := fmt.Sprintf(`SELECT * FROM userz.user_lsp_map WHERE id='%s' ALLOW FILTERING`, userLspId)
+			getUserLsp := func() (userMap []userz.UserLsp, err error) {
+				q := CassUserSession.Query(query, nil)
+				defer q.Release()
+				iter := q.Iter()
+				return userMap, iter.Select(&userMap)
+			}
+			userLspMap, err := getUserLsp()
+			if err != nil {
+				log.Printf("Got error in getLspUserRoles: %v", err)
+				return
+			}
+
 			res[i] = &model.UserDetailsRole{
-				User:  ud,
-				Roles: roles,
+				User:   ud,
+				Roles:  roles,
+				Status: &userLspMap[0].Status,
 			}
 		}(i, ud, userLspID)
 	}

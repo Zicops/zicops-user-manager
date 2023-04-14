@@ -70,17 +70,18 @@ func AddOrder(ctx context.Context, input *model.VendorOrderInput) (*model.Vendor
 	}
 	createdAt := strconv.Itoa(int(order.CreatedAt))
 	res := model.VendorOrder{
-		ID:         &id,
-		VendorID:   input.VendorID,
-		LspID:      &lspId,
-		Total:      input.Total,
-		Tax:        input.Tax,
-		GrandTotal: input.GrandTotal,
-		CreatedAt:  &createdAt,
-		CreatedBy:  &userEmail,
-		UpdatedAt:  nil,
-		UpdatedBy:  nil,
-		Status:     input.Status,
+		ID:          &id,
+		VendorID:    input.VendorID,
+		LspID:       &lspId,
+		Total:       input.Total,
+		Tax:         input.Tax,
+		GrandTotal:  input.GrandTotal,
+		CreatedAt:   &createdAt,
+		CreatedBy:   &userEmail,
+		UpdatedAt:   &createdAt,
+		UpdatedBy:   &userEmail,
+		Status:      input.Status,
+		Description: &order.Description,
 	}
 
 	return &res, nil
