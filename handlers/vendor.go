@@ -1159,7 +1159,7 @@ func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role
 			return nil, err
 		}
 
-		if len(users) > 0 {
+		if lspMaps[0].Status != "" {
 			tmp := &model.InviteResponse{
 				Email:   &email,
 				Message: "User already exists",
