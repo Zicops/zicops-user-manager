@@ -1084,7 +1084,7 @@ func CreateExperienceVendor(ctx context.Context, input model.ExperienceInput) (*
 //user course map - mapping check
 
 func InviteUserWithRole(ctx context.Context, emails []string, lspID string, role *string) ([]*model.InviteResponse, error) {
-	roles := []string{"admin", "learner", "vendor"}
+	roles := []string{"admin", "learner", "vendor", "trainer"}
 	isPresent := false
 	for _, vv := range roles {
 		v := vv
