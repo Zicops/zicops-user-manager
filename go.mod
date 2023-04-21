@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3
 	cloud.google.com/go/storage v1.30.1
 	firebase.google.com/go v3.13.0+incompatible
-	github.com/99designs/gqlgen v0.17.29
+	github.com/99designs/gqlgen v0.17.30
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
