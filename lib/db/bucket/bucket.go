@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -46,7 +47,11 @@ func (sc *Client) InitializeStorageClient(ctx context.Context, projectID string)
 	}
 	sc.client = *client
 	sc.projectID = projectID
-	uBucketClient, _ := sc.CreateBucket(ctx, constants.USERS_BUCKET)
+	uBucketClient, err := sc.CreateBucket(ctx, constants.USERS_BUCKET)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	sc.bucket = *uBucketClient
 	return nil
 }
