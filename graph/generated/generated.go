@@ -101,6 +101,12 @@ type ComplexityRoot struct {
 		Name  func(childComplexity int) int
 	}
 
+	CourseAnalyticsFacts struct {
+		Count    func(childComplexity int) int
+		CourseID func(childComplexity int) int
+		Status   func(childComplexity int) int
+	}
+
 	CourseConsumptionStats struct {
 		ActiveLearners         func(childComplexity int) int
 		AverageCompletionTime  func(childComplexity int) int
@@ -384,6 +390,7 @@ type ComplexityRoot struct {
 		GetCohortUsers                 func(childComplexity int, cohortID string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetCohorts                     func(childComplexity int, cohortIds []*string) int
 		GetContentDevelopment          func(childComplexity int, vendorID string) int
+		GetCourseAnalyticsDataByID     func(childComplexity int, courseID *string, status *string) int
 		GetCourseConsumptionStats      func(childComplexity int, lspID string, pageCursor *string, direction *string, pageSize *int) int
 		GetCourseViews                 func(childComplexity int, lspIds []string, startTime *string, endTime *string) int
 		GetLatestCohorts               func(childComplexity int, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
@@ -951,6 +958,7 @@ type QueryResolver interface {
 	GetAllVendors(ctx context.Context, vendorIds []*string) ([]*model.Vendor, error)
 	GetOrders(ctx context.Context, orderID []*string) ([]*model.VendorOrder, error)
 	GetAssignedCourses(ctx context.Context, lspID *string, status string, typeArg string) (*model.CourseCountStats, error)
+	GetCourseAnalyticsDataByID(ctx context.Context, courseID *string, status *string) (*model.CourseAnalyticsFacts, error)
 }
 
 type executableSchema struct {
@@ -1289,6 +1297,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Count.Name(childComplexity), true
+
+	case "CourseAnalyticsFacts.count":
+		if e.complexity.CourseAnalyticsFacts.Count == nil {
+			break
+		}
+
+		return e.complexity.CourseAnalyticsFacts.Count(childComplexity), true
+
+	case "CourseAnalyticsFacts.course_id":
+		if e.complexity.CourseAnalyticsFacts.CourseID == nil {
+			break
+		}
+
+		return e.complexity.CourseAnalyticsFacts.CourseID(childComplexity), true
+
+	case "CourseAnalyticsFacts.status":
+		if e.complexity.CourseAnalyticsFacts.Status == nil {
+			break
+		}
+
+		return e.complexity.CourseAnalyticsFacts.Status(childComplexity), true
 
 	case "CourseConsumptionStats.ActiveLearners":
 		if e.complexity.CourseConsumptionStats.ActiveLearners == nil {
@@ -3182,6 +3211,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetContentDevelopment(childComplexity, args["vendor_id"].(string)), true
+
+	case "Query.getCourseAnalyticsDataById":
+		if e.complexity.Query.GetCourseAnalyticsDataByID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getCourseAnalyticsDataById_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCourseAnalyticsDataByID(childComplexity, args["course_id"].(*string), args["status"].(*string)), true
 
 	case "Query.getCourseConsumptionStats":
 		if e.complexity.Query.GetCourseConsumptionStats == nil {
@@ -6742,7 +6783,6 @@ type CourseViews {
   date_string: String
 }
 
-
 input VendorInput {
   lsp_id: String
   name: String
@@ -6759,31 +6799,31 @@ input VendorInput {
   phone: String
   users: [String]
   description: String
-	status: String
+  status: String
 }
 
 type Vendor {
   vendorId: String!
-	type: String!
-	level: String!
-	name: String!
+  type: String!
+  level: String!
+  name: String!
   phone: String
   lsp_id: String
   description: String
-	photo_url: String
-	address: String
+  photo_url: String
+  address: String
   users: [String]
-	website: String
-	facebook_url: String
-	instagram_url: String
-	twitter_url: String
-	linkedin_url: String
+  website: String
+  facebook_url: String
+  instagram_url: String
+  twitter_url: String
+  linkedin_url: String
   services: [String]
-	created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
-	status: String
+  created_at: String
+  created_by: String
+  updated_at: String
+  updated_by: String
+  status: String
   vendor_lsp_status: String
 }
 
@@ -6802,10 +6842,10 @@ input SMEInput {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
-  sample_files:[String]
+  sample_files: [String]
   is_expertise_online: Boolean
   is_expertise_offline: Boolean
-	Status: String
+  Status: String
 }
 
 type SME {
@@ -6816,14 +6856,14 @@ type SME {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
-  sample_files:[String]
+  sample_files: [String]
   is_expertise_online: Boolean
   is_expertise_offline: Boolean
   created_at: String
   created_by: String
   updated_at: String
   updated_by: String
-	status: String
+  status: String
 }
 
 input VendorProfileInput {
@@ -6841,7 +6881,7 @@ input VendorProfileInput {
   experience: [String]
   experience_years: String
   is_speaker: Boolean
-	status: String
+  status: String
 }
 
 type VendorProfile {
@@ -6865,10 +6905,10 @@ type VendorProfile {
   is_speaker: Boolean
   lsp_id: String
   created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
-	status: String
+  created_by: String
+  updated_at: String
+  updated_by: String
+  status: String
 }
 
 input ExperienceInput {
@@ -6882,7 +6922,7 @@ input ExperienceInput {
   location_type: String
   start_date: Int
   end_date: Int
-	status: String
+  status: String
 }
 
 type ExperienceVendor {
@@ -6897,10 +6937,10 @@ type ExperienceVendor {
   EmployementType: String
   CompanyName: String
   CreatedAt: String
-	CreatedBy: String
-	UpdatedAt: String
-	UpdatedBy: String
-	Status: String
+  CreatedBy: String
+  UpdatedAt: String
+  UpdatedBy: String
+  Status: String
 }
 
 type InviteResponse {
@@ -6916,7 +6956,7 @@ input SampleFileInput {
   description: String
   pricing: String!
   fileType: String
-	status: String
+  status: String
   vendorId: String!
   p_type: String!
   rate: Int
@@ -6933,10 +6973,10 @@ type SampleFile {
   description: String
   file_url: String
   created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
-	status: String
+  created_by: String
+  updated_at: String
+  updated_by: String
+  status: String
   rate: Int
   currency: String
   unit: String
@@ -6951,10 +6991,10 @@ input CRTInput {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
-  sample_files:[String]
+  sample_files: [String]
   is_expertise_online: Boolean
   is_expertise_offline: Boolean
-	status: String
+  status: String
 }
 
 type CRT {
@@ -6965,13 +7005,13 @@ type CRT {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
-  sample_files:[String]
+  sample_files: [String]
   is_expertise_online: Boolean
   is_expertise_offline: Boolean
   created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
+  created_by: String
+  updated_at: String
+  updated_by: String
   status: String
 }
 
@@ -7001,9 +7041,9 @@ type ContentDevelopment {
   is_expertise_online: Boolean
   is_expertise_offline: Boolean
   created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
+  created_by: String
+  updated_at: String
+  updated_by: String
   status: String
 }
 
@@ -7058,9 +7098,9 @@ type VendorOrder {
   grand_total: Int
   description: String
   created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
+  created_by: String
+  updated_at: String
+  updated_by: String
   status: String
 }
 
@@ -7095,9 +7135,9 @@ type OrderServices {
   quantity: Int
   total: Int
   created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
+  created_by: String
+  updated_at: String
+  updated_by: String
   status: String
 }
 
@@ -7131,10 +7171,16 @@ type UserWithLspStatus {
 }
 
 type CourseCountStats {
-    lsp_id: String
-    course_status: String
-    course_type: String
-    count: Int
+  lsp_id: String
+  course_status: String
+  course_type: String
+  count: Int
+}
+
+type CourseAnalyticsFacts {
+  course_id: String
+  status: String
+  count: Int
 }
 
 type Query {
@@ -7203,7 +7249,11 @@ type Query {
     pageSize: Int
   ): PaginatedBookmarks
   getUserExamAttempts(user_id: String, exam_id: String!): [UserExamAttempts]
-  getUserExamAttemptsByExamIds(user_id: String!, exam_ids: [String]!, filters:ExamAttemptsFilters): [UserExamAttempts]
+  getUserExamAttemptsByExamIds(
+    user_id: String!
+    exam_ids: [String]!
+    filters: ExamAttemptsFilters
+  ): [UserExamAttempts]
   getUserExamResults(
     user_ea_details: [UserExamResultDetails!]!
   ): [UserExamResultInfo]
@@ -7258,34 +7308,75 @@ type Query {
     start_time: String
     end_time: String
   ): [CourseViews]
-  getVendorExperience(vendor_id: String!, pf_id: String!):[ExperienceVendor]
-  getVendorExperienceDetails(vendor_id: String!, pf_id: String!, exp_id: String!): ExperienceVendor
+  getVendorExperience(vendor_id: String!, pf_id: String!): [ExperienceVendor]
+  getVendorExperienceDetails(
+    vendor_id: String!
+    pf_id: String!
+    exp_id: String!
+  ): ExperienceVendor
   getVendors(lsp_id: String, filters: VendorFilters): [Vendor]
-  getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int, filters: VendorFilters): PaginatedVendors
+  getPaginatedVendors(
+    lsp_id: String
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+    filters: VendorFilters
+  ): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [UserWithLspStatus]
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
-  viewAllProfiles(vendor_id: String!, filter: String, name: String): [VendorProfile]
+  viewAllProfiles(
+    vendor_id: String!
+    filter: String
+    name: String
+  ): [VendorProfile]
   getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
   getSmeDetails(vendor_id: String!): SME
   getClassRoomTraining(vendor_id: String!): CRT
   getContentDevelopment(vendor_id: String!): ContentDevelopment
   getUserVendor(user_id: String): [Vendor]
   getVendorServices(vendor_id: String): [String]
-  getLspUsersRoles(lsp_id: String!, user_id: [String], user_lsp_id: [String]): [UserDetailsRole] 
-  getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
-  getAllOrders(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int): PaginatedVendorOrder
-  getOrderServices(order_id: [String]):[OrderServices]
+  getLspUsersRoles(
+    lsp_id: String!
+    user_id: [String]
+    user_lsp_id: [String]
+  ): [UserDetailsRole]
+  getPaginatedLspUsersWithRoles(
+    lsp_id: String!
+    role: [String]
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedUserDetailsWithRole
+  getAllOrders(
+    lsp_id: String
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedVendorOrder
+  getOrderServices(order_id: [String]): [OrderServices]
   getSpeakers(lsp_id: String, service: String, name: String): [VendorProfile]
   getAllVendors(vendor_ids: [String]): [Vendor]
   getOrders(order_id: [String]): [VendorOrder]
-  getAssignedCourses(lsp_id: String, status: String!, type: String!): CourseCountStats
+  getAssignedCourses(
+    lsp_id: String
+    status: String!
+    type: String!
+  ): CourseCountStats
+  getCourseAnalyticsDataById(
+    course_id: String
+    status: String
+  ): CourseAnalyticsFacts
 }
 
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!, lsp_id: String): Boolean
-  inviteUsersWithRole(emails: [String!]!, lsp_id: String, role: String): [InviteResponse]
+  inviteUsersWithRole(
+    emails: [String!]!
+    lsp_id: String
+    role: String
+  ): [InviteResponse]
   updateUser(input: UserInput!): User
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
@@ -7338,18 +7429,26 @@ type Mutation {
   uploadSampleFile(input: SampleFileInput): SampleFile
   deleteSampleFile(sfId: String!, vendor_id: String!, p_type: String!): Boolean
   updateProfileVendor(input: VendorProfileInput): VendorProfile
-  createSubjectMatterExpertise(input:SMEInput): SME
-  updateSubjectMatterExpertise(input:SMEInput): SME
-  createClassRoomTraining(input:CRTInput): CRT
-  updateClassRoomTraining(input:CRTInput): CRT
+  createSubjectMatterExpertise(input: SMEInput): SME
+  updateSubjectMatterExpertise(input: SMEInput): SME
+  createClassRoomTraining(input: CRTInput): CRT
+  updateClassRoomTraining(input: CRTInput): CRT
   createContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
   updateContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
   addOrder(input: VendorOrderInput): VendorOrder
   updateOrder(input: VendorOrderInput): VendorOrder
   addOrderServies(input: [OrderServicesInput]): [OrderServices]
   updateOrderServices(input: OrderServicesInput): OrderServices
-  createVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
-  updateVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
+  createVendorUserMap(
+    vendor_id: String
+    user_id: String
+    status: String
+  ): VendorUserMap
+  updateVendorUserMap(
+    vendor_id: String
+    user_id: String
+    status: String
+  ): VendorUserMap
   deleteVendorUserMap(vendor_id: String, user_id: String): Boolean
   disableVendorLspMap(vendor_id: String, lsp_id: String): Boolean
 }
@@ -8696,6 +8795,30 @@ func (ec *executionContext) field_Query_getContentDevelopment_args(ctx context.C
 		}
 	}
 	args["vendor_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getCourseAnalyticsDataById_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["course_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("course_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["course_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["status"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["status"] = arg1
 	return args, nil
 }
 
@@ -12017,6 +12140,129 @@ func (ec *executionContext) _Count_count(ctx context.Context, field graphql.Coll
 func (ec *executionContext) fieldContext_Count_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Count",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseAnalyticsFacts_course_id(ctx context.Context, field graphql.CollectedField, obj *model.CourseAnalyticsFacts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseAnalyticsFacts_course_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CourseID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseAnalyticsFacts_course_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseAnalyticsFacts",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseAnalyticsFacts_status(ctx context.Context, field graphql.CollectedField, obj *model.CourseAnalyticsFacts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseAnalyticsFacts_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseAnalyticsFacts_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseAnalyticsFacts",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseAnalyticsFacts_count(ctx context.Context, field graphql.CollectedField, obj *model.CourseAnalyticsFacts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseAnalyticsFacts_count(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseAnalyticsFacts_count(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseAnalyticsFacts",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -27920,6 +28166,66 @@ func (ec *executionContext) fieldContext_Query_getAssignedCourses(ctx context.Co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getAssignedCourses_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getCourseAnalyticsDataById(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getCourseAnalyticsDataById(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCourseAnalyticsDataByID(rctx, fc.Args["course_id"].(*string), fc.Args["status"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.CourseAnalyticsFacts)
+	fc.Result = res
+	return ec.marshalOCourseAnalyticsFacts2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseAnalyticsFacts(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getCourseAnalyticsDataById(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "course_id":
+				return ec.fieldContext_CourseAnalyticsFacts_course_id(ctx, field)
+			case "status":
+				return ec.fieldContext_CourseAnalyticsFacts_status(ctx, field)
+			case "count":
+				return ec.fieldContext_CourseAnalyticsFacts_count(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CourseAnalyticsFacts", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getCourseAnalyticsDataById_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -46702,6 +47008,39 @@ func (ec *executionContext) _Count(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var courseAnalyticsFactsImplementors = []string{"CourseAnalyticsFacts"}
+
+func (ec *executionContext) _CourseAnalyticsFacts(ctx context.Context, sel ast.SelectionSet, obj *model.CourseAnalyticsFacts) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, courseAnalyticsFactsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CourseAnalyticsFacts")
+		case "course_id":
+
+			out.Values[i] = ec._CourseAnalyticsFacts_course_id(ctx, field, obj)
+
+		case "status":
+
+			out.Values[i] = ec._CourseAnalyticsFacts_status(ctx, field, obj)
+
+		case "count":
+
+			out.Values[i] = ec._CourseAnalyticsFacts_count(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var courseConsumptionStatsImplementors = []string{"CourseConsumptionStats"}
 
 func (ec *executionContext) _CourseConsumptionStats(ctx context.Context, sel ast.SelectionSet, obj *model.CourseConsumptionStats) graphql.Marshaler {
@@ -49402,6 +49741,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getAssignedCourses(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getCourseAnalyticsDataById":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getCourseAnalyticsDataById(ctx, field)
 				return res
 			}
 
@@ -52911,6 +53270,13 @@ func (ec *executionContext) marshalOCount2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑus
 		return graphql.Null
 	}
 	return ec._Count(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCourseAnalyticsFacts2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseAnalyticsFacts(ctx context.Context, sel ast.SelectionSet, v *model.CourseAnalyticsFacts) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CourseAnalyticsFacts(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOCourseConsumptionStats2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseConsumptionStats(ctx context.Context, sel ast.SelectionSet, v []*model.CourseConsumptionStats) graphql.Marshaler {
