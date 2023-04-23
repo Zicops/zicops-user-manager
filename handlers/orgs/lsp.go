@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -59,8 +60,11 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 		return nil, err
 	}
 	if input.Logo != nil {
-
+		extension := strings.Split(input.Logo.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "logos", base64.URLEncoding.EncodeToString([]byte(input.Logo.Filename)))
+		if len(extension) > 1 {
+			bucketPath += "." + extension[len(extension)-1]
+		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -86,7 +90,11 @@ func AddLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*mod
 	photoUrl := ""
 	photoBucket := ""
 	if input.Profile != nil {
+		extension := strings.Split(input.Profile.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s", lspID, "photos", base64.URLEncoding.EncodeToString([]byte(input.Profile.Filename)))
+		if len(extension) > 1 {
+			bucketPath += "." + extension[len(extension)-1]
+		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -266,7 +274,11 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 		return nil, err
 	}
 	if input.Logo != nil {
+		extension := strings.Split(input.Logo.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "logos", base64.URLEncoding.EncodeToString([]byte(input.Logo.Filename)))
+		if len(extension) > 1 {
+			bucketPath += "." + extension[len(extension)-1]
+		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -288,7 +300,11 @@ func UpdateLearningSpace(ctx context.Context, input model.LearningSpaceInput) (*
 		updatedCols = append(updatedCols, "logo_url")
 	}
 	if input.Profile != nil {
+		extension := strings.Split(input.Profile.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s", orgCass.ID, "profile", base64.URLEncoding.EncodeToString([]byte(input.Profile.Filename)))
+		if len(extension) > 1 {
+			bucketPath += "." + extension[len(extension)-1]
+		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
