@@ -2427,7 +2427,7 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 		return &res, err
 	}
 	extensions := strings.Split(input.File.Filename, ".")
-	bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", input.VendorID, input.PType, input.Name)
+	bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", input.VendorID, input.PType, base64.URLEncoding.EncodeToString([]byte(input.Name)))
 	if len(extensions) > 1 {
 		bucketPath += "." + extensions[len(extensions)-1]
 	}
