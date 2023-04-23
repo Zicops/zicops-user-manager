@@ -96,7 +96,7 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 	if input.Photo != nil {
 		extension := strings.Split(input.Photo.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s", "vendor", vendor.Name, base64.URLEncoding.EncodeToString([]byte(input.Photo.Filename)))
-		if len(extension) > 1 {
+		if len(extension) >= 1 {
 			bucketPath += "." + extension[len(extension)-1]
 		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
@@ -346,7 +346,7 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 	if input.Photo != nil {
 		extension := strings.Split(input.Photo.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s", "vendor", vendor.Name, base64.URLEncoding.EncodeToString([]byte(input.Photo.Filename)))
-		if len(extension) > 1 {
+		if len(extension) >= 1 {
 			bucketPath += "." + extension[len(extension)-1]
 		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
@@ -908,7 +908,7 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	if input.Photo != nil {
 		extension := strings.Split(input.Photo.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", "profile", pfId, base64.URLEncoding.EncodeToString([]byte(input.Photo.Filename)))
-		if len(extension) > 1 {
+		if len(extension) >= 1 {
 			bucketPath += "." + extension[len(extension)-1]
 		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
@@ -2301,7 +2301,7 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 	if input.Photo != nil {
 		extension := strings.Split(input.Photo.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", "profile", pfId, base64.URLEncoding.EncodeToString([]byte(input.Photo.Filename)))
-		if len(extension) > 1 {
+		if len(extension) >= 1 {
 			bucketPath += "." + extension[len(extension)-1]
 		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
@@ -2428,7 +2428,7 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 	}
 	extensions := strings.Split(input.File.Filename, ".")
 	bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", input.VendorID, input.PType, base64.URLEncoding.EncodeToString([]byte(input.Name)))
-	if len(extensions) > 1 {
+	if len(extensions) >= 1 {
 		bucketPath += "." + extensions[len(extensions)-1]
 	}
 	// writer, err := storageC.UploadToGCS(ctx, bucketPath)
