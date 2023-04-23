@@ -50,7 +50,11 @@ func AddOrganization(ctx context.Context, input model.OrganizationInput) (*model
 	uniqueOrgId := input.Name + input.Website + input.Industry + input.Subdomain
 	orgId := uuid.NewSHA1(uuid.NameSpaceURL, []byte(uniqueOrgId)).String()
 	if input.Logo != nil {
+		extension := strings.Split(input.Logo.Filename, ".")
 		bucketPath := fmt.Sprintf("orgs/%s/%s/%s", "logos", orgId, base64.URLEncoding.EncodeToString([]byte(input.Logo.Filename)))
+		if len(extension) > 1 {
+			bucketPath += "." + extension[len(extension)-1]
+		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -181,7 +185,11 @@ func UpdateOrganization(ctx context.Context, input model.OrganizationInput) (*mo
 		return nil, err
 	}
 	if input.Logo != nil {
+		extension := strings.Split(input.Logo.Filename, ".")
 		bucketPath := fmt.Sprintf("orgs/%s/%s/%s", "logos", orgCass.ID, base64.URLEncoding.EncodeToString([]byte(input.Logo.Filename)))
+		if len(extension) > 1 {
+			bucketPath += "." + extension[len(extension)-1]
+		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err

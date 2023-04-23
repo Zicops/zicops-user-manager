@@ -94,7 +94,11 @@ func AddVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor, er
 		return nil, err
 	}
 	if input.Photo != nil {
+		extension := strings.Split(input.Photo.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s", "vendor", vendor.Name, base64.URLEncoding.EncodeToString([]byte(input.Photo.Filename)))
+		if len(extension) > 1 {
+			bucketPath += "." + extension[len(extension)-1]
+		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -340,7 +344,11 @@ func UpdateVendor(ctx context.Context, input *model.VendorInput) (*model.Vendor,
 		return nil, err
 	}
 	if input.Photo != nil {
+		extension := strings.Split(input.Photo.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s", "vendor", vendor.Name, base64.URLEncoding.EncodeToString([]byte(input.Photo.Filename)))
+		if len(extension) > 1 {
+			bucketPath += "." + extension[len(extension)-1]
+		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -898,7 +906,11 @@ func CreateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		return nil, err
 	}
 	if input.Photo != nil {
+		extension := strings.Split(input.Photo.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", "profile", pfId, base64.URLEncoding.EncodeToString([]byte(input.Photo.Filename)))
+		if len(extension) > 1 {
+			bucketPath += "." + extension[len(extension)-1]
+		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -2287,7 +2299,11 @@ func UpdateProfileVendor(ctx context.Context, input *model.VendorProfileInput) (
 		return nil, err
 	}
 	if input.Photo != nil {
+		extension := strings.Split(input.Photo.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", "profile", pfId, base64.URLEncoding.EncodeToString([]byte(input.Photo.Filename)))
+		if len(extension) > 1 {
+			bucketPath += "." + extension[len(extension)-1]
+		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
@@ -2410,7 +2426,11 @@ func UploadSampleFile(ctx context.Context, input *model.SampleFileInput) (*model
 		log.Printf("Failed to upload sample file: %v", err.Error())
 		return &res, err
 	}
+	extensions := strings.Split(input.File.Filename, ".")
 	bucketPath := fmt.Sprintf("%s/%s/%s/%s", "vendor", input.VendorID, input.PType, input.Name)
+	if len(extensions) > 1 {
+		bucketPath += "." + extensions[len(extensions)-1]
+	}
 	// writer, err := storageC.UploadToGCS(ctx, bucketPath)
 	// if err != nil {
 	// 	log.Printf("Failed to upload sample file: %v", err.Error())

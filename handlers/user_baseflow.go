@@ -78,7 +78,11 @@ func RegisterUsers(ctx context.Context, input []*model.UserInput, isZAdmin bool,
 		emailLower := strings.ToLower(user.Email)
 		userID := base64.URLEncoding.EncodeToString([]byte(emailLower))
 		if user.Photo != nil && user.PhotoURL == nil {
+			extension := strings.Split(user.Photo.Filename, ".")
 			bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", userID, base64.URLEncoding.EncodeToString([]byte(user.Photo.Filename)))
+			if len(extension) > 1 {
+				bucketPath += "." + extension[len(extension)-1]
+			}
 			writer, err := storageC.UploadToGCS(ctx, bucketPath)
 			if err != nil {
 				return nil, nil, err
@@ -335,7 +339,11 @@ func UpdateUser(ctx context.Context, user model.UserInput) (*model.User, error) 
 		return nil, err
 	}
 	if user.Photo != nil && user.PhotoURL == nil {
+		extension := strings.Split(user.Photo.Filename, ".")
 		bucketPath := fmt.Sprintf("%s/%s/%s", "profiles", *user.ID, base64.URLEncoding.EncodeToString([]byte(user.Photo.Filename)))
+		if len(extension) > 1 {
+			bucketPath += "." + extension[len(extension)-1]
+		}
 		writer, err := storageC.UploadToGCS(ctx, bucketPath)
 		if err != nil {
 			return nil, err
