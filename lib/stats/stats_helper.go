@@ -3,6 +3,7 @@ package stats
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 	"time"
 
@@ -40,13 +41,15 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 		return
 	}
 	if len(ccStats) == 0 {
+		//expected completion time different
 		// create new record
 		expectCompletionInt, _ := strconv.ParseInt(expectedCompletion, 10, 64)
+		tmp := expectCompletionInt - time.Now().Unix()
 		ccStats := userz.CCStats{
 			ID:                     uuid.New().String(),
 			LspId:                  lspId,
 			CourseId:               courseId,
-			ExpectedCompletionTime: expectCompletionInt,
+			ExpectedCompletionTime: tmp,
 			AverageComplianceScore: 0,
 			AverageCompletionTime:  0,
 			Duration:               int64(course.Duration),
@@ -75,6 +78,16 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 	} else {
 		// update existing record
 		ccStats := ccStats[0]
+
+		//compare expected completion time, and if the difference is more than one day, then change the expected completion time to current calculated
+		// expected completion time
+		expectCompletionInt, _ := strconv.ParseInt(expectedCompletion, 10, 64)
+		tmp := expectCompletionInt - time.Now().Unix()
+		current_dif := ccStats.ExpectedCompletionTime - tmp
+		if math.Abs(float64(current_dif)) > 24*60*60 {
+			ccStats.ExpectedCompletionTime = tmp
+		}
+
 		ccStats.UpdatedBy = userId
 		ccStats.UpdatedAt = time.Now().Unix()
 		isCompleted := false
@@ -88,7 +101,7 @@ func UpdateCCStats(ctx context.Context, session *gocqlx.Session, lspId string, c
 		}
 		if isCompleted {
 			ccStats.AverageCompletionTime = (ccStats.AverageCompletionTime + completionTime) / ccStats.CompletedLearners
-			expectedCompletitionDuration := ccStats.ExpectedCompletionTime - ccStats.CreatedAt
+			expectedCompletitionDuration := ccStats.ExpectedCompletionTime
 			compliance_score := 100 - ((completionTime - expectedCompletitionDuration) / expectedCompletitionDuration)
 			if compliance_score > 100 {
 				compliance_score = 100
