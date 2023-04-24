@@ -345,6 +345,13 @@ type ComplexityRoot struct {
 		PageSize   func(childComplexity int) int
 	}
 
+	PaginatedUserCourseAnalytics struct {
+		Data       func(childComplexity int) int
+		Direction  func(childComplexity int) int
+		PageCursor func(childComplexity int) int
+		PageSize   func(childComplexity int) int
+	}
+
 	PaginatedUserDetailsWithRole struct {
 		Data       func(childComplexity int) int
 		Direction  func(childComplexity int) int
@@ -394,6 +401,7 @@ type ComplexityRoot struct {
 		GetCourseConsumptionStats      func(childComplexity int, lspID string, pageCursor *string, direction *string, pageSize *int) int
 		GetCourseViews                 func(childComplexity int, lspIds []string, startTime *string, endTime *string) int
 		GetLatestCohorts               func(childComplexity int, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
+		GetLearnerDetails              func(childComplexity int, courseID *string, pageCursor *string, direction *string, pageSize *int) int
 		GetLearningSpaceDetails        func(childComplexity int, lspIds []*string) int
 		GetLearningSpacesByOrgID       func(childComplexity int, orgID string) int
 		GetLearningSpacesByOuID        func(childComplexity int, ouID string, orgID string) int
@@ -551,6 +559,17 @@ type ComplexityRoot struct {
 		UserCourseID func(childComplexity int) int
 		UserID       func(childComplexity int) int
 		UserLspID    func(childComplexity int) int
+	}
+
+	UserCourseAnalytics struct {
+		AssignedBy        func(childComplexity int) int
+		AssignedOn        func(childComplexity int) int
+		Completion        func(childComplexity int) int
+		Email             func(childComplexity int) int
+		Name              func(childComplexity int) int
+		Status            func(childComplexity int) int
+		TimeTaken         func(childComplexity int) int
+		TimelineComplaint func(childComplexity int) int
 	}
 
 	UserCourseMapStats struct {
@@ -959,6 +978,7 @@ type QueryResolver interface {
 	GetOrders(ctx context.Context, orderID []*string) ([]*model.VendorOrder, error)
 	GetAssignedCourses(ctx context.Context, lspID *string, status string, typeArg string) (*model.CourseCountStats, error)
 	GetCourseAnalyticsDataByID(ctx context.Context, courseID *string, status *string) (*model.CourseAnalyticsFacts, error)
+	GetLearnerDetails(ctx context.Context, courseID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserCourseAnalytics, error)
 }
 
 type executableSchema struct {
@@ -2964,6 +2984,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PaginatedNotes.PageSize(childComplexity), true
 
+	case "PaginatedUserCourseAnalytics.data":
+		if e.complexity.PaginatedUserCourseAnalytics.Data == nil {
+			break
+		}
+
+		return e.complexity.PaginatedUserCourseAnalytics.Data(childComplexity), true
+
+	case "PaginatedUserCourseAnalytics.direction":
+		if e.complexity.PaginatedUserCourseAnalytics.Direction == nil {
+			break
+		}
+
+		return e.complexity.PaginatedUserCourseAnalytics.Direction(childComplexity), true
+
+	case "PaginatedUserCourseAnalytics.pageCursor":
+		if e.complexity.PaginatedUserCourseAnalytics.PageCursor == nil {
+			break
+		}
+
+		return e.complexity.PaginatedUserCourseAnalytics.PageCursor(childComplexity), true
+
+	case "PaginatedUserCourseAnalytics.pageSize":
+		if e.complexity.PaginatedUserCourseAnalytics.PageSize == nil {
+			break
+		}
+
+		return e.complexity.PaginatedUserCourseAnalytics.PageSize(childComplexity), true
+
 	case "PaginatedUserDetailsWithRole.data":
 		if e.complexity.PaginatedUserDetailsWithRole.Data == nil {
 			break
@@ -3259,6 +3307,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetLatestCohorts(childComplexity, args["user_id"].(*string), args["user_lsp_id"].(*string), args["publish_time"].(*int), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
+
+	case "Query.getLearnerDetails":
+		if e.complexity.Query.GetLearnerDetails == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getLearnerDetails_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetLearnerDetails(childComplexity, args["course_id"].(*string), args["pageCursor"].(*string), args["direction"].(*string), args["pageSize"].(*int)), true
 
 	case "Query.getLearningSpaceDetails":
 		if e.complexity.Query.GetLearningSpaceDetails == nil {
@@ -4441,6 +4501,62 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UserCourse.UserLspID(childComplexity), true
+
+	case "UserCourseAnalytics.assigned_by":
+		if e.complexity.UserCourseAnalytics.AssignedBy == nil {
+			break
+		}
+
+		return e.complexity.UserCourseAnalytics.AssignedBy(childComplexity), true
+
+	case "UserCourseAnalytics.assigned_on":
+		if e.complexity.UserCourseAnalytics.AssignedOn == nil {
+			break
+		}
+
+		return e.complexity.UserCourseAnalytics.AssignedOn(childComplexity), true
+
+	case "UserCourseAnalytics.completion":
+		if e.complexity.UserCourseAnalytics.Completion == nil {
+			break
+		}
+
+		return e.complexity.UserCourseAnalytics.Completion(childComplexity), true
+
+	case "UserCourseAnalytics.email":
+		if e.complexity.UserCourseAnalytics.Email == nil {
+			break
+		}
+
+		return e.complexity.UserCourseAnalytics.Email(childComplexity), true
+
+	case "UserCourseAnalytics.name":
+		if e.complexity.UserCourseAnalytics.Name == nil {
+			break
+		}
+
+		return e.complexity.UserCourseAnalytics.Name(childComplexity), true
+
+	case "UserCourseAnalytics.status":
+		if e.complexity.UserCourseAnalytics.Status == nil {
+			break
+		}
+
+		return e.complexity.UserCourseAnalytics.Status(childComplexity), true
+
+	case "UserCourseAnalytics.time_taken":
+		if e.complexity.UserCourseAnalytics.TimeTaken == nil {
+			break
+		}
+
+		return e.complexity.UserCourseAnalytics.TimeTaken(childComplexity), true
+
+	case "UserCourseAnalytics.timeline_complaint":
+		if e.complexity.UserCourseAnalytics.TimelineComplaint == nil {
+			break
+		}
+
+		return e.complexity.UserCourseAnalytics.TimelineComplaint(childComplexity), true
 
 	case "UserCourseMapStats.lsp_id":
 		if e.complexity.UserCourseMapStats.LspID == nil {
@@ -7183,6 +7299,24 @@ type CourseAnalyticsFacts {
   count: Int
 }
 
+type UserCourseAnalytics {
+  name: String
+  email: String
+  status: String
+  completion: Int
+  assigned_by: String
+  assigned_on: String
+  time_taken: Int
+  timeline_complaint: String
+}
+
+type PaginatedUserCourseAnalytics {
+  data: [UserCourseAnalytics]
+  pageCursor: String
+  direction: String
+  pageSize: Int
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -7367,6 +7501,7 @@ type Query {
     course_id: String
     status: String
   ): CourseAnalyticsFacts
+  getLearnerDetails(course_id: String, pageCursor: String, direction: String, pageSize: Int): PaginatedUserCourseAnalytics
 }
 
 type Mutation {
@@ -8954,6 +9089,48 @@ func (ec *executionContext) field_Query_getLatestCohorts_args(ctx context.Contex
 		}
 	}
 	args["pageSize"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getLearnerDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["course_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("course_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["course_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["pageCursor"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageCursor"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageCursor"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["direction"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("direction"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["direction"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["pageSize"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pageSize"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["pageSize"] = arg3
 	return args, nil
 }
 
@@ -22715,6 +22892,188 @@ func (ec *executionContext) fieldContext_PaginatedNotes_pageSize(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _PaginatedUserCourseAnalytics_data(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedUserCourseAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedUserCourseAnalytics_data(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Data, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.UserCourseAnalytics)
+	fc.Result = res
+	return ec.marshalOUserCourseAnalytics2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserCourseAnalytics(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedUserCourseAnalytics_data(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedUserCourseAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "name":
+				return ec.fieldContext_UserCourseAnalytics_name(ctx, field)
+			case "email":
+				return ec.fieldContext_UserCourseAnalytics_email(ctx, field)
+			case "status":
+				return ec.fieldContext_UserCourseAnalytics_status(ctx, field)
+			case "completion":
+				return ec.fieldContext_UserCourseAnalytics_completion(ctx, field)
+			case "assigned_by":
+				return ec.fieldContext_UserCourseAnalytics_assigned_by(ctx, field)
+			case "assigned_on":
+				return ec.fieldContext_UserCourseAnalytics_assigned_on(ctx, field)
+			case "time_taken":
+				return ec.fieldContext_UserCourseAnalytics_time_taken(ctx, field)
+			case "timeline_complaint":
+				return ec.fieldContext_UserCourseAnalytics_timeline_complaint(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserCourseAnalytics", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginatedUserCourseAnalytics_pageCursor(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedUserCourseAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedUserCourseAnalytics_pageCursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageCursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedUserCourseAnalytics_pageCursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedUserCourseAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginatedUserCourseAnalytics_direction(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedUserCourseAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedUserCourseAnalytics_direction(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Direction, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedUserCourseAnalytics_direction(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedUserCourseAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PaginatedUserCourseAnalytics_pageSize(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedUserCourseAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_PaginatedUserCourseAnalytics_pageSize(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_PaginatedUserCourseAnalytics_pageSize(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PaginatedUserCourseAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PaginatedUserDetailsWithRole_data(ctx context.Context, field graphql.CollectedField, obj *model.PaginatedUserDetailsWithRole) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_PaginatedUserDetailsWithRole_data(ctx, field)
 	if err != nil {
@@ -28232,6 +28591,68 @@ func (ec *executionContext) fieldContext_Query_getCourseAnalyticsDataById(ctx co
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_getLearnerDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getLearnerDetails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetLearnerDetails(rctx, fc.Args["course_id"].(*string), fc.Args["pageCursor"].(*string), fc.Args["direction"].(*string), fc.Args["pageSize"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.PaginatedUserCourseAnalytics)
+	fc.Result = res
+	return ec.marshalOPaginatedUserCourseAnalytics2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedUserCourseAnalytics(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getLearnerDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "data":
+				return ec.fieldContext_PaginatedUserCourseAnalytics_data(ctx, field)
+			case "pageCursor":
+				return ec.fieldContext_PaginatedUserCourseAnalytics_pageCursor(ctx, field)
+			case "direction":
+				return ec.fieldContext_PaginatedUserCourseAnalytics_direction(ctx, field)
+			case "pageSize":
+				return ec.fieldContext_PaginatedUserCourseAnalytics_pageSize(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PaginatedUserCourseAnalytics", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getLearnerDetails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -32120,6 +32541,334 @@ func (ec *executionContext) _UserCourse_updated_at(ctx context.Context, field gr
 func (ec *executionContext) fieldContext_UserCourse_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "UserCourse",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserCourseAnalytics_name(ctx context.Context, field graphql.CollectedField, obj *model.UserCourseAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserCourseAnalytics_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserCourseAnalytics_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserCourseAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserCourseAnalytics_email(ctx context.Context, field graphql.CollectedField, obj *model.UserCourseAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserCourseAnalytics_email(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Email, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserCourseAnalytics_email(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserCourseAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserCourseAnalytics_status(ctx context.Context, field graphql.CollectedField, obj *model.UserCourseAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserCourseAnalytics_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserCourseAnalytics_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserCourseAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserCourseAnalytics_completion(ctx context.Context, field graphql.CollectedField, obj *model.UserCourseAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserCourseAnalytics_completion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Completion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserCourseAnalytics_completion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserCourseAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserCourseAnalytics_assigned_by(ctx context.Context, field graphql.CollectedField, obj *model.UserCourseAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserCourseAnalytics_assigned_by(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AssignedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserCourseAnalytics_assigned_by(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserCourseAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserCourseAnalytics_assigned_on(ctx context.Context, field graphql.CollectedField, obj *model.UserCourseAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserCourseAnalytics_assigned_on(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AssignedOn, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserCourseAnalytics_assigned_on(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserCourseAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserCourseAnalytics_time_taken(ctx context.Context, field graphql.CollectedField, obj *model.UserCourseAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserCourseAnalytics_time_taken(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TimeTaken, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserCourseAnalytics_time_taken(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserCourseAnalytics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserCourseAnalytics_timeline_complaint(ctx context.Context, field graphql.CollectedField, obj *model.UserCourseAnalytics) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserCourseAnalytics_timeline_complaint(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TimelineComplaint, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserCourseAnalytics_timeline_complaint(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserCourseAnalytics",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -48367,6 +49116,43 @@ func (ec *executionContext) _PaginatedNotes(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var paginatedUserCourseAnalyticsImplementors = []string{"PaginatedUserCourseAnalytics"}
+
+func (ec *executionContext) _PaginatedUserCourseAnalytics(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedUserCourseAnalytics) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, paginatedUserCourseAnalyticsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PaginatedUserCourseAnalytics")
+		case "data":
+
+			out.Values[i] = ec._PaginatedUserCourseAnalytics_data(ctx, field, obj)
+
+		case "pageCursor":
+
+			out.Values[i] = ec._PaginatedUserCourseAnalytics_pageCursor(ctx, field, obj)
+
+		case "direction":
+
+			out.Values[i] = ec._PaginatedUserCourseAnalytics_direction(ctx, field, obj)
+
+		case "pageSize":
+
+			out.Values[i] = ec._PaginatedUserCourseAnalytics_pageSize(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var paginatedUserDetailsWithRoleImplementors = []string{"PaginatedUserDetailsWithRole"}
 
 func (ec *executionContext) _PaginatedUserDetailsWithRole(ctx context.Context, sel ast.SelectionSet, obj *model.PaginatedUserDetailsWithRole) graphql.Marshaler {
@@ -49771,6 +50557,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "getLearnerDetails":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getLearnerDetails(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -50406,6 +51212,59 @@ func (ec *executionContext) _UserCourse(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userCourseAnalyticsImplementors = []string{"UserCourseAnalytics"}
+
+func (ec *executionContext) _UserCourseAnalytics(ctx context.Context, sel ast.SelectionSet, obj *model.UserCourseAnalytics) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userCourseAnalyticsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserCourseAnalytics")
+		case "name":
+
+			out.Values[i] = ec._UserCourseAnalytics_name(ctx, field, obj)
+
+		case "email":
+
+			out.Values[i] = ec._UserCourseAnalytics_email(ctx, field, obj)
+
+		case "status":
+
+			out.Values[i] = ec._UserCourseAnalytics_status(ctx, field, obj)
+
+		case "completion":
+
+			out.Values[i] = ec._UserCourseAnalytics_completion(ctx, field, obj)
+
+		case "assigned_by":
+
+			out.Values[i] = ec._UserCourseAnalytics_assigned_by(ctx, field, obj)
+
+		case "assigned_on":
+
+			out.Values[i] = ec._UserCourseAnalytics_assigned_on(ctx, field, obj)
+
+		case "time_taken":
+
+			out.Values[i] = ec._UserCourseAnalytics_time_taken(ctx, field, obj)
+
+		case "timeline_complaint":
+
+			out.Values[i] = ec._UserCourseAnalytics_timeline_complaint(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -53826,6 +54685,13 @@ func (ec *executionContext) marshalOPaginatedNotes2ᚖgithubᚗcomᚋzicopsᚋzi
 	return ec._PaginatedNotes(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOPaginatedUserCourseAnalytics2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedUserCourseAnalytics(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedUserCourseAnalytics) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PaginatedUserCourseAnalytics(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOPaginatedUserDetailsWithRole2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐPaginatedUserDetailsWithRole(ctx context.Context, sel ast.SelectionSet, v *model.PaginatedUserDetailsWithRole) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -54288,6 +55154,54 @@ func (ec *executionContext) marshalOUserCourse2ᚖgithubᚗcomᚋzicopsᚋzicops
 		return graphql.Null
 	}
 	return ec._UserCourse(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUserCourseAnalytics2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserCourseAnalytics(ctx context.Context, sel ast.SelectionSet, v []*model.UserCourseAnalytics) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOUserCourseAnalytics2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserCourseAnalytics(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOUserCourseAnalytics2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserCourseAnalytics(ctx context.Context, sel ast.SelectionSet, v *model.UserCourseAnalytics) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UserCourseAnalytics(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOUserCourseInput2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐUserCourseInput(ctx context.Context, v interface{}) (*model.UserCourseInput, error) {

@@ -1090,6 +1090,24 @@ type CourseAnalyticsFacts {
   count: Int
 }
 
+type UserCourseAnalytics {
+  name: String
+  email: String
+  status: String
+  completion: Int
+  assigned_by: String
+  assigned_on: String
+  time_taken: Int
+  timeline_complaint: String
+}
+
+type PaginatedUserCourseAnalytics {
+  data: [UserCourseAnalytics]
+  pageCursor: String
+  direction: String
+  pageSize: Int
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -1274,6 +1292,7 @@ type Query {
     course_id: String
     status: String
   ): CourseAnalyticsFacts
+  getLearnerDetails(course_id: String, pageCursor: String, direction: String, pageSize: Int): PaginatedUserCourseAnalytics
 }
 
 type Mutation {

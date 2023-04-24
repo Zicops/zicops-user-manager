@@ -7,39 +7,39 @@ import (
 )
 
 type Crt struct {
-	CrtID              *string   `json:"crt_id,omitempty"`
+	CrtID              *string   `json:"crt_id"`
 	VendorID           string    `json:"vendor_id"`
-	Description        *string   `json:"description,omitempty"`
-	IsApplicable       *bool     `json:"is_applicable,omitempty"`
-	Expertise          []*string `json:"expertise,omitempty"`
-	Languages          []*string `json:"languages,omitempty"`
-	OutputDeliveries   []*string `json:"output_deliveries,omitempty"`
-	SampleFiles        []*string `json:"sample_files,omitempty"`
-	IsExpertiseOnline  *bool     `json:"is_expertise_online,omitempty"`
-	IsExpertiseOffline *bool     `json:"is_expertise_offline,omitempty"`
-	CreatedAt          *string   `json:"created_at,omitempty"`
-	CreatedBy          *string   `json:"created_by,omitempty"`
-	UpdatedAt          *string   `json:"updated_at,omitempty"`
-	UpdatedBy          *string   `json:"updated_by,omitempty"`
-	Status             *string   `json:"status,omitempty"`
+	Description        *string   `json:"description"`
+	IsApplicable       *bool     `json:"is_applicable"`
+	Expertise          []*string `json:"expertise"`
+	Languages          []*string `json:"languages"`
+	OutputDeliveries   []*string `json:"output_deliveries"`
+	SampleFiles        []*string `json:"sample_files"`
+	IsExpertiseOnline  *bool     `json:"is_expertise_online"`
+	IsExpertiseOffline *bool     `json:"is_expertise_offline"`
+	CreatedAt          *string   `json:"created_at"`
+	CreatedBy          *string   `json:"created_by"`
+	UpdatedAt          *string   `json:"updated_at"`
+	UpdatedBy          *string   `json:"updated_by"`
+	Status             *string   `json:"status"`
 }
 
 type CRTInput struct {
-	CrtID              *string   `json:"crt_id,omitempty"`
+	CrtID              *string   `json:"crt_id"`
 	VendorID           string    `json:"vendor_id"`
-	Description        *string   `json:"description,omitempty"`
-	IsApplicable       *bool     `json:"is_applicable,omitempty"`
-	Expertise          []*string `json:"expertise,omitempty"`
-	Languages          []*string `json:"languages,omitempty"`
-	OutputDeliveries   []*string `json:"output_deliveries,omitempty"`
-	SampleFiles        []*string `json:"sample_files,omitempty"`
-	IsExpertiseOnline  *bool     `json:"is_expertise_online,omitempty"`
-	IsExpertiseOffline *bool     `json:"is_expertise_offline,omitempty"`
-	Status             *string   `json:"status,omitempty"`
+	Description        *string   `json:"description"`
+	IsApplicable       *bool     `json:"is_applicable"`
+	Expertise          []*string `json:"expertise"`
+	Languages          []*string `json:"languages"`
+	OutputDeliveries   []*string `json:"output_deliveries"`
+	SampleFiles        []*string `json:"sample_files"`
+	IsExpertiseOnline  *bool     `json:"is_expertise_online"`
+	IsExpertiseOffline *bool     `json:"is_expertise_offline"`
+	Status             *string   `json:"status"`
 }
 
 type CohortMain struct {
-	CohortID    *string `json:"cohort_id,omitempty"`
+	CohortID    *string `json:"cohort_id"`
 	Name        string  `json:"name"`
 	Description string  `json:"description"`
 	LspID       string  `json:"lsp_id"`
@@ -47,16 +47,16 @@ type CohortMain struct {
 	Status      string  `json:"status"`
 	Type        string  `json:"type"`
 	IsActive    bool    `json:"is_active"`
-	CreatedBy   *string `json:"created_by,omitempty"`
-	UpdatedBy   *string `json:"updated_by,omitempty"`
+	CreatedBy   *string `json:"created_by"`
+	UpdatedBy   *string `json:"updated_by"`
 	CreatedAt   string  `json:"created_at"`
 	UpdatedAt   string  `json:"updated_at"`
 	Size        int     `json:"size"`
-	ImageURL    *string `json:"imageUrl,omitempty"`
+	ImageURL    *string `json:"imageUrl"`
 }
 
 type CohortMainInput struct {
-	CohortID    *string         `json:"cohort_id,omitempty"`
+	CohortID    *string         `json:"cohort_id"`
 	Name        string          `json:"name"`
 	Description string          `json:"description"`
 	LspID       string          `json:"lsp_id"`
@@ -64,43 +64,43 @@ type CohortMainInput struct {
 	Status      string          `json:"status"`
 	Type        string          `json:"type"`
 	IsActive    bool            `json:"is_active"`
-	CreatedBy   *string         `json:"created_by,omitempty"`
-	UpdatedBy   *string         `json:"updated_by,omitempty"`
+	CreatedBy   *string         `json:"created_by"`
+	UpdatedBy   *string         `json:"updated_by"`
 	Size        int             `json:"size"`
-	Image       *graphql.Upload `json:"image,omitempty"`
-	ImageURL    *string         `json:"imageUrl,omitempty"`
+	Image       *graphql.Upload `json:"image"`
+	ImageURL    *string         `json:"imageUrl"`
 }
 
 type ContentDevelopment struct {
-	CdID               *string   `json:"cd_id,omitempty"`
-	VendorID           *string   `json:"vendor_id,omitempty"`
-	Description        *string   `json:"description,omitempty"`
-	IsApplicable       *bool     `json:"is_applicable,omitempty"`
-	Expertise          []*string `json:"expertise,omitempty"`
-	Languages          []*string `json:"languages,omitempty"`
-	OutputDeliveries   []*string `json:"output_deliveries,omitempty"`
-	SampleFiles        []*string `json:"sample_files,omitempty"`
-	IsExpertiseOnline  *bool     `json:"is_expertise_online,omitempty"`
-	IsExpertiseOffline *bool     `json:"is_expertise_offline,omitempty"`
-	CreatedAt          *string   `json:"created_at,omitempty"`
-	CreatedBy          *string   `json:"created_by,omitempty"`
-	UpdatedAt          *string   `json:"updated_at,omitempty"`
-	UpdatedBy          *string   `json:"updated_by,omitempty"`
-	Status             *string   `json:"status,omitempty"`
+	CdID               *string   `json:"cd_id"`
+	VendorID           *string   `json:"vendor_id"`
+	Description        *string   `json:"description"`
+	IsApplicable       *bool     `json:"is_applicable"`
+	Expertise          []*string `json:"expertise"`
+	Languages          []*string `json:"languages"`
+	OutputDeliveries   []*string `json:"output_deliveries"`
+	SampleFiles        []*string `json:"sample_files"`
+	IsExpertiseOnline  *bool     `json:"is_expertise_online"`
+	IsExpertiseOffline *bool     `json:"is_expertise_offline"`
+	CreatedAt          *string   `json:"created_at"`
+	CreatedBy          *string   `json:"created_by"`
+	UpdatedAt          *string   `json:"updated_at"`
+	UpdatedBy          *string   `json:"updated_by"`
+	Status             *string   `json:"status"`
 }
 
 type ContentDevelopmentInput struct {
-	CdID               *string   `json:"cd_id,omitempty"`
+	CdID               *string   `json:"cd_id"`
 	VendorID           string    `json:"vendor_id"`
-	Description        *string   `json:"description,omitempty"`
-	IsApplicable       *bool     `json:"is_applicable,omitempty"`
-	Expertise          []*string `json:"expertise,omitempty"`
-	Languages          []*string `json:"languages,omitempty"`
-	OutputDeliveries   []*string `json:"output_deliveries,omitempty"`
-	SampleFiles        []*string `json:"sample_files,omitempty"`
-	IsExpertiseOnline  *bool     `json:"is_expertise_online,omitempty"`
-	IsExpertiseOffline *bool     `json:"is_expertise_offline,omitempty"`
-	Status             *string   `json:"status,omitempty"`
+	Description        *string   `json:"description"`
+	IsApplicable       *bool     `json:"is_applicable"`
+	Expertise          []*string `json:"expertise"`
+	Languages          []*string `json:"languages"`
+	OutputDeliveries   []*string `json:"output_deliveries"`
+	SampleFiles        []*string `json:"sample_files"`
+	IsExpertiseOnline  *bool     `json:"is_expertise_online"`
+	IsExpertiseOffline *bool     `json:"is_expertise_offline"`
+	Status             *string   `json:"status"`
 }
 
 type Count struct {
@@ -109,198 +109,198 @@ type Count struct {
 }
 
 type CourseAnalyticsFacts struct {
-	CourseID *string `json:"course_id,omitempty"`
-	Status   *string `json:"status,omitempty"`
-	Count    *int    `json:"count,omitempty"`
+	CourseID *string `json:"course_id"`
+	Status   *string `json:"status"`
+	Count    *int    `json:"count"`
 }
 
 type CourseConsumptionStats struct {
-	ID                     *string `json:"ID,omitempty"`
-	LspID                  *string `json:"LspId,omitempty"`
-	CourseID               *string `json:"CourseId,omitempty"`
-	Category               *string `json:"Category,omitempty"`
-	SubCategory            *string `json:"SubCategory,omitempty"`
-	Owner                  *string `json:"Owner,omitempty"`
-	Duration               *int    `json:"Duration,omitempty"`
-	TotalLearners          *int    `json:"TotalLearners,omitempty"`
-	ActiveLearners         *int    `json:"ActiveLearners,omitempty"`
-	CompletedLearners      *int    `json:"CompletedLearners,omitempty"`
-	ExpectedCompletionTime *int    `json:"ExpectedCompletionTime,omitempty"`
-	AverageCompletionTime  *int    `json:"AverageCompletionTime,omitempty"`
-	AverageComplianceScore *int    `json:"AverageComplianceScore,omitempty"`
-	CreatedAt              *int    `json:"CreatedAt,omitempty"`
-	UpdatedAt              *int    `json:"UpdatedAt,omitempty"`
-	CreatedBy              *string `json:"CreatedBy,omitempty"`
-	UpdatedBy              *string `json:"UpdatedBy,omitempty"`
+	ID                     *string `json:"ID"`
+	LspID                  *string `json:"LspId"`
+	CourseID               *string `json:"CourseId"`
+	Category               *string `json:"Category"`
+	SubCategory            *string `json:"SubCategory"`
+	Owner                  *string `json:"Owner"`
+	Duration               *int    `json:"Duration"`
+	TotalLearners          *int    `json:"TotalLearners"`
+	ActiveLearners         *int    `json:"ActiveLearners"`
+	CompletedLearners      *int    `json:"CompletedLearners"`
+	ExpectedCompletionTime *int    `json:"ExpectedCompletionTime"`
+	AverageCompletionTime  *int    `json:"AverageCompletionTime"`
+	AverageComplianceScore *int    `json:"AverageComplianceScore"`
+	CreatedAt              *int    `json:"CreatedAt"`
+	UpdatedAt              *int    `json:"UpdatedAt"`
+	CreatedBy              *string `json:"CreatedBy"`
+	UpdatedBy              *string `json:"UpdatedBy"`
 }
 
 type CourseCountStats struct {
-	LspID        *string `json:"lsp_id,omitempty"`
-	CourseStatus *string `json:"course_status,omitempty"`
-	CourseType   *string `json:"course_type,omitempty"`
-	Count        *int    `json:"count,omitempty"`
+	LspID        *string `json:"lsp_id"`
+	CourseStatus *string `json:"course_status"`
+	CourseType   *string `json:"course_type"`
+	Count        *int    `json:"count"`
 }
 
 type CourseMapFilters struct {
-	LspID       []*string `json:"lsp_id,omitempty"`
-	IsMandatory *bool     `json:"is_mandatory,omitempty"`
-	Status      *string   `json:"status,omitempty"`
-	Type        *string   `json:"type,omitempty"`
+	LspID       []*string `json:"lsp_id"`
+	IsMandatory *bool     `json:"is_mandatory"`
+	Status      *string   `json:"status"`
+	Type        *string   `json:"type"`
 }
 
 type CourseViews struct {
-	Seconds    *int      `json:"seconds,omitempty"`
-	CreatedAt  *string   `json:"created_at,omitempty"`
-	LspID      *string   `json:"lsp_id,omitempty"`
-	UserIds    []*string `json:"user_ids,omitempty"`
-	DateString *string   `json:"date_string,omitempty"`
+	Seconds    *int      `json:"seconds"`
+	CreatedAt  *string   `json:"created_at"`
+	LspID      *string   `json:"lsp_id"`
+	UserIds    []*string `json:"user_ids"`
+	DateString *string   `json:"date_string"`
 }
 
 type ExamAttemptsFilters struct {
-	AttemptStatus *string `json:"attempt_status,omitempty"`
+	AttemptStatus *string `json:"attempt_status"`
 }
 
 type ExperienceInput struct {
-	ExpID           *string `json:"exp_id,omitempty"`
-	VendorID        *string `json:"vendor_id,omitempty"`
+	ExpID           *string `json:"exp_id"`
+	VendorID        *string `json:"vendor_id"`
 	Email           string  `json:"email"`
-	Title           *string `json:"title,omitempty"`
-	CompanyName     *string `json:"company_name,omitempty"`
-	EmployementType *string `json:"employement_type,omitempty"`
-	Location        *string `json:"location,omitempty"`
-	LocationType    *string `json:"location_type,omitempty"`
-	StartDate       *int    `json:"start_date,omitempty"`
-	EndDate         *int    `json:"end_date,omitempty"`
-	Status          *string `json:"status,omitempty"`
+	Title           *string `json:"title"`
+	CompanyName     *string `json:"company_name"`
+	EmployementType *string `json:"employement_type"`
+	Location        *string `json:"location"`
+	LocationType    *string `json:"location_type"`
+	StartDate       *int    `json:"start_date"`
+	EndDate         *int    `json:"end_date"`
+	Status          *string `json:"status"`
 }
 
 type ExperienceVendor struct {
 	ExpID           string  `json:"ExpId"`
 	VendorID        string  `json:"VendorId"`
 	PfID            string  `json:"PfId"`
-	StartDate       *int    `json:"StartDate,omitempty"`
-	EndDate         *int    `json:"EndDate,omitempty"`
-	Title           *string `json:"Title,omitempty"`
-	Location        *string `json:"Location,omitempty"`
-	LocationType    *string `json:"LocationType,omitempty"`
-	EmployementType *string `json:"EmployementType,omitempty"`
-	CompanyName     *string `json:"CompanyName,omitempty"`
-	CreatedAt       *string `json:"CreatedAt,omitempty"`
-	CreatedBy       *string `json:"CreatedBy,omitempty"`
-	UpdatedAt       *string `json:"UpdatedAt,omitempty"`
-	UpdatedBy       *string `json:"UpdatedBy,omitempty"`
-	Status          *string `json:"Status,omitempty"`
+	StartDate       *int    `json:"StartDate"`
+	EndDate         *int    `json:"EndDate"`
+	Title           *string `json:"Title"`
+	Location        *string `json:"Location"`
+	LocationType    *string `json:"LocationType"`
+	EmployementType *string `json:"EmployementType"`
+	CompanyName     *string `json:"CompanyName"`
+	CreatedAt       *string `json:"CreatedAt"`
+	CreatedBy       *string `json:"CreatedBy"`
+	UpdatedAt       *string `json:"UpdatedAt"`
+	UpdatedBy       *string `json:"UpdatedBy"`
+	Status          *string `json:"Status"`
 }
 
 type InviteResponse struct {
-	Email     *string `json:"email,omitempty"`
-	UserID    *string `json:"user_id,omitempty"`
-	UserLspID *string `json:"user_lsp_id,omitempty"`
+	Email     *string `json:"email"`
+	UserID    *string `json:"user_id"`
+	UserLspID *string `json:"user_lsp_id"`
 	Message   string  `json:"message"`
 }
 
 type LearningSpace struct {
-	LspID      *string   `json:"lsp_id,omitempty"`
+	LspID      *string   `json:"lsp_id"`
 	OrgID      string    `json:"org_id"`
 	OuID       string    `json:"ou_id"`
 	Name       string    `json:"name"`
-	LogoURL    *string   `json:"logo_url,omitempty"`
-	ProfileURL *string   `json:"profile_url,omitempty"`
+	LogoURL    *string   `json:"logo_url"`
+	ProfileURL *string   `json:"profile_url"`
 	NoUsers    int       `json:"no_users"`
-	Owners     []*string `json:"owners,omitempty"`
+	Owners     []*string `json:"owners"`
 	IsDefault  bool      `json:"is_default"`
 	Status     string    `json:"status"`
 	CreatedAt  string    `json:"created_at"`
 	UpdatedAt  string    `json:"updated_at"`
-	CreatedBy  *string   `json:"created_by,omitempty"`
-	UpdatedBy  *string   `json:"updated_by,omitempty"`
+	CreatedBy  *string   `json:"created_by"`
+	UpdatedBy  *string   `json:"updated_by"`
 }
 
 type LearningSpaceInput struct {
-	LspID      *string         `json:"lsp_id,omitempty"`
+	LspID      *string         `json:"lsp_id"`
 	Type       string          `json:"type"`
 	OrgID      string          `json:"org_id"`
 	OuID       string          `json:"ou_id"`
 	Name       string          `json:"name"`
-	LogoURL    *string         `json:"logo_url,omitempty"`
-	Logo       *graphql.Upload `json:"logo,omitempty"`
-	ProfileURL *string         `json:"profile_url,omitempty"`
-	Profile    *graphql.Upload `json:"profile,omitempty"`
+	LogoURL    *string         `json:"logo_url"`
+	Logo       *graphql.Upload `json:"logo"`
+	ProfileURL *string         `json:"profile_url"`
+	Profile    *graphql.Upload `json:"profile"`
 	NoUsers    int             `json:"no_users"`
-	Owners     []*string       `json:"owners,omitempty"`
+	Owners     []*string       `json:"owners"`
 	IsDefault  bool            `json:"is_default"`
 	Status     string          `json:"status"`
-	CreatedBy  *string         `json:"created_by,omitempty"`
-	UpdatedBy  *string         `json:"updated_by,omitempty"`
+	CreatedBy  *string         `json:"created_by"`
+	UpdatedBy  *string         `json:"updated_by"`
 }
 
 type OrderServices struct {
-	ServiceID   *string `json:"service_id,omitempty"`
-	OrderID     *string `json:"order_id,omitempty"`
-	ServiceType *string `json:"service_type,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Unit        *string `json:"unit,omitempty"`
-	Currency    *string `json:"currency,omitempty"`
-	Rate        *int    `json:"rate,omitempty"`
-	Quantity    *int    `json:"quantity,omitempty"`
-	Total       *int    `json:"total,omitempty"`
-	CreatedAt   *string `json:"created_at,omitempty"`
-	CreatedBy   *string `json:"created_by,omitempty"`
-	UpdatedAt   *string `json:"updated_at,omitempty"`
-	UpdatedBy   *string `json:"updated_by,omitempty"`
-	Status      *string `json:"status,omitempty"`
+	ServiceID   *string `json:"service_id"`
+	OrderID     *string `json:"order_id"`
+	ServiceType *string `json:"service_type"`
+	Description *string `json:"description"`
+	Unit        *string `json:"unit"`
+	Currency    *string `json:"currency"`
+	Rate        *int    `json:"rate"`
+	Quantity    *int    `json:"quantity"`
+	Total       *int    `json:"total"`
+	CreatedAt   *string `json:"created_at"`
+	CreatedBy   *string `json:"created_by"`
+	UpdatedAt   *string `json:"updated_at"`
+	UpdatedBy   *string `json:"updated_by"`
+	Status      *string `json:"status"`
 }
 
 type OrderServicesInput struct {
-	ServiceID   *string `json:"service_id,omitempty"`
-	OrderID     *string `json:"order_id,omitempty"`
-	ServiceType *string `json:"service_type,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Unit        *string `json:"unit,omitempty"`
-	Currency    *string `json:"currency,omitempty"`
-	Rate        *int    `json:"rate,omitempty"`
-	Quantity    *int    `json:"quantity,omitempty"`
-	Total       *int    `json:"total,omitempty"`
-	Status      *string `json:"status,omitempty"`
+	ServiceID   *string `json:"service_id"`
+	OrderID     *string `json:"order_id"`
+	ServiceType *string `json:"service_type"`
+	Description *string `json:"description"`
+	Unit        *string `json:"unit"`
+	Currency    *string `json:"currency"`
+	Rate        *int    `json:"rate"`
+	Quantity    *int    `json:"quantity"`
+	Total       *int    `json:"total"`
+	Status      *string `json:"status"`
 }
 
 type Organization struct {
-	OrgID         *string `json:"org_id,omitempty"`
+	OrgID         *string `json:"org_id"`
 	Name          string  `json:"name"`
-	LogoURL       *string `json:"logo_url,omitempty"`
+	LogoURL       *string `json:"logo_url"`
 	Industry      string  `json:"industry"`
 	Type          string  `json:"type"`
 	Subdomain     string  `json:"subdomain"`
 	EmployeeCount int     `json:"employee_count"`
 	Website       string  `json:"website"`
-	LinkedinURL   *string `json:"linkedin_url,omitempty"`
-	FacebookURL   *string `json:"facebook_url,omitempty"`
-	TwitterURL    *string `json:"twitter_url,omitempty"`
+	LinkedinURL   *string `json:"linkedin_url"`
+	FacebookURL   *string `json:"facebook_url"`
+	TwitterURL    *string `json:"twitter_url"`
 	Status        string  `json:"status"`
 	CreatedAt     string  `json:"created_at"`
 	UpdatedAt     string  `json:"updated_at"`
-	CreatedBy     *string `json:"created_by,omitempty"`
-	UpdatedBy     *string `json:"updated_by,omitempty"`
+	CreatedBy     *string `json:"created_by"`
+	UpdatedBy     *string `json:"updated_by"`
 }
 
 type OrganizationInput struct {
-	OrgID         *string         `json:"org_id,omitempty"`
+	OrgID         *string         `json:"org_id"`
 	Name          string          `json:"name"`
-	LogoURL       *string         `json:"logo_url,omitempty"`
+	LogoURL       *string         `json:"logo_url"`
 	Industry      string          `json:"industry"`
 	Type          string          `json:"type"`
 	Subdomain     string          `json:"subdomain"`
 	EmployeeCount int             `json:"employee_count"`
 	Website       string          `json:"website"`
-	LinkedinURL   *string         `json:"linkedin_url,omitempty"`
-	FacebookURL   *string         `json:"facebook_url,omitempty"`
-	TwitterURL    *string         `json:"twitter_url,omitempty"`
+	LinkedinURL   *string         `json:"linkedin_url"`
+	FacebookURL   *string         `json:"facebook_url"`
+	TwitterURL    *string         `json:"twitter_url"`
 	Status        string          `json:"status"`
-	Logo          *graphql.Upload `json:"logo,omitempty"`
+	Logo          *graphql.Upload `json:"logo"`
 }
 
 type OrganizationUnit struct {
-	OuID       *string `json:"ou_id,omitempty"`
+	OuID       *string `json:"ou_id"`
 	OrgID      string  `json:"org_id"`
 	EmpCount   int     `json:"emp_count"`
 	Address    string  `json:"address"`
@@ -311,12 +311,12 @@ type OrganizationUnit struct {
 	Status     string  `json:"status"`
 	CreatedAt  string  `json:"created_at"`
 	UpdatedAt  string  `json:"updated_at"`
-	CreatedBy  *string `json:"created_by,omitempty"`
-	UpdatedBy  *string `json:"updated_by,omitempty"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedBy  *string `json:"updated_by"`
 }
 
 type OrganizationUnitInput struct {
-	OuID       *string `json:"ou_id,omitempty"`
+	OuID       *string `json:"ou_id"`
 	OrgID      string  `json:"org_id"`
 	EmpCount   int     `json:"emp_count"`
 	Address    string  `json:"address"`
@@ -325,161 +325,168 @@ type OrganizationUnitInput struct {
 	Country    string  `json:"country"`
 	PostalCode string  `json:"postal_code"`
 	Status     string  `json:"status"`
-	CreatedBy  *string `json:"created_by,omitempty"`
-	UpdatedBy  *string `json:"updated_by,omitempty"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedBy  *string `json:"updated_by"`
 }
 
 type PaginatedBookmarks struct {
-	Bookmarks  []*UserBookmark `json:"bookmarks,omitempty"`
-	PageCursor *string         `json:"pageCursor,omitempty"`
-	Direction  *string         `json:"direction,omitempty"`
-	PageSize   *int            `json:"pageSize,omitempty"`
+	Bookmarks  []*UserBookmark `json:"bookmarks"`
+	PageCursor *string         `json:"pageCursor"`
+	Direction  *string         `json:"direction"`
+	PageSize   *int            `json:"pageSize"`
 }
 
 type PaginatedCCStats struct {
-	Stats      []*CourseConsumptionStats `json:"stats,omitempty"`
-	PageCursor *string                   `json:"pageCursor,omitempty"`
-	Direction  *string                   `json:"direction,omitempty"`
-	PageSize   *int                      `json:"pageSize,omitempty"`
+	Stats      []*CourseConsumptionStats `json:"stats"`
+	PageCursor *string                   `json:"pageCursor"`
+	Direction  *string                   `json:"direction"`
+	PageSize   *int                      `json:"pageSize"`
 }
 
 type PaginatedCohorts struct {
-	Cohorts    []*UserCohort `json:"cohorts,omitempty"`
-	PageCursor *string       `json:"pageCursor,omitempty"`
-	Direction  *string       `json:"direction,omitempty"`
-	PageSize   *int          `json:"pageSize,omitempty"`
+	Cohorts    []*UserCohort `json:"cohorts"`
+	PageCursor *string       `json:"pageCursor"`
+	Direction  *string       `json:"direction"`
+	PageSize   *int          `json:"pageSize"`
 }
 
 type PaginatedCohortsMain struct {
-	Cohorts    []*CohortMain `json:"cohorts,omitempty"`
-	PageCursor *string       `json:"pageCursor,omitempty"`
-	Direction  *string       `json:"direction,omitempty"`
-	PageSize   *int          `json:"pageSize,omitempty"`
+	Cohorts    []*CohortMain `json:"cohorts"`
+	PageCursor *string       `json:"pageCursor"`
+	Direction  *string       `json:"direction"`
+	PageSize   *int          `json:"pageSize"`
 }
 
 type PaginatedCourseMaps struct {
-	UserCourses []*UserCourse `json:"user_courses,omitempty"`
-	PageCursor  *string       `json:"pageCursor,omitempty"`
-	Direction   *string       `json:"direction,omitempty"`
-	PageSize    *int          `json:"pageSize,omitempty"`
+	UserCourses []*UserCourse `json:"user_courses"`
+	PageCursor  *string       `json:"pageCursor"`
+	Direction   *string       `json:"direction"`
+	PageSize    *int          `json:"pageSize"`
 }
 
 type PaginatedNotes struct {
-	Notes      []*UserNotes `json:"notes,omitempty"`
-	PageCursor *string      `json:"pageCursor,omitempty"`
-	Direction  *string      `json:"direction,omitempty"`
-	PageSize   *int         `json:"pageSize,omitempty"`
+	Notes      []*UserNotes `json:"notes"`
+	PageCursor *string      `json:"pageCursor"`
+	Direction  *string      `json:"direction"`
+	PageSize   *int         `json:"pageSize"`
+}
+
+type PaginatedUserCourseAnalytics struct {
+	Data       []*UserCourseAnalytics `json:"data"`
+	PageCursor *string                `json:"pageCursor"`
+	Direction  *string                `json:"direction"`
+	PageSize   *int                   `json:"pageSize"`
 }
 
 type PaginatedUserDetailsWithRole struct {
-	Data       []*UserDetailsRole `json:"data,omitempty"`
-	PageCursor *string            `json:"pageCursor,omitempty"`
-	Direction  *string            `json:"direction,omitempty"`
-	PageSize   *int               `json:"pageSize,omitempty"`
+	Data       []*UserDetailsRole `json:"data"`
+	PageCursor *string            `json:"pageCursor"`
+	Direction  *string            `json:"direction"`
+	PageSize   *int               `json:"pageSize"`
 }
 
 type PaginatedUserLspMaps struct {
-	UserLspMaps []*UserLspMap `json:"user_lsp_maps,omitempty"`
-	PageCursor  *string       `json:"pageCursor,omitempty"`
-	Direction   *string       `json:"direction,omitempty"`
-	PageSize    *int          `json:"pageSize,omitempty"`
+	UserLspMaps []*UserLspMap `json:"user_lsp_maps"`
+	PageCursor  *string       `json:"pageCursor"`
+	Direction   *string       `json:"direction"`
+	PageSize    *int          `json:"pageSize"`
 }
 
 type PaginatedUsers struct {
-	Users      []*User `json:"users,omitempty"`
-	PageCursor *string `json:"pageCursor,omitempty"`
-	Direction  *string `json:"direction,omitempty"`
-	PageSize   *int    `json:"pageSize,omitempty"`
+	Users      []*User `json:"users"`
+	PageCursor *string `json:"pageCursor"`
+	Direction  *string `json:"direction"`
+	PageSize   *int    `json:"pageSize"`
 }
 
 type PaginatedVendorOrder struct {
-	Orders     []*VendorOrder `json:"orders,omitempty"`
-	PageCursor *string        `json:"pageCursor,omitempty"`
-	Direction  *string        `json:"direction,omitempty"`
-	PageSize   *int           `json:"pageSize,omitempty"`
+	Orders     []*VendorOrder `json:"orders"`
+	PageCursor *string        `json:"pageCursor"`
+	Direction  *string        `json:"direction"`
+	PageSize   *int           `json:"pageSize"`
 }
 
 type PaginatedVendors struct {
-	Vendors    []*Vendor `json:"vendors,omitempty"`
-	PageCursor *string   `json:"pageCursor,omitempty"`
-	Direction  *string   `json:"direction,omitempty"`
-	PageSize   *int      `json:"pageSize,omitempty"`
+	Vendors    []*Vendor `json:"vendors"`
+	PageCursor *string   `json:"pageCursor"`
+	Direction  *string   `json:"direction"`
+	PageSize   *int      `json:"pageSize"`
 }
 
 type RoleData struct {
-	UserRoleID *string `json:"user_role_id,omitempty"`
-	Role       *string `json:"role,omitempty"`
-	UserLspID  *string `json:"user_lsp_id,omitempty"`
-	UpdatedAt  *string `json:"updated_at,omitempty"`
+	UserRoleID *string `json:"user_role_id"`
+	Role       *string `json:"role"`
+	UserLspID  *string `json:"user_lsp_id"`
+	UpdatedAt  *string `json:"updated_at"`
 }
 
 type Sme struct {
-	VendorID           *string   `json:"vendor_id,omitempty"`
-	SmeID              *string   `json:"sme_id,omitempty"`
-	Description        *string   `json:"description,omitempty"`
-	IsApplicable       *bool     `json:"is_applicable,omitempty"`
-	Expertise          []*string `json:"expertise,omitempty"`
-	Languages          []*string `json:"languages,omitempty"`
-	OutputDeliveries   []*string `json:"output_deliveries,omitempty"`
-	SampleFiles        []*string `json:"sample_files,omitempty"`
-	IsExpertiseOnline  *bool     `json:"is_expertise_online,omitempty"`
-	IsExpertiseOffline *bool     `json:"is_expertise_offline,omitempty"`
-	CreatedAt          *string   `json:"created_at,omitempty"`
-	CreatedBy          *string   `json:"created_by,omitempty"`
-	UpdatedAt          *string   `json:"updated_at,omitempty"`
-	UpdatedBy          *string   `json:"updated_by,omitempty"`
-	Status             *string   `json:"status,omitempty"`
+	VendorID           *string   `json:"vendor_id"`
+	SmeID              *string   `json:"sme_id"`
+	Description        *string   `json:"description"`
+	IsApplicable       *bool     `json:"is_applicable"`
+	Expertise          []*string `json:"expertise"`
+	Languages          []*string `json:"languages"`
+	OutputDeliveries   []*string `json:"output_deliveries"`
+	SampleFiles        []*string `json:"sample_files"`
+	IsExpertiseOnline  *bool     `json:"is_expertise_online"`
+	IsExpertiseOffline *bool     `json:"is_expertise_offline"`
+	CreatedAt          *string   `json:"created_at"`
+	CreatedBy          *string   `json:"created_by"`
+	UpdatedAt          *string   `json:"updated_at"`
+	UpdatedBy          *string   `json:"updated_by"`
+	Status             *string   `json:"status"`
 }
 
 type SMEInput struct {
 	VendorID           string    `json:"vendor_id"`
-	SmeID              *string   `json:"sme_id,omitempty"`
-	Description        *string   `json:"description,omitempty"`
-	IsApplicable       *bool     `json:"is_applicable,omitempty"`
-	Expertise          []*string `json:"expertise,omitempty"`
-	Languages          []*string `json:"languages,omitempty"`
-	OutputDeliveries   []*string `json:"output_deliveries,omitempty"`
-	SampleFiles        []*string `json:"sample_files,omitempty"`
-	IsExpertiseOnline  *bool     `json:"is_expertise_online,omitempty"`
-	IsExpertiseOffline *bool     `json:"is_expertise_offline,omitempty"`
-	Status             *string   `json:"Status,omitempty"`
+	SmeID              *string   `json:"sme_id"`
+	Description        *string   `json:"description"`
+	IsApplicable       *bool     `json:"is_applicable"`
+	Expertise          []*string `json:"expertise"`
+	Languages          []*string `json:"languages"`
+	OutputDeliveries   []*string `json:"output_deliveries"`
+	SampleFiles        []*string `json:"sample_files"`
+	IsExpertiseOnline  *bool     `json:"is_expertise_online"`
+	IsExpertiseOffline *bool     `json:"is_expertise_offline"`
+	Status             *string   `json:"Status"`
 }
 
 type SampleFile struct {
 	SfID           string  `json:"sf_id"`
-	Name           *string `json:"name,omitempty"`
-	FileType       *string `json:"fileType,omitempty"`
-	Price          *string `json:"price,omitempty"`
-	PType          *string `json:"p_type,omitempty"`
-	Description    *string `json:"description,omitempty"`
-	FileURL        *string `json:"file_url,omitempty"`
-	CreatedAt      *string `json:"created_at,omitempty"`
-	CreatedBy      *string `json:"created_by,omitempty"`
-	UpdatedAt      *string `json:"updated_at,omitempty"`
-	UpdatedBy      *string `json:"updated_by,omitempty"`
-	Status         *string `json:"status,omitempty"`
-	Rate           *int    `json:"rate,omitempty"`
-	Currency       *string `json:"currency,omitempty"`
-	Unit           *string `json:"unit,omitempty"`
-	ActualFileType *string `json:"actualFileType,omitempty"`
+	Name           *string `json:"name"`
+	FileType       *string `json:"fileType"`
+	Price          *string `json:"price"`
+	PType          *string `json:"p_type"`
+	Description    *string `json:"description"`
+	FileURL        *string `json:"file_url"`
+	CreatedAt      *string `json:"created_at"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedAt      *string `json:"updated_at"`
+	UpdatedBy      *string `json:"updated_by"`
+	Status         *string `json:"status"`
+	Rate           *int    `json:"rate"`
+	Currency       *string `json:"currency"`
+	Unit           *string `json:"unit"`
+	ActualFileType *string `json:"actualFileType"`
 }
 
 type SampleFileInput struct {
 	File        graphql.Upload `json:"file"`
 	Name        string         `json:"name"`
-	Description *string        `json:"description,omitempty"`
+	Description *string        `json:"description"`
 	Pricing     string         `json:"pricing"`
-	FileType    *string        `json:"fileType,omitempty"`
-	Status      *string        `json:"status,omitempty"`
+	FileType    *string        `json:"fileType"`
+	Status      *string        `json:"status"`
 	VendorID    string         `json:"vendorId"`
 	PType       string         `json:"p_type"`
-	Rate        *int           `json:"rate,omitempty"`
-	Currency    *string        `json:"currency,omitempty"`
-	Unit        *string        `json:"unit,omitempty"`
+	Rate        *int           `json:"rate"`
+	Currency    *string        `json:"currency"`
+	Unit        *string        `json:"unit"`
 }
 
 type User struct {
-	ID         *string `json:"id,omitempty"`
+	ID         *string `json:"id"`
 	FirstName  string  `json:"first_name"`
 	LastName   string  `json:"last_name"`
 	Status     string  `json:"status"`
@@ -487,17 +494,17 @@ type User struct {
 	IsVerified bool    `json:"is_verified"`
 	IsActive   bool    `json:"is_active"`
 	Gender     string  `json:"gender"`
-	CreatedBy  *string `json:"created_by,omitempty"`
-	UpdatedBy  *string `json:"updated_by,omitempty"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedBy  *string `json:"updated_by"`
 	CreatedAt  string  `json:"created_at"`
 	UpdatedAt  string  `json:"updated_at"`
 	Email      string  `json:"email"`
 	Phone      string  `json:"phone"`
-	PhotoURL   *string `json:"photo_url,omitempty"`
+	PhotoURL   *string `json:"photo_url"`
 }
 
 type UserBookmark struct {
-	UserBmID     *string `json:"user_bm_id,omitempty"`
+	UserBmID     *string `json:"user_bm_id"`
 	UserID       string  `json:"user_id"`
 	UserLspID    string  `json:"user_lsp_id"`
 	UserCourseID string  `json:"user_course_id"`
@@ -507,14 +514,14 @@ type UserBookmark struct {
 	Name         string  `json:"name"`
 	TimeStamp    string  `json:"time_stamp"`
 	IsActive     bool    `json:"is_active"`
-	CreatedBy    *string `json:"created_by,omitempty"`
-	UpdatedBy    *string `json:"updated_by,omitempty"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedBy    *string `json:"updated_by"`
 	CreatedAt    string  `json:"created_at"`
 	UpdatedAt    string  `json:"updated_at"`
 }
 
 type UserBookmarkInput struct {
-	UserBmID     *string `json:"user_bm_id,omitempty"`
+	UserBmID     *string `json:"user_bm_id"`
 	UserID       string  `json:"user_id"`
 	UserLspID    string  `json:"user_lsp_id"`
 	UserCourseID string  `json:"user_course_id"`
@@ -524,85 +531,96 @@ type UserBookmarkInput struct {
 	Name         string  `json:"name"`
 	TimeStamp    string  `json:"time_stamp"`
 	IsActive     bool    `json:"is_active"`
-	CreatedBy    *string `json:"created_by,omitempty"`
-	UpdatedBy    *string `json:"updated_by,omitempty"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedBy    *string `json:"updated_by"`
 }
 
 type UserCohort struct {
-	UserCohortID     *string `json:"user_cohort_id,omitempty"`
+	UserCohortID     *string `json:"user_cohort_id"`
 	UserID           string  `json:"user_id"`
 	UserLspID        string  `json:"user_lsp_id"`
 	CohortID         string  `json:"cohort_id"`
 	AddedBy          string  `json:"added_by"`
 	MembershipStatus string  `json:"membership_status"`
 	Role             string  `json:"role"`
-	CreatedBy        *string `json:"created_by,omitempty"`
-	UpdatedBy        *string `json:"updated_by,omitempty"`
+	CreatedBy        *string `json:"created_by"`
+	UpdatedBy        *string `json:"updated_by"`
 	CreatedAt        string  `json:"created_at"`
 	UpdatedAt        string  `json:"updated_at"`
 }
 
 type UserCohortInput struct {
-	UserCohortID     *string `json:"user_cohort_id,omitempty"`
+	UserCohortID     *string `json:"user_cohort_id"`
 	UserID           string  `json:"user_id"`
 	UserLspID        string  `json:"user_lsp_id"`
 	CohortID         string  `json:"cohort_id"`
 	AddedBy          string  `json:"added_by"`
 	MembershipStatus string  `json:"membership_status"`
 	Role             string  `json:"role"`
-	CreatedBy        *string `json:"created_by,omitempty"`
-	UpdatedBy        *string `json:"updated_by,omitempty"`
+	CreatedBy        *string `json:"created_by"`
+	UpdatedBy        *string `json:"updated_by"`
 }
 
 type UserCourse struct {
-	UserCourseID *string `json:"user_course_id,omitempty"`
+	UserCourseID *string `json:"user_course_id"`
 	UserID       string  `json:"user_id"`
-	LspID        *string `json:"lsp_id,omitempty"`
+	LspID        *string `json:"lsp_id"`
 	UserLspID    string  `json:"user_lsp_id"`
 	CourseID     string  `json:"course_id"`
 	CourseType   string  `json:"course_type"`
 	AddedBy      string  `json:"added_by"`
 	IsMandatory  bool    `json:"is_mandatory"`
-	EndDate      *string `json:"end_date,omitempty"`
+	EndDate      *string `json:"end_date"`
 	CourseStatus string  `json:"course_status"`
-	CreatedBy    *string `json:"created_by,omitempty"`
-	UpdatedBy    *string `json:"updated_by,omitempty"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedBy    *string `json:"updated_by"`
 	CreatedAt    string  `json:"created_at"`
 	UpdatedAt    string  `json:"updated_at"`
 }
 
+type UserCourseAnalytics struct {
+	Name              *string `json:"name"`
+	Email             *string `json:"email"`
+	Status            *string `json:"status"`
+	Completion        *int    `json:"completion"`
+	AssignedBy        *string `json:"assigned_by"`
+	AssignedOn        *string `json:"assigned_on"`
+	TimeTaken         *int    `json:"time_taken"`
+	TimelineComplaint *string `json:"timeline_complaint"`
+}
+
 type UserCourseInput struct {
-	UserCourseID *string `json:"user_course_id,omitempty"`
+	UserCourseID *string `json:"user_course_id"`
 	UserID       string  `json:"user_id"`
-	LspID        *string `json:"lsp_id,omitempty"`
+	LspID        *string `json:"lsp_id"`
 	UserLspID    string  `json:"user_lsp_id"`
 	CourseID     string  `json:"course_id"`
 	CourseType   string  `json:"course_type"`
 	AddedBy      string  `json:"added_by"`
 	IsMandatory  bool    `json:"is_mandatory"`
-	EndDate      *string `json:"end_date,omitempty"`
+	EndDate      *string `json:"end_date"`
 	CourseStatus string  `json:"course_status"`
-	CreatedBy    *string `json:"created_by,omitempty"`
-	UpdatedBy    *string `json:"updated_by,omitempty"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedBy    *string `json:"updated_by"`
 }
 
 type UserCourseMapStats struct {
-	LspID       *string  `json:"lsp_id,omitempty"`
-	UserID      *string  `json:"user_id,omitempty"`
-	TypeStats   []*Count `json:"type_stats,omitempty"`
-	StatusStats []*Count `json:"status_stats,omitempty"`
+	LspID       *string  `json:"lsp_id"`
+	UserID      *string  `json:"user_id"`
+	TypeStats   []*Count `json:"type_stats"`
+	StatusStats []*Count `json:"status_stats"`
 }
 
 type UserCourseMapStatsInput struct {
-	LspID        *string   `json:"lsp_id,omitempty"`
-	UserID       *string   `json:"user_id,omitempty"`
-	CourseType   []*string `json:"course_type,omitempty"`
-	CourseStatus []*string `json:"course_status,omitempty"`
-	IsMandatory  *bool     `json:"is_mandatory,omitempty"`
+	LspID        *string   `json:"lsp_id"`
+	UserID       *string   `json:"user_id"`
+	CourseType   []*string `json:"course_type"`
+	CourseStatus []*string `json:"course_status"`
+	IsMandatory  *bool     `json:"is_mandatory"`
 }
 
 type UserCourseProgress struct {
-	UserCpID      *string `json:"user_cp_id,omitempty"`
+	UserCpID      *string `json:"user_cp_id"`
 	UserID        string  `json:"user_id"`
 	UserCourseID  string  `json:"user_course_id"`
 	TopicID       string  `json:"topic_id"`
@@ -610,14 +628,14 @@ type UserCourseProgress struct {
 	Status        string  `json:"status"`
 	VideoProgress string  `json:"video_progress"`
 	TimeStamp     string  `json:"time_stamp"`
-	CreatedBy     *string `json:"created_by,omitempty"`
-	UpdatedBy     *string `json:"updated_by,omitempty"`
+	CreatedBy     *string `json:"created_by"`
+	UpdatedBy     *string `json:"updated_by"`
 	CreatedAt     string  `json:"created_at"`
 	UpdatedAt     string  `json:"updated_at"`
 }
 
 type UserCourseProgressInput struct {
-	UserCpID      *string `json:"user_cp_id,omitempty"`
+	UserCpID      *string `json:"user_cp_id"`
 	UserID        string  `json:"user_id"`
 	UserCourseID  string  `json:"user_course_id"`
 	TopicID       string  `json:"topic_id"`
@@ -625,18 +643,18 @@ type UserCourseProgressInput struct {
 	Status        string  `json:"status"`
 	VideoProgress string  `json:"video_progress"`
 	TimeStamp     string  `json:"time_stamp"`
-	CreatedBy     *string `json:"created_by,omitempty"`
-	UpdatedBy     *string `json:"updated_by,omitempty"`
+	CreatedBy     *string `json:"created_by"`
+	UpdatedBy     *string `json:"updated_by"`
 }
 
 type UserDetailsRole struct {
-	User   *User       `json:"user,omitempty"`
-	Roles  []*RoleData `json:"roles,omitempty"`
-	Status *string     `json:"status,omitempty"`
+	User   *User       `json:"user"`
+	Roles  []*RoleData `json:"roles"`
+	Status *string     `json:"status"`
 }
 
 type UserExamAttempts struct {
-	UserEaID         *string `json:"user_ea_id,omitempty"`
+	UserEaID         *string `json:"user_ea_id"`
 	UserID           string  `json:"user_id"`
 	UserLspID        string  `json:"user_lsp_id"`
 	UserCpID         string  `json:"user_cp_id"`
@@ -646,15 +664,15 @@ type UserExamAttempts struct {
 	AttemptStatus    string  `json:"attempt_status"`
 	AttemptStartTime string  `json:"attempt_start_time"`
 	AttemptDuration  string  `json:"attempt_duration"`
-	CourseID         *string `json:"course_id,omitempty"`
-	CreatedBy        *string `json:"created_by,omitempty"`
-	UpdatedBy        *string `json:"updated_by,omitempty"`
+	CourseID         *string `json:"course_id"`
+	CreatedBy        *string `json:"created_by"`
+	UpdatedBy        *string `json:"updated_by"`
 	CreatedAt        string  `json:"created_at"`
 	UpdatedAt        string  `json:"updated_at"`
 }
 
 type UserExamAttemptsInput struct {
-	UserEaID         *string `json:"user_ea_id,omitempty"`
+	UserEaID         *string `json:"user_ea_id"`
 	UserID           string  `json:"user_id"`
 	UserLspID        string  `json:"user_lsp_id"`
 	UserCpID         string  `json:"user_cp_id"`
@@ -664,12 +682,12 @@ type UserExamAttemptsInput struct {
 	AttemptStatus    string  `json:"attempt_status"`
 	AttemptStartTime string  `json:"attempt_start_time"`
 	AttemptDuration  string  `json:"attempt_duration"`
-	CreatedBy        *string `json:"created_by,omitempty"`
-	UpdatedBy        *string `json:"updated_by,omitempty"`
+	CreatedBy        *string `json:"created_by"`
+	UpdatedBy        *string `json:"updated_by"`
 }
 
 type UserExamProgress struct {
-	UserEpID       *string `json:"user_ep_id,omitempty"`
+	UserEpID       *string `json:"user_ep_id"`
 	UserID         string  `json:"user_id"`
 	UserEaID       string  `json:"user_ea_id"`
 	UserLspID      string  `json:"user_lsp_id"`
@@ -682,14 +700,14 @@ type UserExamProgress struct {
 	TotalTimeSpent string  `json:"total_time_spent"`
 	CorrectAnswer  string  `json:"correct_answer"`
 	SectionID      string  `json:"section_id"`
-	CreatedBy      *string `json:"created_by,omitempty"`
-	UpdatedBy      *string `json:"updated_by,omitempty"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedBy      *string `json:"updated_by"`
 	CreatedAt      string  `json:"created_at"`
 	UpdatedAt      string  `json:"updated_at"`
 }
 
 type UserExamProgressInput struct {
-	UserEpID       *string `json:"user_ep_id,omitempty"`
+	UserEpID       *string `json:"user_ep_id"`
 	UserID         string  `json:"user_id"`
 	UserEaID       string  `json:"user_ea_id"`
 	UserLspID      string  `json:"user_lsp_id"`
@@ -702,20 +720,20 @@ type UserExamProgressInput struct {
 	TotalTimeSpent string  `json:"total_time_spent"`
 	CorrectAnswer  string  `json:"correct_answer"`
 	SectionID      string  `json:"section_id"`
-	CreatedBy      *string `json:"created_by,omitempty"`
-	UpdatedBy      *string `json:"updated_by,omitempty"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedBy      *string `json:"updated_by"`
 }
 
 type UserExamResult struct {
-	UserErID       *string `json:"user_er_id,omitempty"`
+	UserErID       *string `json:"user_er_id"`
 	UserID         string  `json:"user_id"`
 	UserEaID       string  `json:"user_ea_id"`
 	UserScore      int     `json:"user_score"`
 	CorrectAnswers int     `json:"correct_answers"`
 	WrongAnswers   int     `json:"wrong_answers"`
 	ResultStatus   string  `json:"result_status"`
-	CreatedBy      *string `json:"created_by,omitempty"`
-	UpdatedBy      *string `json:"updated_by,omitempty"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedBy      *string `json:"updated_by"`
 	CreatedAt      string  `json:"created_at"`
 	UpdatedAt      string  `json:"updated_at"`
 }
@@ -728,30 +746,30 @@ type UserExamResultDetails struct {
 type UserExamResultInfo struct {
 	UserID   string            `json:"user_id"`
 	UserEaID string            `json:"user_ea_id"`
-	Results  []*UserExamResult `json:"results,omitempty"`
+	Results  []*UserExamResult `json:"results"`
 }
 
 type UserExamResultInput struct {
-	UserErID       *string `json:"user_er_id,omitempty"`
+	UserErID       *string `json:"user_er_id"`
 	UserID         string  `json:"user_id"`
 	UserEaID       string  `json:"user_ea_id"`
 	UserScore      int     `json:"user_score"`
 	CorrectAnswers int     `json:"correct_answers"`
 	WrongAnswers   int     `json:"wrong_answers"`
 	ResultStatus   string  `json:"result_status"`
-	CreatedBy      *string `json:"created_by,omitempty"`
-	UpdatedBy      *string `json:"updated_by,omitempty"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedBy      *string `json:"updated_by"`
 }
 
 type UserFilters struct {
-	Email      *string `json:"email,omitempty"`
-	NameSearch *string `json:"nameSearch,omitempty"`
-	Role       *string `json:"role,omitempty"`
-	Status     *string `json:"status,omitempty"`
+	Email      *string `json:"email"`
+	NameSearch *string `json:"nameSearch"`
+	Role       *string `json:"role"`
+	Status     *string `json:"status"`
 }
 
 type UserInput struct {
-	ID         *string         `json:"id,omitempty"`
+	ID         *string         `json:"id"`
 	FirstName  string          `json:"first_name"`
 	LastName   string          `json:"last_name"`
 	Status     string          `json:"status"`
@@ -759,23 +777,23 @@ type UserInput struct {
 	IsVerified bool            `json:"is_verified"`
 	IsActive   bool            `json:"is_active"`
 	Gender     string          `json:"gender"`
-	CreatedBy  *string         `json:"created_by,omitempty"`
-	UpdatedBy  *string         `json:"updated_by,omitempty"`
+	CreatedBy  *string         `json:"created_by"`
+	UpdatedBy  *string         `json:"updated_by"`
 	Email      string          `json:"email"`
 	Phone      string          `json:"phone"`
-	Photo      *graphql.Upload `json:"Photo,omitempty"`
-	PhotoURL   *string         `json:"photo_url,omitempty"`
+	Photo      *graphql.Upload `json:"Photo"`
+	PhotoURL   *string         `json:"photo_url"`
 }
 
 type UserLanguageMap struct {
-	UserLanguageID *string `json:"user_language_id,omitempty"`
+	UserLanguageID *string `json:"user_language_id"`
 	UserID         string  `json:"user_id"`
 	UserLspID      string  `json:"user_lsp_id"`
 	Language       string  `json:"language"`
 	IsBaseLanguage bool    `json:"is_base_language"`
 	IsActive       bool    `json:"is_active"`
-	CreatedBy      *string `json:"created_by,omitempty"`
-	UpdatedBy      *string `json:"updated_by,omitempty"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedBy      *string `json:"updated_by"`
 	CreatedAt      string  `json:"created_at"`
 	UpdatedAt      string  `json:"updated_at"`
 }
@@ -786,32 +804,32 @@ type UserLanguageMapInput struct {
 	Language       string  `json:"language"`
 	IsBaseLanguage bool    `json:"is_base_language"`
 	IsActive       bool    `json:"is_active"`
-	CreatedBy      *string `json:"created_by,omitempty"`
-	UpdatedBy      *string `json:"updated_by,omitempty"`
+	CreatedBy      *string `json:"created_by"`
+	UpdatedBy      *string `json:"updated_by"`
 }
 
 type UserLspMap struct {
-	UserLspID *string `json:"user_lsp_id,omitempty"`
+	UserLspID *string `json:"user_lsp_id"`
 	UserID    string  `json:"user_id"`
 	LspID     string  `json:"lsp_id"`
 	Status    string  `json:"status"`
-	CreatedBy *string `json:"created_by,omitempty"`
-	UpdatedBy *string `json:"updated_by,omitempty"`
+	CreatedBy *string `json:"created_by"`
+	UpdatedBy *string `json:"updated_by"`
 	CreatedAt string  `json:"created_at"`
 	UpdatedAt string  `json:"updated_at"`
 }
 
 type UserLspMapInput struct {
-	UserLspID *string `json:"user_lsp_id,omitempty"`
+	UserLspID *string `json:"user_lsp_id"`
 	UserID    string  `json:"user_id"`
 	LspID     string  `json:"lsp_id"`
 	Status    string  `json:"status"`
-	CreatedBy *string `json:"created_by,omitempty"`
-	UpdatedBy *string `json:"updated_by,omitempty"`
+	CreatedBy *string `json:"created_by"`
+	UpdatedBy *string `json:"updated_by"`
 }
 
 type UserNotes struct {
-	UserNotesID *string `json:"user_notes_id,omitempty"`
+	UserNotesID *string `json:"user_notes_id"`
 	UserID      string  `json:"user_id"`
 	UserLspID   string  `json:"user_lsp_id"`
 	CourseID    string  `json:"course_id"`
@@ -821,14 +839,14 @@ type UserNotes struct {
 	Status      string  `json:"status"`
 	Details     string  `json:"details"`
 	IsActive    bool    `json:"is_active"`
-	CreatedBy   *string `json:"created_by,omitempty"`
-	UpdatedBy   *string `json:"updated_by,omitempty"`
+	CreatedBy   *string `json:"created_by"`
+	UpdatedBy   *string `json:"updated_by"`
 	CreatedAt   string  `json:"created_at"`
 	UpdatedAt   string  `json:"updated_at"`
 }
 
 type UserNotesInput struct {
-	UserNotesID *string `json:"user_notes_id,omitempty"`
+	UserNotesID *string `json:"user_notes_id"`
 	UserID      string  `json:"user_id"`
 	UserLspID   string  `json:"user_lsp_id"`
 	CourseID    string  `json:"course_id"`
@@ -838,62 +856,62 @@ type UserNotesInput struct {
 	Status      string  `json:"status"`
 	Details     string  `json:"details"`
 	IsActive    bool    `json:"is_active"`
-	CreatedBy   *string `json:"created_by,omitempty"`
-	UpdatedBy   *string `json:"updated_by,omitempty"`
+	CreatedBy   *string `json:"created_by"`
+	UpdatedBy   *string `json:"updated_by"`
 }
 
 type UserOrganizationMap struct {
-	UserOrganizationID *string `json:"user_organization_id,omitempty"`
+	UserOrganizationID *string `json:"user_organization_id"`
 	UserID             string  `json:"user_id"`
 	UserLspID          string  `json:"user_lsp_id"`
 	OrganizationID     string  `json:"organization_id"`
 	OrganizationRole   string  `json:"organization_role"`
 	IsActive           bool    `json:"is_active"`
 	EmployeeID         string  `json:"employee_id"`
-	CreatedBy          *string `json:"created_by,omitempty"`
-	UpdatedBy          *string `json:"updated_by,omitempty"`
+	CreatedBy          *string `json:"created_by"`
+	UpdatedBy          *string `json:"updated_by"`
 	CreatedAt          string  `json:"created_at"`
 	UpdatedAt          string  `json:"updated_at"`
 }
 
 type UserOrganizationMapInput struct {
-	UserOrganizationID *string `json:"user_organization_id,omitempty"`
+	UserOrganizationID *string `json:"user_organization_id"`
 	UserID             string  `json:"user_id"`
 	UserLspID          string  `json:"user_lsp_id"`
 	OrganizationID     string  `json:"organization_id"`
 	OrganizationRole   string  `json:"organization_role"`
 	IsActive           bool    `json:"is_active"`
 	EmployeeID         string  `json:"employee_id"`
-	CreatedBy          *string `json:"created_by,omitempty"`
-	UpdatedBy          *string `json:"updated_by,omitempty"`
+	CreatedBy          *string `json:"created_by"`
+	UpdatedBy          *string `json:"updated_by"`
 }
 
 type UserPreference struct {
-	UserPreferenceID *string `json:"user_preference_id,omitempty"`
+	UserPreferenceID *string `json:"user_preference_id"`
 	UserID           string  `json:"user_id"`
 	UserLspID        string  `json:"user_lsp_id"`
 	SubCategory      string  `json:"sub_category"`
 	IsBase           bool    `json:"is_base"`
 	IsActive         bool    `json:"is_active"`
-	CreatedBy        *string `json:"created_by,omitempty"`
-	UpdatedBy        *string `json:"updated_by,omitempty"`
+	CreatedBy        *string `json:"created_by"`
+	UpdatedBy        *string `json:"updated_by"`
 	CreatedAt        string  `json:"created_at"`
 	UpdatedAt        string  `json:"updated_at"`
 }
 
 type UserPreferenceInput struct {
-	UserPreferenceID *string `json:"user_preference_id,omitempty"`
+	UserPreferenceID *string `json:"user_preference_id"`
 	UserID           string  `json:"user_id"`
 	UserLspID        string  `json:"user_lsp_id"`
 	SubCategory      string  `json:"sub_category"`
 	IsBase           bool    `json:"is_base"`
 	IsActive         bool    `json:"is_active"`
-	CreatedBy        *string `json:"created_by,omitempty"`
-	UpdatedBy        *string `json:"updated_by,omitempty"`
+	CreatedBy        *string `json:"created_by"`
+	UpdatedBy        *string `json:"updated_by"`
 }
 
 type UserQuizAttempt struct {
-	UserQaID     *string `json:"user_qa_id,omitempty"`
+	UserQaID     *string `json:"user_qa_id"`
 	UserID       string  `json:"user_id"`
 	UserCpID     string  `json:"user_cp_id"`
 	UserCourseID string  `json:"user_course_id"`
@@ -902,14 +920,14 @@ type UserQuizAttempt struct {
 	TopicID      string  `json:"topic_id"`
 	Result       string  `json:"result"`
 	IsActive     bool    `json:"is_active"`
-	CreatedBy    *string `json:"created_by,omitempty"`
-	UpdatedBy    *string `json:"updated_by,omitempty"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedBy    *string `json:"updated_by"`
 	CreatedAt    string  `json:"created_at"`
 	UpdatedAt    string  `json:"updated_at"`
 }
 
 type UserQuizAttemptInput struct {
-	UserQaID     *string `json:"user_qa_id,omitempty"`
+	UserQaID     *string `json:"user_qa_id"`
 	UserID       string  `json:"user_id"`
 	UserCpID     string  `json:"user_cp_id"`
 	UserCourseID string  `json:"user_course_id"`
@@ -918,34 +936,34 @@ type UserQuizAttemptInput struct {
 	TopicID      string  `json:"topic_id"`
 	Result       string  `json:"result"`
 	IsActive     bool    `json:"is_active"`
-	CreatedBy    *string `json:"created_by,omitempty"`
-	UpdatedBy    *string `json:"updated_by,omitempty"`
+	CreatedBy    *string `json:"created_by"`
+	UpdatedBy    *string `json:"updated_by"`
 }
 
 type UserRole struct {
-	UserRoleID *string `json:"user_role_id,omitempty"`
+	UserRoleID *string `json:"user_role_id"`
 	UserID     string  `json:"user_id"`
 	UserLspID  string  `json:"user_lsp_id"`
 	Role       string  `json:"role"`
 	IsActive   bool    `json:"is_active"`
-	CreatedBy  *string `json:"created_by,omitempty"`
-	UpdatedBy  *string `json:"updated_by,omitempty"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedBy  *string `json:"updated_by"`
 	CreatedAt  string  `json:"created_at"`
 	UpdatedAt  string  `json:"updated_at"`
 }
 
 type UserRoleInput struct {
-	UserRoleID *string `json:"user_role_id,omitempty"`
+	UserRoleID *string `json:"user_role_id"`
 	UserID     string  `json:"user_id"`
 	UserLspID  string  `json:"user_lsp_id"`
 	Role       string  `json:"role"`
 	IsActive   bool    `json:"is_active"`
-	CreatedBy  *string `json:"created_by,omitempty"`
-	UpdatedBy  *string `json:"updated_by,omitempty"`
+	CreatedBy  *string `json:"created_by"`
+	UpdatedBy  *string `json:"updated_by"`
 }
 
 type UserWithLspStatus struct {
-	ID            *string `json:"id,omitempty"`
+	ID            *string `json:"id"`
 	FirstName     string  `json:"first_name"`
 	LastName      string  `json:"last_name"`
 	Status        string  `json:"status"`
@@ -953,14 +971,14 @@ type UserWithLspStatus struct {
 	IsVerified    bool    `json:"is_verified"`
 	IsActive      bool    `json:"is_active"`
 	Gender        string  `json:"gender"`
-	CreatedBy     *string `json:"created_by,omitempty"`
-	UpdatedBy     *string `json:"updated_by,omitempty"`
+	CreatedBy     *string `json:"created_by"`
+	UpdatedBy     *string `json:"updated_by"`
 	CreatedAt     string  `json:"created_at"`
 	UpdatedAt     string  `json:"updated_at"`
 	Email         string  `json:"email"`
 	Phone         string  `json:"phone"`
-	PhotoURL      *string `json:"photo_url,omitempty"`
-	UserLspStatus *string `json:"user_lsp_status,omitempty"`
+	PhotoURL      *string `json:"photo_url"`
+	UserLspStatus *string `json:"user_lsp_status"`
 }
 
 type Vendor struct {
@@ -968,129 +986,129 @@ type Vendor struct {
 	Type            string    `json:"type"`
 	Level           string    `json:"level"`
 	Name            string    `json:"name"`
-	Phone           *string   `json:"phone,omitempty"`
-	LspID           *string   `json:"lsp_id,omitempty"`
-	Description     *string   `json:"description,omitempty"`
-	PhotoURL        *string   `json:"photo_url,omitempty"`
-	Address         *string   `json:"address,omitempty"`
-	Users           []*string `json:"users,omitempty"`
-	Website         *string   `json:"website,omitempty"`
-	FacebookURL     *string   `json:"facebook_url,omitempty"`
-	InstagramURL    *string   `json:"instagram_url,omitempty"`
-	TwitterURL      *string   `json:"twitter_url,omitempty"`
-	LinkedinURL     *string   `json:"linkedin_url,omitempty"`
-	Services        []*string `json:"services,omitempty"`
-	CreatedAt       *string   `json:"created_at,omitempty"`
-	CreatedBy       *string   `json:"created_by,omitempty"`
-	UpdatedAt       *string   `json:"updated_at,omitempty"`
-	UpdatedBy       *string   `json:"updated_by,omitempty"`
-	Status          *string   `json:"status,omitempty"`
-	VendorLspStatus *string   `json:"vendor_lsp_status,omitempty"`
+	Phone           *string   `json:"phone"`
+	LspID           *string   `json:"lsp_id"`
+	Description     *string   `json:"description"`
+	PhotoURL        *string   `json:"photo_url"`
+	Address         *string   `json:"address"`
+	Users           []*string `json:"users"`
+	Website         *string   `json:"website"`
+	FacebookURL     *string   `json:"facebook_url"`
+	InstagramURL    *string   `json:"instagram_url"`
+	TwitterURL      *string   `json:"twitter_url"`
+	LinkedinURL     *string   `json:"linkedin_url"`
+	Services        []*string `json:"services"`
+	CreatedAt       *string   `json:"created_at"`
+	CreatedBy       *string   `json:"created_by"`
+	UpdatedAt       *string   `json:"updated_at"`
+	UpdatedBy       *string   `json:"updated_by"`
+	Status          *string   `json:"status"`
+	VendorLspStatus *string   `json:"vendor_lsp_status"`
 }
 
 type VendorFilters struct {
-	Status  *string `json:"status,omitempty"`
-	Service *string `json:"service,omitempty"`
-	Type    *string `json:"type,omitempty"`
-	Name    *string `json:"name,omitempty"`
+	Status  *string `json:"status"`
+	Service *string `json:"service"`
+	Type    *string `json:"type"`
+	Name    *string `json:"name"`
 }
 
 type VendorInput struct {
-	LspID        *string         `json:"lsp_id,omitempty"`
-	Name         *string         `json:"name,omitempty"`
-	Level        *string         `json:"level,omitempty"`
-	VendorID     *string         `json:"vendor_id,omitempty"`
-	Type         *string         `json:"type,omitempty"`
-	Photo        *graphql.Upload `json:"photo,omitempty"`
-	Address      *string         `json:"address,omitempty"`
-	Website      *string         `json:"website,omitempty"`
-	FacebookURL  *string         `json:"facebook_url,omitempty"`
-	InstagramURL *string         `json:"instagram_url,omitempty"`
-	TwitterURL   *string         `json:"twitter_url,omitempty"`
-	LinkedinURL  *string         `json:"linkedin_url,omitempty"`
-	Phone        *string         `json:"phone,omitempty"`
-	Users        []*string       `json:"users,omitempty"`
-	Description  *string         `json:"description,omitempty"`
-	Status       *string         `json:"status,omitempty"`
+	LspID        *string         `json:"lsp_id"`
+	Name         *string         `json:"name"`
+	Level        *string         `json:"level"`
+	VendorID     *string         `json:"vendor_id"`
+	Type         *string         `json:"type"`
+	Photo        *graphql.Upload `json:"photo"`
+	Address      *string         `json:"address"`
+	Website      *string         `json:"website"`
+	FacebookURL  *string         `json:"facebook_url"`
+	InstagramURL *string         `json:"instagram_url"`
+	TwitterURL   *string         `json:"twitter_url"`
+	LinkedinURL  *string         `json:"linkedin_url"`
+	Phone        *string         `json:"phone"`
+	Users        []*string       `json:"users"`
+	Description  *string         `json:"description"`
+	Status       *string         `json:"status"`
 }
 
 type VendorOrder struct {
-	ID          *string `json:"id,omitempty"`
-	VendorID    *string `json:"vendor_id,omitempty"`
-	LspID       *string `json:"lsp_id,omitempty"`
-	Total       *int    `json:"total,omitempty"`
-	Tax         *int    `json:"tax,omitempty"`
-	GrandTotal  *int    `json:"grand_total,omitempty"`
-	Description *string `json:"description,omitempty"`
-	CreatedAt   *string `json:"created_at,omitempty"`
-	CreatedBy   *string `json:"created_by,omitempty"`
-	UpdatedAt   *string `json:"updated_at,omitempty"`
-	UpdatedBy   *string `json:"updated_by,omitempty"`
-	Status      *string `json:"status,omitempty"`
+	ID          *string `json:"id"`
+	VendorID    *string `json:"vendor_id"`
+	LspID       *string `json:"lsp_id"`
+	Total       *int    `json:"total"`
+	Tax         *int    `json:"tax"`
+	GrandTotal  *int    `json:"grand_total"`
+	Description *string `json:"description"`
+	CreatedAt   *string `json:"created_at"`
+	CreatedBy   *string `json:"created_by"`
+	UpdatedAt   *string `json:"updated_at"`
+	UpdatedBy   *string `json:"updated_by"`
+	Status      *string `json:"status"`
 }
 
 type VendorOrderInput struct {
-	ID          *string `json:"id,omitempty"`
-	VendorID    *string `json:"vendor_id,omitempty"`
-	LspID       *string `json:"lsp_id,omitempty"`
-	Total       *int    `json:"total,omitempty"`
-	Tax         *int    `json:"tax,omitempty"`
-	GrandTotal  *int    `json:"grand_total,omitempty"`
-	Description *string `json:"description,omitempty"`
-	Status      *string `json:"status,omitempty"`
+	ID          *string `json:"id"`
+	VendorID    *string `json:"vendor_id"`
+	LspID       *string `json:"lsp_id"`
+	Total       *int    `json:"total"`
+	Tax         *int    `json:"tax"`
+	GrandTotal  *int    `json:"grand_total"`
+	Description *string `json:"description"`
+	Status      *string `json:"status"`
 }
 
 type VendorProfile struct {
-	PfID               *string   `json:"pf_id,omitempty"`
-	VendorID           *string   `json:"vendor_id,omitempty"`
-	FirstName          *string   `json:"first_name,omitempty"`
-	LastName           *string   `json:"last_name,omitempty"`
-	Email              *string   `json:"email,omitempty"`
-	Phone              *string   `json:"phone,omitempty"`
-	PhotoURL           *string   `json:"photo_url,omitempty"`
-	Description        *string   `json:"description,omitempty"`
-	Language           []*string `json:"language,omitempty"`
-	SmeExpertise       []*string `json:"sme_expertise,omitempty"`
-	ClassroomExpertise []*string `json:"classroom_expertise,omitempty"`
-	ContentDevelopment []*string `json:"content_development,omitempty"`
-	Experience         []*string `json:"experience,omitempty"`
-	ExperienceYears    *string   `json:"experience_years,omitempty"`
-	Sme                *bool     `json:"sme,omitempty"`
-	Crt                *bool     `json:"crt,omitempty"`
-	Cd                 *bool     `json:"cd,omitempty"`
-	IsSpeaker          *bool     `json:"is_speaker,omitempty"`
-	LspID              *string   `json:"lsp_id,omitempty"`
-	CreatedAt          *string   `json:"created_at,omitempty"`
-	CreatedBy          *string   `json:"created_by,omitempty"`
-	UpdatedAt          *string   `json:"updated_at,omitempty"`
-	UpdatedBy          *string   `json:"updated_by,omitempty"`
-	Status             *string   `json:"status,omitempty"`
+	PfID               *string   `json:"pf_id"`
+	VendorID           *string   `json:"vendor_id"`
+	FirstName          *string   `json:"first_name"`
+	LastName           *string   `json:"last_name"`
+	Email              *string   `json:"email"`
+	Phone              *string   `json:"phone"`
+	PhotoURL           *string   `json:"photo_url"`
+	Description        *string   `json:"description"`
+	Language           []*string `json:"language"`
+	SmeExpertise       []*string `json:"sme_expertise"`
+	ClassroomExpertise []*string `json:"classroom_expertise"`
+	ContentDevelopment []*string `json:"content_development"`
+	Experience         []*string `json:"experience"`
+	ExperienceYears    *string   `json:"experience_years"`
+	Sme                *bool     `json:"sme"`
+	Crt                *bool     `json:"crt"`
+	Cd                 *bool     `json:"cd"`
+	IsSpeaker          *bool     `json:"is_speaker"`
+	LspID              *string   `json:"lsp_id"`
+	CreatedAt          *string   `json:"created_at"`
+	CreatedBy          *string   `json:"created_by"`
+	UpdatedAt          *string   `json:"updated_at"`
+	UpdatedBy          *string   `json:"updated_by"`
+	Status             *string   `json:"status"`
 }
 
 type VendorProfileInput struct {
 	VendorID           string          `json:"vendor_id"`
-	FirstName          *string         `json:"first_name,omitempty"`
-	LastName           *string         `json:"last_name,omitempty"`
+	FirstName          *string         `json:"first_name"`
+	LastName           *string         `json:"last_name"`
 	Email              string          `json:"email"`
-	Phone              *string         `json:"phone,omitempty"`
-	Photo              *graphql.Upload `json:"photo,omitempty"`
-	Description        *string         `json:"description,omitempty"`
-	Languages          []*string       `json:"languages,omitempty"`
-	SmeExpertise       []*string       `json:"sme_expertise,omitempty"`
-	ClassroomExpertise []*string       `json:"classroom_expertise,omitempty"`
-	ContentDevelopment []*string       `json:"content_development,omitempty"`
-	Experience         []*string       `json:"experience,omitempty"`
-	ExperienceYears    *string         `json:"experience_years,omitempty"`
-	IsSpeaker          *bool           `json:"is_speaker,omitempty"`
-	Status             *string         `json:"status,omitempty"`
+	Phone              *string         `json:"phone"`
+	Photo              *graphql.Upload `json:"photo"`
+	Description        *string         `json:"description"`
+	Languages          []*string       `json:"languages"`
+	SmeExpertise       []*string       `json:"sme_expertise"`
+	ClassroomExpertise []*string       `json:"classroom_expertise"`
+	ContentDevelopment []*string       `json:"content_development"`
+	Experience         []*string       `json:"experience"`
+	ExperienceYears    *string         `json:"experience_years"`
+	IsSpeaker          *bool           `json:"is_speaker"`
+	Status             *string         `json:"status"`
 }
 
 type VendorUserMap struct {
-	VendorID  *string `json:"vendor_id,omitempty"`
-	UserID    *string `json:"user_id,omitempty"`
-	CreatedAt *string `json:"created_at,omitempty"`
-	CreatedBy *string `json:"created_by,omitempty"`
-	Status    *string `json:"status,omitempty"`
-	UpdatedAt *string `json:"updated_at,omitempty"`
-	UpdatedBy *string `json:"updated_by,omitempty"`
+	VendorID  *string `json:"vendor_id"`
+	UserID    *string `json:"user_id"`
+	CreatedAt *string `json:"created_at"`
+	CreatedBy *string `json:"created_by"`
+	Status    *string `json:"status"`
+	UpdatedAt *string `json:"updated_at"`
+	UpdatedBy *string `json:"updated_by"`
 }
