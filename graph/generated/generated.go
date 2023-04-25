@@ -406,6 +406,7 @@ type ComplexityRoot struct {
 		GetLearningSpacesByOrgID       func(childComplexity int, orgID string) int
 		GetLearningSpacesByOuID        func(childComplexity int, ouID string, orgID string) int
 		GetLspUsersRoles               func(childComplexity int, lspID string, userID []*string, userLspID []*string) int
+		GetMostLeastAssignedCourse     func(childComplexity int, lspID *string, input *string) int
 		GetOrderServices               func(childComplexity int, orderID []*string) int
 		GetOrders                      func(childComplexity int, orderID []*string) int
 		GetOrganizationUnits           func(childComplexity int, ouIds []*string) int
@@ -979,6 +980,7 @@ type QueryResolver interface {
 	GetAssignedCourses(ctx context.Context, lspID *string, status string, typeArg string) (*model.CourseCountStats, error)
 	GetCourseAnalyticsDataByID(ctx context.Context, courseID *string, status *string) (*model.CourseAnalyticsFacts, error)
 	GetLearnerDetails(ctx context.Context, courseID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserCourseAnalytics, error)
+	GetMostLeastAssignedCourse(ctx context.Context, lspID *string, input *string) (*model.CourseConsumptionStats, error)
 }
 
 type executableSchema struct {
@@ -3367,6 +3369,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetLspUsersRoles(childComplexity, args["lsp_id"].(string), args["user_id"].([]*string), args["user_lsp_id"].([]*string)), true
+
+	case "Query.getMostLeastAssignedCourse":
+		if e.complexity.Query.GetMostLeastAssignedCourse == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getMostLeastAssignedCourse_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetMostLeastAssignedCourse(childComplexity, args["lsp_id"].(*string), args["input"].(*string)), true
 
 	case "Query.getOrderServices":
 		if e.complexity.Query.GetOrderServices == nil {
@@ -7502,6 +7516,7 @@ type Query {
     status: String
   ): CourseAnalyticsFacts
   getLearnerDetails(course_id: String, pageCursor: String, direction: String, pageSize: Int): PaginatedUserCourseAnalytics
+  getMostLeastAssignedCourse(lsp_id: String, input: String): CourseConsumptionStats
 }
 
 type Mutation {
@@ -9218,6 +9233,30 @@ func (ec *executionContext) field_Query_getLspUsersRoles_args(ctx context.Contex
 		}
 	}
 	args["user_lsp_id"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getMostLeastAssignedCourse_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["lsp_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lsp_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lsp_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -28647,6 +28686,94 @@ func (ec *executionContext) fieldContext_Query_getLearnerDetails(ctx context.Con
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getLearnerDetails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getMostLeastAssignedCourse(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getMostLeastAssignedCourse(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetMostLeastAssignedCourse(rctx, fc.Args["lsp_id"].(*string), fc.Args["input"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.CourseConsumptionStats)
+	fc.Result = res
+	return ec.marshalOCourseConsumptionStats2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseConsumptionStats(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getMostLeastAssignedCourse(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "ID":
+				return ec.fieldContext_CourseConsumptionStats_ID(ctx, field)
+			case "LspId":
+				return ec.fieldContext_CourseConsumptionStats_LspId(ctx, field)
+			case "CourseId":
+				return ec.fieldContext_CourseConsumptionStats_CourseId(ctx, field)
+			case "Category":
+				return ec.fieldContext_CourseConsumptionStats_Category(ctx, field)
+			case "SubCategory":
+				return ec.fieldContext_CourseConsumptionStats_SubCategory(ctx, field)
+			case "Owner":
+				return ec.fieldContext_CourseConsumptionStats_Owner(ctx, field)
+			case "Duration":
+				return ec.fieldContext_CourseConsumptionStats_Duration(ctx, field)
+			case "TotalLearners":
+				return ec.fieldContext_CourseConsumptionStats_TotalLearners(ctx, field)
+			case "ActiveLearners":
+				return ec.fieldContext_CourseConsumptionStats_ActiveLearners(ctx, field)
+			case "CompletedLearners":
+				return ec.fieldContext_CourseConsumptionStats_CompletedLearners(ctx, field)
+			case "ExpectedCompletionTime":
+				return ec.fieldContext_CourseConsumptionStats_ExpectedCompletionTime(ctx, field)
+			case "AverageCompletionTime":
+				return ec.fieldContext_CourseConsumptionStats_AverageCompletionTime(ctx, field)
+			case "AverageComplianceScore":
+				return ec.fieldContext_CourseConsumptionStats_AverageComplianceScore(ctx, field)
+			case "CreatedAt":
+				return ec.fieldContext_CourseConsumptionStats_CreatedAt(ctx, field)
+			case "UpdatedAt":
+				return ec.fieldContext_CourseConsumptionStats_UpdatedAt(ctx, field)
+			case "CreatedBy":
+				return ec.fieldContext_CourseConsumptionStats_CreatedBy(ctx, field)
+			case "UpdatedBy":
+				return ec.fieldContext_CourseConsumptionStats_UpdatedBy(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CourseConsumptionStats", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getMostLeastAssignedCourse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -50567,6 +50694,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getLearnerDetails(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getMostLeastAssignedCourse":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getMostLeastAssignedCourse(ctx, field)
 				return res
 			}
 

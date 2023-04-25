@@ -126,7 +126,7 @@ func GetLearnerDetails(ctx context.Context, courseID *string, pageCursor *string
 			}
 
 			//completion - all topics iteration and decide
-			completion, err := checkCompletionOfTopics(ctx, CassUserSession, v.CourseID, v.UserID)
+			completion, err := checkCompletionOfTopics(ctx, CassUserSession, v.ID)
 			if err != nil {
 				log.Printf("found error in checkCompletionOfTopics: %v", err)
 				return
@@ -209,8 +209,8 @@ func getUserDetail(ctx context.Context, CassUserSession *gocqlx.Session, userId 
 	return name, user[0].Email, nil
 }
 
-func checkCompletionOfTopics(ctx context.Context, CassUserSession *gocqlx.Session, courseId string, userId string) (int, error) {
-	qryStr := fmt.Sprintf(`SELECT * FROM userz.user_course_progress WHERE user_id='%s' AND user_cm_id='%s' ALLOW FILTERING`, userId, courseId)
+func checkCompletionOfTopics(ctx context.Context, CassUserSession *gocqlx.Session, userCourseId string) (int, error) {
+	qryStr := fmt.Sprintf(`SELECT * FROM userz.user_course_progress WHERE user_cm_id='%s' ALLOW FILTERING`, userCourseId)
 	getTopics := func() (courseProgress []userz.UserCourseProgress, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()

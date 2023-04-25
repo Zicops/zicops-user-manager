@@ -1270,6 +1270,16 @@ func (r *queryResolver) GetLearnerDetails(ctx context.Context, courseID *string,
 	return res, nil
 }
 
+// GetMostLeastAssignedCourse is the resolver for the getMostLeastAssignedCourse field.
+func (r *queryResolver) GetMostLeastAssignedCourse(ctx context.Context, lspID *string, input *string) (*model.CourseConsumptionStats, error) {
+	res, err := queries.GetMostLeastAssignedCourse(ctx, lspID, input)
+	if err != nil {
+		log.Printf("error getting course assignment details: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
