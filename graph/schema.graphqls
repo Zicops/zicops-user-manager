@@ -1293,6 +1293,7 @@ type Query {
     status: String
   ): CourseAnalyticsFacts
   getLearnerDetails(course_id: String, pageCursor: String, direction: String, pageSize: Int): PaginatedUserCourseAnalytics
+  getMostLeastAssignedCourse(lsp_id: String, input: String): CourseConsumptionStats
 }
 
 type Mutation {

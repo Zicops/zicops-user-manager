@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"sort"
 	"strconv"
 	"sync"
 
@@ -446,4 +447,105 @@ func GetCourseConsumptionStats(ctx context.Context, lspID string, pageCursor *st
 	resp.PageSize = pageSize
 	resp.Stats = outputResponse
 	return &resp, nil
+}
+
+func GetMostLeastAssignedCourse(ctx context.Context, lspID *string, input *string) (*model.CourseConsumptionStats, error) {
+	claims, err := identity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	lsp := claims["lsp_id"].(string)
+	if lspID != nil {
+		lsp = *lspID
+	}
+
+	session, err := global.CassPool.GetSession(ctx, "userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+	qryStr := fmt.Sprintf(`SELECT * FROM userz.course_consumption_stats WHERE lsp_id='%s' ALLOW FILTERING`, lsp)
+	getDetails := func() (maps []userz.CCStats, err error) {
+		q := CassUserSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return maps, iter.Select(&maps)
+	}
+	ccStats, err := getDetails()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(ccStats) == 0 {
+		return nil, nil
+	}
+	//sort it on active learners
+	sort.Slice(ccStats, func(i, j int) bool {
+		return ccStats[i].ActiveLearners < ccStats[j].ActiveLearners
+	})
+
+	if *input == "least" {
+		stat := ccStats[0]
+
+		duration := int(stat.Duration)
+		totalLearners := int(stat.TotalLearners)
+		activeLearners := int(stat.ActiveLearners)
+		completedLearners := int(stat.CompletedLearners)
+		expectedCompletionTime := int(stat.ExpectedCompletionTime)
+		averageCompletionTime := int(stat.AverageCompletionTime)
+		averageComplianceScore := int(stat.AverageComplianceScore)
+		createdAt := int(stat.CreatedAt)
+		updatedAt := int(stat.UpdatedAt)
+		res := model.CourseConsumptionStats{
+			ID:                     &stat.ID,
+			LspID:                  &stat.LspId,
+			CourseID:               &stat.CourseId,
+			Category:               &stat.Category,
+			SubCategory:            &stat.SubCategory,
+			Owner:                  &stat.Owner,
+			Duration:               &duration,
+			TotalLearners:          &totalLearners,
+			ActiveLearners:         &activeLearners,
+			CompletedLearners:      &completedLearners,
+			ExpectedCompletionTime: &expectedCompletionTime,
+			AverageCompletionTime:  &averageCompletionTime,
+			AverageComplianceScore: &averageComplianceScore,
+			CreatedAt:              &createdAt,
+			UpdatedAt:              &updatedAt,
+			CreatedBy:              &stat.CreatedBy,
+			UpdatedBy:              &stat.UpdatedBy,
+		}
+		return &res, nil
+	}
+	stat := ccStats[len(ccStats)-1]
+	duration := int(stat.Duration)
+	totalLearners := int(stat.TotalLearners)
+	activeLearners := int(stat.ActiveLearners)
+	completedLearners := int(stat.CompletedLearners)
+	expectedCompletionTime := int(stat.ExpectedCompletionTime)
+	averageCompletionTime := int(stat.AverageCompletionTime)
+	averageComplianceScore := int(stat.AverageComplianceScore)
+	createdAt := int(stat.CreatedAt)
+	updatedAt := int(stat.UpdatedAt)
+	res := model.CourseConsumptionStats{
+		ID:                     &stat.ID,
+		LspID:                  &stat.LspId,
+		CourseID:               &stat.CourseId,
+		Category:               &stat.Category,
+		SubCategory:            &stat.SubCategory,
+		Owner:                  &stat.Owner,
+		Duration:               &duration,
+		TotalLearners:          &totalLearners,
+		ActiveLearners:         &activeLearners,
+		CompletedLearners:      &completedLearners,
+		ExpectedCompletionTime: &expectedCompletionTime,
+		AverageCompletionTime:  &averageCompletionTime,
+		AverageComplianceScore: &averageComplianceScore,
+		CreatedAt:              &createdAt,
+		UpdatedAt:              &updatedAt,
+		CreatedBy:              &stat.CreatedBy,
+		UpdatedBy:              &stat.UpdatedBy,
+	}
+	return &res, nil
 }
