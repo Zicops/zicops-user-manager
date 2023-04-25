@@ -232,7 +232,7 @@ func checkCompletionOfTopics(ctx context.Context, CassUserSession *gocqlx.Sessio
 			total = total + 100
 		}
 		if v.TopicType == "Content" {
-			progress, err := strconv.ParseFloat(v.VideoProgress, 32)
+			progress, err := strconv.ParseFloat(v.VideoProgress, 64)
 			if err != nil {
 				return 0, err
 			}
