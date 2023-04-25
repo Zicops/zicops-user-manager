@@ -117,6 +117,7 @@ func GetLearnerDetails(ctx context.Context, courseID *string, pageCursor *string
 		vv := vvv
 		wg.Add(1)
 		go func(i int, v userz.UserCourse) {
+			defer wg.Done()
 			// name  - user course map - users
 			// email - user course map - users
 			name, email, err := getUserDetail(ctx, CassUserSession, v.UserID)
@@ -177,7 +178,6 @@ func GetLearnerDetails(ctx context.Context, courseID *string, pageCursor *string
 				TimelineComplaint: &timelineComplaint,
 			}
 			res[i] = &courseAnalytics
-			wg.Done()
 		}(k, vv)
 	}
 	wg.Wait()
@@ -222,7 +222,7 @@ func checkCompletionOfTopics(ctx context.Context, CassUserSession *gocqlx.Sessio
 		return 0, err
 	}
 	if len(progressMap) == 0 {
-		return 0, fmt.Errorf("no user course map")
+		return 0, nil
 	}
 
 	var total float32
