@@ -135,10 +135,9 @@ type CourseConsumptionStats struct {
 }
 
 type CourseCountStats struct {
-	LspID        *string `json:"lsp_id"`
-	CourseStatus *string `json:"course_status"`
-	CourseType   *string `json:"course_type"`
-	Count        *int    `json:"count"`
+	LspID      *string `json:"lsp_id"`
+	CourseType *string `json:"course_type"`
+	Count      *int    `json:"count"`
 }
 
 type CourseMapFilters struct {

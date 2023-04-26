@@ -128,10 +128,9 @@ type ComplexityRoot struct {
 	}
 
 	CourseCountStats struct {
-		Count        func(childComplexity int) int
-		CourseStatus func(childComplexity int) int
-		CourseType   func(childComplexity int) int
-		LspID        func(childComplexity int) int
+		Count      func(childComplexity int) int
+		CourseType func(childComplexity int) int
+		LspID      func(childComplexity int) int
 	}
 
 	CourseViews struct {
@@ -390,7 +389,7 @@ type ComplexityRoot struct {
 	Query struct {
 		GetAllOrders                   func(childComplexity int, lspID *string, pageCursor *string, direction *string, pageSize *int) int
 		GetAllVendors                  func(childComplexity int, vendorIds []*string) int
-		GetAssignedCourses             func(childComplexity int, lspID *string, status string, typeArg string) int
+		GetAssignedCourses             func(childComplexity int, lspID *string, typeArg string) int
 		GetClassRoomTraining           func(childComplexity int, vendorID string) int
 		GetCohortDetails               func(childComplexity int, cohortID string) int
 		GetCohortMains                 func(childComplexity int, lspID string, publishTime *int, pageCursor *string, direction *string, pageSize *int, searchText *string) int
@@ -977,7 +976,7 @@ type QueryResolver interface {
 	GetSpeakers(ctx context.Context, lspID *string, service *string, name *string) ([]*model.VendorProfile, error)
 	GetAllVendors(ctx context.Context, vendorIds []*string) ([]*model.Vendor, error)
 	GetOrders(ctx context.Context, orderID []*string) ([]*model.VendorOrder, error)
-	GetAssignedCourses(ctx context.Context, lspID *string, status string, typeArg string) (*model.CourseCountStats, error)
+	GetAssignedCourses(ctx context.Context, lspID *string, typeArg string) (*model.CourseCountStats, error)
 	GetCourseAnalyticsDataByID(ctx context.Context, courseID *string, status *string) (*model.CourseAnalyticsFacts, error)
 	GetLearnerDetails(ctx context.Context, courseID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserCourseAnalytics, error)
 	GetMostLeastAssignedCourse(ctx context.Context, lspID *string, input *string) (*model.CourseConsumptionStats, error)
@@ -1466,13 +1465,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CourseCountStats.Count(childComplexity), true
-
-	case "CourseCountStats.course_status":
-		if e.complexity.CourseCountStats.CourseStatus == nil {
-			break
-		}
-
-		return e.complexity.CourseCountStats.CourseStatus(childComplexity), true
 
 	case "CourseCountStats.course_type":
 		if e.complexity.CourseCountStats.CourseType == nil {
@@ -3188,7 +3180,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.GetAssignedCourses(childComplexity, args["lsp_id"].(*string), args["status"].(string), args["type"].(string)), true
+		return e.complexity.Query.GetAssignedCourses(childComplexity, args["lsp_id"].(*string), args["type"].(string)), true
 
 	case "Query.getClassRoomTraining":
 		if e.complexity.Query.GetClassRoomTraining == nil {
@@ -7302,7 +7294,6 @@ type UserWithLspStatus {
 
 type CourseCountStats {
   lsp_id: String
-  course_status: String
   course_type: String
   count: Int
 }
@@ -7508,7 +7499,6 @@ type Query {
   getOrders(order_id: [String]): [VendorOrder]
   getAssignedCourses(
     lsp_id: String
-    status: String!
     type: String!
   ): CourseCountStats
   getCourseAnalyticsDataById(
@@ -8757,23 +8747,14 @@ func (ec *executionContext) field_Query_getAssignedCourses_args(ctx context.Cont
 	}
 	args["lsp_id"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["status"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["status"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["type"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["type"] = arg2
+	args["type"] = arg1
 	return args, nil
 }
 
@@ -13215,47 +13196,6 @@ func (ec *executionContext) _CourseCountStats_lsp_id(ctx context.Context, field 
 }
 
 func (ec *executionContext) fieldContext_CourseCountStats_lsp_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "CourseCountStats",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _CourseCountStats_course_status(ctx context.Context, field graphql.CollectedField, obj *model.CourseCountStats) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_CourseCountStats_course_status(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CourseStatus, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_CourseCountStats_course_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CourseCountStats",
 		Field:      field,
@@ -28522,7 +28462,7 @@ func (ec *executionContext) _Query_getAssignedCourses(ctx context.Context, field
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().GetAssignedCourses(rctx, fc.Args["lsp_id"].(*string), fc.Args["status"].(string), fc.Args["type"].(string))
+		return ec.resolvers.Query().GetAssignedCourses(rctx, fc.Args["lsp_id"].(*string), fc.Args["type"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28546,8 +28486,6 @@ func (ec *executionContext) fieldContext_Query_getAssignedCourses(ctx context.Co
 			switch field.Name {
 			case "lsp_id":
 				return ec.fieldContext_CourseCountStats_lsp_id(ctx, field)
-			case "course_status":
-				return ec.fieldContext_CourseCountStats_course_status(ctx, field)
 			case "course_type":
 				return ec.fieldContext_CourseCountStats_course_type(ctx, field)
 			case "count":
@@ -48019,10 +47957,6 @@ func (ec *executionContext) _CourseCountStats(ctx context.Context, sel ast.Selec
 		case "lsp_id":
 
 			out.Values[i] = ec._CourseCountStats_lsp_id(ctx, field, obj)
-
-		case "course_status":
-
-			out.Values[i] = ec._CourseCountStats_course_status(ctx, field, obj)
 
 		case "course_type":
 
