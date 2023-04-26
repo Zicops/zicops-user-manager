@@ -10,7 +10,7 @@ import (
 	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
-func GetAssignedCourses(ctx context.Context, lspID *string, status string, typeArg string) (*model.CourseCountStats, error) {
+func GetAssignedCourses(ctx context.Context, lspID *string, typeArg string) (*model.CourseCountStats, error) {
 	claims, err := identity.GetClaimsFromContext(ctx)
 	if err != nil {
 		return nil, err
@@ -41,7 +41,7 @@ func GetAssignedCourses(ctx context.Context, lspID *string, status string, typeA
 	var result []string
 	for _, vv := range courseMaps {
 		v := vv
-		if _, ok := tmp[v.CourseID]; ok || v.CourseStatus == status {
+		if _, ok := tmp[v.CourseID]; ok || v.CourseStatus == "disable" {
 			continue
 		}
 		tmp[v.CourseID] = true
@@ -49,10 +49,9 @@ func GetAssignedCourses(ctx context.Context, lspID *string, status string, typeA
 	}
 	num := len(result)
 	res := model.CourseCountStats{
-		LspID:        &lsp,
-		CourseStatus: &status,
-		CourseType:   &typeArg,
-		Count:        &num,
+		LspID:      &lsp,
+		CourseType: &typeArg,
+		Count:      &num,
 	}
 
 	return &res, nil

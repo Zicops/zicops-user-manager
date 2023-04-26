@@ -1241,8 +1241,8 @@ func (r *queryResolver) GetOrders(ctx context.Context, orderID []*string) ([]*mo
 }
 
 // GetAssignedCourses is the resolver for the getAssignedCourses field.
-func (r *queryResolver) GetAssignedCourses(ctx context.Context, lspID *string, status string, typeArg string) (*model.CourseCountStats, error) {
-	res, err := handlers.GetAssignedCourses(ctx, lspID, status, typeArg)
+func (r *queryResolver) GetAssignedCourses(ctx context.Context, lspID *string, typeArg string) (*model.CourseCountStats, error) {
+	res, err := handlers.GetAssignedCourses(ctx, lspID, typeArg)
 	if err != nil {
 		log.Printf("error getting assigned courses: %v", err)
 		return nil, err
