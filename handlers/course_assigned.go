@@ -57,7 +57,7 @@ func GetAssignedCourses(ctx context.Context, lspID *string, typeArg string) (*mo
 		if v.Status != "PUBLISHED" {
 			continue
 		}
-		query := fmt.Sprintf(`SELECT * FROM userz.user_course_map WHERE course_id='%s ALLOW FILTERING'`, v.ID)
+		query := fmt.Sprintf(`SELECT * FROM userz.user_course_map WHERE course_id='%s' ALLOW FILTERING`, v.ID)
 		getUserCourseMap := func() (maps []userz.UserCourse, err error) {
 			q := CassUserSession.Query(query, nil)
 			defer q.Release()
