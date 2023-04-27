@@ -157,7 +157,7 @@ func GetLearnerDetails(ctx context.Context, courseID *string, pageCursor *string
 			//if completed then check if user has completed within time line
 			if v.CourseStatus != "completed" && v.UpdatedAt <= v.EndDate {
 				timelineComplaint = "Yes"
-			} else if v.CourseStatus != "completed" {
+			} else if v.CourseStatus == "completed" {
 				//if not completed then check if time is left for user to complete
 				if time.Now().Unix()-v.EndDate > 0 {
 					//end date has passed
