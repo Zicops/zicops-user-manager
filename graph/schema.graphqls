@@ -1376,4 +1376,5 @@ type Mutation {
   ): VendorUserMap
   deleteVendorUserMap(vendor_id: String, user_id: String): Boolean
   disableVendorLspMap(vendor_id: String, lsp_id: String): Boolean
+  addUserTotalWatchTime(user_id: String, course_id: String, time: Int, date: String): Boolean
 }

@@ -660,6 +660,16 @@ func (r *mutationResolver) DisableVendorLspMap(ctx context.Context, vendorID *st
 	return resp, nil
 }
 
+// AddUserTotalWatchTime is the resolver for the addUserTotalWatchTime field.
+func (r *mutationResolver) AddUserTotalWatchTime(ctx context.Context, userID *string, courseID *string, time *int, date *string) (*bool, error) {
+	resp, err := handlers.AddUserTotalWatchTime(ctx, userID, courseID, time, date)
+	if err != nil {
+		log.Printf("Got error while adding total watch time: %v", err)
+		return nil, err
+	}
+	return resp, nil
+}
+
 // Logout is the resolver for the logout field.
 func (r *queryResolver) Logout(ctx context.Context) (*bool, error) {
 	result, err := handlers.Logout(ctx)
