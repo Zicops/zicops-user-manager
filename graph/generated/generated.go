@@ -205,6 +205,7 @@ type ComplexityRoot struct {
 		AddUserPreference            func(childComplexity int, input []*model.UserPreferenceInput) int
 		AddUserQuizAttempt           func(childComplexity int, input []*model.UserQuizAttemptInput) int
 		AddUserRoles                 func(childComplexity int, input []*model.UserRoleInput) int
+		AddUserTotalWatchTime        func(childComplexity int, userID *string, courseID *string, time *int, date *string) int
 		AddVendor                    func(childComplexity int, input *model.VendorInput) int
 		CreateClassRoomTraining      func(childComplexity int, input *model.CRTInput) int
 		CreateContentDevelopment     func(childComplexity int, input *model.ContentDevelopmentInput) int
@@ -916,6 +917,7 @@ type MutationResolver interface {
 	UpdateVendorUserMap(ctx context.Context, vendorID *string, userID *string, status *string) (*model.VendorUserMap, error)
 	DeleteVendorUserMap(ctx context.Context, vendorID *string, userID *string) (*bool, error)
 	DisableVendorLspMap(ctx context.Context, vendorID *string, lspID *string) (*bool, error)
+	AddUserTotalWatchTime(ctx context.Context, userID *string, courseID *string, time *int, date *string) (*bool, error)
 }
 type QueryResolver interface {
 	Logout(ctx context.Context) (*bool, error)
@@ -1997,6 +1999,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddUserRoles(childComplexity, args["input"].([]*model.UserRoleInput)), true
+
+	case "Mutation.addUserTotalWatchTime":
+		if e.complexity.Mutation.AddUserTotalWatchTime == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addUserTotalWatchTime_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddUserTotalWatchTime(childComplexity, args["user_id"].(*string), args["course_id"].(*string), args["time"].(*int), args["date"].(*string)), true
 
 	case "Mutation.addVendor":
 		if e.complexity.Mutation.AddVendor == nil {
@@ -7591,6 +7605,7 @@ type Mutation {
   ): VendorUserMap
   deleteVendorUserMap(vendor_id: String, user_id: String): Boolean
   disableVendorLspMap(vendor_id: String, lsp_id: String): Boolean
+  addUserTotalWatchTime(user_id: String, course_id: String, time: Int, date: String): Boolean
 }
 `, BuiltIn: false},
 }
@@ -7921,6 +7936,48 @@ func (ec *executionContext) field_Mutation_addUserRoles_args(ctx context.Context
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addUserTotalWatchTime_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["user_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["course_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("course_id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["course_id"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["time"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["time"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["date"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["date"] = arg3
 	return args, nil
 }
 
@@ -19881,6 +19938,58 @@ func (ec *executionContext) fieldContext_Mutation_disableVendorLspMap(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_disableVendorLspMap_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_addUserTotalWatchTime(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addUserTotalWatchTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddUserTotalWatchTime(rctx, fc.Args["user_id"].(*string), fc.Args["course_id"].(*string), fc.Args["time"].(*int), fc.Args["date"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addUserTotalWatchTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addUserTotalWatchTime_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -48650,6 +48759,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_disableVendorLspMap(ctx, field)
+			})
+
+		case "addUserTotalWatchTime":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addUserTotalWatchTime(ctx, field)
 			})
 
 		default:
