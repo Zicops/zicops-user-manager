@@ -105,8 +105,6 @@ func AddUserTotalWatchTime(ctx context.Context, userID *string, courseID *string
 	return &res, nil
 }
 
-//scren share enabled
-
 func GetCourseWatchTime(ctx context.Context, courseID *string, startDate *string, endDate *string) ([]*model.CourseWatchTime, error) {
 	if courseID == nil || startDate == nil || endDate == nil {
 		return nil, fmt.Errorf("please mention course id, start date and end date")
@@ -202,7 +200,6 @@ func GetCourseTotalWatchTime(ctx context.Context, courseID *string) (*float64, e
 		totalTime = totalTime + v.TotalWatchTime
 	}
 
-	totalHours := float64(totalTime) / (60 * 60)
-
-	return &totalHours, nil
+	totalTimeF := float64(totalTime)
+	return &totalTimeF, nil
 }
