@@ -141,6 +141,14 @@ type ComplexityRoot struct {
 		UserIds    func(childComplexity int) int
 	}
 
+	CourseWatchTime struct {
+		CourseID  func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		Date      func(childComplexity int) int
+		Time      func(childComplexity int) int
+		User      func(childComplexity int) int
+	}
+
 	ExperienceVendor struct {
 		CompanyName     func(childComplexity int) int
 		CreatedAt       func(childComplexity int) int
@@ -399,7 +407,9 @@ type ComplexityRoot struct {
 		GetContentDevelopment          func(childComplexity int, vendorID string) int
 		GetCourseAnalyticsDataByID     func(childComplexity int, courseID *string, status *string) int
 		GetCourseConsumptionStats      func(childComplexity int, lspID string, pageCursor *string, direction *string, pageSize *int) int
+		GetCourseTotalWatchTime        func(childComplexity int, courseID *string) int
 		GetCourseViews                 func(childComplexity int, lspIds []string, startTime *string, endTime *string) int
+		GetCourseWatchTime             func(childComplexity int, courseID *string, startDate *string, endDate *string) int
 		GetLatestCohorts               func(childComplexity int, userID *string, userLspID *string, publishTime *int, pageCursor *string, direction *string, pageSize *int) int
 		GetLearnerDetails              func(childComplexity int, courseID *string, pageCursor *string, direction *string, pageSize *int) int
 		GetLearningSpaceDetails        func(childComplexity int, lspIds []*string) int
@@ -982,6 +992,8 @@ type QueryResolver interface {
 	GetCourseAnalyticsDataByID(ctx context.Context, courseID *string, status *string) (*model.CourseAnalyticsFacts, error)
 	GetLearnerDetails(ctx context.Context, courseID *string, pageCursor *string, direction *string, pageSize *int) (*model.PaginatedUserCourseAnalytics, error)
 	GetMostLeastAssignedCourse(ctx context.Context, lspID *string, input *string) (*model.CourseConsumptionStats, error)
+	GetCourseWatchTime(ctx context.Context, courseID *string, startDate *string, endDate *string) ([]*model.CourseWatchTime, error)
+	GetCourseTotalWatchTime(ctx context.Context, courseID *string) (*float64, error)
 }
 
 type executableSchema struct {
@@ -1516,6 +1528,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CourseViews.UserIds(childComplexity), true
+
+	case "CourseWatchTime.course_id":
+		if e.complexity.CourseWatchTime.CourseID == nil {
+			break
+		}
+
+		return e.complexity.CourseWatchTime.CourseID(childComplexity), true
+
+	case "CourseWatchTime.created_at":
+		if e.complexity.CourseWatchTime.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.CourseWatchTime.CreatedAt(childComplexity), true
+
+	case "CourseWatchTime.date":
+		if e.complexity.CourseWatchTime.Date == nil {
+			break
+		}
+
+		return e.complexity.CourseWatchTime.Date(childComplexity), true
+
+	case "CourseWatchTime.time":
+		if e.complexity.CourseWatchTime.Time == nil {
+			break
+		}
+
+		return e.complexity.CourseWatchTime.Time(childComplexity), true
+
+	case "CourseWatchTime.user":
+		if e.complexity.CourseWatchTime.User == nil {
+			break
+		}
+
+		return e.complexity.CourseWatchTime.User(childComplexity), true
 
 	case "ExperienceVendor.CompanyName":
 		if e.complexity.ExperienceVendor.CompanyName == nil {
@@ -3292,6 +3339,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.GetCourseConsumptionStats(childComplexity, args["lsp_id"].(string), args["pageCursor"].(*string), args["Direction"].(*string), args["pageSize"].(*int)), true
 
+	case "Query.getCourseTotalWatchTime":
+		if e.complexity.Query.GetCourseTotalWatchTime == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getCourseTotalWatchTime_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCourseTotalWatchTime(childComplexity, args["course_id"].(*string)), true
+
 	case "Query.getCourseViews":
 		if e.complexity.Query.GetCourseViews == nil {
 			break
@@ -3303,6 +3362,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.GetCourseViews(childComplexity, args["lsp_ids"].([]string), args["start_time"].(*string), args["end_time"].(*string)), true
+
+	case "Query.getCourseWatchTime":
+		if e.complexity.Query.GetCourseWatchTime == nil {
+			break
+		}
+
+		args, err := ec.field_Query_getCourseWatchTime_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetCourseWatchTime(childComplexity, args["course_id"].(*string), args["start_date"].(*string), args["end_date"].(*string)), true
 
 	case "Query.getLatestCohorts":
 		if e.complexity.Query.GetLatestCohorts == nil {
@@ -7336,6 +7407,14 @@ type PaginatedUserCourseAnalytics {
   pageSize: Int
 }
 
+type CourseWatchTime {
+  course_id: String
+  date: String
+  time: Int
+  created_at: String
+  user: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -7521,6 +7600,8 @@ type Query {
   ): CourseAnalyticsFacts
   getLearnerDetails(course_id: String, pageCursor: String, direction: String, pageSize: Int): PaginatedUserCourseAnalytics
   getMostLeastAssignedCourse(lsp_id: String, input: String): CourseConsumptionStats
+  getCourseWatchTime(course_id: String, start_date: String, end_date: String): [CourseWatchTime]
+  getCourseTotalWatchTime(course_id: String): Float
 }
 
 type Mutation {
@@ -9052,6 +9133,21 @@ func (ec *executionContext) field_Query_getCourseConsumptionStats_args(ctx conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_getCourseTotalWatchTime_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["course_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("course_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["course_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_getCourseViews_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -9082,6 +9178,39 @@ func (ec *executionContext) field_Query_getCourseViews_args(ctx context.Context,
 		}
 	}
 	args["end_time"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_getCourseWatchTime_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["course_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("course_id"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["course_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["start_date"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["start_date"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["end_date"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["end_date"] = arg2
 	return args, nil
 }
 
@@ -13542,6 +13671,211 @@ func (ec *executionContext) _CourseViews_date_string(ctx context.Context, field 
 func (ec *executionContext) fieldContext_CourseViews_date_string(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CourseViews",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseWatchTime_course_id(ctx context.Context, field graphql.CollectedField, obj *model.CourseWatchTime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseWatchTime_course_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CourseID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseWatchTime_course_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseWatchTime",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseWatchTime_date(ctx context.Context, field graphql.CollectedField, obj *model.CourseWatchTime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseWatchTime_date(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Date, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseWatchTime_date(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseWatchTime",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseWatchTime_time(ctx context.Context, field graphql.CollectedField, obj *model.CourseWatchTime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseWatchTime_time(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Time, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseWatchTime_time(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseWatchTime",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseWatchTime_created_at(ctx context.Context, field graphql.CollectedField, obj *model.CourseWatchTime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseWatchTime_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseWatchTime_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseWatchTime",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseWatchTime_user(ctx context.Context, field graphql.CollectedField, obj *model.CourseWatchTime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseWatchTime_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseWatchTime_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseWatchTime",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -28821,6 +29155,122 @@ func (ec *executionContext) fieldContext_Query_getMostLeastAssignedCourse(ctx co
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_getMostLeastAssignedCourse_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getCourseWatchTime(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getCourseWatchTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCourseWatchTime(rctx, fc.Args["course_id"].(*string), fc.Args["start_date"].(*string), fc.Args["end_date"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.CourseWatchTime)
+	fc.Result = res
+	return ec.marshalOCourseWatchTime2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseWatchTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getCourseWatchTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "course_id":
+				return ec.fieldContext_CourseWatchTime_course_id(ctx, field)
+			case "date":
+				return ec.fieldContext_CourseWatchTime_date(ctx, field)
+			case "time":
+				return ec.fieldContext_CourseWatchTime_time(ctx, field)
+			case "created_at":
+				return ec.fieldContext_CourseWatchTime_created_at(ctx, field)
+			case "user":
+				return ec.fieldContext_CourseWatchTime_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CourseWatchTime", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getCourseWatchTime_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_getCourseTotalWatchTime(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_getCourseTotalWatchTime(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().GetCourseTotalWatchTime(rctx, fc.Args["course_id"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_getCourseTotalWatchTime(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_getCourseTotalWatchTime_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -48127,6 +48577,47 @@ func (ec *executionContext) _CourseViews(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var courseWatchTimeImplementors = []string{"CourseWatchTime"}
+
+func (ec *executionContext) _CourseWatchTime(ctx context.Context, sel ast.SelectionSet, obj *model.CourseWatchTime) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, courseWatchTimeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CourseWatchTime")
+		case "course_id":
+
+			out.Values[i] = ec._CourseWatchTime_course_id(ctx, field, obj)
+
+		case "date":
+
+			out.Values[i] = ec._CourseWatchTime_date(ctx, field, obj)
+
+		case "time":
+
+			out.Values[i] = ec._CourseWatchTime_time(ctx, field, obj)
+
+		case "created_at":
+
+			out.Values[i] = ec._CourseWatchTime_created_at(ctx, field, obj)
+
+		case "user":
+
+			out.Values[i] = ec._CourseWatchTime_user(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var experienceVendorImplementors = []string{"ExperienceVendor"}
 
 func (ec *executionContext) _ExperienceVendor(ctx context.Context, sel ast.SelectionSet, obj *model.ExperienceVendor) graphql.Marshaler {
@@ -50763,6 +51254,46 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_getMostLeastAssignedCourse(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getCourseWatchTime":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getCourseWatchTime(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "getCourseTotalWatchTime":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_getCourseTotalWatchTime(ctx, field)
 				return res
 			}
 
@@ -54445,6 +54976,54 @@ func (ec *executionContext) marshalOCourseViews2ᚖgithubᚗcomᚋzicopsᚋzicop
 	return ec._CourseViews(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOCourseWatchTime2ᚕᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseWatchTime(ctx context.Context, sel ast.SelectionSet, v []*model.CourseWatchTime) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOCourseWatchTime2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseWatchTime(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOCourseWatchTime2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐCourseWatchTime(ctx context.Context, sel ast.SelectionSet, v *model.CourseWatchTime) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CourseWatchTime(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOExamAttemptsFilters2ᚖgithubᚗcomᚋzicopsᚋzicopsᚑuserᚑmanagerᚋgraphᚋmodelᚐExamAttemptsFilters(ctx context.Context, v interface{}) (*model.ExamAttemptsFilters, error) {
 	if v == nil {
 		return nil, nil
@@ -54499,6 +55078,22 @@ func (ec *executionContext) marshalOExperienceVendor2ᚖgithubᚗcomᚋzicopsᚋ
 		return graphql.Null
 	}
 	return ec._ExperienceVendor(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := graphql.MarshalFloatContext(*v)
+	return graphql.WrapContextMarshaler(ctx, res)
 }
 
 func (ec *executionContext) unmarshalOID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {

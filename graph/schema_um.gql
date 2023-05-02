@@ -690,7 +690,6 @@ type CourseViews {
   date_string: String
 }
 
-
 input VendorInput {
   lsp_id: String
   name: String
@@ -707,31 +706,31 @@ input VendorInput {
   phone: String
   users: [String]
   description: String
-	status: String
+  status: String
 }
 
 type Vendor {
   vendorId: String!
-	type: String!
-	level: String!
-	name: String!
+  type: String!
+  level: String!
+  name: String!
   phone: String
   lsp_id: String
   description: String
-	photo_url: String
-	address: String
+  photo_url: String
+  address: String
   users: [String]
-	website: String
-	facebook_url: String
-	instagram_url: String
-	twitter_url: String
-	linkedin_url: String
+  website: String
+  facebook_url: String
+  instagram_url: String
+  twitter_url: String
+  linkedin_url: String
   services: [String]
-	created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
-	status: String
+  created_at: String
+  created_by: String
+  updated_at: String
+  updated_by: String
+  status: String
   vendor_lsp_status: String
 }
 
@@ -750,10 +749,10 @@ input SMEInput {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
-  sample_files:[String]
+  sample_files: [String]
   is_expertise_online: Boolean
   is_expertise_offline: Boolean
-	Status: String
+  Status: String
 }
 
 type SME {
@@ -764,14 +763,14 @@ type SME {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
-  sample_files:[String]
+  sample_files: [String]
   is_expertise_online: Boolean
   is_expertise_offline: Boolean
   created_at: String
   created_by: String
   updated_at: String
   updated_by: String
-	status: String
+  status: String
 }
 
 input VendorProfileInput {
@@ -789,7 +788,7 @@ input VendorProfileInput {
   experience: [String]
   experience_years: String
   is_speaker: Boolean
-	status: String
+  status: String
 }
 
 type VendorProfile {
@@ -813,10 +812,10 @@ type VendorProfile {
   is_speaker: Boolean
   lsp_id: String
   created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
-	status: String
+  created_by: String
+  updated_at: String
+  updated_by: String
+  status: String
 }
 
 input ExperienceInput {
@@ -830,7 +829,7 @@ input ExperienceInput {
   location_type: String
   start_date: Int
   end_date: Int
-	status: String
+  status: String
 }
 
 type ExperienceVendor {
@@ -845,10 +844,10 @@ type ExperienceVendor {
   EmployementType: String
   CompanyName: String
   CreatedAt: String
-	CreatedBy: String
-	UpdatedAt: String
-	UpdatedBy: String
-	Status: String
+  CreatedBy: String
+  UpdatedAt: String
+  UpdatedBy: String
+  Status: String
 }
 
 type InviteResponse {
@@ -864,7 +863,7 @@ input SampleFileInput {
   description: String
   pricing: String!
   fileType: String
-	status: String
+  status: String
   vendorId: String!
   p_type: String!
   rate: Int
@@ -881,10 +880,10 @@ type SampleFile {
   description: String
   file_url: String
   created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
-	status: String
+  created_by: String
+  updated_at: String
+  updated_by: String
+  status: String
   rate: Int
   currency: String
   unit: String
@@ -899,10 +898,10 @@ input CRTInput {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
-  sample_files:[String]
+  sample_files: [String]
   is_expertise_online: Boolean
   is_expertise_offline: Boolean
-	status: String
+  status: String
 }
 
 type CRT {
@@ -913,13 +912,13 @@ type CRT {
   expertise: [String]
   languages: [String]
   output_deliveries: [String]
-  sample_files:[String]
+  sample_files: [String]
   is_expertise_online: Boolean
   is_expertise_offline: Boolean
   created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
+  created_by: String
+  updated_at: String
+  updated_by: String
   status: String
 }
 
@@ -949,9 +948,9 @@ type ContentDevelopment {
   is_expertise_online: Boolean
   is_expertise_offline: Boolean
   created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
+  created_by: String
+  updated_at: String
+  updated_by: String
   status: String
 }
 
@@ -993,6 +992,7 @@ input VendorOrderInput {
   total: Int
   tax: Int
   grand_total: Int
+  description: String
   status: String
 }
 
@@ -1003,11 +1003,19 @@ type VendorOrder {
   total: Int
   tax: Int
   grand_total: Int
+  description: String
   created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
+  created_by: String
+  updated_at: String
+  updated_by: String
   status: String
+}
+
+type PaginatedVendorOrder {
+  orders: [VendorOrder]
+  pageCursor: String
+  direction: String
+  pageSize: Int
 }
 
 input OrderServicesInput {
@@ -1034,9 +1042,9 @@ type OrderServices {
   quantity: Int
   total: Int
   created_at: String
-	created_by: String
-	updated_at: String
-	updated_by: String
+  created_by: String
+  updated_at: String
+  updated_by: String
   status: String
 }
 
@@ -1069,6 +1077,42 @@ type UserWithLspStatus {
   user_lsp_status: String
 }
 
+type CourseCountStats {
+  lsp_id: String
+  course_type: String
+  count: Int
+}
+
+type CourseAnalyticsFacts {
+  course_id: String
+  status: String
+  count: Int
+}
+
+type UserCourseAnalytics {
+  name: String
+  email: String
+  status: String
+  completion: Int
+  assigned_by: String
+  assigned_on: String
+  time_taken: Int
+  timeline_complaint: String
+}
+
+type PaginatedUserCourseAnalytics {
+  data: [UserCourseAnalytics]
+  pageCursor: String
+  direction: String
+  pageSize: Int
+}
+
+type CourseWatchTime {
+  course_id: String
+  start_date: String
+  end_date: String
+  time: Float
+}
 
 type Query {
   logout: Boolean
@@ -1136,7 +1180,11 @@ type Query {
     pageSize: Int
   ): PaginatedBookmarks
   getUserExamAttempts(user_id: String, exam_id: String!): [UserExamAttempts]
-  getUserExamAttemptsByExamIds(user_id: String!, exam_ids: [String]!, filters:ExamAttemptsFilters): [UserExamAttempts]
+  getUserExamAttemptsByExamIds(
+    user_id: String!
+    exam_ids: [String]!
+    filters: ExamAttemptsFilters
+  ): [UserExamAttempts]
   getUserExamResults(
     user_ea_details: [UserExamResultDetails!]!
   ): [UserExamResultInfo]
@@ -1191,31 +1239,77 @@ type Query {
     start_time: String
     end_time: String
   ): [CourseViews]
-  getVendorExperience(vendor_id: String!, pf_id: String!):[ExperienceVendor]
-  getVendorExperienceDetails(vendor_id: String!, pf_id: String!, exp_id: String!): ExperienceVendor
+  getVendorExperience(vendor_id: String!, pf_id: String!): [ExperienceVendor]
+  getVendorExperienceDetails(
+    vendor_id: String!
+    pf_id: String!
+    exp_id: String!
+  ): ExperienceVendor
   getVendors(lsp_id: String, filters: VendorFilters): [Vendor]
-  getPaginatedVendors(lsp_id: String, pageCursor: String, Direction: String, pageSize: Int, filters: VendorFilters): PaginatedVendors
+  getPaginatedVendors(
+    lsp_id: String
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+    filters: VendorFilters
+  ): PaginatedVendors
   getVendorAdmins(vendor_id: String!): [UserWithLspStatus]
   getVendorDetails(vendor_id: String!): Vendor
   viewProfileVendorDetails(vendor_id: String!, email: String!): VendorProfile
-  viewAllProfiles(vendor_id: String!, filter: String, name: String): [VendorProfile]
+  viewAllProfiles(
+    vendor_id: String!
+    filter: String
+    name: String
+  ): [VendorProfile]
   getSampleFiles(vendor_id: String!, p_type: String!): [SampleFile]
   getSmeDetails(vendor_id: String!): SME
   getClassRoomTraining(vendor_id: String!): CRT
   getContentDevelopment(vendor_id: String!): ContentDevelopment
   getUserVendor(user_id: String): [Vendor]
   getVendorServices(vendor_id: String): [String]
-  getLspUsersRoles(lsp_id: String!, user_id: [String], user_lsp_id: [String]): [UserDetailsRole] 
-  getPaginatedLspUsersWithRoles(lsp_id: String!, role: [String], pageCursor: String, Direction: String, pageSize: Int): PaginatedUserDetailsWithRole
-  getAllOrders(lsp_id: String): [VendorOrder]
-  getOrderServices(order_id: [String]):[OrderServices]
+  getLspUsersRoles(
+    lsp_id: String!
+    user_id: [String]
+    user_lsp_id: [String]
+  ): [UserDetailsRole]
+  getPaginatedLspUsersWithRoles(
+    lsp_id: String!
+    role: [String]
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedUserDetailsWithRole
+  getAllOrders(
+    lsp_id: String
+    pageCursor: String
+    Direction: String
+    pageSize: Int
+  ): PaginatedVendorOrder
+  getOrderServices(order_id: [String]): [OrderServices]
   getSpeakers(lsp_id: String, service: String, name: String): [VendorProfile]
+  getAllVendors(vendor_ids: [String]): [Vendor]
+  getOrders(order_id: [String]): [VendorOrder]
+  getAssignedCourses(
+    lsp_id: String
+    type: String!
+  ): CourseCountStats
+  getCourseAnalyticsDataById(
+    course_id: String
+    status: String
+  ): CourseAnalyticsFacts
+  getLearnerDetails(course_id: String, pageCursor: String, direction: String, pageSize: Int): PaginatedUserCourseAnalytics
+  getMostLeastAssignedCourse(lsp_id: String, input: String): CourseConsumptionStats
+  getCourseTotalWatchTime(course_id: String, start_date: String, end_date: String): CourseWatchTime
 }
 
 type Mutation {
   registerUsers(input: [UserInput]!): [User]
   inviteUsers(emails: [String!]!, lsp_id: String): Boolean
-  inviteUsersWithRole(emails: [String!]!, lsp_id: String, role: String): [InviteResponse]
+  inviteUsersWithRole(
+    emails: [String!]!
+    lsp_id: String
+    role: String
+  ): [InviteResponse]
   updateUser(input: UserInput!): User
   login: User
   addUserLspMap(input: [UserLspMapInput]!): [UserLspMap]
@@ -1268,18 +1362,27 @@ type Mutation {
   uploadSampleFile(input: SampleFileInput): SampleFile
   deleteSampleFile(sfId: String!, vendor_id: String!, p_type: String!): Boolean
   updateProfileVendor(input: VendorProfileInput): VendorProfile
-  createSubjectMatterExpertise(input:SMEInput): SME
-  updateSubjectMatterExpertise(input:SMEInput): SME
-  createClassRoomTraining(input:CRTInput): CRT
-  updateClassRoomTraining(input:CRTInput): CRT
+  createSubjectMatterExpertise(input: SMEInput): SME
+  updateSubjectMatterExpertise(input: SMEInput): SME
+  createClassRoomTraining(input: CRTInput): CRT
+  updateClassRoomTraining(input: CRTInput): CRT
   createContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
   updateContentDevelopment(input: ContentDevelopmentInput): ContentDevelopment
   addOrder(input: VendorOrderInput): VendorOrder
   updateOrder(input: VendorOrderInput): VendorOrder
   addOrderServies(input: [OrderServicesInput]): [OrderServices]
   updateOrderServices(input: OrderServicesInput): OrderServices
-  createVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
-  updateVendorUserMap(vendor_id: String, user_id: String, status: String): VendorUserMap
+  createVendorUserMap(
+    vendor_id: String
+    user_id: String
+    status: String
+  ): VendorUserMap
+  updateVendorUserMap(
+    vendor_id: String
+    user_id: String
+    status: String
+  ): VendorUserMap
   deleteVendorUserMap(vendor_id: String, user_id: String): Boolean
   disableVendorLspMap(vendor_id: String, lsp_id: String): Boolean
+  addUserTotalWatchTime(user_id: String, course_id: String, time: Int, date: String): Boolean
 }

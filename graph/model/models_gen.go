@@ -155,6 +155,14 @@ type CourseViews struct {
 	DateString *string   `json:"date_string"`
 }
 
+type CourseWatchTime struct {
+	CourseID  *string `json:"course_id"`
+	Date      *string `json:"date"`
+	Time      *int    `json:"time"`
+	CreatedAt *string `json:"created_at"`
+	User      *string `json:"user"`
+}
+
 type ExamAttemptsFilters struct {
 	AttemptStatus *string `json:"attempt_status"`
 }

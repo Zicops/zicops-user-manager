@@ -1107,6 +1107,14 @@ type PaginatedUserCourseAnalytics {
   pageSize: Int
 }
 
+type CourseWatchTime {
+  course_id: String
+  date: String
+  time: Int
+  created_at: String
+  user: String
+}
+
 type Query {
   logout: Boolean
   getUserLspMapsByLspId(
@@ -1292,6 +1300,8 @@ type Query {
   ): CourseAnalyticsFacts
   getLearnerDetails(course_id: String, pageCursor: String, direction: String, pageSize: Int): PaginatedUserCourseAnalytics
   getMostLeastAssignedCourse(lsp_id: String, input: String): CourseConsumptionStats
+  getCourseWatchTime(course_id: String, start_date: String, end_date: String): [CourseWatchTime]
+  getCourseTotalWatchTime(course_id: String): Float
 }
 
 type Mutation {
