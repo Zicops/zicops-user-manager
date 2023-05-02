@@ -96,7 +96,7 @@ func AddUserTotalWatchTime(ctx context.Context, userID *string, courseID *string
 	ccStat := ccStats[0]
 	ccStat.TotalWatchTime = ccStat.TotalWatchTime + int64(timeInt)
 	stmt, names := userz.CCTable.Update("total_time")
-	updatedQuery := CassUserSession.Query(stmt, names)
+	updatedQuery := CassUserSession.Query(stmt, names).BindStruct(&ccStat)
 	if err = updatedQuery.ExecRelease(); err != nil {
 		return nil, err
 	}
