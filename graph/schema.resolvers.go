@@ -1290,6 +1290,26 @@ func (r *queryResolver) GetMostLeastAssignedCourse(ctx context.Context, lspID *s
 	return res, nil
 }
 
+// GetCourseWatchTime is the resolver for the getCourseWatchTime field.
+func (r *queryResolver) GetCourseWatchTime(ctx context.Context, courseID *string, startDate *string, endDate *string) ([]*model.CourseWatchTime, error) {
+	res, err := handlers.GetCourseWatchTime(ctx, courseID, startDate, endDate)
+	if err != nil {
+		log.Printf("error getting watch time of the course: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetCourseTotalWatchTime is the resolver for the getCourseTotalWatchTime field.
+func (r *queryResolver) GetCourseTotalWatchTime(ctx context.Context, courseID *string) (*float64, error) {
+	res, err := handlers.GetCourseTotalWatchTime(ctx, courseID)
+	if err != nil {
+		log.Printf("error getting total watch time for the given time: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
