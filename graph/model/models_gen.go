@@ -156,11 +156,24 @@ type CourseViews struct {
 }
 
 type CourseWatchTime struct {
-	CourseID  *string `json:"course_id"`
-	Date      *string `json:"date"`
-	Time      *int    `json:"time"`
-	CreatedAt *string `json:"created_at"`
-	User      *string `json:"user"`
+	CourseID      *string   `json:"course_id"`
+	Date          *string   `json:"date"`
+	Time          *int      `json:"time"`
+	CreatedAt     *string   `json:"created_at"`
+	User          *string   `json:"user"`
+	Category      *string   `json:"category"`
+	SubCategories []*string `json:"sub_categories"`
+	TopicID       *string   `json:"topic_id"`
+}
+
+type CourseWatchTimeInput struct {
+	CourseID      *string   `json:"course_id"`
+	Category      *string   `json:"category"`
+	SubCategories []*string `json:"sub_categories"`
+	TopicID       *string   `json:"topic_id"`
+	UserID        *string   `json:"user_id"`
+	Time          *int      `json:"time"`
+	Date          *string   `json:"date"`
 }
 
 type ExamAttemptsFilters struct {

@@ -1113,6 +1113,19 @@ type CourseWatchTime {
   time: Int
   created_at: String
   user: String
+  category: String
+  sub_categories: [String]
+  topic_id: String
+}
+
+input CourseWatchTimeInput {
+  course_id: String
+  category: String
+  sub_categories: [String]
+  topic_id: String
+  user_id: String
+  time: Int
+  date: String
 }
 
 type Query {
@@ -1302,6 +1315,7 @@ type Query {
   getMostLeastAssignedCourse(lsp_id: String, input: String): CourseConsumptionStats
   getCourseWatchTime(course_id: String, start_date: String, end_date: String): [CourseWatchTime]
   getCourseTotalWatchTime(course_id: String): Float
+  getUserWatchTime(user_id: String!, start_date: String, end_date: String): [CourseWatchTime]
 }
 
 type Mutation {
@@ -1386,5 +1400,5 @@ type Mutation {
   ): VendorUserMap
   deleteVendorUserMap(vendor_id: String, user_id: String): Boolean
   disableVendorLspMap(vendor_id: String, lsp_id: String): Boolean
-  addUserTotalWatchTime(user_id: String, course_id: String, time: Int, date: String): Boolean
+  addUserTotalWatchTime(input: CourseWatchTimeInput): Boolean
 }

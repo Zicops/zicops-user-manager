@@ -661,8 +661,8 @@ func (r *mutationResolver) DisableVendorLspMap(ctx context.Context, vendorID *st
 }
 
 // AddUserTotalWatchTime is the resolver for the addUserTotalWatchTime field.
-func (r *mutationResolver) AddUserTotalWatchTime(ctx context.Context, userID *string, courseID *string, time *int, date *string) (*bool, error) {
-	resp, err := handlers.AddUserTotalWatchTime(ctx, userID, courseID, time, date)
+func (r *mutationResolver) AddUserTotalWatchTime(ctx context.Context, input *model.CourseWatchTimeInput) (*bool, error) {
+	resp, err := handlers.AddUserTotalWatchTime(ctx, input)
 	if err != nil {
 		log.Printf("Got error while adding total watch time: %v", err)
 		return nil, err
@@ -1303,6 +1303,16 @@ func (r *queryResolver) GetCourseWatchTime(ctx context.Context, courseID *string
 // GetCourseTotalWatchTime is the resolver for the getCourseTotalWatchTime field.
 func (r *queryResolver) GetCourseTotalWatchTime(ctx context.Context, courseID *string) (*float64, error) {
 	res, err := handlers.GetCourseTotalWatchTime(ctx, courseID)
+	if err != nil {
+		log.Printf("error getting total watch time for the given time: %v", err)
+		return nil, err
+	}
+	return res, nil
+}
+
+// GetUserWatchTime is the resolver for the getUserWatchTime field.
+func (r *queryResolver) GetUserWatchTime(ctx context.Context, userID string, startDate *string, endDate *string) ([]*model.CourseWatchTime, error) {
+	res, err := handlers.GetUserWatchTime(ctx, userID, startDate, endDate)
 	if err != nil {
 		log.Printf("error getting total watch time for the given time: %v", err)
 		return nil, err
