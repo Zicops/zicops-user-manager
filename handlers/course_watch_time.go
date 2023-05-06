@@ -15,8 +15,8 @@ import (
 	"github.com/zicops/zicops-user-manager/lib/identity"
 )
 
-func AddUserTotalWatchTime(ctx context.Context, userID *string, courseID *string, time *int, date *string) (*bool, error) {
-	if courseID == nil || date == nil {
+func AddUserTotalWatchTime(ctx context.Context, input *model.CourseWatchTimeInput) (*bool, error) {
+	if input.CourseID == nil || input.Date == nil {
 		return nil, fmt.Errorf("please enter course id as well as date")
 	}
 	claims, err := identity.GetClaimsFromContext(ctx)
@@ -25,12 +25,12 @@ func AddUserTotalWatchTime(ctx context.Context, userID *string, courseID *string
 	}
 	email := claims["email"].(string)
 	userIdStr := base64.URLEncoding.EncodeToString([]byte(email))
-	if userID != nil && *userID != "" {
-		userIdStr = *userID
+	if input.UserID != nil && *input.UserID != "" {
+		userIdStr = *input.UserID
 	}
 	timeInt := 15
-	if time != nil && *time != 0 {
-		timeInt = *time
+	if input.Time != nil && *input.Time != 0 {
+		timeInt = *input.Time
 	}
 
 	session, err := global.CassPool.GetSession(ctx, "userz")
@@ -39,7 +39,7 @@ func AddUserTotalWatchTime(ctx context.Context, userID *string, courseID *string
 	}
 	CassUserSession := session
 
-	qryStr := fmt.Sprintf(`SELECT * FROM userz.user_course_views WHERE course_id='%s' AND date_value='%s' and users='%s' ALLOW FILTERING`, *courseID, *date, userIdStr)
+	qryStr := fmt.Sprintf(`SELECT * FROM userz.user_course_views WHERE course_id='%s' AND date_value='%s' and users='%s' ALLOW FILTERING`, *input.CourseID, *input.Date, userIdStr)
 	getUserViewTime := func() (userCourse []userz.UserCourseViews, err error) {
 		q := CassUserSession.Query(qryStr, nil)
 		defer q.Release()
@@ -54,11 +54,28 @@ func AddUserTotalWatchTime(ctx context.Context, userID *string, courseID *string
 	if len(userViewTimes) == 0 {
 		//create new mapping
 		watchTime := userz.UserCourseViews{
-			CourseId:  *courseID,
-			DateValue: *date,
+			CourseId:  *input.CourseID,
+			DateValue: *input.Date,
 			Time:      int64(timeInt),
 			CreatedAt: t.Now().Unix(),
 			Users:     userIdStr,
+		}
+		if input.TopicID != nil {
+			watchTime.TopicId = *input.TopicID
+		}
+		if input.Category != nil {
+			watchTime.Category = *input.Category
+		}
+		if input.SubCategories != nil {
+			var tmp []string
+			for _, vv := range input.SubCategories {
+				if vv == nil {
+					continue
+				}
+				v := vv
+				tmp = append(tmp, *v)
+			}
+			watchTime.SubCategories = tmp
 		}
 
 		insertQuery := CassUserSession.Query(userz.UserCourseViewsTable.Insert()).BindStruct(watchTime)
@@ -78,7 +95,7 @@ func AddUserTotalWatchTime(ctx context.Context, userID *string, courseID *string
 	}
 
 	//update course_consumption_stats' course id total time column
-	query := fmt.Sprintf(`SELECT * FROM userz.course_consumption_stats WHERE course_id='%s' ALLOW FILTERING`, *courseID)
+	query := fmt.Sprintf(`SELECT * FROM userz.course_consumption_stats WHERE course_id='%s' ALLOW FILTERING`, *input.CourseID)
 	getCourseConsumption := func() (cc []userz.CCStats, err error) {
 		q := CassUserSession.Query(query, nil)
 		defer q.Release()
@@ -146,12 +163,20 @@ func GetCourseWatchTime(ctx context.Context, courseID *string, startDate *string
 			defer wg.Done()
 			t := int(v.Time)
 			ca := strconv.Itoa(int(v.CreatedAt))
+			var arr []*string
+			for _, vv := range v.SubCategories {
+				v := vv
+				arr = append(arr, &v)
+			}
 			tmp := model.CourseWatchTime{
-				CourseID:  &v.CourseId,
-				Date:      &v.DateValue,
-				Time:      &t,
-				CreatedAt: &ca,
-				User:      &v.Users,
+				CourseID:      &v.CourseId,
+				Date:          &v.DateValue,
+				Time:          &t,
+				CreatedAt:     &ca,
+				User:          &v.Users,
+				Category:      &v.Category,
+				TopicID:       &v.TopicId,
+				SubCategories: arr,
 			}
 
 			res[k] = &tmp
@@ -202,4 +227,28 @@ func GetCourseTotalWatchTime(ctx context.Context, courseID *string) (*float64, e
 
 	totalTimeF := float64(totalTime)
 	return &totalTimeF, nil
+}
+
+func GetUserWatchTime(ctx context.Context, userID string, startDate *string, endDate *string) ([]*model.CourseWatchTime, error) {
+	if startDate == nil || endDate == nil {
+		return nil, fmt.Errorf("please enter start date and end date")
+	}
+	_, err := identity.GetClaimsFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// session, err := global.CassPool.GetSession(ctx, "userz")
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// CassUserSession := session
+	// qryStr := fmt.Sprintf(`SELECT * FROM userz.user_course_views WHERE users='%s' AND date_value <= '%s' AND date_value >= '%s' ALLOW FILTERING`, userID, *endDate, *startDate)
+	// getData := func() (datas []userz.UserCourseViews, err error) {
+	// 	q := CassUserSession.Query(qryStr, nil)
+	// 	defer q.Release()
+	// 	iter := q.Iter()
+	// 	return datas, iter.Select(&datas)
+	// }
+	return nil, nil
 }
