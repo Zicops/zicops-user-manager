@@ -228,15 +228,8 @@ func checkCompletionOfTopics(ctx context.Context, CassUserSession *gocqlx.Sessio
 	var total float32
 	for _, vv := range progressMap {
 		v := vv
-		if v.TopicType == "Assessment" && v.Status == "completed" {
+		if v.Status == "completed" {
 			total = total + 100
-		}
-		if v.TopicType == "Content" && v.VideoProgress != "" {
-			progress, err := strconv.ParseFloat(v.VideoProgress, 64)
-			if err != nil {
-				return 0, err
-			}
-			total = total + float32(progress)
 		}
 	}
 	l := float32(len(progressMap))
