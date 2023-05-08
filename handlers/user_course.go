@@ -180,16 +180,7 @@ func UpdateUserCourse(ctx context.Context, input model.UserCourseInput) (*model.
 		updatedCols = append(updatedCols, "course_type")
 	}
 	if input.CourseStatus != "" && input.CourseStatus != userLspMap.CourseStatus {
-		if input.CourseStatus == "in-progress" && userLspMap.CourseStatus == "open" {
-			userLspMap.CourseStatus = "started"
-		} else if input.CourseStatus == "completed" && userLspMap.CourseStatus != "completed" {
-			res := checkStatusOfEachTopic(ctx, input.UserID, userLspMap.ID)
-			if res {
-				userLspMap.CourseStatus = "completed"
-			}
-		} else {
-			userLspMap.CourseStatus = input.CourseStatus
-		}
+		userLspMap.CourseStatus = input.CourseStatus
 
 		updatedCols = append(updatedCols, "course_status")
 	}
