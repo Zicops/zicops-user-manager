@@ -238,17 +238,54 @@ func GetUserWatchTime(ctx context.Context, userID string, startDate *string, end
 		return nil, err
 	}
 
-	// session, err := global.CassPool.GetSession(ctx, "userz")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// CassUserSession := session
-	// qryStr := fmt.Sprintf(`SELECT * FROM userz.user_course_views WHERE users='%s' AND date_value <= '%s' AND date_value >= '%s' ALLOW FILTERING`, userID, *endDate, *startDate)
-	// getData := func() (datas []userz.UserCourseViews, err error) {
-	// 	q := CassUserSession.Query(qryStr, nil)
-	// 	defer q.Release()
-	// 	iter := q.Iter()
-	// 	return datas, iter.Select(&datas)
-	// }
-	return nil, nil
+	session, err := global.CassPool.GetSession(ctx, "userz")
+	if err != nil {
+		return nil, err
+	}
+	CassUserSession := session
+	qryStr := fmt.Sprintf(`SELECT * FROM userz.user_course_views WHERE users='%s' AND date_value <= '%s' AND date_value >= '%s' ALLOW FILTERING`, userID, *endDate, *startDate)
+	getData := func() (datas []userz.UserCourseViews, err error) {
+		q := CassUserSession.Query(qryStr, nil)
+		defer q.Release()
+		iter := q.Iter()
+		return datas, iter.Select(&datas)
+	}
+
+	userData, err := getData()
+	if err != nil {
+		return nil, err
+	}
+	if len(userData) == 0 {
+		return nil, nil
+	}
+
+	res := make([]*model.CourseWatchTime, len(userData))
+	var wg sync.WaitGroup
+	for kk, vvv := range userData {
+		vv := vvv
+		wg.Add(1)
+		go func(k int, v userz.UserCourseViews) {
+			defer wg.Done()
+			t := int(v.Time)
+			ca := strconv.Itoa(int(v.CreatedAt))
+			var subC []*string
+			for _, scs := range v.SubCategories {
+				sc := scs
+				subC = append(subC, &sc)
+			}
+			tmp := model.CourseWatchTime{
+				CourseID:      &v.CourseId,
+				Date:          &v.DateValue,
+				Time:          &t,
+				CreatedAt:     &ca,
+				User:          &v.Users,
+				Category:      &v.Category,
+				SubCategories: subC,
+				TopicID:       &v.TopicId,
+			}
+			res[k] = &tmp
+		}(kk, vv)
+	}
+	wg.Wait()
+	return res, nil
 }
