@@ -69,7 +69,7 @@ func GetAssignedCourses(ctx context.Context, lspID *string, typeArg string) (*mo
 			return nil, err
 		}
 		if len(userCourse) == 0 {
-			return nil, nil
+			continue
 		} else {
 			total = total + 1
 		}
