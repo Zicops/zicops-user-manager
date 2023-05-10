@@ -59,6 +59,7 @@ func AddUserTotalWatchTime(ctx context.Context, input *model.CourseWatchTimeInpu
 			Time:      int64(timeInt),
 			CreatedAt: t.Now().Unix(),
 			Users:     userIdStr,
+			UpdatedAt: int64(timeInt),
 		}
 		if input.TopicID != nil {
 			watchTime.TopicId = *input.TopicID
@@ -86,7 +87,9 @@ func AddUserTotalWatchTime(ctx context.Context, input *model.CourseWatchTimeInpu
 		//already existing map, add the time in that
 		userViewTime := userViewTimes[0]
 		userViewTime.Time = userViewTime.Time + int64(timeInt)
-		stmt, names := userz.UserCourseViewsTable.Update("time")
+		userViewTime.UpdatedAt = int64(timeInt)
+		updatedCols := []string{"time", "updated_at"}
+		stmt, names := userz.UserCourseViewsTable.Update(updatedCols...)
 		updatedQuery := CassUserSession.Query(stmt, names).BindStruct(&userViewTime)
 		if err = updatedQuery.ExecRelease(); err != nil {
 			log.Printf("Got error while updating watch time: %v", err)
@@ -168,6 +171,7 @@ func GetCourseWatchTime(ctx context.Context, courseID *string, startDate *string
 				v := vv
 				arr = append(arr, &v)
 			}
+			ua := strconv.Itoa(int(v.UpdatedAt))
 			tmp := model.CourseWatchTime{
 				CourseID:      &v.CourseId,
 				Date:          &v.DateValue,
@@ -177,6 +181,7 @@ func GetCourseWatchTime(ctx context.Context, courseID *string, startDate *string
 				Category:      &v.Category,
 				TopicID:       &v.TopicId,
 				SubCategories: arr,
+				UpdatedAt:     &ua,
 			}
 
 			res[k] = &tmp
@@ -273,6 +278,7 @@ func GetUserWatchTime(ctx context.Context, userID string, startDate *string, end
 				sc := scs
 				subC = append(subC, &sc)
 			}
+			ua := strconv.Itoa(int(v.UpdatedAt))
 			tmp := model.CourseWatchTime{
 				CourseID:      &v.CourseId,
 				Date:          &v.DateValue,
@@ -282,6 +288,7 @@ func GetUserWatchTime(ctx context.Context, userID string, startDate *string, end
 				Category:      &v.Category,
 				SubCategories: subC,
 				TopicID:       &v.TopicId,
+				UpdatedAt:     &ua,
 			}
 			res[k] = &tmp
 		}(kk, vv)
