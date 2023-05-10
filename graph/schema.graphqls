@@ -1116,6 +1116,7 @@ type CourseWatchTime {
   category: String
   sub_categories: [String]
   topic_id: String
+  updated_at: String
 }
 
 input CourseWatchTimeInput {

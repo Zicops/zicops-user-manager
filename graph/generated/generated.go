@@ -149,6 +149,7 @@ type ComplexityRoot struct {
 		SubCategories func(childComplexity int) int
 		Time          func(childComplexity int) int
 		TopicID       func(childComplexity int) int
+		UpdatedAt     func(childComplexity int) int
 		User          func(childComplexity int) int
 	}
 
@@ -1582,6 +1583,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CourseWatchTime.TopicID(childComplexity), true
+
+	case "CourseWatchTime.updated_at":
+		if e.complexity.CourseWatchTime.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.CourseWatchTime.UpdatedAt(childComplexity), true
 
 	case "CourseWatchTime.user":
 		if e.complexity.CourseWatchTime.User == nil {
@@ -7455,6 +7463,7 @@ type CourseWatchTime {
   category: String
   sub_categories: [String]
   topic_id: String
+  updated_at: String
 }
 
 input CourseWatchTimeInput {
@@ -14056,6 +14065,47 @@ func (ec *executionContext) _CourseWatchTime_topic_id(ctx context.Context, field
 }
 
 func (ec *executionContext) fieldContext_CourseWatchTime_topic_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CourseWatchTime",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CourseWatchTime_updated_at(ctx context.Context, field graphql.CollectedField, obj *model.CourseWatchTime) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CourseWatchTime_updated_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CourseWatchTime_updated_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CourseWatchTime",
 		Field:      field,
@@ -29395,6 +29445,8 @@ func (ec *executionContext) fieldContext_Query_getCourseWatchTime(ctx context.Co
 				return ec.fieldContext_CourseWatchTime_sub_categories(ctx, field)
 			case "topic_id":
 				return ec.fieldContext_CourseWatchTime_topic_id(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CourseWatchTime_updated_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CourseWatchTime", field.Name)
 		},
@@ -29517,6 +29569,8 @@ func (ec *executionContext) fieldContext_Query_getUserWatchTime(ctx context.Cont
 				return ec.fieldContext_CourseWatchTime_sub_categories(ctx, field)
 			case "topic_id":
 				return ec.fieldContext_CourseWatchTime_topic_id(ctx, field)
+			case "updated_at":
+				return ec.fieldContext_CourseWatchTime_updated_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CourseWatchTime", field.Name)
 		},
@@ -48952,6 +49006,10 @@ func (ec *executionContext) _CourseWatchTime(ctx context.Context, sel ast.Select
 		case "topic_id":
 
 			out.Values[i] = ec._CourseWatchTime_topic_id(ctx, field, obj)
+
+		case "updated_at":
+
+			out.Values[i] = ec._CourseWatchTime_updated_at(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

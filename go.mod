@@ -16,18 +16,18 @@ require (
 	github.com/scylladb/gocqlx/v2 v2.8.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/vektah/gqlparser/v2 v2.5.1
-	github.com/zicops/contracts v0.0.0-20230506195006-f9e5743d47d2
+	github.com/zicops/contracts v0.0.0-20230510183423-7f5d51fc18df
 	github.com/zicops/zicops-cass-pool v0.0.0-20230304193433-3918bccf970c
-	golang.org/x/oauth2 v0.7.0
-	google.golang.org/api v0.121.0
+	golang.org/x/oauth2 v0.8.0
+	google.golang.org/api v0.122.0
 	gopkg.in/tylerb/graceful.v1 v1.2.15
 )
 
 require (
-	cloud.google.com/go v0.110.1 // indirect
+	cloud.google.com/go v0.110.2 // indirect
 	cloud.google.com/go/firestore v1.9.0 // indirect
-	cloud.google.com/go/iam v1.0.0 // indirect
-	cloud.google.com/go/longrunning v0.4.1 // indirect
+	cloud.google.com/go/iam v1.0.1 // indirect
+	cloud.google.com/go/longrunning v0.4.2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.7.0 // indirect
 	github.com/bytedance/sonic v1.8.8 // indirect
@@ -70,8 +70,8 @@ require (
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.8.0 // indirect
-	golang.org/x/net v0.9.0 // indirect
+	golang.org/x/crypto v0.9.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
 	golang.org/x/sys v0.8.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
@@ -86,7 +86,7 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.19.1 // indirect
+	cloud.google.com/go/compute v1.19.2 // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect

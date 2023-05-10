@@ -164,6 +164,7 @@ type CourseWatchTime struct {
 	Category      *string   `json:"category"`
 	SubCategories []*string `json:"sub_categories"`
 	TopicID       *string   `json:"topic_id"`
+	UpdatedAt     *string   `json:"updated_at"`
 }
 
 type CourseWatchTimeInput struct {
